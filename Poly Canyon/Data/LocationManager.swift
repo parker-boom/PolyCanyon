@@ -156,6 +156,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             // Check based on the landmark number and mark additional points as visited
             switch nearestPoint.landmark {
+            case 13:
+                markPointAsVisitedByIndex(19)
+                markPointAsVisitedByIndex(108)
             case 14:
                 markPointAsVisitedByIndex(58)
                 markPointAsVisitedByIndex(79)
@@ -164,6 +167,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             case 22:
                 markPointAsVisitedByIndex(35)
                 markPointAsVisitedByIndex(112)
+            case 30:
+                markPointAsVisitedByIndex(49)
+                markPointAsVisitedByIndex(60)
             default:
                 break
             }

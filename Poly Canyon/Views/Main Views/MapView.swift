@@ -95,7 +95,8 @@ struct MapView: View {
                                 self.scale = min(self.maxScale, max(self.minScale, newScale))
                                 self.offset = self.limitOffset(imageSize: imageSize)
                                 
-                                if self.scale == self.minScale {
+                                if self.scale < 1.1 {
+                                    self.scale = self.minScale
                                     self.offset = .zero
                                     self.dragOffset = .zero
                                 }
@@ -104,7 +105,8 @@ struct MapView: View {
                                 self.lastScale = 1.0
                                 self.offset = self.limitOffset(imageSize: imageSize)
                                 
-                                if self.scale == self.minScale {
+                                if self.scale < 1.1 {
+                                    self.scale = self.minScale
                                     self.offset = .zero
                                     self.dragOffset = .zero
                                 }

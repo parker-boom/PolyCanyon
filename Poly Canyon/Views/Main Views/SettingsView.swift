@@ -72,14 +72,14 @@ struct SettingsView: View {
             
             Section(header: Text("More")) {
                 Link("In-depth Information", destination: URL(string: "https://caed.calpoly.edu/history-structures")!)
-                Link("How to Get There", destination: URL(string: "https://whimsysoul.com/exactly-how-to-find-the-cal-poly-architecture-graveyard-a-playground-of-design-in-slo/")!)
+                Link("How to Get There", destination: URL(string: "https://maps.apple.com/?address=Poly%20Canyon%20Rd,%20San%20Luis%20Obispo,%20CA%20%2093405,%20United%20States&auid=7360445136973306817&ll=35.314999,-120.652923&lsp=9902&q=Poly%20Canyon")!)
             }
             
             Section(header: Text("Credits")) {
                 Text("Parker Jones")
                 Text("Cal Poly University - San Luis Obispo ")
                 Text("CAED College & Department")
-                Text("Thank you to the following people and groups for supporting the development of the app.")
+                Text("Please email bug reports or issues to pjones15@calpoly.edu, thanks in advance!")
                     .font(.caption)
                     .foregroundColor(isDarkMode ? .gray : Color.black.opacity(0.6))
                 
