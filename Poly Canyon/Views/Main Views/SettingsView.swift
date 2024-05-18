@@ -77,7 +77,7 @@ struct SettingsView: View {
             
             Section(header: Text("Credits")) {
                 Text("Parker Jones")
-                Text("Cal Poly University - San Luis Obispo ")
+                Text("Cal Poly SLO")
                 Text("CAED College & Department")
                 Text("Please email bug reports or issues to pjones15@calpoly.edu, thanks in advance!")
                     .font(.caption)

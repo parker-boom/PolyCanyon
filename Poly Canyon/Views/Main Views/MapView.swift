@@ -23,27 +23,36 @@ struct MapView: View {
     // BINDING
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
+    
+    // objects
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
+    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
+    @State private var visitedStructure: Structure?
     
     // STATE
+    // numbers for gestures
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
-    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager())
+    @State private var dragOffset: CGSize = .zero
+    
+    // booleans
     @State private var isSatelliteView: Bool = false
     @State private var showPermissionAlert = false
     @State private var showOnboardingImage = true
     @State private var showAdventureModeAlert = false
-    
     @State private var showResetButton = false
     @State private var isDragging = false
-    @State private var dragOffset: CGSize = .zero
-    
     @State private var showVisitedStructurePopup = false
-    @State private var visitedStructure: Structure?
-    
     @State private var showAllVisitedPopup = false
+    @State private var allStructuresVisitedFlag = false
+    @State private var showNearbyStructures = false
+    @State private var nearbyMapPoints: [MapPoint] = []
+    
+    @State private var showStructPopup = false
+    @State private var selectedStructure: Structure?
+
     
     // CONSTANTS
     let maxScale: CGFloat = 3.0
@@ -87,58 +96,52 @@ struct MapView: View {
                     .scaleEffect(scale)
                     .offset(x: offset.width + dragOffset.width, y: offset.height + dragOffset.height)
                     .gesture(
-                        MagnificationGesture()
-                            .onChanged { value in
-                                let delta = value / self.lastScale
-                                self.lastScale = value
-                                let newScale = self.scale * delta
-                                self.scale = min(self.maxScale, max(self.minScale, newScale))
-                                self.offset = self.limitOffset(imageSize: imageSize)
-                                
-                                if self.scale < 1.1 {
-                                    self.scale = self.minScale
-                                    self.offset = .zero
-                                    self.dragOffset = .zero
-                                }
-                            }
-                            .onEnded { _ in
-                                self.lastScale = 1.0
-                                self.offset = self.limitOffset(imageSize: imageSize)
-                                
-                                if self.scale < 1.1 {
-                                    self.scale = self.minScale
-                                    self.offset = .zero
-                                    self.dragOffset = .zero
-                                }
-                            }
-                    )
-                    .onChange(of: scale) { newScale in
-                        showResetButton = newScale > minScale
-                    }
-                    .simultaneousGesture(
-                        DragGesture()
-                            .onChanged { value in
-                                if self.scale > self.minScale {
-                                    self.isDragging = true
+                        SimultaneousGesture(
+                            MagnificationGesture()
+                                .onChanged { value in
+                                    let delta = value / self.lastScale
+                                    self.lastScale = value
+                                    let newScale = self.scale * delta
+                                    self.scale = min(self.maxScale, max(self.minScale, newScale))
+                                    self.offset = self.limitOffset(imageSize: imageSize)
                                     
-                                    // Adjust the sensitivity by changing the value of 'sensitivity'
-                                    // A higher value will make the panning less sensitive
-                                    let sensitivity = self.scale * 0.5
+                                    if self.scale < 1.2 {
+                                        self.scale = self.minScale
+                                        self.offset = .zero
+                                        self.dragOffset = .zero
+                                    }
+                                }
+                                .onEnded { _ in
+                                    self.lastScale = 1.0
+                                    self.offset = self.limitOffset(imageSize: imageSize)
                                     
-                                    let newOffset = CGSize(
-                                        width: value.translation.width / sensitivity,
-                                        height: value.translation.height / sensitivity
-                                    )
-                                    self.dragOffset = self.limitDragOffset(newOffset: newOffset, imageSize: imageSize)
+                                    if self.scale < 1.2 {
+                                        self.scale = self.minScale
+                                        self.offset = .zero
+                                        self.dragOffset = .zero
+                                    }
+                                    self.showResetButton = self.scale > self.minScale
+                                },
+                            DragGesture()
+                                .onChanged { value in
+                                    if self.scale > self.minScale {
+                                        self.isDragging = true
+                                        let sensitivity = self.scale * 0.5
+                                        let newOffset = CGSize(
+                                            width: value.translation.width / sensitivity,
+                                            height: value.translation.height / sensitivity
+                                        )
+                                        self.dragOffset = self.limitDragOffset(newOffset: newOffset, imageSize: imageSize)
+                                    }
                                 }
-                            }
-                            .onEnded { _ in
-                                if self.isDragging {
-                                    self.isDragging = false
-                                    self.offset = self.limitOffset(newOffset: CGSize(width: self.offset.width + self.dragOffset.width, height: self.offset.height + self.dragOffset.height), imageSize: imageSize)
-                                    self.dragOffset = .zero
+                                .onEnded { _ in
+                                    if self.isDragging {
+                                        self.isDragging = false
+                                        self.offset = self.limitOffset(newOffset: CGSize(width: self.offset.width + self.dragOffset.width, height: self.offset.height + self.dragOffset.height), imageSize: imageSize)
+                                        self.dragOffset = .zero
+                                    }
                                 }
-                            }
+                        )
                     )
                         
                 
@@ -161,6 +164,7 @@ struct MapView: View {
                 if showResetButton {
                     Button(action: {
                         resetMap()
+                        showResetButton = false
                     }) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                             .font(.system(size: 24))
@@ -174,6 +178,85 @@ struct MapView: View {
                     .padding(.top, -10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                
+                
+                // Possible 3 nearby structs later
+                /*
+                // Nearby button and expandable list
+                VStack(alignment: .leading, spacing: 10) {
+                    if showNearbyStructures {
+                        ForEach(nearbyMapPoints, id: \.landmark) { mapPoint in
+                            Button(action: {
+                                if let structure = structureData.structures.first(where: { $0.number == mapPoint.landmark }) {
+                                    selectedStructure = structure
+                                    print(selectedStructure)
+                                    showStructPopup = true
+                                    
+                                }
+                            }) {
+                                HStack(spacing: 0) {
+                                    Text("\(mapPoint.landmark)")
+                                        .font(.system(size: 24))
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(isDarkMode ? .white : .black)
+                                        .padding(.leading, 5)
+                                        .padding(.vertical, 10)
+
+                                    Image("\(mapPoint.landmark)M")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 50, height: 50)
+                                        .blur(radius: mapPoint.isVisited ? 0 : 6)
+                                        .cornerRadius(10)
+                                        .padding(.leading, 5)
+                                }
+                                .background(isDarkMode ? Color.black : Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.3), radius: 5, x: 0, y: 0)
+                                .padding(.horizontal, 5)
+                            }
+                        }
+                    }
+
+                    Button(action: {
+                        if showNearbyStructures {
+                            withAnimation {
+                                showNearbyStructures = false
+                            }
+                        } else {
+                            nearbyMapPoints = findNearbyMapPoints()
+                            withAnimation {
+                                showNearbyStructures = true
+                            }
+                        }
+                    }) {
+                        Image(systemName: showNearbyStructures ? "chevron.down.circle.fill" : "chevron.up.circle.fill")
+                            .font(.system(size: 24))
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(isDarkMode ? .white : .black)
+                            .background(isDarkMode ? Color.black : Color.white)
+                            .cornerRadius(15)
+                            .padding()
+                    }
+                    .shadow(color: isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.3), radius: 5, x: 0, y: 0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .padding(.bottom, 20)
+                .padding(.leading, 10)
+                .sheet(isPresented: $showStructPopup) {
+                    if let structure = selectedStructure {
+                        StructPopUp(structure: selectedStructure, isDarkMode: $isDarkMode) {
+                            showStructPopup = false
+                        }
+                    }
+                }*/
+
+
+
+
+
+
+
                 
                 // if all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
                 if scale == 1.0 {
@@ -254,8 +337,9 @@ struct MapView: View {
                                 .zIndex(1)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                                 .padding(.bottom, 15)
-                        } else {
-                            AllStructuresVisitedPopup(isPresented: $showAllVisitedPopup)
+                        }
+                        if showAllVisitedPopup {
+                            AllStructuresVisitedPopup(isPresented: $showAllVisitedPopup, isDarkMode: $isDarkMode)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Color.clear)
                         }
@@ -300,8 +384,12 @@ struct MapView: View {
                 break
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("allStructuresVisited"))) { _ in
-            showAllVisitedPopup = true
+        .onChange(of: allStructuresVisitedFlag) { newValue in
+            if allStructuresVisitedFlag {
+                // Show congrats popup after closing structure popup
+                showAllVisitedPopup = true
+                allStructuresVisitedFlag = false // Reset the flag
+            }
         }
         // For the geometry reader
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -362,6 +450,30 @@ struct MapView: View {
         return nearestPoint
     }
     
+    private func findNearbyMapPoints() -> [MapPoint] {
+        guard let userLocation = locationManager.lastLocation else { return [] }
+
+        let nearbyPoints = mapPointManager.mapPoints
+            .filter { $0.landmark != -1 }
+            .sorted { point1, point2 in
+                let location1 = CLLocation(latitude: point1.coordinate.latitude, longitude: point1.coordinate.longitude)
+                let location2 = CLLocation(latitude: point2.coordinate.latitude, longitude: point2.coordinate.longitude)
+                return userLocation.distance(from: location1) < userLocation.distance(from: location2)
+            }
+        
+        return Array(nearbyPoints.prefix(3))
+    }
+
+
+    private func showStructPopup(for mapPoint: MapPoint) {
+        if let structure = structureData.structures.first(where: { $0.number == mapPoint.landmark }) {
+            visitedStructure = structure
+            showVisitedStructurePopup = true
+        }
+    }
+
+
+    
     // Calculate where the top left of the image is to help place the location circle in the correct position
     private func topLeftOfImage(in imageSize: CGSize) -> CGPoint {
         let containerAspectRatio = imageSize.width / imageSize.height
@@ -416,8 +528,13 @@ struct MapView: View {
                 self.visitedStructure = structure
                 self.showVisitedStructurePopup = true
             }
+            // Check if all structures are visited
+            if self.structureData.structures.allSatisfy({ $0.isVisited }) {
+                self.allStructuresVisitedFlag = true
+            }
         }
     }
+
 }
 
 // Pulsing circle used to indicate location, seperate structure so animation works after zooming in and out
@@ -540,7 +657,7 @@ struct VisitedStructurePopup: View {
 
 struct AllStructuresVisitedPopup: View {
     @Binding var isPresented: Bool
-    @Environment(\.colorScheme) var colorScheme
+    @Binding var isDarkMode: Bool
 
     var body: some View {
         ZStack {
@@ -549,18 +666,18 @@ struct AllStructuresVisitedPopup: View {
                     Text("Congratulations!")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                        .foregroundColor(isDarkMode ? .white : .black)
                     Text("You have visited all structures!")
-                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                        .foregroundColor(isDarkMode ? .white : .black)
                     Image("partyHat")
-                        .resizable() // Make the image resizable
-                        .aspectRatio(contentMode: .fit) // Ensure the image fits within the frame
-                        .frame(width: 100, height: 100) // Adjust the frame size as needed
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
                 }
                 .frame(width: 300, height: 200)
-                .background(colorScheme == .dark ? Color.black : Color.white)
+                .background(isDarkMode ? Color.black : Color.white)
                 .cornerRadius(20)
-                .shadow(radius: 10)
+                .shadow(color: isDarkMode ? Color.white : Color.black, radius: 10)
                 .onTapGesture {
                     isPresented = false
                 }
@@ -568,6 +685,7 @@ struct AllStructuresVisitedPopup: View {
         }
     }
 }
+
 
 
 

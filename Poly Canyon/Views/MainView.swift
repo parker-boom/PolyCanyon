@@ -13,6 +13,7 @@
 
 // MARK: Code
 import SwiftUI
+import Combine
 
 struct MainView: View {
     // MARK: - Properties
@@ -23,11 +24,12 @@ struct MainView: View {
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
     
+    @StateObject private var keyboardManager = KeyboardManager()
+    
     // MARK: - Body
     
     var body: some View {
         VStack(spacing: 0) {
-            // This ZStack will switch views manually based on 'selection'
             ZStack {
                 if selection == 0 {
                     MapView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData, mapPointManager: mapPointManager)
@@ -38,17 +40,21 @@ struct MainView: View {
                 }
             }
             
-            CustomTabBar(onTabSelected: { tabIndex in
-                withAnimation {
-                    selection = tabIndex
-                }
-            }, selection: $selection, isDarkMode: isDarkMode)
-            .edgesIgnoringSafeArea(.all)
+            if !keyboardManager.isKeyboardVisible {
+                CustomTabBar(onTabSelected: { tabIndex in
+                    withAnimation {
+                        selection = tabIndex
+                    }
+                }, selection: $selection, isDarkMode: isDarkMode)
+                .edgesIgnoringSafeArea(.all)
+            }
         }
         .background(isDarkMode ? Color.black : Color.white)
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
+
+
 
 struct CustomTabBar: View {
     // MARK: - Properties
@@ -109,6 +115,37 @@ struct CustomTabBar: View {
         .background(isDarkMode ? Color.black : Color(red: 1, green: 1, blue: 1))
     }
 }
+
+
+// keyboard manager for dismissing tab bar
+class KeyboardManager: ObservableObject {
+    @Published var isKeyboardVisible = false
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        addKeyboardObservers()
+    }
+    
+    private func addKeyboardObservers() {
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+            .sink { [weak self] _ in
+                self?.isKeyboardVisible = true
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+            .sink { [weak self] _ in
+                self?.isKeyboardVisible = false
+            }
+            .store(in: &cancellables)
+    }
+    
+    deinit {
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+    }
+}
+
 
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {

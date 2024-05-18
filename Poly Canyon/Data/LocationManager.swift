@@ -20,6 +20,7 @@ import Combine
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var mapPointManager: MapPointManager
+    private var structureData: StructureData
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
     @Published var isMonitoringSignificantLocationChanges = false
@@ -30,8 +31,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     )
 
     // Initializes the location manager and configures its settings.
-    init(mapPointManager: MapPointManager) {
+    init(mapPointManager: MapPointManager, structureData: StructureData) {
         self.mapPointManager = mapPointManager
+        self.structureData = structureData
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -190,7 +192,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // Marks a landmark as visited in the system notifications.
     private func markStructureAsVisited(_ landmarkId: Int) {
         NotificationCenter.default.post(name: .structureVisited, object: landmarkId)
-        checkAllStructuresVisited()
     }
     
     // Checks if a coordinate is within the predefined safe zone.
@@ -204,13 +205,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                coordinate.longitude >= minLon && coordinate.longitude <= maxLon
     }
     
-    func checkAllStructuresVisited() {        
-        let allVisited = mapPointManager.mapPoints.allSatisfy { $0.isVisited }
-        if allVisited {
-            NotificationCenter.default.post(name: .allStructuresVisited, object: nil)
-        }
-    }
-
 
 }
 

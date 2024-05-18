@@ -62,10 +62,24 @@ struct DetailView: View {
                     }
                     .padding(.leading, 5)
                     
-                    // Search Bar UI
-                    SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 5)
+                    HStack{
+                        // Search Bar UI
+                        SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+                            .frame(maxWidth: .infinity)
+                        
+                        if searchText != "" {
+                            Button(action: {
+                                searchText = ""
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(isDarkMode ? .white : .black)
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .padding(.leading, -5)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 5)
                     
                     // Toggle for grid and list view
                     Toggle(isOn: $isGridView, label: {
@@ -78,7 +92,7 @@ struct DetailView: View {
                 .background(isDarkMode ? Color.black : Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
-                .shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.4), radius: 3, x: 0, y: -2)
+                //.shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.4), radius: 3, x: 0, y: -2)
                 .padding(.horizontal, 10)
                 .padding(.bottom, -5)
 
@@ -231,6 +245,7 @@ struct DetailView: View {
                         structureData.structures[index].isOpened = true
                     }
                     showPopup = true
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     
                     // Generate haptic feedback
                     let impactMed = UIImpactFeedbackGenerator(style: .rigid)
@@ -302,6 +317,7 @@ struct DetailView: View {
                         structureData.structures[index].isOpened = true
                     }
                     showPopup = true
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     
                     // Generate haptic feedback
                     let impactMed = UIImpactFeedbackGenerator(style: .rigid)
@@ -413,21 +429,18 @@ struct RoundedCornerShape: Shape {
     }
 }
 
-
-
 struct SearchBar: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
     var isDarkMode: Bool
 
     func makeUIView(context: Context) -> UISearchBar {
-        let searchBar = UISearchBar(frame: .zero)
+        let searchBar = CustomUISearchBar(frame: .zero)
         searchBar.delegate = context.coordinator
         searchBar.placeholder = placeholder
         searchBar.autocapitalizationType = .none
         searchBar.searchBarStyle = .minimal
 
-        // Customize the search bar's appearance based on isDarkMode
         searchBar.barTintColor = isDarkMode ? .black : .white
         searchBar.tintColor = isDarkMode ? .white : .black
         searchBar.setImage(UIImage(systemName: "magnifyingglass")?.withTintColor(isDarkMode ? .white : .black, renderingMode: .alwaysOriginal), for: .search, state: .normal)
@@ -436,13 +449,11 @@ struct SearchBar: UIViewRepresentable {
         textField.textColor = isDarkMode ? .white : .black
         textField.backgroundColor = isDarkMode ? UIColor(white: 0.2, alpha: 1.0) : .white
 
-        // Set the placeholder color based on isDarkMode
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: isDarkMode ? UIColor.white.withAlphaComponent(0.7) : UIColor.black.withAlphaComponent(0.7)
         ]
         textField.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
 
-        // Add a done button to the keyboard
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
@@ -477,6 +488,21 @@ struct SearchBar: UIViewRepresentable {
         }
     }
 }
+
+class CustomUISearchBar: UISearchBar {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Remove the clear button
+        if let textField = self.value(forKey: "searchField") as? UITextField {
+            if let clearButton = textField.value(forKey: "clearButton") as? UIButton {
+                clearButton.isHidden = true
+            }
+        }
+    }
+}
+
+
+
 
 
 
