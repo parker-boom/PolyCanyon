@@ -27,10 +27,10 @@ To learn more about the code, navigate to the respective folders and read the RE
 
 ```
 poly-canyon/
-├── assets/ # Contains all the assets used in the app
-├── promotional/ # Promotional materials for the app
-├── react/ # React components and related code
-├── swift/ # Swift code for the iOS app
+├── assets/       # Contains all the assets used in the app
+├── promotional/  # Promotional materials for the app
+├── react/        # React components and related code
+├── swift/        # Swift code for the iOS app
 ```
 
 ## Current Progress
