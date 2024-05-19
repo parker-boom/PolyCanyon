@@ -17,7 +17,7 @@ Poly Canyon is designed to enhance your experience while exploring Cal Poly's Po
 - **High-Quality Photos:** View high-resolution images of the structures.
 - **Adventure Mode:** Track which structures you've visited.
 
-![Promotional Graphic](assets/screenshot.png)
+![Promotional Graphic](promotional/jpg/1920x1080)
 
 For more details about the app, visit the [App Store page](https://apps.apple.com/in/app/poly-canyon/id6499063781).
 
