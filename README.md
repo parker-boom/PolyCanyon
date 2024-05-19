@@ -7,7 +7,6 @@ Explore the wonders of Cal Poly's Poly Canyon like never before! This app provid
 - [Repository Structure](#repository-structure)
 - [Current Progress](#current-progress)
 - [Contributing](#contributing)
-- [License](#license)
 - [Contact](#contact)
 
 ## About the App
@@ -41,11 +40,6 @@ Currently working on: Android development in full
 ## Contributing
 
 Contributions are welcome, please create a new well-named branch, and have a detailed commit message 
-
-
-## License 
-
-This project is licensed under the MIT License. See the LICENSE file for details.
 
 
 ## Contact 
