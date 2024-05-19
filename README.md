@@ -5,7 +5,7 @@ Explore the wonders of Cal Poly's Poly Canyon like never before! This app provid
 ## Table of Contents
 - [About the App](#about-the-app)
 - [Repository Structure](#repository-structure)
-- [Usage](#usage)
+- [Current Progress](#current-progress)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
@@ -18,24 +18,25 @@ Poly Canyon is designed to enhance your experience while exploring Cal Poly's Po
 - **High-Quality Photos:** View high-resolution images of the structures.
 - **Adventure Mode:** Track which structures you've visited.
 
+![Promotional Graphic](assets/screenshot.png)
+
 For more details about the app, visit the [App Store page](https://apps.apple.com/in/app/poly-canyon/id6499063781).
 
 ## Repository Structure
 
 To learn more about the code, navigate to the respective folders and read the README files contained within them. Here is a brief overview of the repository structure:
 
+```
 poly-canyon/
 ├── assets/ # Contains all the assets used in the app
 ├── promotional/ # Promotional materials for the app
 ├── react/ # React components and related code
 ├── swift/ # Swift code for the iOS app
-├── .gitignore # Git ignore file
-└── README.md # This README file
+```
 
-## Usage
+## Current Progress
 
-To start clone the project locally, and navigate into either the Swift or React directories to start developing. 
-
+Currently working on: Android development in full 
 
 ## Contributing
 
