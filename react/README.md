@@ -1,5 +1,7 @@
-# Poly Canyon
+# React
 
-## Xcode app in SwiftUI for the Apple App Store
+Contains the development of the Android application in React
 
-https://apps.apple.com/us/app/poly-canyon/id6499063781
+## Progress
+
+Currently in the early stages of development, will update README more when progress is made.

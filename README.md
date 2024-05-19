@@ -17,7 +17,7 @@ Poly Canyon is designed to enhance your experience while exploring Cal Poly's Po
 - **High-Quality Photos:** View high-resolution images of the structures.
 - **Adventure Mode:** Track which structures you've visited.
 
-![Promotional Graphic](assets/screenshot.png)
+![Promotional Graphic](promotional/graphics/jpg/1920x1080.jpg)
 
 For more details about the app, visit the [App Store page](https://apps.apple.com/in/app/poly-canyon/id6499063781).
 
@@ -27,10 +27,10 @@ To learn more about the code, navigate to the respective folders and read the RE
 
 ```
 poly-canyon/
-├── assets/ # Contains all the assets used in the app
-├── promotional/ # Promotional materials for the app
-├── react/ # React components and related code
-├── swift/ # Swift code for the iOS app
+├── assets/       # Contains all the assets used in the app
+├── promotional/  # Promotional materials for the app
+├── react/        # React components and related code
+├── swift/        # Swift code for the iOS app
 ```
 
 ## Current Progress
