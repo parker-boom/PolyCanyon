@@ -63,8 +63,8 @@ struct MapView: View {
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
     )
     
-    let originalWidth = 5529.0
-    let originalHeight = 12492.0
+    let originalWidth = 1843.0
+    let originalHeight = 4164.0
     
     // MARK: - Body
     
@@ -273,8 +273,8 @@ struct MapView: View {
                                 
                                 let correctScale = min(scaleWidth, scaleHeight)
                                 
-                                let circleX = ((nearestPoint.pixelPosition.x * 1.5) * correctScale) + topLeft.x
-                                let circleY = ((nearestPoint.pixelPosition.y * 1.5) * correctScale) + topLeft.y
+                                let circleX = ((nearestPoint.pixelPosition.x * 0.5) * correctScale) + topLeft.x
+                                let circleY = ((nearestPoint.pixelPosition.y * 0.5) * correctScale) + topLeft.y
                             
                                 
                                 PulsingCircle()
