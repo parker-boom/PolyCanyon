@@ -47,6 +47,7 @@ class StructureData: ObservableObject {
         for index in structures.indices {
             structures[index].isVisited = false
             structures[index].isOpened = false
+            structures[index].recentlyVisited = -1
         }
         objectWillChange.send()
     }

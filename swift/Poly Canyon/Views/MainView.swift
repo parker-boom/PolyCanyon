@@ -19,6 +19,7 @@ struct MainView: View {
     // MARK: - Properties
     
     @State private var selection = 1
+    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
     @StateObject private var structureData = StructureData()
     @StateObject private var mapPointManager = MapPointManager()
     @Binding var isDarkMode: Bool
@@ -32,9 +33,9 @@ struct MainView: View {
         VStack(spacing: 0) {
             ZStack {
                 if selection == 0 {
-                    MapView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData, mapPointManager: mapPointManager)
+                    MapView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData, mapPointManager: mapPointManager, locationManager: locationManager)
                 } else if selection == 1 {
-                    DetailView(structureData: structureData, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
+                    DetailView(structureData: structureData, locationManager: locationManager, mapPointManager: mapPointManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
                 } else if selection == 2 {
                     SettingsView(structureData: structureData, mapPointManager: mapPointManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
                 }

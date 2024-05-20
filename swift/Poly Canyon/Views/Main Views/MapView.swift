@@ -27,7 +27,7 @@ struct MapView: View {
     // objects
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
-    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
+    @ObservedObject var locationManager: LocationManager
     @State private var visitedStructure: Structure?
     
     // STATE
@@ -696,7 +696,7 @@ struct AllStructuresVisitedPopup: View {
 // MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
-        MapView(isDarkMode: .constant(true), isAdventureModeEnabled: .constant(false), structureData: StructureData(), mapPointManager: MapPointManager())
+        MapView(isDarkMode: .constant(true), isAdventureModeEnabled: .constant(false), structureData: StructureData(), mapPointManager: MapPointManager(), locationManager: LocationManager(mapPointManager: MapPointManager(), structureData: StructureData()))
     }
 }
 

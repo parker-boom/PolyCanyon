@@ -9,11 +9,6 @@
 
 // This view plays a crucial role in personalizing the app to suit individual preferences and enhancing user engagement through additional informational resources.
 
-
-
-
-
-// MARK: Code
 import SwiftUI
 
 struct SettingsView: View {
@@ -23,8 +18,13 @@ struct SettingsView: View {
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
     
+    @State private var showAlert = false
+    @State private var alertType: AlertType?
+    @State private var pendingAdventureModeState: Bool = false
     
-    @State private var buttonPressed = false
+    enum AlertType {
+        case resetVisited, toggleAdventureModeOff
+    }
     
     // MARK: - Body
     var body: some View {
@@ -36,32 +36,23 @@ struct SettingsView: View {
             Section(header: Text("Adventure Mode")) {
                 // Button to reset all visited structures
                 Button(action: {
-                    structureData.resetVisitedStructures()
-                    mapPointManager.resetVisitedMapPoints()
-                                        
-                    buttonPressed = true
-                    
-                    let impactMed = UIImpactFeedbackGenerator(style: .medium)
-                    impactMed.impactOccurred()
+                    alertType = .resetVisited
+                    showAlert = true
                 }) {
                     Text("Reset All Visited Structures")
                 }
                 .tint(.blue)
-                .scaleEffect(buttonPressed ? 0.9 : 1.0)
-                .animation(.easeInOut(duration: 0.2), value: buttonPressed)
-                .onChange(of: buttonPressed) { pressed in
-                    if pressed {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            buttonPressed = false
-                        }
-                    }
-                }
                 
                 // Toggle to enable/disable adventure mode
                 Toggle("Adventure Mode", isOn: $isAdventureModeEnabled)
                     .onChange(of: isAdventureModeEnabled) { isEnabled in
                         if !isEnabled {
-                            structureData.setAllStructuresAsVisited()
+                            pendingAdventureModeState = isEnabled
+                            alertType = .toggleAdventureModeOff
+                            showAlert = true
+                        } else {
+                            structureData.resetVisitedStructures()
+                            mapPointManager.resetVisitedMapPoints()
                         }
                     }
                 
@@ -82,12 +73,37 @@ struct SettingsView: View {
                 Text("Please email bug reports or issues to pjones15@calpoly.edu, thanks in advance!")
                     .font(.caption)
                     .foregroundColor(isDarkMode ? .gray : Color.black.opacity(0.6))
-                
-                
             }
-
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
+        .alert(isPresented: $showAlert) {
+            switch alertType {
+            case .resetVisited:
+                return Alert(
+                    title: Text("Reset All Visited Structures"),
+                    message: Text("Are you sure you want to reset all visited structures?"),
+                    primaryButton: .destructive(Text("Yes")) {
+                        structureData.resetVisitedStructures()
+                        mapPointManager.resetVisitedMapPoints()
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .toggleAdventureModeOff:
+                return Alert(
+                    title: Text("Toggle Adventure Mode Off"),
+                    message: Text("This will mark all structures as visited. Are you sure?"),
+                    primaryButton: .destructive(Text("Yes")) {
+                        structureData.setAllStructuresAsVisited()
+                        isAdventureModeEnabled = pendingAdventureModeState
+                    },
+                    secondaryButton: .cancel() {
+                        isAdventureModeEnabled = true
+                    }
+                )
+            case .none:
+                return Alert(title: Text("Error"))
+            }
+        }
     }
 }
 

@@ -16,21 +16,25 @@
 
 // MARK: Code
 import SwiftUI
+import CoreLocation
 
 struct DetailView: View {
     // MARK: - Properties
     
     // BINDING
     @ObservedObject var structureData: StructureData
+    @ObservedObject var locationManager: LocationManager
+    @ObservedObject var mapPointManager: MapPointManager
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
+    @State private var selectedStructure: Structure?
     
     // STATE
     @State private var searchText = ""
     @State private var isGridView = true
-    @State private var selectedStructure: Structure?
     @State private var showPopup = false
     @State private var showOnboardingImage = false
+    @State private var visitedCount = 0
     
     // eye icon
     @State private var showEyePopup = false
@@ -38,6 +42,7 @@ struct DetailView: View {
     enum EyeIconState {
         case all
         case visited
+        case unopened
         case unvisited
     }
     
@@ -102,12 +107,60 @@ struct DetailView: View {
                 // Scroll view that displays either grid or list view
                 ScrollView {
                     if isGridView {
+                        if structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled {
+                            recentlyVisitedView
+                                .padding(.top, 10)
+                        }
+                        
+                        
+                        gridView
+                        
+                    }
+                    
+                    else {
+                        listView
+                    }
+                }
+                
+                // Scroll view that displays either grid or list view
+                ScrollView {
+                    
+                    recentlyVisitedView
+                        .padding(.top, 10)
+                    
+                    recentlyUnopenedView
+                        .padding(.top, 10)
+                    
+                    nearbyUnvisitedView
+                        .padding(.top, 10)
+                    
+                    if isGridView { /*
+                                     
+                                    
+                        // IF STATEMENTS ARE CAUSING THE TIMING ISSUES
+                        // UNOPENED SHOWS 1 & 2 DOESNT FILTER CORRECT
+                        // NOT VISITED DOESNT WORKER
+                                     
+                                     
+                        if isAdventureModeEnabled {
+                            if eyeIconState == .visited && structureData.structures.contains(where: { $0.recentlyVisited != -1 }){
+                                
+                            } else if eyeIconState == .unopened && structureData.structures.contains(where: { $0.isOpened != -1 }){
+                                
+                            } else if eyeIconState == .unvisited {
+                                
+                            }
+                        }*/
+                        
                         gridView
                     } else {
                         listView
                     }
                 }
-
+                    
+                
+                
+            
                 
                 // present pop up
                 .sheet(isPresented: $showPopup) {
@@ -134,10 +187,10 @@ struct DetailView: View {
                 if isAdventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
                         if let landmarkId = notification.object as? Int {
-
-                            
                             if let index = structureData.structures.firstIndex(where: { $0.number == landmarkId }) {
                                 structureData.structures[index].isVisited = true
+                                structureData.structures[index].recentlyVisited = visitedCount
+                                visitedCount += 1
                             }
                         }
                     }
@@ -179,85 +232,91 @@ struct DetailView: View {
     }
     
     var gridView: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
-            ForEach(structureData.structures.filter { structure in
-                let searchMatch = searchText.isEmpty ? true : structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
-                
-                switch eyeIconState {
-                case .all:
-                    return searchMatch
-                case .visited:
-                    return searchMatch && structure.isVisited
-                case .unvisited:
-                    return searchMatch && !structure.isVisited
-                }
-            }, id: \.id) { structure in
-                ZStack(alignment: .bottomLeading) {
-                    ZStack(alignment: .topTrailing) {
-                        Image(structure.imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
-                            .clipped()
-                            .cornerRadius(15)
-                            .blur(radius: structure.isVisited ? 0 : 3)
-                        
-                        if structure.isVisited && !structure.isOpened {
-                            Circle()
-                                .fill(Color.green.opacity(0.8))
-                                .frame(width: 10, height: 10)
-                                .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
-                                .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
-                                .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
-                                .padding(10)
-                        }
-                    }
+        VStack{
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
+                ForEach(structureData.structures.filter { structure in
+                    let searchMatch = searchText.isEmpty ? true : structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
                     
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack {
-                            Text("\(structure.number)")
-                                .font(.system(size: 22))
-                                .fontWeight(.semibold)
-                                .foregroundColor(isDarkMode ? .white : .black)
+                    switch eyeIconState {
+                    case .all:
+                        return searchMatch
+                    case .visited:
+                        return searchMatch && structure.isVisited
+                    case .unopened:
+                        return searchMatch && !structure.isOpened
+                    case .unvisited:
+                        return searchMatch && !structure.isVisited
+                   
+                    }
+                }, id: \.id) { structure in
+                    ZStack(alignment: .bottomLeading) {
+                        ZStack(alignment: .topTrailing) {
+                            Image(structure.imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
+                                .clipped()
+                                .cornerRadius(15)
+                                .blur(radius: structure.isVisited ? 0 : 3)
                             
-                            Spacer()
+                            if structure.isVisited && !structure.isOpened && isAdventureModeEnabled {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.7))
+                                    .frame(width: 10, height: 10)
+                                    .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
+                                    .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
+                                    .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
+                                    .padding(10)
+                            }
                         }
                         
-                        Text(structure.title)
-                            .font(.system(size: 18))
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
-                            .allowsTightening(true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack {
+                                Text("\(structure.number)")
+                                    .font(.system(size: 22))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(isDarkMode ? .white : .black)
+                                
+                                Spacer()
+                            }
+                            
+                            Text(structure.title)
+                                .font(.system(size: 18))
+                                .foregroundColor(isDarkMode ? .white : .black)
+                                .minimumScaleFactor(0.5)
+                                .lineLimit(1)
+                                .allowsTightening(true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.bottom, 10)
+                        .padding(.top, 5)
+                        .frame(maxWidth: .infinity)
+                        .background(isDarkMode ? Color.black.opacity(1) : Color.white.opacity(1))
+                        .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 10)
-                    .padding(.top, 5)
-                    .frame(maxWidth: .infinity)
-                    .background(isDarkMode ? Color.black.opacity(1) : Color.white.opacity(1))
-                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
-                }
-                .onTapGesture {
-                    selectedStructure = structure
-                    if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                        structureData.objectWillChange.send()
-                        structureData.structures[index].isOpened = true
+                    .onTapGesture {
+                        selectedStructure = structure
+                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                            structureData.objectWillChange.send()
+                            structureData.structures[index].isOpened = true
+                        }
+                        showPopup = true
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        // Generate haptic feedback
+                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                        impactMed.impactOccurred()
                     }
-                    showPopup = true
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    
-                    // Generate haptic feedback
-                    let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                    impactMed.impactOccurred()
                 }
+                .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 6, x: 0, y: 0)
             }
-            .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 6, x: 0, y: 0)
+            
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
         .padding(.bottom, 30)
-    }
+    } 
     
     var listView: some View {
         VStack(spacing: 0) {
@@ -269,8 +328,11 @@ struct DetailView: View {
                     return searchMatch
                 case .visited:
                     return searchMatch && structure.isVisited
+                case .unopened:
+                    return searchMatch && !structure.isOpened
                 case .unvisited:
                     return searchMatch && !structure.isVisited
+                
                 }
             }, id: \.id) { structure in
                 
@@ -292,7 +354,7 @@ struct DetailView: View {
                     
                     Spacer()
                     
-                    if structure.isVisited && !structure.isOpened {
+                    if structure.isVisited && !structure.isOpened && isAdventureModeEnabled{
                         Circle()
                             .fill(Color.blue.opacity(0.7))
                             .frame(width: 8, height: 8)
@@ -329,15 +391,224 @@ struct DetailView: View {
         .padding(.top, 5)
     }
     
+    
+    var recentlyVisitedView: some View {
+        let recentlyVisitedStructures = structureData.structures
+            .filter { $0.recentlyVisited != -1 }
+            .sorted { $0.recentlyVisited > $1.recentlyVisited }
+            .prefix(3)
+        
+        return VStack {
+            HStack {
+                Spacer()
+                
+                ForEach(recentlyVisitedStructures, id: \.id) { structure in
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+                        
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                            structureData.objectWillChange.send()
+                            structureData.structures[index].isOpened = true
+                        }
+                        showPopup = true
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        // Generate haptic feedback
+                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                        impactMed.impactOccurred()
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Text("Recently Visited")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+    }
+    
+    // MARK: - Recently Unopened View
+    var recentlyUnopenedView: some View {
+        let recentlyUnopenedStructures = structureData.structures
+            .filter { !$0.isOpened }
+            .sorted { $0.recentlyVisited > $1.recentlyVisited }
+            .prefix(3)
+        
+        return VStack {
+            HStack {
+                Spacer()
+                
+                ForEach(recentlyUnopenedStructures, id: \.id) { structure in
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+                        
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                            structureData.objectWillChange.send()
+                            structureData.structures[index].isOpened = true
+                        }
+                        showPopup = true
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        // Generate haptic feedback
+                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                        impactMed.impactOccurred()
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Text("Recently Unopened")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+    }
+
+    // MARK: - Nearby Unvisited View
+    var nearbyUnvisitedView: some View {
+        let userLocation = locationManager.lastLocation
+        let nearbyUnvisitedStructures = structureData.structures
+            .filter { !$0.isVisited && $0.recentlyVisited != -1 }
+            .sorted { getDistance(to: $0) < getDistance(to: $1) }
+            .prefix(3)
+        
+        return VStack {
+            HStack {
+                Spacer()
+                
+                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+                        
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                            structureData.objectWillChange.send()
+                            structureData.structures[index].isOpened = true
+                        }
+                        showPopup = true
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
+                        // Generate haptic feedback
+                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                        impactMed.impactOccurred()
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Text("Nearby Unvisited")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+    }
+
+    func getDistance(to structure: Structure) -> CLLocationDistance {
+        guard let userLocation = locationManager.lastLocation else { return .infinity }
+        let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
+        let structureCLLocation = CLLocation(latitude: structureLocation?.latitude ?? 0, longitude: structureLocation?.longitude ?? 0)
+        return userLocation.distance(from: structureCLLocation)
+    }
+
+
+    
     func toggleEyeIconState() {
         switch eyeIconState {
         case .all:
             eyeIconState = .visited
         case .visited:
+            eyeIconState = .unopened
+        case .unopened:
             eyeIconState = .unvisited
         case .unvisited:
             eyeIconState = .all
+        
         }
+        
         showPopup(for: eyeIconState)
     }
     
@@ -348,9 +619,13 @@ struct DetailView: View {
             return isDarkMode ? .white : .black
         case .visited:
             return .green
+        case .unopened:
+            return Color.blue.opacity(0.7)
         case .unvisited:
             return .red
+        
         }
+        
     }
     
     func getPopupMessage() -> String {
@@ -359,8 +634,11 @@ struct DetailView: View {
             return "All"
         case .visited:
             return "Visited"
+        case .unopened:
+            return "Unopened"
         case .unvisited:
             return "Unvisited"
+        
         }
     }
     
@@ -371,10 +649,13 @@ struct DetailView: View {
             message = "All"
         case .visited:
             message = "Visited"
+        case .unopened:
+            message = "Unopened"
         case .unvisited:
             message = "Unvisited"
-        }
         
+        }
+            
         withAnimation {
             showEyePopup = true
         }
@@ -543,6 +824,7 @@ struct Structure: Identifiable, Codable {
     let year: String
     var isVisited: Bool = false
     var isOpened: Bool = false
+    var recentlyVisited: Int = -1
     
     var id: Int { number }
 }
@@ -555,7 +837,7 @@ extension Notification.Name {
 // MARK: - Preview
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(structureData: StructureData(), isDarkMode: .constant(false), isAdventureModeEnabled: .constant(false))
+        DetailView(structureData: StructureData(), locationManager: LocationManager(mapPointManager: MapPointManager(), structureData: StructureData()), mapPointManager: MapPointManager(), isDarkMode: .constant(false), isAdventureModeEnabled: .constant(false))
     }
 }
 
