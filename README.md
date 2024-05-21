@@ -6,6 +6,7 @@ Explore the wonders of Cal Poly's Poly Canyon like never before! This app provid
 - [About the App](#about-the-app)
 - [Repository Structure](#repository-structure)
 - [Current Progress](#current-progress)
+- [License](#license)
 - [Contributing](#contributing)
 - [Contact](#contact)
 
@@ -36,6 +37,11 @@ poly-canyon/
 ## Current Progress
 
 Currently working on: Android development in full 
+
+
+## License
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License - see the [LICENSE](LICENSE) file for details.
+
 
 ## Contributing
 
