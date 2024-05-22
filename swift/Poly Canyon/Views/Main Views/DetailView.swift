@@ -68,7 +68,7 @@ struct DetailView: View {
                                 .padding(.top, 10)
                         }
                         
-                        if structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened {
+                        if structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled {
                             
                             recentlyUnopenedView
                                 .padding(.top, 10)
@@ -76,7 +76,7 @@ struct DetailView: View {
                             
                         }
                         
-                        if structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited {
+                        if structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled {
                             
                             nearbyUnvisitedView
                                 .padding(.top, 10)
@@ -252,7 +252,9 @@ struct DetailView: View {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                             structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
+                            if structureData.structures[index].isVisited {
+                                structureData.structures[index].isOpened = true
+                            }
                         }
                         showPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -329,7 +331,9 @@ struct DetailView: View {
                     selectedStructure = structure
                     if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                         structureData.objectWillChange.send()
-                        structureData.structures[index].isOpened = true
+                        if structureData.structures[index].isVisited {
+                            structureData.structures[index].isOpened = true
+                        }
                     }
                     showPopup = true
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -405,7 +409,7 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
     
@@ -470,7 +474,7 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
 
@@ -511,7 +515,6 @@ struct DetailView: View {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                             structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
                         }
                         showPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -536,7 +539,7 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
 
