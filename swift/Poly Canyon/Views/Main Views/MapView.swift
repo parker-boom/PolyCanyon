@@ -29,6 +29,8 @@ struct MapView: View {
     @ObservedObject var mapPointManager: MapPointManager
     @ObservedObject var locationManager: LocationManager
     @State private var visitedStructure: Structure?
+    @State private var selectedStructure: Structure?
+    @State private var nearbyMapPoints: [MapPoint] = []
     
     // STATE
     // numbers for gestures
@@ -40,18 +42,15 @@ struct MapView: View {
     // booleans
     @State private var isSatelliteView: Bool = false
     @State private var showPermissionAlert = false
-    @State private var showOnboardingImage = true
     @State private var showAdventureModeAlert = false
     @State private var showResetButton = false
-    @State private var isDragging = false
     @State private var showVisitedStructurePopup = false
     @State private var showAllVisitedPopup = false
     @State private var allStructuresVisitedFlag = false
     @State private var showNearbyStructures = false
-    @State private var nearbyMapPoints: [MapPoint] = []
-    
     @State private var showStructPopup = false
-    @State private var selectedStructure: Structure?
+    @State private var isDragging = false
+
 
     
     // CONSTANTS
@@ -312,25 +311,6 @@ struct MapView: View {
                 
                 // Show onboarding image with white background if it hasn't ever been shown
                 ZStack {
-                    if showOnboardingImage {
-                        Color.white.opacity(1)
-                            .edgesIgnoringSafeArea(.all)
-                        
-                        Image("MapPopUp")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: UIScreen.main.bounds.width)
-                            .onTapGesture {
-                                
-                                // Ask about adventure mode and always location after dismissing graphic
-                                withAnimation {
-                                    showOnboardingImage = false
-                                    UserDefaults.standard.set(true, forKey: "onboardingMapShown")
-                                    showAdventureModeAlert = true
-                                }
-                            }
-                    }
-                    else {
                         if showVisitedStructurePopup, let structure = visitedStructure {
                             VisitedStructurePopup(structure: structure, isPresented: $showVisitedStructurePopup, isDarkMode: $isDarkMode, structureData: structureData)
                                 .transition(.move(edge: .bottom))
@@ -343,9 +323,8 @@ struct MapView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(Color.clear)
                         }
-                    }
+                    
                 }
-                
  
             }
         }
@@ -353,12 +332,6 @@ struct MapView: View {
         // Show the onboarding map if it hasn't ever been shown
         .onAppear {
             subscribeToVisitedStructureNotification()
-            if !UserDefaults.standard.bool(forKey: "onboardingMapShown") {
-                showOnboardingImage = true
-            } else {
-                showOnboardingImage = false
-                showAdventureModeAlert = false
-            }
         }
         
         // Ask user to enable location always after adventure mode pop up is shown

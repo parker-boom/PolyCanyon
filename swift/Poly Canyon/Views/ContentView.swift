@@ -15,13 +15,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage(Constants.currentOnboardingVersion) private var isFirstLaunch = true
+    @AppStorage(Constants.currentOnboardingVersion) private var isNewOnboardingCompleted = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("isAdventureModeEnabled") private var isAdventureModeEnabled = true
+    private var yes = true
         
     var body: some View {
-        if isFirstLaunch {
-            OnboardingView(isFirstLaunch: $isFirstLaunch)
+        if yes {
+            OnboardingView(isNewOnboardingCompleted: $isNewOnboardingCompleted)
         } else {
             MainView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
         }
@@ -34,8 +35,6 @@ struct Constants {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-
         ContentView()
-
     }
 }

@@ -178,10 +178,6 @@ struct DetailView: View {
                     structureData.loadStructuresFromCSV()
                 }
                 
-                // show onboarding image
-                if !UserDefaults.standard.bool(forKey: "detailOnboardingImageShown") {
-                    showOnboardingImage = true
-                }
                 
                 // accept notifications to mark as visited if adventure mode enabled
                 if isAdventureModeEnabled {
@@ -195,25 +191,6 @@ struct DetailView: View {
                         }
                     }
                 }
-            }
-            
-            // show onboarding image with white background
-            if showOnboardingImage {
-                Color.white.opacity(1)
-                    .edgesIgnoringSafeArea(.all)
-                
-                Image("DetailPopUp")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: UIScreen.main.bounds.width)
-                    .onTapGesture {
-                        
-                        // dismiss onboarding image when clicke
-                        withAnimation {
-                            showOnboardingImage = false
-                            UserDefaults.standard.set(true, forKey: "detailOnboardingImageShown")
-                        }
-                    }
             }
         }
         .overlay(
