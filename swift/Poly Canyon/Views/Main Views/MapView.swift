@@ -215,8 +215,8 @@ struct MapView: View {
                                 
                                 let correctScale = min(scaleWidth, scaleHeight)
                                 
-                                let circleX = ((nearestPoint.pixelPosition.x * 0.5) * correctScale) + topLeft.x
-                                let circleY = ((nearestPoint.pixelPosition.y * 0.5) * correctScale) + topLeft.y
+                                let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
+                                let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
                             
                                 
                                 PulsingCircle()
