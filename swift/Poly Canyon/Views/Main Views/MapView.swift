@@ -50,6 +50,8 @@ struct MapView: View {
     @State private var showNearbyStructures = false
     @State private var showStructPopup = false
     @State private var isDragging = false
+    @State private var showNearbyUnvisitedView = false
+
 
 
     
@@ -142,7 +144,7 @@ struct MapView: View {
                                 }
                         )
                     )
-                        
+
                 
                 // Map view toggle button
                 Button(action: {
@@ -179,88 +181,29 @@ struct MapView: View {
                 }
                 
                 
-                // Possible 3 nearby structs later
-                /*
-                // Nearby button and expandable list
-                VStack(alignment: .leading, spacing: 10) {
-                    if showNearbyStructures {
-                        ForEach(nearbyMapPoints, id: \.landmark) { mapPoint in
-                            Button(action: {
-                                if let structure = structureData.structures.first(where: { $0.number == mapPoint.landmark }) {
-                                    selectedStructure = structure
-                                    print(selectedStructure)
-                                    showStructPopup = true
-                                    
-                                }
-                            }) {
-                                HStack(spacing: 0) {
-                                    Text("\(mapPoint.landmark)")
-                                        .font(.system(size: 24))
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(isDarkMode ? .white : .black)
-                                        .padding(.leading, 5)
-                                        .padding(.vertical, 10)
-
-                                    Image("\(mapPoint.landmark)M")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 50, height: 50)
-                                        .blur(radius: mapPoint.isVisited ? 0 : 6)
-                                        .cornerRadius(10)
-                                        .padding(.leading, 5)
-                                }
-                                .background(isDarkMode ? Color.black : Color.white)
-                                .cornerRadius(10)
-                                .shadow(color: isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.3), radius: 5, x: 0, y: 0)
-                                .padding(.horizontal, 5)
-                            }
-                        }
-                    }
-
-                    Button(action: {
-                        if showNearbyStructures {
-                            withAnimation {
-                                showNearbyStructures = false
-                            }
-                        } else {
-                            nearbyMapPoints = findNearbyMapPoints()
-                            withAnimation {
-                                showNearbyStructures = true
-                            }
-                        }
-                    }) {
-                        Image(systemName: showNearbyStructures ? "chevron.down.circle.fill" : "chevron.up.circle.fill")
-                            .font(.system(size: 24))
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .background(isDarkMode ? Color.black : Color.white)
-                            .cornerRadius(15)
-                            .padding()
-                    }
-                    .shadow(color: isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.3), radius: 5, x: 0, y: 0)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(.bottom, 20)
-                .padding(.leading, 10)
-                .sheet(isPresented: $showStructPopup) {
-                    if let structure = selectedStructure {
-                        StructPopUp(structure: selectedStructure, isDarkMode: $isDarkMode) {
-                            showStructPopup = false
-                        }
-                    }
-                }*/
-
-
-
-
-
-
-
-                
                 // if all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
                 if scale == 1.0 {
                     if locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse {
                     if let location = locationManager.lastLocation {
+                        
+                        Button(action: {
+                            withAnimation {
+                                showNearbyUnvisitedView.toggle()
+                            }
+                        }) {
+                            Image(systemName: showNearbyUnvisitedView ? "chevron.up.circle.fill" : "mappin.and.ellipse")
+                                .font(.system(size: 24))
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(isDarkMode ? .white : .black)
+                                .background(isDarkMode ? Color.black : Color.white)
+                                .cornerRadius(15)
+                                .padding()
+                        }
+                        .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                        .padding(.top, -10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        
                         let userCoordinate = location.coordinate
                         
                         if !locationManager.isMonitoringSignificantLocationChanges {
@@ -283,6 +226,8 @@ struct MapView: View {
                         }
                         
                     }
+                        
+                        
                     
                     // Ask user to enable location services if not
                     else {
@@ -307,6 +252,15 @@ struct MapView: View {
                             .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
                     }
                 }
+                
+                VStack {
+                    if showNearbyUnvisitedView {
+                        nearbyUnvisitedView
+                            
+                    }
+                    
+                }
+                .padding(.top, 75)
 
                 
                 // Show onboarding image with white background if it hasn't ever been shown
@@ -368,6 +322,87 @@ struct MapView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDarkMode ? Color.black : Color.white)
     }
+    
+    // MARK: - Nearby Unvisited View
+    var nearbyUnvisitedView: some View {
+        let userLocation = locationManager.lastLocation
+        let nearbyUnvisitedStructures = structureData.structures
+            .filter { !$0.isVisited }
+            .sorted { getDistance(to: $0) < getDistance(to: $1) }
+            .prefix(3)
+        
+        return VStack {
+            HStack {
+                Spacer()
+                
+                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+                        
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        showStructPopup = true
+                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                            structureData.objectWillChange.send()
+                        }
+                        
+                        // Generate haptic feedback
+                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                        impactMed.impactOccurred()
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Text("Nearby Unvisited Structures")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+        .sheet(isPresented: $showStructPopup) {
+            if let structure = selectedStructure {
+                StructPopUp(structure: structure, isDarkMode: $isDarkMode) {
+                    showStructPopup = false
+                }
+            }
+        }
+    }
+
+
+    func getDistance(to structure: Structure) -> CLLocationDistance {
+        guard let userLocation = locationManager.lastLocation else { return .infinity }
+        let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
+        let structureCLLocation = CLLocation(latitude: structureLocation?.latitude ?? 0, longitude: structureLocation?.longitude ?? 0)
+        return userLocation.distance(from: structureCLLocation)
+    }
+
+    
     
     // MARK: - Private Methods
     

@@ -7,6 +7,9 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
+            Color.white
+                .ignoresSafeArea(.all)
+            
             VStack(spacing: 0) {
                 Spacer()
                 

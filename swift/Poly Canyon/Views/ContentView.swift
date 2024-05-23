@@ -18,10 +18,10 @@ struct ContentView: View {
     @AppStorage(Constants.currentOnboardingVersion) private var isNewOnboardingCompleted = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("isAdventureModeEnabled") private var isAdventureModeEnabled = true
-    private var yes = true
-        
+
+
     var body: some View {
-        if yes {
+        if !isNewOnboardingCompleted {
             OnboardingView(isNewOnboardingCompleted: $isNewOnboardingCompleted)
         } else {
             MainView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)

@@ -56,59 +56,29 @@ struct DetailView: View {
             
             VStack {
                 
-                HStack {
-                    // Eye icon in a rounded square
-                    Button(action: toggleEyeIconState) {
-                        Image(systemName: "eye")
-                            .foregroundColor(getEyeIconColor())
-                            .font(.system(size: 28, weight: .semibold))
-                            .padding(5)
-                            .cornerRadius(8)
-                    }
-                    .padding(.leading, 5)
-                    
-                    HStack{
-                        // Search Bar UI
-                        SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
-                            .frame(maxWidth: .infinity)
-                        
-                        if searchText != "" {
-                            Button(action: {
-                                searchText = ""
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(isDarkMode ? .white : .black)
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .padding(.leading, -5)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 5)
-                    
-                    // Toggle for grid and list view
-                    Toggle(isOn: $isGridView, label: {
-                        Text("View Mode")  // Optional: You can hide this if not needed
-                    })
-                    .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
- 
-                    
-                }
-                .background(isDarkMode ? Color.black : Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
-                //.shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.4), radius: 3, x: 0, y: -2)
-                .padding(.horizontal, 10)
-                .padding(.bottom, -5)
-
+                headerView
                 
-                
-                                    
+                            
                 // Scroll view that displays either grid or list view
                 ScrollView {
                     if isGridView {
                         if structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled {
+                            
                             recentlyVisitedView
+                                .padding(.top, 10)
+                        }
+                        
+                        if structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled {
+                            
+                            recentlyUnopenedView
+                                .padding(.top, 10)
+                            
+                            
+                        }
+                        
+                        if structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled {
+                            
+                            nearbyUnvisitedView
                                 .padding(.top, 10)
                         }
                         
@@ -121,45 +91,6 @@ struct DetailView: View {
                         listView
                     }
                 }
-                
-                // Scroll view that displays either grid or list view
-                ScrollView {
-                    
-                    recentlyVisitedView
-                        .padding(.top, 10)
-                    
-                    recentlyUnopenedView
-                        .padding(.top, 10)
-                    
-                    nearbyUnvisitedView
-                        .padding(.top, 10)
-                    
-                    if isGridView { /*
-                                     
-                                    
-                        // IF STATEMENTS ARE CAUSING THE TIMING ISSUES
-                        // UNOPENED SHOWS 1 & 2 DOESNT FILTER CORRECT
-                        // NOT VISITED DOESNT WORKER
-                                     
-                                     
-                        if isAdventureModeEnabled {
-                            if eyeIconState == .visited && structureData.structures.contains(where: { $0.recentlyVisited != -1 }){
-                                
-                            } else if eyeIconState == .unopened && structureData.structures.contains(where: { $0.isOpened != -1 }){
-                                
-                            } else if eyeIconState == .unvisited {
-                                
-                            }
-                        }*/
-                        
-                        gridView
-                    } else {
-                        listView
-                    }
-                }
-                    
-                
-                
             
                 
                 // present pop up
@@ -208,6 +139,51 @@ struct DetailView: View {
         .background(isDarkMode ? Color.black : Color.white)
     }
     
+    
+    // MARK: - Views and Helpers
+    var headerView: some View {
+        HStack {
+            // Eye icon button
+            Button(action: toggleEyeIconState) {
+                Image(systemName: "eye")
+                    .foregroundColor(getEyeIconColor())
+                    .font(.system(size: 28, weight: .semibold))
+                    .padding(5)
+                    .cornerRadius(8)
+            }
+            .padding(.leading, 5)
+            
+            // Search bar and toggle
+            HStack {
+                SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+                    .frame(maxWidth: .infinity)
+                
+                if searchText != "" {
+                    Button(action: {
+                        searchText = ""
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(isDarkMode ? .white : .black)
+                            .font(.system(size: 20, weight: .semibold))
+                            .padding(.leading, -5)
+                    }
+                }
+            }
+            .padding(.horizontal, 5)
+            
+            Toggle(isOn: $isGridView) {
+                Text("View Mode")
+            }
+            .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
+        }
+        .background(isDarkMode ? Color.black : Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .padding(.horizontal, 10)
+        .padding(.bottom, -5)
+    }
+    
     var gridView: some View {
         VStack{
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
@@ -220,7 +196,7 @@ struct DetailView: View {
                     case .visited:
                         return searchMatch && structure.isVisited
                     case .unopened:
-                        return searchMatch && !structure.isOpened
+                        return searchMatch && structure.isVisited && !structure.isOpened
                     case .unvisited:
                         return searchMatch && !structure.isVisited
                    
@@ -276,7 +252,9 @@ struct DetailView: View {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                             structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
+                            if structureData.structures[index].isVisited {
+                                structureData.structures[index].isOpened = true
+                            }
                         }
                         showPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -353,7 +331,9 @@ struct DetailView: View {
                     selectedStructure = structure
                     if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                         structureData.objectWillChange.send()
-                        structureData.structures[index].isOpened = true
+                        if structureData.structures[index].isVisited {
+                            structureData.structures[index].isOpened = true
+                        }
                     }
                     showPopup = true
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -429,14 +409,14 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
     
     // MARK: - Recently Unopened View
     var recentlyUnopenedView: some View {
         let recentlyUnopenedStructures = structureData.structures
-            .filter { !$0.isOpened }
+            .filter { !$0.isOpened && $0.isVisited }
             .sorted { $0.recentlyVisited > $1.recentlyVisited }
             .prefix(3)
         
@@ -494,7 +474,7 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
 
@@ -502,7 +482,7 @@ struct DetailView: View {
     var nearbyUnvisitedView: some View {
         let userLocation = locationManager.lastLocation
         let nearbyUnvisitedStructures = structureData.structures
-            .filter { !$0.isVisited && $0.recentlyVisited != -1 }
+            .filter { !$0.isVisited }
             .sorted { getDistance(to: $0) < getDistance(to: $1) }
             .prefix(3)
         
@@ -535,7 +515,6 @@ struct DetailView: View {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                             structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
                         }
                         showPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -560,7 +539,7 @@ struct DetailView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
 
