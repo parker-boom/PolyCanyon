@@ -64,7 +64,7 @@ struct MapView: View {
 
     
     // CONSTANTS
-    let maxScale: CGFloat = 3.0
+    let maxScale: CGFloat = 2.5
     let minScale: CGFloat = 1.0
     
     let safeZoneCorners = (
@@ -97,6 +97,7 @@ struct MapView: View {
                 let originalImageSize = CGSize(width: originalWidth, height: originalHeight)
                 let displayedSize = displayedImageSize(originalSize: originalImageSize, containerSize: geometry.size, scale: scale)
                 
+                
                 // Map image based on satellite view and dark mode
                 Image(mapImage())
                     .resizable()
@@ -105,53 +106,56 @@ struct MapView: View {
                     .scaleEffect(scale)
                     .offset(x: offset.width + dragOffset.width, y: offset.height + dragOffset.height)
                     .gesture(
-                        SimultaneousGesture(
-                            MagnificationGesture()
-                                .onChanged { value in
-                                    let delta = value / self.lastScale
-                                    self.lastScale = value
-                                    let newScale = self.scale * delta
-                                    self.scale = min(self.maxScale, max(self.minScale, newScale))
-                                    self.offset = self.limitOffset(imageSize: imageSize)
-                                    
-                                    if self.scale < 1.2 {
-                                        self.scale = self.minScale
-                                        self.offset = .zero
-                                        self.dragOffset = .zero
-                                    }
+                        MagnificationGesture()
+                            .onChanged { value in
+                                let delta = value / self.lastScale
+                                self.lastScale = value
+                                let newScale = self.scale * delta
+                                self.scale = min(self.maxScale, max(self.minScale, newScale))
+
+                                if self.scale < 1.2 {
+                                    self.scale = self.minScale
+                                    self.centerImage(imageSize: imageSize, containerSize: geometry.size)
+                                    self.dragOffset = .zero
+                                } else {
+                                    self.offset = self.limitOffset(imageSize: imageSize, containerSize: geometry.size)
                                 }
-                                .onEnded { _ in
-                                    self.lastScale = 1.0
-                                    self.offset = self.limitOffset(imageSize: imageSize)
-                                    
-                                    if self.scale < 1.2 {
-                                        self.scale = self.minScale
-                                        self.offset = .zero
-                                        self.dragOffset = .zero
-                                    }
-                                    self.showResetButton = self.scale > self.minScale
-                                },
-                            DragGesture()
-                                .onChanged { value in
-                                    if self.scale > self.minScale {
-                                        self.isDragging = true
-                                        let sensitivity = self.scale * 0.5
-                                        let newOffset = CGSize(
-                                            width: value.translation.width / sensitivity,
-                                            height: value.translation.height / sensitivity
-                                        )
-                                        self.dragOffset = self.limitDragOffset(newOffset: newOffset, imageSize: imageSize)
-                                    }
+                            }
+                            .onEnded { _ in
+                                self.lastScale = 1.0
+                                if self.scale < 1.2 {
+                                    self.scale = self.minScale
+                                    self.centerImage(imageSize: imageSize, containerSize: geometry.size)
+                                    self.dragOffset = .zero
+                                } else {
+                                    self.offset = self.limitOffset(imageSize: imageSize, containerSize: geometry.size)
                                 }
-                                .onEnded { _ in
-                                    if self.isDragging {
-                                        self.isDragging = false
-                                        self.offset = self.limitOffset(newOffset: CGSize(width: self.offset.width + self.dragOffset.width, height: self.offset.height + self.dragOffset.height), imageSize: imageSize)
-                                        self.dragOffset = .zero
-                                    }
-                                }
-                        )
+                                self.showResetButton = self.scale > self.minScale
+                            }
                     )
+                    .simultaneousGesture(
+                        DragGesture()
+                            .onChanged { value in
+                                if self.scale > self.minScale {
+                                    self.isDragging = true
+                                    let sensitivity = self.scale * 0.35
+                                    let newOffset = CGSize(
+                                        width: value.translation.width / sensitivity,
+                                        height: value.translation.height / sensitivity
+                                    )
+                                    self.dragOffset = self.limitDragOffset(newOffset: newOffset, imageSize: imageSize)
+                                }
+                            }
+                            .onEnded { _ in
+                                if self.isDragging {
+                                    self.isDragging = false
+                                    self.offset = self.limitOffset(newOffset: CGSize(width: self.offset.width + self.dragOffset.width, height: self.offset.height + self.dragOffset.height), imageSize: imageSize, containerSize: geometry.size)
+                                    self.dragOffset = .zero
+                                }
+                            }
+                    )
+
+
 
                 
                 // Map view toggle button
@@ -431,29 +435,37 @@ struct MapView: View {
         }
     }
     
-    // Limits the offset of the map image when zoomed in, so you can't drag into free space
-    private func limitOffset(newOffset: CGSize? = nil, imageSize: CGSize) -> CGSize {
+    
+    private func limitOffset(newOffset: CGSize? = nil, imageSize: CGSize, containerSize: CGSize) -> CGSize {
         let offsetWidth = newOffset?.width ?? offset.width
         let offsetHeight = newOffset?.height ?? offset.height
         
-        let maxHorizontalOffset = (imageSize.width * (scale - 1)) / 2
-        let maxVerticalOffset = (imageSize.height * (scale - 1)) / 2
+        let maxHorizontalOffset = (imageSize.width * scale - containerSize.width) / 2
+        let maxVerticalOffset = (imageSize.height * scale - containerSize.height) / 2
         
         let limitedOffsetWidth = min(max(offsetWidth, -maxHorizontalOffset), maxHorizontalOffset)
         let limitedOffsetHeight = min(max(offsetHeight, -maxVerticalOffset), maxVerticalOffset)
         
         return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
     }
-    
+
     private func limitDragOffset(newOffset: CGSize, imageSize: CGSize) -> CGSize {
-        let maxHorizontalOffset = (imageSize.width * (scale - 1)) / 2
-        let maxVerticalOffset = (imageSize.height * (scale - 1)) / 2
+        let maxHorizontalOffset = (imageSize.width * scale - imageSize.width) / 2
+        let maxVerticalOffset = (imageSize.height * scale - imageSize.height) / 2
         
         let limitedOffsetWidth = min(max(newOffset.width, -maxHorizontalOffset - offset.width), maxHorizontalOffset - offset.width)
         let limitedOffsetHeight = min(max(newOffset.height, -maxVerticalOffset - offset.height), maxVerticalOffset - offset.height)
         
         return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
     }
+
+    private func centerImage(imageSize: CGSize, containerSize: CGSize) {
+        let x = (containerSize.width - imageSize.width * scale) / 2
+        let y = (containerSize.height - imageSize.height * scale) / 2
+        self.offset = CGSize(width: x, height: y)
+    }
+
+
     
     // Find the nearest of 60 map points based on the users current location, used to display current location
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
