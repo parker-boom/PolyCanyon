@@ -34,7 +34,8 @@ struct DetailView: View {
     @State private var isGridView = true
     @State private var showPopup = false
     @State private var showOnboardingImage = false
-    @State private var visitedCount = 0
+    @AppStorage("visitedCount") private var visitedCount: Int = 0
+
     
     // eye icon
     @State private var showEyePopup = false
@@ -108,7 +109,8 @@ struct DetailView: View {
                 if structureData.structures.count < 30 {
                     structureData.loadStructuresFromCSV()
                 }
-                
+
+        
                 
                 // accept notifications to mark as visited if adventure mode enabled
                 if isAdventureModeEnabled {
@@ -116,8 +118,11 @@ struct DetailView: View {
                         if let landmarkId = notification.object as? Int {
                             if let index = structureData.structures.firstIndex(where: { $0.number == landmarkId }) {
                                 structureData.structures[index].isVisited = true
-                                structureData.structures[index].recentlyVisited = visitedCount
-                                visitedCount += 1
+                                
+                                if structureData.structures[index].recentlyVisited == -1 {
+                                    structureData.structures[index].recentlyVisited = visitedCount
+                                    visitedCount += 1
+                                }
                             }
                         }
                     }
@@ -513,7 +518,7 @@ struct DetailView: View {
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
                     .onTapGesture {
                         selectedStructure = structure
-                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                        if structureData.structures.firstIndex(where: { $0.id == structure.id }) != nil {
                             structureData.objectWillChange.send()
                         }
                         showPopup = true

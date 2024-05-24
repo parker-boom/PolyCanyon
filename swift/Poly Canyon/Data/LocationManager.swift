@@ -158,20 +158,36 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             // Check based on the landmark number and mark additional points as visited
             switch nearestPoint.landmark {
+            case 8:
+                markPointAsVisitedByIndex(54)
+                markPointAsVisitedByIndex(196)
             case 13:
                 markPointAsVisitedByIndex(19)
                 markPointAsVisitedByIndex(108)
             case 14:
-                markPointAsVisitedByIndex(58)
-                markPointAsVisitedByIndex(79)
-            case 19:
-                markPointAsVisitedByIndex(87)
+                markPointAsVisitedByIndex(59)
+                markPointAsVisitedByIndex(80)
+            case 15:
+                markPointAsVisitedByIndex(21)
+                markPointAsVisitedByIndex(130)
+            case 17:
+                markPointAsVisitedByIndex(24)
+                markPointAsVisitedByIndex(132)
+            case 20:
+                markPointAsVisitedByIndex(26)
+                markPointAsVisitedByIndex(91)
             case 22:
-                markPointAsVisitedByIndex(35)
-                markPointAsVisitedByIndex(112)
+                markPointAsVisitedByIndex(36)
+                markPointAsVisitedByIndex(113)
             case 30:
                 markPointAsVisitedByIndex(49)
                 markPointAsVisitedByIndex(60)
+            case 31:
+                markPointAsVisitedByIndex(68)
+                markPointAsVisitedByIndex(161)
+            case 32:
+                markPointAsVisitedByIndex(23)
+                markPointAsVisitedByIndex(50)
             default:
                 break
             }
@@ -181,8 +197,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func markPointAsVisitedByIndex(_ index: Int) {
         let mapPoints = mapPointManager.mapPoints
         if index >= 0 && index < mapPoints.count {
-            mapPoints[index].isVisited = true
-            markStructureAsVisited(mapPoints[index].landmark)
+            var newIndex = index - 1;
+            mapPoints[newIndex].isVisited = true
+            markStructureAsVisited(mapPoints[newIndex].landmark)
         }
     }
 
