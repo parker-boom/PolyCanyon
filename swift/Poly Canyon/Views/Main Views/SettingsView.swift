@@ -1,14 +1,3 @@
-// MARK: SettingsView.swift
-// This file defines the SettingsView for the "Arch Graveyard" app, allowing users to customize their app experience through toggles and informational links. It provides settings for appearance, adventure mode, and access to external resources.
-
-// Notable features include:
-// - Toggles for enabling dark mode and adventure mode, directly impacting the user interface and interaction.
-// - Buttons for resetting visited structures and setting conditions based on adventure mode.
-// - Sections with links to external resources for more in-depth information about the architectural graveyard and directions to the location.
-// - Credits section acknowledging contributors and providing context about the app's development.
-
-// This view plays a crucial role in personalizing the app to suit individual preferences and enhancing user engagement through additional informational resources.
-
 import SwiftUI
 
 struct SettingsView: View {
@@ -22,6 +11,10 @@ struct SettingsView: View {
     @State private var alertType: AlertType?
     @State private var pendingAdventureModeState: Bool = false
     
+    @AppStorage("visitedCount") private var visitedCount: Int = 0
+    @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
+    @AppStorage("dayCount") private var dayCount: Int = 0
+    
     enum AlertType {
         case resetVisited, toggleAdventureModeOff
     }
@@ -29,21 +22,8 @@ struct SettingsView: View {
     // MARK: - Body
     var body: some View {
         Form {
-            Section(header: Text("Appearance")) {
+            Section(header: Text("Settings")) {
                 Toggle("Dark Mode", isOn: $isDarkMode)
-            }
-            
-            Section(header: Text("Adventure Mode")) {
-                // Button to reset all visited structures
-                Button(action: {
-                    alertType = .resetVisited
-                    showAlert = true
-                }) {
-                    Text("Reset All Visited Structures")
-                }
-                .tint(.blue)
-                
-                // Toggle to enable/disable adventure mode
                 Toggle("Adventure Mode", isOn: $isAdventureModeEnabled)
                     .onChange(of: isAdventureModeEnabled) { isEnabled in
                         if !isEnabled {
@@ -59,11 +39,37 @@ struct SettingsView: View {
                 Text("Adventure mode automatically tracks your visited structures using your location.")
                     .font(.caption)
                     .foregroundColor(isDarkMode ? .gray : Color.black.opacity(0.6))
+                
+                Button(action: {
+                    alertType = .resetVisited
+                    showAlert = true
+                }) {
+                    Text("Reset All Visited Structures")
+                        .foregroundColor(.blue)
+                }
             }
             
-            Section(header: Text("More")) {
-                Link("In-depth Information", destination: URL(string: "https://caed.calpoly.edu/history-structures")!)
-                Link("How to Get There", destination: URL(string: "https://maps.apple.com/?address=Poly%20Canyon%20Rd,%20San%20Luis%20Obispo,%20CA%20%2093405,%20United%20States&auid=7360445136973306817&ll=35.314999,-120.652923&lsp=9902&q=Poly%20Canyon")!)
+            Section(header: Text("Statistics")) {
+                HStack {
+                    Text("Structures Visited")
+                    Spacer()
+                    Text("\(visitedCount)")
+                }
+                HStack {
+                    Text("Milestone Visits")
+                    Spacer()
+                    Text("\(visitedAllCount)")
+                }
+                HStack {
+                    Text("Days Visited")
+                    Spacer()
+                    Text("\(dayCount)")
+                }
+            }
+            
+            Section(header: Text("Information")) {
+                Link("Structures in In-depth", destination: URL(string: "https://caed.calpoly.edu/history-structures")!)
+                Link("How to Get to Poly Canyon", destination: URL(string: "https://maps.apple.com/?address=Poly%20Canyon%20Rd,%20San%20Luis%20Obispo,%20CA%20%2093405,%20United%20States&auid=7360445136973306817&ll=35.314999,-120.652923&lsp=9902&q=Poly%20Canyon")!)
             }
             
             Section(header: Text("Credits")) {
