@@ -51,6 +51,14 @@ struct MapView: View {
     @State private var showStructPopup = false
     @State private var isDragging = false
     @State private var showNearbyUnvisitedView = false
+    
+    // track number of time visiting all, and times visited
+    @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
+    @AppStorage("dayCount") private var dayCount: Int = 0
+    @AppStorage("previousDayVisited") private var previousDayVisited: String?
+
+    
+
 
 
 
@@ -254,7 +262,7 @@ struct MapView: View {
                 }
                 
                 VStack {
-                    if showNearbyUnvisitedView {
+                    if showNearbyUnvisitedView && hasUnvisitedStructures {
                         nearbyUnvisitedView
                             
                     }
@@ -312,6 +320,9 @@ struct MapView: View {
             }
         }
         .onChange(of: allStructuresVisitedFlag) { newValue in
+            
+            visitedAllCount += 1
+            
             if allStructuresVisitedFlag {
                 // Show congrats popup after closing structure popup
                 showAllVisitedPopup = true
@@ -322,6 +333,11 @@ struct MapView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDarkMode ? Color.black : Color.white)
     }
+    
+    var hasUnvisitedStructures: Bool {
+        return structureData.structures.contains { !$0.isVisited }
+    }
+
     
     // MARK: - Nearby Unvisited View
     var nearbyUnvisitedView: some View {
@@ -411,7 +427,7 @@ struct MapView: View {
         if isSatelliteView {
             return "SatelliteMap"
         } else {
-            return isDarkMode ? "DrawnMapDark" : "DrawnMap"
+            return isDarkMode ? "DarkMap" : "LightMap"
         }
     }
     
@@ -529,19 +545,38 @@ struct MapView: View {
         }
     }
     
+    
     private func subscribeToVisitedStructureNotification() {
         NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { notification in
             if let landmarkId = notification.object as? Int,
                let structure = structureData.structures.first(where: { $0.number == landmarkId }) {
                 self.visitedStructure = structure
                 self.showVisitedStructurePopup = true
+                
+                // Check and update day count
+                let currentDate = Date()
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                let todayString = dateFormatter.string(from: currentDate)
+                
+                if let lastVisited = self.previousDayVisited {
+                    if lastVisited != todayString {
+                        self.dayCount += 1
+                        self.previousDayVisited = todayString
+                    }
+                } else {
+                    self.dayCount += 1
+                    self.previousDayVisited = todayString
+                }
             }
+            
             // Check if all structures are visited
             if self.structureData.structures.allSatisfy({ $0.isVisited }) {
                 self.allStructuresVisitedFlag = true
             }
         }
     }
+
 
 }
 
