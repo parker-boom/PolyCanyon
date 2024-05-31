@@ -13,7 +13,8 @@ assets/
 ├── data/ 
 ├── map/  
 ├── onboarding/   
-├── photos/    
+├── photos/
+├── screenshots/
 ```
 
 ### App Icon
@@ -60,5 +61,9 @@ Includes JPG and Photoshop files of the three onboarding processes:
 JPG images of smaller size (1400 x 2100px), each named 1-35 to correspond to the structure they depict:
 - **Close:** Closeup photos in the [Close](photos/Close) folder.
 - **Main:** Main photos in the [Main](photos/Main) folder.
+
+### Screenshots
+
+PNG images of all different screens in the app, captured using a simulator
 
 
