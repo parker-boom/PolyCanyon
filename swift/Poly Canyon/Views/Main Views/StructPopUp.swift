@@ -1,18 +1,23 @@
-// MARK: StructPopUp.swift
-// This file defines the StructPopUp view for the "Arch Graveyard" app, which is a detailed view displaying information about a specific structure when a user interacts with it. This view is designed to enhance user engagement by providing detailed visuals and information in an immersive format.
+// MARK: - Overview
+/*
+    StructPopUp.swift
 
-// Notable features include:
-// - Dynamic image switching between a main view and a close-up based on user gestures, enhancing the visual exploration of structures.
-// - Detailed textual content about the structure's background, design, and significance.
-// - Use of environmental presentation mode to manage modal view dismissal, offering a smooth user experience.
-// - Adaptive color changes for text and background based on the dark mode setting, ensuring optimal visibility under different user preferences.
+    This file defines the StructPopUp structure, which displays detailed information about a selected structure in a popup view.
 
-// This view serves as a crucial component of the app, allowing users to engage deeply with the architectural features and history of each structure within the Cal Poly architecture graveyard.
+    Key Components:
+    - Displays the structure's image, close-up, number, title, and year.
+    - Allows users to swipe between images and dismiss the view.
+    - Shows a description or a placeholder message if the description is not available.
+    - Provides a close button to dismiss the popup.
+
+    Functionality:
+    - Utilizes gesture recognition to swipe between images or dismiss the view by swiping down.
+    - Adjusts the UI elements based on the dark mode setting.
+*/
 
 
 
-
-
+// MARK: - Code
 import SwiftUI
 
 struct StructPopUp: View {
@@ -136,6 +141,7 @@ struct StructPopUp: View {
                                 }
                             }
                     )
+                    // Hide if no description
                     if (structure.description == "iii") {
                         Text("More information coming soon!")
                             .font(.system(size: 26))
@@ -165,9 +171,9 @@ struct StructPopUp: View {
     }
 }
 
-/*
+// MARK: - Preview
 struct StructPopUp_Previews: PreviewProvider {
     static var previews: some View {
         StructPopUp(structure: Structure(number: 33, title: "Underground House", imageName: "4M", closeUp: "0C", description: "The field of architecture has evolved over millennia, influenced by technological advances, cultural exchanges, and societal needs. This evolution is evident in the diverse architectural styles that have emerged across different regions and historical periods. From the classical ", year: "1985"), isDarkMode: .constant(true), onDismiss: false)
     }
-}*/
+}
