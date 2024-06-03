@@ -1,10 +1,20 @@
-// MARK: StructureData.swift
-// This file defines the StructureData class in the "Arch Graveyard" app, which is responsible for managing and persisting data related to architectural structures. It uses @Published to observe changes in the structures array, saving data to UserDefaults for persistence across app launches.
+// MARK: Overview
+/*
+    StructureData.swift
 
-// Key functionalities include:
-// - Loading and saving structure data to UserDefaults.
-// - Resetting visited structures and marking all structures as visited, useful for settings and toggling adventure mode.
-// - Importing initial data from a CSV file to populate the structures list when starting the app or when no saved data is available.
+    This file defines the StructureData class, which manages the data for all structures in the app.
+
+    Key Components:
+    - Publishes an array of structures, saving changes to UserDefaults.
+    - Initializes by loading data from UserDefaults or from a CSV file if no data is found.
+
+    Functionality:
+    - saveToUserDefaults(): Encodes and saves the structures array to UserDefaults.
+    - loadFromUserDefaults(): Decodes and loads the structures array from UserDefaults.
+    - resetVisitedStructures(): Resets the visited status of all structures.
+    - setAllStructuresAsVisited(): Marks all structures as visited.
+    - loadStructuresFromCSV(): Loads structure data from a CSV file.
+*/
 
 
 
@@ -20,19 +30,19 @@ class StructureData: ObservableObject {
         }
     }
     
-    // call to load across app closes
+    // Call to load across app closes
     init() {
         loadFromUserDefaults()
     }
     
-    // save things to user default
+    // Save things to user default
     func saveToUserDefaults() {
         if let encoded = try? JSONEncoder().encode(structures) {
             UserDefaults.standard.set(encoded, forKey: "structures")
         }
     }
 
-    // load things from user defaults
+    // Load things from user defaults
     func loadFromUserDefaults() {
         if let structuresData = UserDefaults.standard.data(forKey: "structures"),
            let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
@@ -42,7 +52,7 @@ class StructureData: ObservableObject {
         }
     }
     
-    // reset visited structuress - triggered in settings
+    // Reset visited structuress - triggered in settings
     func resetVisitedStructures() {
         for index in structures.indices {
             structures[index].isVisited = false
@@ -52,7 +62,7 @@ class StructureData: ObservableObject {
         objectWillChange.send()
     }
     
-    // set all structures as visited - triggered when adventure mode turned off
+    // Set all structures as visited - triggered when adventure mode turned off
     func setAllStructuresAsVisited() {
         structures = structures.map { structure in
             var updatedStructure = structure
@@ -61,7 +71,7 @@ class StructureData: ObservableObject {
         }
     }
     
-    // use structures.csv to load the data
+    // Use structures.csv to load the data
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
             return
