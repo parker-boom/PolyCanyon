@@ -1,13 +1,26 @@
 // MARK: LocationManager.swift
-// This file defines the LocationManager class for handling location functionalities in the Cal Poly architecture graveyard app. It utilizes CoreLocation for managing location services and tracking user movement within a predefined safe zone.
+/*
+    LocationManager.swift
 
-// Notable features include:
-// - Adaptive location update frequencies based on user proximity to the safe zone.
-// - Geofencing to notify entry and exit from this area.
-// - Tracking and updating visited landmarks based on the user's location.
+    This file defines the LocationManager class, which manages location services and tracks user location relative to predefined landmarks.
 
-// The class efficiently handles location permissions and updates, crucial for guiding users through the architectural structures in the area.
+    Key Components:
+    - CLLocationManager for handling location updates and permissions.
+    - MapPointManager and StructureData for managing map points and structure data.
+    - Publishes location status and the last known location.
 
+    Functionality:
+    - Requests location authorization and starts location updates.
+    - Checks if the user is within a predefined safe zone and adjusts location update frequency.
+    - Monitors significant location changes and sets up a geofence for the safe zone.
+    - Marks landmarks as visited based on user location and proximity.
+    - Handles entering and exiting the safe zone region with appropriate location update adjustments.
+
+    Additional Functions:
+    - `requestAlwaysAuthorization()`: Requests "Always" location authorization.
+    - `markStructureAsVisited(landmarkId: Int)`: Posts a notification when a structure is visited.
+    - `isWithinSafeZone(coordinate: CLLocationCoordinate2D)`: Checks if a coordinate is within the safe zone.
+*/
 
 
 
@@ -21,10 +34,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var mapPointManager: MapPointManager
     private var structureData: StructureData
+
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
     @Published var isMonitoringSignificantLocationChanges = false
-    
+
+    // Define safe long and lat zone
     private let safeZoneCorners = (
         bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
@@ -42,6 +57,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.allowsBackgroundLocationUpdates = true
     }
 
+    // Did the user change authorization
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
 
@@ -56,7 +72,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
 
-
+    // Setup location manager
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if #available(iOS 14.0, *) {
             // For iOS 14 and later, the new method will be called instead
@@ -82,7 +98,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             isMonitoringSignificantLocationChanges = true
         }
     }
-    
+
+    // Setup geo fence so user location isn't constantly tracked outside of Poly Canyon
     private func setupGeofenceForSafeZone() {
         let regionCenter = CLLocationCoordinate2D(latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
                                                   longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2)
@@ -92,6 +109,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.startMonitoring(for: region)
     }
 
+    // Declare safe zone
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         if region.identifier == "SafeZone" {
             locationManager.startUpdatingLocation()
@@ -105,7 +123,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-
+    // Handle different cases of authorization
     private func handleAuthorization(status: CLAuthorizationStatus) {
         switch status {
         case .notDetermined:
@@ -194,6 +212,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    // Mark a structure visited (map point)
     private func markPointAsVisitedByIndex(_ index: Int) {
         let mapPoints = mapPointManager.mapPoints
         if index >= 0 && index < mapPoints.count {
@@ -202,9 +221,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             markStructureAsVisited(mapPoints[newIndex].landmark)
         }
     }
-
-
-
     
     // Marks a landmark as visited in the system notifications.
     private func markStructureAsVisited(_ landmarkId: Int) {
