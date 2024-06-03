@@ -1,3 +1,4 @@
+// MARK: Overview
 /*
     OnboardingView.swift
 
@@ -13,10 +14,11 @@
     - Tapping the last image marks onboarding as complete.
 */
 
-
+// MARK: Code
 import SwiftUI
 
 struct OnboardingView: View {
+    // Variables
     @Binding var isNewOnboardingCompleted: Bool
     @State private var currentPage = 0
     private let totalPages = 4
@@ -28,7 +30,8 @@ struct OnboardingView: View {
             
             VStack(spacing: 0) {
                 Spacer()
-                
+
+                // All the pages
                 TabView(selection: $currentPage) {
                     ForEach(0..<totalPages, id: \.self) { index in
                         Image("\(index + 1)")
@@ -53,6 +56,7 @@ struct OnboardingView: View {
     }
 }
 
+// MARK: Preview
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         OnboardingView(isNewOnboardingCompleted: .constant(false))
