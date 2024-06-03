@@ -42,6 +42,8 @@ struct MainView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+
+            // The main tab view, holds all of the tab view pages
             ZStack {
                 if selection == 0 {
                     MapView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData, mapPointManager: mapPointManager, locationManager: locationManager)
@@ -51,7 +53,9 @@ struct MainView: View {
                     SettingsView(structureData: structureData, mapPointManager: mapPointManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
                 }
             }
-            
+
+
+            // Helps kill the tab bar if keyboard is up
             if !keyboardManager.isKeyboardVisible {
                 CustomTabBar(onTabSelected: { tabIndex in
                     withAnimation {
@@ -67,16 +71,15 @@ struct MainView: View {
 }
 
 
-
+// MARK: - CustomTabBar
 struct CustomTabBar: View {
-    // MARK: - Properties
+
     
     let tabBarHeight: CGFloat = 50 // Adjust this value to your desired height
     let onTabSelected: (Int) -> Void
     @Binding var selection: Int
     let isDarkMode: Bool
-    
-    // MARK: - Body
+
     
     var body: some View {
         VStack() {
@@ -128,7 +131,7 @@ struct CustomTabBar: View {
     }
 }
 
-
+// MARK: - keyboardManager
 // keyboard manager for dismissing tab bar
 class KeyboardManager: ObservableObject {
     @Published var isKeyboardVisible = false
@@ -158,7 +161,7 @@ class KeyboardManager: ObservableObject {
     }
 }
 
-
+// MARK: - Preview
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView(isDarkMode: .constant(true), isAdventureModeEnabled: .constant(false))
