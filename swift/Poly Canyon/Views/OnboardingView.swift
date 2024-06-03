@@ -1,3 +1,19 @@
+/*
+    OnboardingView.swift
+
+    This file defines the OnboardingView struct, which presents a multi-page onboarding experience.
+
+    Key Components:
+    - isNewOnboardingCompleted: Tracks onboarding completion.
+    - currentPage: Manages the current page index.
+    - totalPages: Total number of onboarding pages.
+
+    Functionality:
+    - Displays a series of images in a TabView.
+    - Tapping the last image marks onboarding as complete.
+*/
+
+
 import SwiftUI
 
 struct OnboardingView: View {
