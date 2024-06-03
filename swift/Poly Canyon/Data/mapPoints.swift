@@ -1,13 +1,29 @@
-// MARK: mapPoints.swift
-// This file defines the MapPoint structure and an array of map points for the "Arch Graveyard" app. Each MapPoint contains geographic coordinates, a pixel position on the map, and a landmark identifier for referencing specific architectural structures within Cal Poly's architecture graveyard.
+// MARK: Overview
+/*
+    MapPointManager.swift
+
+    This file defines the MapPoint and MapPointManager classes, which handle the management and persistence of map points used in the app.
+
+    Key Components:
+    - MapPoint: Represents a map point with coordinates, pixel position, landmark ID, and visited status.
+    - MapPointLoader: Loads map points from a CSV file.
+    - MapPointManager: Manages the collection of map points, including loading, saving, and resetting visited statuses.
+
+    Functionality:
+    - saveVisitedStatus(): Saves the visited status of map points to UserDefaults.
+    - loadVisitedStatus(): Loads the visited status of map points from UserDefaults.
+    - resetVisitedMapPoints(): Resets the visited status of all map points except those with landmark ID -1.
+    - loadMapPoints(): Loads map points from a CSV file using MapPointLoader.
+*/
 
 
 
-// MARK: Declaration
+// MARK: Code
 import Foundation
 import CoreLocation
 import CoreGraphics
 
+// Create the map point object
 class MapPoint {
     var coordinate: CLLocationCoordinate2D
     var pixelPosition: CGPoint
@@ -22,6 +38,7 @@ class MapPoint {
     }
 }
 
+// Load in the map points from CSV file
 class MapPointLoader {
     static func loadMapPoints(from url: URL) -> [MapPoint] {
         do {
@@ -61,7 +78,7 @@ class MapPointLoader {
     }
 }
 
-
+// Create the class of mapPoints loaded in
 class MapPointManager: ObservableObject {
     @Published var mapPoints: [MapPoint] = []
 
