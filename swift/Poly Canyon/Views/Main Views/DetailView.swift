@@ -1,16 +1,20 @@
+// MARK: Code
+/*
+    DetailView.swift
 
-// MARK: DetailView.swift
-// This file defines the DetailView for the "Arch Graveyard" app, providing detailed information about each architectural structure. It offers a dynamic view switch between a grid and a list layout, accommodating user preferences for viewing the structure data.
+    This file defines the DetailView structure, which displays detailed information about structures in a grid or list view.
 
-// Notable features include:
-// - Dynamic search functionality allowing filtering of structures based on text input.
-// - Switchable view modes between a grid and a list layout, enhancing user interaction based on preference.
-// - Integration of onboarding and tutorial overlays to guide first-time users.
-// - Reactive updates to the UI and data model in response to user interactions and system notifications, especially in adventure mode where structures are marked as visited.
+    Key Components:
+    - Binding properties for dark mode and adventure mode.
+    - ObservedObject properties for data management (structureData, locationManager, mapPointManager).
+    - State properties to manage UI interactions and filters.
 
-// This view is central to displaying detailed information about the structures in a user-friendly format, incorporating interactive elements like search bars and custom view toggles, which make the application engaging and accessible.
-
-
+    Functionality:
+    - Toggles between grid and list views.
+    - Displays recently visited, unopened, and nearby unvisited structures.
+    - Handles search functionality and filters using the eye icon.
+    - Shows structure details in a popup when selected.
+*/
 
 
 
@@ -56,19 +60,23 @@ struct DetailView: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                
+
+                // Header view for switching filters and views
                 headerView
                 
                             
                 // Scroll view that displays either grid or list view
                 ScrollView {
                     if isGridView {
+
+                        // Recently Visited
                         if structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled {
                             
                             recentlyVisitedView
                                 .padding(.top, 10)
                         }
-                        
+
+                        // Recently Unopened
                         if structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled {
                             
                             recentlyUnopenedView
@@ -76,25 +84,28 @@ struct DetailView: View {
                             
                             
                         }
-                        
+
+                        // Unvisited
                         if structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled {
                             
                             nearbyUnvisitedView
                                 .padding(.top, 10)
                         }
                         
-                        
+                        // Show grid view
                         gridView
                         
                     }
                     
                     else {
+
+                        // Show list view
                         listView
                     }
                 }
             
                 
-                // present pop up
+                // Present pop up
                 .sheet(isPresented: $showPopup) {
                     StructPopUp(structure: selectedStructure, isDarkMode: $isDarkMode){}
                         .background(isDarkMode ? Color.black : Color.white)
@@ -105,14 +116,14 @@ struct DetailView: View {
             
             // MARK: - On Appear
             .onAppear {
-                // load the structures from CSV on the first open
+                // Load the structures from CSV on the first open
                 if structureData.structures.count < 30 {
                     structureData.loadStructuresFromCSV()
                 }
 
         
                 
-                // accept notifications to mark as visited if adventure mode enabled
+                // Accept notifications to mark as visited if adventure mode enabled
                 if isAdventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
                         if let landmarkId = notification.object as? Int {
@@ -131,6 +142,8 @@ struct DetailView: View {
         }
         .overlay(
             Group {
+
+                // Show eyePopUp when you change filters
                 if showEyePopup {
                     VStack {
                         Spacer()
@@ -188,7 +201,9 @@ struct DetailView: View {
         .padding(.horizontal, 10)
         .padding(.bottom, -5)
     }
-    
+
+    // MARK: GridView
+    // Grid view that shows all structures in a grid, with images
     var gridView: some View {
         VStack{
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
@@ -209,6 +224,8 @@ struct DetailView: View {
                 }, id: \.id) { structure in
                     ZStack(alignment: .bottomLeading) {
                         ZStack(alignment: .topTrailing) {
+
+                            // Image
                             Image(structure.imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -216,7 +233,8 @@ struct DetailView: View {
                                 .clipped()
                                 .cornerRadius(15)
                                 .blur(radius: structure.isVisited ? 0 : 3)
-                            
+
+                            // Is visited circle
                             if structure.isVisited && !structure.isOpened && isAdventureModeEnabled {
                                 Circle()
                                     .fill(Color.blue.opacity(0.7))
@@ -227,7 +245,8 @@ struct DetailView: View {
                                     .padding(10)
                             }
                         }
-                        
+
+                        // Information
                         VStack(alignment: .leading, spacing: 3) {
                             HStack {
                                 Text("\(structure.number)")
@@ -253,6 +272,8 @@ struct DetailView: View {
                         .background(isDarkMode ? Color.black.opacity(1) : Color.white.opacity(1))
                         .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
                     }
+
+                    // Open if selected
                     .onTapGesture {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
@@ -277,7 +298,9 @@ struct DetailView: View {
         .padding(.top, 10)
         .padding(.bottom, 30)
     } 
-    
+
+    // MARK: ListView
+    // Show all structures in a smaller more concise list
     var listView: some View {
         VStack(spacing: 0) {
             ForEach(structureData.structures.filter { structure in
@@ -299,7 +322,7 @@ struct DetailView: View {
                 Divider()
                     .background(isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.4))
                 
-                // show number then title
+                // Show number then title
                 HStack {
                     Text("\(structure.number)")
                         .foregroundColor(isDarkMode ? .white : .black)
@@ -321,7 +344,7 @@ struct DetailView: View {
                             .padding(.trailing, 5)
                     }
                     
-                    // walking figure green if visited
+                    // Walking figure green if visited
                     Image(systemName: "figure.walk")
                         .foregroundColor(structure.isVisited ? .green : .red)
                         .font(.title2)
@@ -331,7 +354,7 @@ struct DetailView: View {
                 .padding(.horizontal, 16)
                 .background(isDarkMode ? Color.black : Color.white)
                 
-                // show pop up if clicked
+                // Show pop up if clicked
                 .onTapGesture {
                     selectedStructure = structure
                     if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
@@ -352,8 +375,9 @@ struct DetailView: View {
         }
         .padding(.top, 5)
     }
-    
-    
+
+    // MARK: PopUpViews
+    // Show recently visited structures in order
     var recentlyVisitedView: some View {
         let recentlyVisitedStructures = structureData.structures
             .filter { $0.recentlyVisited != -1 }
@@ -363,7 +387,8 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-                
+
+                // Show image and number of each
                 ForEach(recentlyVisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.imageName)
@@ -385,6 +410,7 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    // Open if clicked on
                     .onTapGesture {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
@@ -418,7 +444,7 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
     
-    // MARK: - Recently Unopened View
+    // Shows recently unopened views 
     var recentlyUnopenedView: some View {
         let recentlyUnopenedStructures = structureData.structures
             .filter { !$0.isOpened && $0.isVisited }
@@ -428,7 +454,7 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-                
+                // Show images and number for each
                 ForEach(recentlyUnopenedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.imageName)
@@ -450,6 +476,7 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    // Open if tap
                     .onTapGesture {
                         selectedStructure = structure
                         if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
@@ -483,7 +510,7 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
 
-    // MARK: - Nearby Unvisited View
+    // Show nearby structures if they aren't visited
     var nearbyUnvisitedView: some View {
         let userLocation = locationManager.lastLocation
         let nearbyUnvisitedStructures = structureData.structures
@@ -494,7 +521,8 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-                
+
+                // Show each image and number
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.imageName)
@@ -516,6 +544,7 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    // Open if selected
                     .onTapGesture {
                         selectedStructure = structure
                         if structureData.structures.firstIndex(where: { $0.id == structure.id }) != nil {
@@ -548,6 +577,7 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
 
+    // Get distance to nearby structures for unvisited
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = locationManager.lastLocation else { return .infinity }
         let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
@@ -555,8 +585,7 @@ struct DetailView: View {
         return userLocation.distance(from: structureCLLocation)
     }
 
-
-    
+    // Show the eye icon based on which filter
     func toggleEyeIconState() {
         switch eyeIconState {
         case .all:
@@ -573,7 +602,7 @@ struct DetailView: View {
         showPopup(for: eyeIconState)
     }
     
-    
+    // Change eye icon color based on which filter
     func getEyeIconColor() -> Color {
         switch eyeIconState {
         case .all:
@@ -588,7 +617,8 @@ struct DetailView: View {
         }
         
     }
-    
+
+    // Change eye popup message based on which filter
     func getPopupMessage() -> String {
         switch eyeIconState {
         case .all:
@@ -602,7 +632,8 @@ struct DetailView: View {
         
         }
     }
-    
+
+    // Show popup based on which filter
     func showPopup(for state: EyeIconState) {
         let message: String
         switch state {
@@ -639,6 +670,7 @@ extension View {
     }
 }
 
+// View that comes up when filter is changed
 struct PopupView: View {
     let message: String
     let isDarkMode: Bool
@@ -671,6 +703,7 @@ struct RoundedCornerShape: Shape {
     }
 }
 
+// Search bar used
 struct SearchBar: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
@@ -743,11 +776,7 @@ class CustomUISearchBar: UISearchBar {
     }
 }
 
-
-
-
-
-
+// Custom toggle between grid and list view
 struct CustomToggleStyle: ToggleStyle {
     var isDarkMode: Bool
 
