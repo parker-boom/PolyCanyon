@@ -1,11 +1,22 @@
-// MARK: MainView.swift
-// This file defines the MainView structure for the "Arch Graveyard" app, serving as the primary interface after onboarding. It orchestrates the user navigation through a tab view setup.
+// MARK: Overview
+/*
+    MainView.swift
 
-// Notable features include:
-// - A tab view integrating MapView, DetailView, and SettingsView, controlled by user selections.
-// - Customized tab bar facilitating switching between these views, with dynamic styling based on the dark mode setting.
+    This file defines the MainView and CustomTabBar structures, managing the primary interface and navigation for the app.
 
-// This view utilizes SwiftUI's declarative syntax for clean and efficient UI code, essential for a responsive user experience in navigating the architectural structures.
+    MainView:
+    - Displays MapView, DetailView, or SettingsView based on user selection.
+    - Utilizes LocationManager, MapPointManager, and StructureData to manage app data.
+    - Supports dark mode and adventure mode.
+    - Hides the tab bar when the keyboard is visible.
+
+    CustomTabBar:
+    - Provides navigation between main views using icons.
+    - Adjusts appearance based on dark mode setting.
+
+    KeyboardManager:
+    - Observes keyboard visibility to manage UI elements.
+*/
 
 
 
