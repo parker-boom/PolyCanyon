@@ -1,16 +1,35 @@
+// MARK: - Overview
+/*
+    SettingsView.swift
+
+    This file defines the SettingsView structure, which provides a settings interface for the app.
+
+    Key Components:
+    - Toggle switches for Dark Mode and Adventure Mode.
+    - Buttons to reset visited structures.
+    - Displays user statistics (visited structures, milestone visits, days visited).
+    - Provides links to additional information and credits.
+    - Alerts for confirming actions like resetting structures or disabling Adventure Mode.
+*/
+
+// MARK: - Body
 import SwiftUI
 
 struct SettingsView: View {
     // MARK: - Properties
+
+    // Binding and observed objects
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
-    
+
+    // Vars
     @State private var showAlert = false
     @State private var alertType: AlertType?
     @State private var pendingAdventureModeState: Bool = false
-    
+
+    // App storage data figures
     @AppStorage("visitedCount") private var visitedCount: Int = 0
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
@@ -22,6 +41,7 @@ struct SettingsView: View {
     // MARK: - Body
     var body: some View {
         Form {
+            // App settings section
             Section(header: Text("Settings")) {
                 Toggle("Dark Mode", isOn: $isDarkMode)
                 Toggle("Adventure Mode", isOn: $isAdventureModeEnabled)
@@ -48,7 +68,8 @@ struct SettingsView: View {
                         .foregroundColor(.blue)
                 }
             }
-            
+
+            // Stats section
             Section(header: Text("Statistics")) {
                 HStack {
                     Text("Structures Visited")
@@ -66,12 +87,14 @@ struct SettingsView: View {
                     Text("\(dayCount)")
                 }
             }
-            
+
+            // Information section
             Section(header: Text("Information")) {
                 Link("Structures in In-depth", destination: URL(string: "https://caed.calpoly.edu/history-structures")!)
                 Link("How to Get to Poly Canyon", destination: URL(string: "https://maps.apple.com/?address=Poly%20Canyon%20Rd,%20San%20Luis%20Obispo,%20CA%20%2093405,%20United%20States&auid=7360445136973306817&ll=35.314999,-120.652923&lsp=9902&q=Poly%20Canyon")!)
             }
-            
+
+            // Credits section
             Section(header: Text("Credits")) {
                 Text("Parker Jones")
                 Text("Cal Poly SLO")
@@ -82,6 +105,8 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
+
+        // Alerts to confirm settings changed
         .alert(isPresented: $showAlert) {
             switch alertType {
             case .resetVisited:
