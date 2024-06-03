@@ -1,14 +1,25 @@
-// MARK: MapView.swift
-// This file defines the MapView for the "Arch Graveyard" app, providing an interactive and dynamic map interface for users to explore Cal Poly's architectural graveyard. It integrates CoreLocation to track and update the user's position within a defined safe zone and uses SwiftUI for the UI elements.
+// MARK: Overview
+/*
+    MapView.swift
 
-// Notable features include:
-// - Dynamic map scaling and panning capabilities, allowing users to zoom and navigate the map efficiently.
-// - Conditional rendering of the map's visual style based on user settings for dark mode and satellite view.
-// - Integration of location-based alerts and onboarding, enhancing user interaction and providing contextual information based on the user's location and app settings.
-// - Custom pulsing circle animation to indicate the user's current location when within a landmark's vicinity.
+    This file defines the MapView structure, which displays a navigable map interface for the app.
 
-// This view handles complex gestures for map interactions and manages state changes related to location services and user preferences, making it a critical component for delivering a rich user experience in the architectural graveyard exploration app.
+    Key Components:
+    - Binding properties for dark mode and adventure mode.
+    - ObservedObject properties for data management (structureData, mapPointManager, locationManager).
+    - State properties to manage UI interactions and gestures.
 
+    Functionality:
+    - Displays a map with zoom and drag gestures.
+    - Toggles between satellite and map views.
+    - Shows nearby unvisited structures and location markers.
+    - Handles location services and displays relevant UI elements.
+
+    Additional Views:
+    - PulsingCircle: Indicates user location.
+    - VisitedStructurePopup: Shows popup when a structure is visited.
+    - AllStructuresVisitedPopup: Congratulates the user when all structures are visited.
+*/
 
 
 
@@ -56,12 +67,6 @@ struct MapView: View {
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
-
-    
-
-
-
-
     
     // CONSTANTS
     let maxScale: CGFloat = 2.5
@@ -74,9 +79,9 @@ struct MapView: View {
     
     let originalWidth = 1843.0
     let originalHeight = 4164.0
+
     
     // MARK: - Body
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -106,6 +111,7 @@ struct MapView: View {
                     .scaleEffect(scale)
                     .offset(x: offset.width + dragOffset.width, y: offset.height + dragOffset.height)
                     .gesture(
+                        // Zoom in and out gesture
                         MagnificationGesture()
                             .onChanged { value in
                                 let delta = value / self.lastScale
@@ -134,6 +140,7 @@ struct MapView: View {
                             }
                     )
                     .simultaneousGesture(
+                        // Pan if you're zoomed in
                         DragGesture()
                             .onChanged { value in
                                 if self.scale > self.minScale {
@@ -193,8 +200,10 @@ struct MapView: View {
                 }
                 
                 
-                // if all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
+                // If all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
                 if scale == 1.0 {
+
+                    // Make sure location enabled
                     if locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse {
                     if let location = locationManager.lastLocation {
                         
@@ -217,7 +226,8 @@ struct MapView: View {
                         
                         
                         let userCoordinate = location.coordinate
-                        
+
+                        // If they are within the area of poly canyon
                         if !locationManager.isMonitoringSignificantLocationChanges {
                             if let nearestPoint = findNearestMapPoint(to: userCoordinate) {
                                 let topLeft = topLeftOfImage(in: imageSize)
@@ -230,7 +240,7 @@ struct MapView: View {
                                 let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
                                 let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
                             
-                                
+                                // Show the circle on the map
                                 PulsingCircle()
                                     .position(x: circleX, y: circleY)
                                     .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
@@ -241,7 +251,7 @@ struct MapView: View {
                         
                         
                     
-                    // Ask user to enable location services if not
+                    // Tell user they aren't in the area of Poly Canyon
                     else {
                         Text("Enter the area of Poly Canyon")
                             .fontWeight(.semibold)
@@ -253,6 +263,7 @@ struct MapView: View {
                             .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
                     }
                 }
+                    // Ask user to enable location services if not
                     else {
                         Text("Enable location services")
                             .fontWeight(.semibold)
@@ -264,19 +275,20 @@ struct MapView: View {
                             .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
                     }
                 }
-                
+
+                // MARK: - Pop-Ups
+                // Nearby unvisited structures view
                 VStack {
                     if showNearbyUnvisitedView && hasUnvisitedStructures {
-                        nearbyUnvisitedView
-                            
+                        nearbyUnvisitedView     
                     }
-                    
                 }
                 .padding(.top, 75)
 
                 
-                // Show onboarding image with white background if it hasn't ever been shown
+                // PopUps when visiting structures
                 ZStack {
+                        // Show visited structure popup
                         if showVisitedStructurePopup, let structure = visitedStructure {
                             VisitedStructurePopup(structure: structure, isPresented: $showVisitedStructurePopup, isDarkMode: $isDarkMode, structureData: structureData)
                                 .transition(.move(edge: .bottom))
@@ -284,6 +296,7 @@ struct MapView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                                 .padding(.bottom, 15)
                         }
+                        // Congratulations message
                         if showAllVisitedPopup {
                             AllStructuresVisitedPopup(isPresented: $showAllVisitedPopup, isDarkMode: $isDarkMode)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -324,7 +337,7 @@ struct MapView: View {
             }
         }
         .onChange(of: allStructuresVisitedFlag) { newValue in
-            
+            // Count visited all count for stats
             visitedAllCount += 1
             
             if allStructuresVisitedFlag {
@@ -337,7 +350,8 @@ struct MapView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDarkMode ? Color.black : Color.white)
     }
-    
+
+    // See if they are any structures not visited
     var hasUnvisitedStructures: Bool {
         return structureData.structures.contains { !$0.isVisited }
     }
@@ -345,6 +359,7 @@ struct MapView: View {
     
     // MARK: - Nearby Unvisited View
     var nearbyUnvisitedView: some View {
+        // Filter to closest by and unvisited
         let userLocation = locationManager.lastLocation
         let nearbyUnvisitedStructures = structureData.structures
             .filter { !$0.isVisited }
@@ -354,7 +369,8 @@ struct MapView: View {
         return VStack {
             HStack {
                 Spacer()
-                
+
+                // Show every structure
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.imageName)
@@ -414,7 +430,7 @@ struct MapView: View {
         }
     }
 
-
+    // Use distance function
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = locationManager.lastLocation else { return .infinity }
         let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
@@ -424,7 +440,7 @@ struct MapView: View {
 
     
     
-    // MARK: - Private Methods
+    // MARK: - Functions
     
     // Selections mapImage based on if it's satelite, and then based on light/dark mode
     private func mapImage() -> String {
@@ -449,6 +465,7 @@ struct MapView: View {
         return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
     }
 
+    // Limit how far the drag offset can go, so you don't hit blank space
     private func limitDragOffset(newOffset: CGSize, imageSize: CGSize) -> CGSize {
         let maxHorizontalOffset = (imageSize.width * scale - imageSize.width) / 2
         let maxVerticalOffset = (imageSize.height * scale - imageSize.height) / 2
@@ -459,13 +476,12 @@ struct MapView: View {
         return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
     }
 
+    // Center the image when zooming out
     private func centerImage(imageSize: CGSize, containerSize: CGSize) {
         let x = (containerSize.width - imageSize.width * scale) / 2
         let y = (containerSize.height - imageSize.height * scale) / 2
         self.offset = CGSize(width: x, height: y)
     }
-
-
     
     // Find the nearest of 60 map points based on the users current location, used to display current location
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
@@ -485,7 +501,8 @@ struct MapView: View {
         
         return nearestPoint
     }
-    
+
+    // Find nearby map points 
     private func findNearbyMapPoints() -> [MapPoint] {
         guard let userLocation = locationManager.lastLocation else { return [] }
 
@@ -500,7 +517,7 @@ struct MapView: View {
         return Array(nearbyPoints.prefix(3))
     }
 
-
+    // Show the popup for a structure
     private func showStructPopup(for mapPoint: MapPoint) {
         if let structure = structureData.structures.first(where: { $0.number == mapPoint.landmark }) {
             visitedStructure = structure
@@ -508,8 +525,6 @@ struct MapView: View {
         }
     }
 
-
-    
     // Calculate where the top left of the image is to help place the location circle in the correct position
     private func topLeftOfImage(in imageSize: CGSize) -> CGPoint {
         let containerAspectRatio = imageSize.width / imageSize.height
@@ -557,7 +572,7 @@ struct MapView: View {
         }
     }
     
-    
+    // Get notifications when a user visits a structure
     private func subscribeToVisitedStructureNotification() {
         NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { notification in
             if let landmarkId = notification.object as? Int,
@@ -617,6 +632,7 @@ struct PulsingCircle: View {
     }
 }
 
+// PopUp that comes up when a structure is visited
 struct VisitedStructurePopup: View {
     let structure: Structure
     @Binding var isPresented: Bool
@@ -709,7 +725,7 @@ struct VisitedStructurePopup: View {
     }
 }
 
-
+// Congratulations message when visiting all structures
 struct AllStructuresVisitedPopup: View {
     @Binding var isPresented: Bool
     @Binding var isDarkMode: Bool
@@ -742,12 +758,6 @@ struct AllStructuresVisitedPopup: View {
 }
 
 
-
-
-
-
-// Changing DarkMode constant will allow you to see both views
-// Changing AdventureMode really won't do anything, change matters in DetailView
 // MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
