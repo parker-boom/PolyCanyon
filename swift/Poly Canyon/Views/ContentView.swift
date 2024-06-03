@@ -1,13 +1,17 @@
-// MARK: ContentView.swift
-// This SwiftUI view file is the entry point for the "Arch Graveyard" app's UI. It controls the presentation flow between the onboarding and main content views based on user preferences and first-launch detection.
+// MARK: Overview
+/*
+    ContentView.swift
 
-// Notable features include:
-// - User preference storage for themes and modes using @AppStorage.
-// - Conditional rendering to switch between OnboardingView and MainView based on the isFirstLaunch flag.
+    This file defines the ContentView structure, managing the initial view of the app.
 
-// This setup ensures users are properly onboarded on their first app launch, while returning users are directly taken to the main content with their settings preserved.
+    ContentView:
+    - Uses @AppStorage to persist user preferences and settings.
+    - Displays OnboardingView if onboarding is not completed.
+    - Switches to MainView after onboarding is finished.
 
-
+    Constants:
+    - Contains the key for tracking the onboarding version.
+*/
 
 
 
@@ -33,6 +37,7 @@ struct Constants {
     static let currentOnboardingVersion = "currentOnboardingVersion"
 }
 
+// MARK: Preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
