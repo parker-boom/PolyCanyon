@@ -63,7 +63,7 @@ struct MapView: View {
     @State private var isDragging = false
     @State private var showNearbyUnvisitedView = false
     
-    // track number of time visiting all, and times visited
+    // track number of time visiting all, and  times visited
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?

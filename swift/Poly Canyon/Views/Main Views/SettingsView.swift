@@ -67,6 +67,13 @@ struct SettingsView: View {
                     Text("Reset All Visited Structures")
                         .foregroundColor(.blue)
                 }
+                
+                Button(action: {
+                    openSettings()
+                }) {
+                    Text("Open Location Settings")
+                        .foregroundColor(.blue)
+                }
             }
 
             // Stats section
@@ -133,6 +140,15 @@ struct SettingsView: View {
                 )
             case .none:
                 return Alert(title: Text("Error"))
+            }
+        }
+    }
+    
+    // MARK: - Open Settings Method
+    func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
             }
         }
     }

@@ -55,14 +55,18 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = true
+        requestAlwaysAuthorizationIfNeeded()  // Add this line
     }
 
-    // Did the user change authorization
+
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
 
         switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
+        case .authorizedWhenInUse:
+            // Prompt for "Always" authorization
+            locationManager.requestAlwaysAuthorization()
+        case .authorizedAlways:
             locationManager.startUpdatingLocation()
         case .denied, .restricted, .notDetermined:
             print("Location authorization denied or not determined.")
@@ -71,6 +75,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    
+    
+    func requestAlwaysAuthorizationIfNeeded() {
+        if locationManager.authorizationStatus != .authorizedAlways {
+            locationManager.requestAlwaysAuthorization()
+        }
+    }
 
     // Setup location manager
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
