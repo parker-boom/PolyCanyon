@@ -29,11 +29,14 @@
 import Foundation
 import CoreLocation
 import Combine
+import FirebaseDatabase
+
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var mapPointManager: MapPointManager
     private var structureData: StructureData
+    private var lastLoggedMapPoint: MapPoint?
 
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
@@ -44,6 +47,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
     )
+    
+    // Declare Firebase database reference
+    private var databaseRef: DatabaseReference!
 
     // Initializes the location manager and configures its settings.
     init(mapPointManager: MapPointManager, structureData: StructureData) {
@@ -55,7 +61,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = true
-        requestAlwaysAuthorizationIfNeeded()  // Add this line
+        requestAlwaysAuthorizationIfNeeded()  
+        
+        // Initialize Firebase database reference
+        databaseRef = Database.database().reference()
     }
 
 
@@ -94,21 +103,56 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         setupGeofenceForSafeZone()
     }
 
+    // Firebase pinging
+    private func logLocationToFirebaseIfNeeded(location: CLLocation) {
+        guard let newMapPoint = findNearestMapPoint(to: location.coordinate),
+              newMapPoint != lastLoggedMapPoint else { return }
+        
+        let locationData: [String: Any] = [
+            "latitude": location.coordinate.latitude,
+            "longitude": location.coordinate.longitude,
+            "timestamp": Int(Date().timeIntervalSince1970),
+            "mapPointId": newMapPoint.id
+        ]
+        databaseRef.child("user_locations").childByAutoId().setValue(locationData)
+        lastLoggedMapPoint = newMapPoint
+    }
+    
+    // Function to ensure that Firebase only gets pinged on mapPoint change
+    private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
+        var nearestPoint: MapPoint?
+        var minDistance = Double.infinity
+        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+
+        for point in mapPointManager.mapPoints {
+            let pointLocation = CLLocation(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
+            let distance = userLocation.distance(from: pointLocation)
+            if distance < minDistance {
+                minDistance = distance
+                nearestPoint = point
+            }
+        }
+        return nearestPoint
+    }
+
+
+    
     // Updates the location when new location data is available.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        
-        
+        logLocationToFirebaseIfNeeded(location: location)
+
         if isWithinSafeZone(coordinate: location.coordinate) {
             lastLocation = location
             checkVisitedLandmarks()
-            startUpdatingLocation()  // Ensure it's using high-frequency updates within the zone
+            startUpdatingLocation()
             isMonitoringSignificantLocationChanges = false
         } else {
-            locationManager.startMonitoringSignificantLocationChanges()  // Lower frequency updates
+            locationManager.startMonitoringSignificantLocationChanges()
             isMonitoringSignificantLocationChanges = true
         }
     }
+
 
     // Setup geo fence so user location isn't constantly tracked outside of Poly Canyon
     private func setupGeofenceForSafeZone() {

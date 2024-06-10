@@ -24,19 +24,26 @@ import CoreLocation
 import CoreGraphics
 
 // Create the map point object
-class MapPoint {
+class MapPoint: Equatable {
+    var id: UUID
     var coordinate: CLLocationCoordinate2D
     var pixelPosition: CGPoint
     var landmark: Int
     var isVisited: Bool
-    
+
     init(coordinate: CLLocationCoordinate2D, pixelPosition: CGPoint, landmark: Int, isVisited: Bool) {
+        self.id = UUID()
         self.coordinate = coordinate
         self.pixelPosition = pixelPosition
         self.landmark = landmark
         self.isVisited = isVisited
     }
+
+    static func == (lhs: MapPoint, rhs: MapPoint) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
+
 
 // Load in the map points from CSV file
 class MapPointLoader {
