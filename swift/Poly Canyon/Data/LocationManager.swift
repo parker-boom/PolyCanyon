@@ -29,7 +29,8 @@
 import Foundation
 import CoreLocation
 import Combine
-import FirebaseDatabase
+import FirebaseFirestore
+
 
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -49,12 +50,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     )
     
     // Declare Firebase database reference
-    private var databaseRef: DatabaseReference!
+    private var firestoreRef: Firestore!
+    private var userID: String
 
     // Initializes the location manager and configures its settings.
     init(mapPointManager: MapPointManager, structureData: StructureData) {
-        self.mapPointManager = mapPointManager
-        self.structureData = structureData
+        self.userID = UserDefaults.standard.string(forKey: "userID") ?? UUID().uuidString
+        UserDefaults.standard.set(self.userID, forKey: "userID")
+
+        self.mapPointManager = MapPointManager()
+        self.structureData = StructureData()
+
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -64,7 +70,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         requestAlwaysAuthorizationIfNeeded()  
         
         // Initialize Firebase database reference
-        databaseRef = Database.database().reference()
+        firestoreRef = Firestore.firestore()
     }
 
 
@@ -103,20 +109,24 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         setupGeofenceForSafeZone()
     }
 
-    // Firebase pinging
     private func logLocationToFirebaseIfNeeded(location: CLLocation) {
         guard let newMapPoint = findNearestMapPoint(to: location.coordinate),
               newMapPoint != lastLoggedMapPoint else { return }
-        
+
         let locationData: [String: Any] = [
             "latitude": location.coordinate.latitude,
             "longitude": location.coordinate.longitude,
-            "timestamp": Int(Date().timeIntervalSince1970),
-            "mapPointId": newMapPoint.id
+            "timestamp": Timestamp(date: Date()),
+            "userId": userID
         ]
-        databaseRef.child("user_locations").childByAutoId().setValue(locationData)
+        firestoreRef.collection("user_locations").addDocument(data: locationData) { err in
+            if let err = err {
+                print("Error adding document: \(err)")
+            }
+        }
         lastLoggedMapPoint = newMapPoint
     }
+
     
     // Function to ensure that Firebase only gets pinged on mapPoint change
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
