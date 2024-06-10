@@ -26,6 +26,10 @@
 		D0871CFF2BBF46AD003ADF53 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */; };
 		D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0871D012BBF474D003ADF53 /* CoreLocation.framework */; };
 		D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F543522BC1C5440012F998 /* mapPoints.swift */; };
+		DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */; };
+		DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */; };
+		DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD212C17A02F00397065 /* FirebaseDatabase */; };
+		DB08BD242C17A02F00397065 /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +80,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB08BD242C17A02F00397065 /* FirebaseDatabaseSwift in Frameworks */,
+				DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */,
+				DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */,
+				DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */,
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -214,6 +222,12 @@
 			dependencies = (
 			);
 			name = "Poly Canyon";
+			packageProductDependencies = (
+				DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */,
+				DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */,
+				DB08BD212C17A02F00397065 /* FirebaseDatabase */,
+				DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */,
+			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
 			productType = "com.apple.product-type.application";
@@ -286,6 +300,9 @@
 				Base,
 			);
 			mainGroup = D001C0412BBE319100C532F2;
+			packageReferences = (
+				DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -679,6 +696,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.27.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		DB08BD212C17A02F00397065 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabaseSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D001C0422BBE319100C532F2 /* Project object */;
 }

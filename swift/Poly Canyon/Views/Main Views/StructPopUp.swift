@@ -171,9 +171,4 @@ struct StructPopUp: View {
     }
 }
 
-// MARK: - Preview
-struct StructPopUp_Previews: PreviewProvider {
-    static var previews: some View {
-        StructPopUp(structure: Structure(number: 33, title: "Underground House", imageName: "4M", closeUp: "0C", description: "The field of architecture has evolved over millennia, influenced by technological advances, cultural exchanges, and societal needs. This evolution is evident in the diverse architectural styles that have emerged across different regions and historical periods. From the classical ", year: "1985"), isDarkMode: .constant(true), onDismiss: false)
-    }
-}
+
