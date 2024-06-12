@@ -1,36 +1,37 @@
-number,title,description,year,,
-1,Entry Arch,iii,1976,,
-2,Stone Wall,iii,1976,,
-3,Techtite Bridge,iii,1973,,
-4,Blade,iii,1963 / 2003,,
-5,Zenith Zigzag,iii,xxxx,,
-6,Palm Tree,iii,xxxx,,
-7,Tensile,iii,2003,,
-8,Geodesic Dome,iii,1957,,
-9,Cantilever Deck,iii,1990,,
-10,Bathroom,iii,1972,,
-11,Underground House,iii,1982,,
-12,Sun Dial,iii,1971,,
-13,Gunite Bridge,iii,1965,,
-14,Timber Truss,iii,1994,,
-15,Stick Structure,iii,1976,,
-16,Pyramid,iii,xxxx,,
-17,Bridge House,iii,1968,,
-18,Wooden Bridge,iii,xxxx,,
-19,Water Tower,iii,1969,,
-20,Observation Deck,iii,2019,,
-21,Poly Pavilion,iii,1985,,
-22,Serenity Wall,iii,xxxx,,
-23,Hay Bale Arch,iii,2004,,
-24,Fratessa Tower,iii,2004,,
-25,Tensegrity,iii,2022,,
-26,Shell House,iii,1975,,
-27,Green House,iii,1989,,
-28,Modular House,iii,1973,,
-29,Centering Center,iii,xxxx,,
-30,Pole Building,iii,1989,,
-31,Timber Tranquility,iii,xxxx,,
-32,BBQ Pit,iii,1975,,
-33,Stone Bridge,iii,xxxx,,
-34,Stone Structures,iii,xxxx,,
-35,Cardinal Cluster,iii,xxxx,,
+number,title,description,year
+1,Entry Arch,iii,1976
+2,Stone Wall,iii,1976
+3,Techtite Bridge,iii,1973
+4,Blade,iii,1963 / 2003
+5,Zenith Zigzag,iii,xxxx
+6,Palm Tree,iii,xxxx
+7,Tensile,iii,2003
+8,Geodesic Dome,iii,1957
+9,Cantilever Deck,iii,1990
+10,Bathroom,iii,1972
+11,Underground House,iii,1982
+12,Sun Dial,iii,1971
+13,Gunite Bridge,iii,1965
+14,Timber Truss,iii,1994
+15,Stick Structure,iii,1976
+16,Pyramid,iii,xxxx
+17,Bridge House,iii,1968
+18,Wooden Bridge,iii,xxxx
+19,Water Tower,iii,1969
+20,Observation Deck,iii,2019
+21,Poly Pavilion,iii,1985
+22,Serenity Wall,iii,xxxx
+23,Hay Bale Arch,iii,2004
+24,Fratessa Tower,iii,2004
+25,Tensegrity,iii,2022
+26,Shell House,iii,1975
+27,Green House,iii,1989
+28,Modular House,iii,1973
+29,Centering Center,iii,xxxx
+30,Pole Building,iii,1989
+31,Timber Tranquility,iii,xxxx
+32,BBQ Pit,iii,1975
+33,Stone Bridge,iii,xxxx
+34,Stone Structures,iii,xxxx
+35,Cardinal Cluster,iii,xxxx
+36,Moment Monument,iii,2024
