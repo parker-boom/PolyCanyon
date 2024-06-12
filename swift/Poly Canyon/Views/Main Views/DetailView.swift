@@ -117,9 +117,10 @@ struct DetailView: View {
             // MARK: - On Appear
             .onAppear {
                 // Load the structures from CSV on the first open
-                if structureData.structures.count < 30 {
+                if structureData.structures.count < 36 {
                     structureData.loadStructuresFromCSV()
                 }
+                // Less then 36 was just to make sure newest structure added
 
         
                 
