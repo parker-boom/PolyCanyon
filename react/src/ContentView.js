@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingView from './OnboardingView';
 import MainView from './MainView';
@@ -14,6 +14,7 @@ const ContentView = () => {
     const checkFirstLaunch = async () => {
       try {
         const value = await AsyncStorage.getItem('isFirstLaunch');
+        console.log('isFirstLaunch value:', value);
         if (value !== null) {
           setIsFirstLaunch(false);
         }
@@ -26,20 +27,21 @@ const ContentView = () => {
   }, []);
 
   const handleOnboardingComplete = () => {
+    console.log('Onboarding Complete');
     setIsFirstLaunch(false);
     AsyncStorage.setItem('isFirstLaunch', 'false');
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
       {isFirstLaunch ? (
-        <OnboardingView onOnboardingComplete={handleOnboardingComplete} />
+        <OnboardingView onComplete={handleOnboardingComplete} />
       ) : (
         <NavigationContainer>
-        <MainView
-          isDarkMode={isDarkMode}
-          isAdventureModeEnabled={isAdventureModeEnabled}
-        />
+          <MainView
+            isDarkMode={isDarkMode}
+            isAdventureModeEnabled={isAdventureModeEnabled}
+          />
         </NavigationContainer>
       )}
     </View>

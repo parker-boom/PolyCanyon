@@ -1,11 +1,23 @@
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+// metro.config.js
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const path = require('path');
 
-/**
- * Metro configuration
- * https://reactnative.dev/docs/metro
- *
- * @type {import('metro-config').MetroConfig}
- */
-const config = {};
+const config = {
+  projectRoot: path.resolve(__dirname), // Add this line
+  watchFolders: [
+    path.resolve(__dirname, '..', 'assets'),
+  ],
+  resolver: {
+    assetExts: ['jpg', 'png', 'jpeg', 'svg', 'gif'],
+    extraNodeModules: new Proxy({}, {
+      get: (target, name) => {
+        if (name === 'assets') {
+          return path.resolve(__dirname, '..', 'assets');
+        }
+        return path.join(__dirname, `node_modules/${name}`);
+      },
+    }),
+  },
+};
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);
