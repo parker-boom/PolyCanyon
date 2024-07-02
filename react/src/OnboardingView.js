@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Image, Dimensions, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Image, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-swiper';
 
 const { width, height } = Dimensions.get('window');
@@ -12,26 +12,27 @@ const images = [
 ];
 
 const OnboardingView = ({ onComplete }) => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const swiperRef = useRef(null);
   const totalPages = images.length;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.debugText}>Onboarding Screen</Text>
       <Swiper
+        ref={swiperRef}
         loop={false}
         showsPagination={true}
         paginationStyle={styles.pagination}
         dotStyle={styles.dot}
         activeDotStyle={styles.activeDot}
-        onIndexChanged={(index) => setCurrentPage(index)}
       >
         {images.map((image, index) => (
           <TouchableOpacity
             key={index}
             activeOpacity={1}
             onPress={() => {
-              if (index === totalPages - 1) {
+              if (index !== totalPages - 1) {
+                swiperRef.current.scrollBy(1);
+              } else {
                 onComplete();
               }
             }}
@@ -53,13 +54,7 @@ const OnboardingView = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'lightblue',
-  },
-  debugText: {
-    fontSize: 24,
-    color: 'red',
-    textAlign: 'center',
-    margin: 20,
+    backgroundColor: 'white',
   },
   slide: {
     flex: 1,

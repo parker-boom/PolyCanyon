@@ -1,8 +1,19 @@
 import React from 'react';
-import PolyCanyon from './src/PolyCanyon';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import ContentView from './src/ContentView'; // ENTRY POINT 
 
 const App = () => {
-  return <PolyCanyon />;
+  return (
+    <SafeAreaView style={styles.container}>
+      <ContentView />
+    </SafeAreaView>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 
 export default App;

@@ -1,18 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import DetailView from './DetailView';
 
 const Tab = createBottomTabNavigator();
 
 const MapView = () => (
   <View style={styles.mapView}>
     <Text style={styles.debugText}>Map View</Text>
-  </View>
-);
-
-const DetailView = () => (
-  <View style={styles.detailView}>
-    <Text style={styles.debugText}>Detail View</Text>
   </View>
 );
 
@@ -24,10 +19,59 @@ const SettingView = () => (
 
 const MainView = () => {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Map" component={MapView} />
-      <Tab.Screen name="Detail" component={DetailView} />
-      <Tab.Screen name="Settings" component={SettingView} />
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          height: 60,  // Increase height for easier tapping
+          paddingBottom: 5,
+        },
+      }}
+    >
+      <Tab.Screen 
+        name="Map" 
+        component={MapView} 
+        options={{
+          tabBarButton: (props) => (
+            <TouchableOpacity
+              {...props}
+              onPress={() => {
+                console.log('Map Tab Pressed');
+                props.onPress();
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Detail" 
+        component={DetailView}
+        options={{
+          tabBarButton: (props) => (
+            <TouchableOpacity
+              {...props}
+              onPress={() => {
+                console.log('Detail Tab Pressed');
+                props.onPress();
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingView}
+        options={{
+          tabBarButton: (props) => (
+            <TouchableOpacity
+              {...props}
+              onPress={() => {
+                console.log('Settings Tab Pressed');
+                props.onPress();
+              }}
+            />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 };
@@ -36,12 +80,6 @@ const styles = StyleSheet.create({
   mapView: {
     flex: 1,
     backgroundColor: 'lightcoral',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  detailView: {
-    flex: 1,
-    backgroundColor: 'lightseagreen',
     justifyContent: 'center',
     alignItems: 'center',
   },
