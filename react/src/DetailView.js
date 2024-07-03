@@ -1,10 +1,16 @@
-// DetailView.js
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TextInput } from 'react-native';
 import { useStructures } from './StructureData';
 
 const DetailView = () => {
     const { structures } = useStructures();
+    const [searchText, setSearchText] = useState('');
+
+    const filteredStructures = structures.filter(structure => {
+        const searchLower = searchText.toLowerCase();
+        return structure.title.toLowerCase().includes(searchLower) || 
+               structure.number.toString().includes(searchLower);
+    });
 
     const renderItem = ({ item }) => (
         <View style={styles.row}>
@@ -15,15 +21,33 @@ const DetailView = () => {
     );
 
     return (
-        <FlatList
-            data={structures}
-            renderItem={renderItem}
-            keyExtractor={item => item.number.toString()} // Ensure each item has a unique key
-        />
+        <View style={styles.container}>
+            <TextInput
+                style={styles.searchBar}
+                placeholder="Search by number or title..."
+                value={searchText}
+                onChangeText={setSearchText}
+                autoCapitalize="none"
+                autoCorrect={false}
+            />
+            <FlatList
+                style={styles.list}
+                data={filteredStructures}
+                renderItem={renderItem}
+                keyExtractor={item => item.number.toString()}
+            />
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+    list: {
+        backgroundColor: 'white',
+    },
     row: {
         flexDirection: 'row',
         padding: 15,
@@ -31,23 +55,23 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: 'grey',
         alignItems: 'center',
-        justifyContent: 'space-between', 
+        justifyContent: 'space-between',
     },
     number: {
         fontSize: 18,
-        width: 30, 
+        width: 30,
         textAlign: 'center',
     },
     title: {
         fontSize: 23,
         fontWeight: 'bold',
         marginLeft: 10,
-        flex: 1, 
+        flex: 1,
     },
     statusIndicator: {
         width: 10,
         height: 10,
-        borderRadius: 5, 
+        borderRadius: 5,
         marginLeft: 10,
         marginRight: 10,
     },
@@ -56,6 +80,15 @@ const styles = StyleSheet.create({
     },
     notVisited: {
         backgroundColor: 'red',
+    },
+    searchBar: {
+        fontSize: 18,
+        borderColor: 'gray',
+        borderWidth: 1,
+        padding: 10,
+        margin: 10,
+        borderRadius: 5,
+        backgroundColor: 'white',
     },
 });
 
