@@ -1,65 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet } from 'react-native';
-import Papa from 'papaparse';
+// DetailView.js
+import React from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useStructures } from './StructureData';
 
 const DetailView = () => {
-  const [structures, setStructures] = useState([]);
-  const [isGridView, setIsGridView] = useState(true);
+    const { structures } = useStructures();
 
-  const loadCSV = () => {
-    Papa.parse('file:///C:/Users/parke/Desktop/PolyCanyon/assets/data/structures.csv', {
-      download: true,
-      header: true,
-      complete: (results) => {
-        setStructures(results.data);
-      },
-      error: (error) => {
-        console.error('Error loading CSV:', error);
-      }
-    });
-  };
+    const renderItem = ({ item }) => (
+        <View style={styles.row}>
+            <Text style={styles.number}>{item.number}</Text>
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
+        </View>
+    );
 
-  useEffect(() => {
-    loadCSV();
-  }, []);
-
-  return (
-    <View style={styles.detailView}>
-      <View style={styles.searchBarPlaceholder}></View>
-      <Button title="Toggle View" onPress={() => setIsGridView(!isGridView)} />
-      <ScrollView style={styles.listView}>
-        {structures.map((structure, index) => (
-          <View key={index} style={styles.structureItem}>
-            <Text>{structure.number} - {structure.title}</Text>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
-  );
+    return (
+        <FlatList
+            data={structures}
+            renderItem={renderItem}
+            keyExtractor={item => item.number.toString()} // Ensure each item has a unique key
+        />
+    );
 };
 
 const styles = StyleSheet.create({
-  detailView: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: 'lightseagreen',
-  },
-  searchBarPlaceholder: {
-    width: '100%',
-    height: 40,
-    backgroundColor: '#f0f0f0',
-    marginBottom: 20,
-  },
-  listView: {
-    flex: 1,
-    marginTop: 20,
-  },
-  structureItem: {
-    padding: 10,
-    backgroundColor: '#e9e9e9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
+    row: {
+        flexDirection: 'row',
+        padding: 15,
+        backgroundColor: 'white',
+        borderBottomWidth: 1,
+        borderBottomColor: 'grey',
+        alignItems: 'center',
+        justifyContent: 'space-between', 
+    },
+    number: {
+        fontSize: 18,
+        width: 30, 
+        textAlign: 'center',
+    },
+    title: {
+        fontSize: 23,
+        fontWeight: 'bold',
+        marginLeft: 10,
+        flex: 1, 
+    },
+    statusIndicator: {
+        width: 10,
+        height: 10,
+        borderRadius: 5, 
+        marginLeft: 10,
+        marginRight: 10,
+    },
+    visited: {
+        backgroundColor: 'green',
+    },
+    notVisited: {
+        backgroundColor: 'red',
+    },
 });
 
 export default DetailView;

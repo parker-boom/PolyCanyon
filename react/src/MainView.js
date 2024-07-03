@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';  // Import Ionicons
 import DetailView from './DetailView';
 
 const Tab = createBottomTabNavigator();
@@ -21,24 +22,20 @@ const MainView = () => {
   return (
     <Tab.Navigator
       screenOptions={{
+        headerShown: false,  // This hides the header bar
         tabBarStyle: {
-          height: 60,  // Increase height for easier tapping
+          height: 60,
           paddingBottom: 5,
         },
+        tabBarShowLabel: false,  // This hides the label in the tabBar
       }}
     >
       <Tab.Screen 
         name="Map" 
         component={MapView} 
         options={{
-          tabBarButton: (props) => (
-            <TouchableOpacity
-              {...props}
-              onPress={() => {
-                console.log('Map Tab Pressed');
-                props.onPress();
-              }}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map-outline" color={color} size={size} />
           ),
         }}
       />
@@ -46,14 +43,8 @@ const MainView = () => {
         name="Detail" 
         component={DetailView}
         options={{
-          tabBarButton: (props) => (
-            <TouchableOpacity
-              {...props}
-              onPress={() => {
-                console.log('Detail Tab Pressed');
-                props.onPress();
-              }}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle-outline" color={color} size={size} />
           ),
         }}
       />
@@ -61,14 +52,8 @@ const MainView = () => {
         name="Settings" 
         component={SettingView}
         options={{
-          tabBarButton: (props) => (
-            <TouchableOpacity
-              {...props}
-              onPress={() => {
-                console.log('Settings Tab Pressed');
-                props.onPress();
-              }}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" color={color} size={size} />
           ),
         }}
       />
