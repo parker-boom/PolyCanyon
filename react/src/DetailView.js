@@ -1,10 +1,14 @@
+// DetailView.js
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput } from 'react-native';
+import { View, Text, FlatList, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';  
 import { useStructures } from './StructureData';
+import FastImage from 'react-native-fast-image';
 
 const DetailView = () => {
     const { structures } = useStructures();
     const [searchText, setSearchText] = useState('');
+    const [isListView, setIsListView] = useState(true);  // Toggle state for list/grid view
 
     const filteredStructures = structures.filter(structure => {
         const searchLower = searchText.toLowerCase();
@@ -12,7 +16,7 @@ const DetailView = () => {
                structure.number.toString().includes(searchLower);
     });
 
-    const renderItem = ({ item }) => (
+    const renderListItem = ({ item }) => (
         <View style={styles.row}>
             <Text style={styles.number}>{item.number}</Text>
             <Text style={styles.title}>{item.title}</Text>
@@ -20,22 +24,52 @@ const DetailView = () => {
         </View>
     );
 
+    const renderGridItem = ({ item }) => (
+        <View style={styles.gridItem}>
+            <FastImage 
+                source={item.mainImage} 
+                style={[styles.gridImage, item.isVisited ? styles.gridImageVisited : styles.gridImageNotVisited]}
+                resizeMode={FastImage.resizeMode.cover} 
+            />
+            <View style={styles.gridInfoContainer}>
+                <Text style={styles.gridNumber}>{item.number}</Text>
+                <Text style={styles.gridTitle}>{item.title}</Text>
+            </View>
+        </View>
+    );
+
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.searchBar}
-                placeholder="Search by number or title..."
-                value={searchText}
-                onChangeText={setSearchText}
-                autoCapitalize="none"
-                autoCorrect={false}
-            />
-            <FlatList
-                style={styles.list}
-                data={filteredStructures}
-                renderItem={renderItem}
-                keyExtractor={item => item.number.toString()}
-            />
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchBar}
+                    placeholder="Search by number or title..."
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                />
+                <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
+                    <Ionicons name={isListView ? "grid-outline" : "list"} size={24} color="black" />
+                </TouchableOpacity>
+            </View>
+            {isListView ? (
+                <FlatList
+                    style={styles.list}
+                    data={filteredStructures}
+                    renderItem={renderListItem}
+                    keyExtractor={item => item.number.toString()}
+                    key={'list'}
+                />
+            ) : (
+                <FlatList
+                    data={filteredStructures}
+                    renderItem={renderGridItem}
+                    keyExtractor={item => item.number.toString()}
+                    numColumns={2}
+                    key={'grid'}
+                />
+            )}
         </View>
     );
 };
@@ -44,6 +78,25 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+    },
+    searchBar: {
+        flex: 1,
+        fontSize: 18,
+        borderColor: 'gray',
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 5,
+        marginRight: 10,
+        backgroundColor: 'white',
+    },
+    toggleButton: {
+        padding: 10,
     },
     list: {
         backgroundColor: 'white',
@@ -81,14 +134,48 @@ const styles = StyleSheet.create({
     notVisited: {
         backgroundColor: 'red',
     },
-    searchBar: {
-        fontSize: 18,
-        borderColor: 'gray',
-        borderWidth: 1,
-        padding: 10,
+    gridItem: {
+        flex: 1,
         margin: 10,
-        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 150, // Fixed height for each item
         backgroundColor: 'white',
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+    },
+    gridImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 15,
+    },
+    gridImageVisited: {
+        filter: 'none', // No filter for visited
+    },
+    gridImageNotVisited: {
+        filter: 'blur(3px)', // Blur effect for not visited
+    },
+    gridInfoContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderBottomLeftRadius: 15,
+        borderBottomRightRadius: 15,
+    },
+    gridNumber: {
+        fontSize: 18,
+        color: 'black',
+    },
+    gridTitle: {
+        fontSize: 16,
+        color: 'black',
     },
 });
 
