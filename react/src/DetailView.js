@@ -1,14 +1,14 @@
-// DetailView.js
 import React, { useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';  
 import { useStructures } from './StructureData';
 import FastImage from 'react-native-fast-image';
+import { BlurView } from '@react-native-community/blur';
 
 const DetailView = () => {
     const { structures } = useStructures();
     const [searchText, setSearchText] = useState('');
-    const [isListView, setIsListView] = useState(true);  // Toggle state for list/grid view
+    const [isListView, setIsListView] = useState(false);
 
     const filteredStructures = structures.filter(structure => {
         const searchLower = searchText.toLowerCase();
@@ -23,14 +23,22 @@ const DetailView = () => {
             <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
         </View>
     );
-
     const renderGridItem = ({ item }) => (
-        <View style={styles.gridItem}>
-            <FastImage 
-                source={item.mainImage} 
-                style={[styles.gridImage, item.isVisited ? styles.gridImageVisited : styles.gridImageNotVisited]}
-                resizeMode={FastImage.resizeMode.cover} 
-            />
+        <View style={[styles.gridItem, styles.shadow]}>
+            <View style={styles.imageContainer}>
+                <FastImage 
+                    source={item.mainImage} 
+                    style={styles.gridImage}
+                    resizeMode={FastImage.resizeMode.cover} 
+                />
+                {!item.isVisited && (
+                    <BlurView
+                        style={styles.blurView}
+                        blurType="light"
+                        blurAmount={2}
+                    />
+                )}
+            </View>
             <View style={styles.gridInfoContainer}>
                 <Text style={styles.gridNumber}>{item.number}</Text>
                 <Text style={styles.gridTitle}>{item.title}</Text>
@@ -50,26 +58,17 @@ const DetailView = () => {
                     autoCorrect={false}
                 />
                 <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
-                    <Ionicons name={isListView ? "grid-outline" : "list"} size={24} color="black" />
+                    <Ionicons name={isListView ? "grid-outline" : "list-outline"} size={24} color="black" />
                 </TouchableOpacity>
             </View>
-            {isListView ? (
-                <FlatList
-                    style={styles.list}
-                    data={filteredStructures}
-                    renderItem={renderListItem}
-                    keyExtractor={item => item.number.toString()}
-                    key={'list'}
-                />
-            ) : (
-                <FlatList
-                    data={filteredStructures}
-                    renderItem={renderGridItem}
-                    keyExtractor={item => item.number.toString()}
-                    numColumns={2}
-                    key={'grid'}
-                />
-            )}
+            <FlatList
+                style={styles.list}
+                data={filteredStructures}
+                renderItem={isListView ? renderListItem : renderGridItem}
+                keyExtractor={item => item.number.toString()}
+                key={isListView ? 'list' : 'grid'}
+                numColumns={isListView ? 1 : 2}
+            />
         </View>
     );
 };
@@ -114,12 +113,16 @@ const styles = StyleSheet.create({
         fontSize: 18,
         width: 30,
         textAlign: 'center',
+        fontWeight: 'thin',
+        color: 'black',
+        opacity: 0.75,
     },
     title: {
         fontSize: 23,
         fontWeight: 'bold',
         marginLeft: 10,
         flex: 1,
+        color: 'black',
     },
     statusIndicator: {
         width: 10,
@@ -139,42 +142,51 @@ const styles = StyleSheet.create({
         margin: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        height: 150, // Fixed height for each item
+        height: 165, 
         backgroundColor: 'white',
         borderRadius: 15,
+        // CHANGE: Added shadow to every grid item
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.95,
+        shadowRadius: 13.84,
+        elevation: 15, // for Android
+    },
+    imageContainer: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 15,
+        overflow: 'hidden',
     },
     gridImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 15,
     },
-    gridImageVisited: {
-        filter: 'none', // No filter for visited
-    },
-    gridImageNotVisited: {
-        filter: 'blur(3px)', // Blur effect for not visited
+    blurView: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
     },
     gridInfoContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backgroundColor: 'rgba(211, 211, 211, 0.6)', 
         paddingVertical: 5,
         paddingHorizontal: 10,
         borderBottomLeftRadius: 15,
         borderBottomRightRadius: 15,
     },
     gridNumber: {
-        fontSize: 18,
+        fontSize: 22,
         color: 'black',
+        fontWeight: 'bold',
     },
     gridTitle: {
-        fontSize: 16,
+        fontSize: 18,
         color: 'black',
     },
 });
