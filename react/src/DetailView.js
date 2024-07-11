@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';  
 import { useStructures } from './StructureData';
 import FastImage from 'react-native-fast-image';
@@ -9,12 +9,44 @@ const DetailView = () => {
     const { structures } = useStructures();
     const [searchText, setSearchText] = useState('');
     const [isListView, setIsListView] = useState(false);
+    const [filterState, setFilterState] = useState('all'); // 'all', 'visited', 'unvisited'
+    const [popUpText, setPopUpText] = useState('');
+    const popUpOpacity = useState(new Animated.Value(0))[0];
 
     const filteredStructures = structures.filter(structure => {
         const searchLower = searchText.toLowerCase();
-        return structure.title.toLowerCase().includes(searchLower) || 
-               structure.number.toString().includes(searchLower);
+        const matchesSearch = structure.title.toLowerCase().includes(searchLower) || 
+                             structure.number.toString().includes(searchLower);
+
+        if (filterState === 'all') return matchesSearch;
+        if (filterState === 'visited') return matchesSearch && structure.isVisited;
+        if (filterState === 'unvisited') return matchesSearch && !structure.isVisited;
     });
+
+    const handleFilterChange = () => {
+        let newFilterState;
+        let newPopUpText;
+
+        if (filterState === 'all') {
+            newFilterState = 'visited';
+            newPopUpText = 'Visited';
+        } else if (filterState === 'visited') {
+            newFilterState = 'unvisited';
+            newPopUpText = 'Unvisited';
+        } else {
+            newFilterState = 'all';
+            newPopUpText = 'All';
+        }
+
+        setFilterState(newFilterState);
+        setPopUpText(newPopUpText);
+
+        // Trigger animation
+        Animated.sequence([
+            Animated.timing(popUpOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+            Animated.timing(popUpOpacity, { toValue: 0, duration: 700, useNativeDriver: true, delay: 1000 })
+        ]).start();
+    };
 
     const renderListItem = ({ item }) => (
         <View style={styles.row}>
@@ -23,6 +55,7 @@ const DetailView = () => {
             <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
         </View>
     );
+
     const renderGridItem = ({ item }) => (
         <View style={[styles.gridItem, styles.shadow]}>
             <View style={styles.imageContainer}>
@@ -48,18 +81,34 @@ const DetailView = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.searchContainer}>
-                <TextInput
-                    style={styles.searchBar}
-                    placeholder="Search by number or title..."
-                    value={searchText}
-                    onChangeText={setSearchText}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                />
-                <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
-                    <Ionicons name={isListView ? "grid-outline" : "list-outline"} size={24} color="black" />
-                </TouchableOpacity>
+            <View style={styles.searchContainerWrapper}>
+                <View style={styles.searchContainer}>
+                    <TouchableOpacity onPress={handleFilterChange} style={styles.filterButton}>
+                        <Ionicons 
+                            name="eye" 
+                            size={28}
+                            color={filterState === 'all' ? 'black' : filterState === 'visited' ? 'green' : 'red'} 
+                        />
+                    </TouchableOpacity>
+                    <View style={styles.searchBarContainer}>
+                        <TextInput
+                            style={styles.searchBar}
+                            placeholder="Search by number or title..."
+                            value={searchText}
+                            onChangeText={setSearchText}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
+                        {searchText !== "" && (
+                            <TouchableOpacity onPress={() => setSearchText("")} style={styles.clearButton}>
+                                <Ionicons name="close-circle" size={20} color="gray" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                    <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
+                        <Ionicons name={isListView ? "list-outline" : "grid-outline"} size={28} color="black" />
+                    </TouchableOpacity>
+                </View>
             </View>
             <FlatList
                 style={styles.list}
@@ -69,6 +118,9 @@ const DetailView = () => {
                 key={isListView ? 'list' : 'grid'}
                 numColumns={isListView ? 1 : 2}
             />
+            <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
+                <Text style={styles.popUpText}>{popUpText}</Text>
+            </Animated.View>
         </View>
     );
 };
@@ -78,24 +130,38 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'white',
     },
+    searchContainerWrapper: {
+        padding: 10,
+        paddingBottom: 5,
+    },
     searchContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 10,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        elevation: 5,
+    },
+    searchBarContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 10,
     },
     searchBar: {
         flex: 1,
         fontSize: 18,
-        borderColor: 'gray',
-        borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
-        marginRight: 10,
-        backgroundColor: 'white',
+        // fontWeight: 'bold', // Uncomment this line to make the text bold
+    },
+    clearButton: {
+        padding: 5,
+    },
+    filterButton: {
+        padding: 5,
     },
     toggleButton: {
-        padding: 10,
+        padding: 5,
     },
     list: {
         backgroundColor: 'white',
@@ -145,12 +211,11 @@ const styles = StyleSheet.create({
         height: 165, 
         backgroundColor: 'white',
         borderRadius: 15,
-        // CHANGE: Added shadow to every grid item
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.95,
         shadowRadius: 13.84,
-        elevation: 15, // for Android
+        elevation: 15,
     },
     imageContainer: {
         width: '100%',
@@ -188,6 +253,25 @@ const styles = StyleSheet.create({
     gridTitle: {
         fontSize: 18,
         color: 'black',
+    },
+    popUp: {
+        position: 'absolute',
+        bottom: 20,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    popUpText: {
+        color: 'black',
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        backgroundColor: 'white',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 10,
+        elevation: 5,
     },
 });
 
