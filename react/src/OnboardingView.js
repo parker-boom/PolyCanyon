@@ -5,10 +5,10 @@ import Swiper from 'react-native-swiper';
 const { width, height } = Dimensions.get('window');
 
 const images = [
-  require('C:/Users/parke/Desktop/PolyCanyon/assets/onboarding/jpg/1.jpg'),
-  require('C:/Users/parke/Desktop/PolyCanyon/assets/onboarding/jpg/2.jpg'),
-  require('C:/Users/parke/Desktop/PolyCanyon/assets/onboarding/jpg/3.jpg'),
-  require('C:/Users/parke/Desktop/PolyCanyon/assets/onboarding/jpg/4.jpg'),
+  require('../assets/onboarding/1.jpg'),
+  require('../assets/onboarding/2.jpg'),
+  require('../assets/onboarding/3.jpg'),
+  require('../assets/onboarding/4.jpg'),
 ];
 
 const OnboardingView = ({ onComplete }) => {

@@ -3,14 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import DetailView from './DetailView';
+import MapView from './MapView';
 
 const Tab = createBottomTabNavigator();
 
-const MapView = () => ( 
-  <View style={styles.mapView}>
-    <Text style={styles.debugText}>Map View</Text>
-  </View>
-);
 
 const SettingView = () => (
   <View style={styles.settingView}>
