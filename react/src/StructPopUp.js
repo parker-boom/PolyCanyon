@@ -4,7 +4,7 @@ import { BlurView } from '@react-native-community/blur';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width, height } = Dimensions.get('window');
-const POPUP_HEIGHT = height * 0.85;
+const POPUP_HEIGHT = height * 0.90;
 
 const StructPopUp = ({ structure, onClose, isDarkMode }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.45,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -183,9 +183,9 @@ const styles = StyleSheet.create({
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 5,
+    marginHorizontal: 3,
   },
   activeDot: {
     width: 12,
@@ -198,8 +198,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   description: {
-    fontSize: 18,
+    fontSize: 24,
     textAlign: 'center',
+    color: 'black',
   },
   darkText: {
     color: 'white',

@@ -94,7 +94,7 @@ const DetailView = () => {
                     <TouchableOpacity onPress={handleFilterChange} style={styles.filterButton}>
                         <Ionicons 
                             name="eye" 
-                            size={28}
+                            size={32}
                             color={filterState === 'all' ? 'black' : filterState === 'visited' ? 'green' : 'red'} 
                         />
                     </TouchableOpacity>
@@ -114,7 +114,7 @@ const DetailView = () => {
                         )}
                     </View>
                     <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
-                        <Ionicons name={isListView ? "list-outline" : "grid-outline"} size={28} color="black" />
+                        <Ionicons name={isListView ? "list-outline" : "grid-outline"} size={32} color="black" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -163,7 +163,11 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: 'white',
         borderRadius: 10,
-        elevation: 5,
+        elevation: 25,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.95,
+        shadowRadius: 13.84,
     },
     searchBarContainer: {
         flex: 1,
@@ -174,15 +178,26 @@ const styles = StyleSheet.create({
     searchBar: {
         flex: 1,
         fontSize: 18,
+        color: 'black',
     },
     clearButton: {
         padding: 5,
     },
     filterButton: {
         padding: 5,
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontWeight: 'bold',
     },
     toggleButton: {
         padding: 5,
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontWeight: 'bold',
     },
     list: {
         backgroundColor: 'white',
@@ -260,7 +275,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(211, 211, 211, 0.6)', 
+        backgroundColor: 'rgba(255, 255, 255, 0.85)', 
         paddingVertical: 5,
         paddingHorizontal: 10,
         borderBottomLeftRadius: 15,
@@ -296,4 +311,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default DetailView;
+export default DetailView; 

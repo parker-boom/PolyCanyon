@@ -1,12 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';  // Import Ionicons
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import DetailView from './DetailView';
 
 const Tab = createBottomTabNavigator();
 
-const MapView = () => (
+const MapView = () => ( 
   <View style={styles.mapView}>
     <Text style={styles.debugText}>Map View</Text>
   </View>
@@ -21,41 +21,39 @@ const SettingView = () => (
 const MainView = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false, 
+      screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarStyle: {
-          height: 60,
+          height: 75,
           paddingBottom: 5,
         },
-        tabBarShowLabel: false,  
-      }}
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: 'black',  
+        tabBarInactiveTintColor: 'black',  
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Map') {
+            iconName = focused ? 'map' : 'map-outline';  
+          } else if (route.name === 'Detail') {
+            iconName = focused ? 'information-circle' : 'information-circle-outline';  
+          } else if (route.name === 'Settings') {
+            iconName = focused ? 'settings' : 'settings-outline';  
+          }
+          return <Ionicons name={iconName} size={40} color={color} />;
+        },
+      })}
     >
       <Tab.Screen 
         name="Map" 
         component={MapView} 
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map-outline" color={color} size={size} />
-          ),
-        }}
       />
       <Tab.Screen 
         name="Detail" 
         component={DetailView}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="information-circle-outline" color={color} size={size} />
-          ),
-        }}
       />
       <Tab.Screen 
         name="Settings" 
         component={SettingView}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" color={color} size={size} />
-          ),
-        }}
       />
     </Tab.Navigator>
   );
