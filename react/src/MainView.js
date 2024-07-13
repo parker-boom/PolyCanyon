@@ -22,12 +22,12 @@ const MainView = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,  // This hides the header bar
+        headerShown: false, 
         tabBarStyle: {
           height: 60,
           paddingBottom: 5,
         },
-        tabBarShowLabel: false,  // This hides the label in the tabBar
+        tabBarShowLabel: false,  
       }}
     >
       <Tab.Screen 

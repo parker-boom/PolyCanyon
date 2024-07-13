@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Animated, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';  
 import { useStructures } from './StructureData';
 import FastImage from 'react-native-fast-image';
 import { BlurView } from '@react-native-community/blur';
+import StructPopUp from './StructPopUp';
 
 const DetailView = () => {
     const { structures } = useStructures();
     const [searchText, setSearchText] = useState('');
     const [isListView, setIsListView] = useState(false);
-    const [filterState, setFilterState] = useState('all'); // 'all', 'visited', 'unvisited'
+    const [filterState, setFilterState] = useState('all');
     const [popUpText, setPopUpText] = useState('');
     const popUpOpacity = useState(new Animated.Value(0))[0];
+    const [selectedStructure, setSelectedStructure] = useState(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     const filteredStructures = structures.filter(structure => {
         const searchLower = searchText.toLowerCase();
@@ -41,23 +44,28 @@ const DetailView = () => {
         setFilterState(newFilterState);
         setPopUpText(newPopUpText);
 
-        // Trigger animation
         Animated.sequence([
             Animated.timing(popUpOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
             Animated.timing(popUpOpacity, { toValue: 0, duration: 700, useNativeDriver: true, delay: 1000 })
         ]).start();
     };
 
+    const handleStructurePress = (structure) => {
+        setSelectedStructure(structure);
+    };
+
     const renderListItem = ({ item }) => (
-        <View style={styles.row}>
-            <Text style={styles.number}>{item.number}</Text>
-            <Text style={styles.title}>{item.title}</Text>
-            <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
-        </View>
+        <TouchableOpacity onPress={() => handleStructurePress(item)}>
+            <View style={styles.row}>
+                <Text style={styles.number}>{item.number}</Text>
+                <Text style={styles.title}>{item.title}</Text>
+                <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
+            </View>
+        </TouchableOpacity>
     );
 
     const renderGridItem = ({ item }) => (
-        <View style={[styles.gridItem, styles.shadow]}>
+        <TouchableOpacity onPress={() => handleStructurePress(item)} style={[styles.gridItem, styles.shadow]}>
             <View style={styles.imageContainer}>
                 <FastImage 
                     source={item.mainImage} 
@@ -76,7 +84,7 @@ const DetailView = () => {
                 <Text style={styles.gridNumber}>{item.number}</Text>
                 <Text style={styles.gridTitle}>{item.title}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -121,6 +129,20 @@ const DetailView = () => {
             <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
                 <Text style={styles.popUpText}>{popUpText}</Text>
             </Animated.View>
+            <Modal
+                visible={selectedStructure !== null}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setSelectedStructure(null)}
+            >
+                {selectedStructure && (
+                    <StructPopUp
+                        structure={selectedStructure}
+                        onClose={() => setSelectedStructure(null)}
+                        isDarkMode={isDarkMode}
+                    />
+                )}
+            </Modal>
         </View>
     );
 };
@@ -152,7 +174,6 @@ const styles = StyleSheet.create({
     searchBar: {
         flex: 1,
         fontSize: 18,
-        // fontWeight: 'bold', // Uncomment this line to make the text bold
     },
     clearButton: {
         padding: 5,
