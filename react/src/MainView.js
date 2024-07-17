@@ -7,14 +7,13 @@ import MapView from './MapView';
 
 const Tab = createBottomTabNavigator();
 
-
 const SettingView = () => (
   <View style={styles.settingView}>
     <Text style={styles.debugText}>Settings View</Text>
   </View>
 );
 
-const MainView = () => {
+const MainView = ({ mapPoints }) => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -42,10 +41,12 @@ const MainView = () => {
       <Tab.Screen 
         name="Map" 
         component={MapView} 
+        initialParams={{ mapPoints }} 
       />
       <Tab.Screen 
         name="Detail" 
         component={DetailView}
+        initialParams={{ mapPoints }}
       />
       <Tab.Screen 
         name="Settings" 
