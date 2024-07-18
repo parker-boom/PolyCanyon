@@ -1,8 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, Dimensions } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { requestLocationPermission, getCurrentLocation, isWithinSafeZone } from './LocationManager';
 import Geolocation from '@react-native-community/geolocation';
+
+const PulsingCircle = ({ isSatelliteView }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.5,
+                    duration: 1250,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1,
+                    duration: 1250,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
+    return (
+        <View style={styles.pulsingCircleContainer}>
+            <Animated.View
+                style={[
+                    styles.pulsingCircleOverlay,
+                    {
+                        transform: [{ scale: scaleAnim }],
+                        opacity: scaleAnim.interpolate({
+                            inputRange: [1, 1.5],
+                            outputRange: [1, 0],
+                        }),
+                    },
+                    isSatelliteView ? styles.shadowLight : styles.shadowDark,
+                ]}
+            />
+            <View style={[styles.pulsingCircleInner, isSatelliteView ? styles.shadowLight : styles.shadowDark]} />
+        </View>
+    );
+};
+
 
 const MapView = ({ route }) => {
     const { mapPoints } = route.params;
@@ -64,21 +107,22 @@ const MapView = ({ route }) => {
     const calculatePixelPosition = (point) => {
         if (!point || !mapLayout.width || !mapLayout.height) return { left: 0, top: 0 };
 
-        // Remove 'px' from the string and parse as float
         const originalX = parseFloat(point["Pixel X"].replace(' px', ''));
         const originalY = parseFloat(point["Pixel Y"].replace(' px', ''));
 
-        // Calculate the scale factor
         const scaleX = mapLayout.width / MAP_ORIGINAL_WIDTH;
         const scaleY = mapLayout.height / MAP_ORIGINAL_HEIGHT;
+        const scale = Math.min(scaleX, scaleY);
 
-        // Apply the scale factor to get the position on the scaled map
-        const scaledX = originalX * scaleX;
-        const scaledY = originalY * scaleY;
+        const offsetX = (mapLayout.width - (MAP_ORIGINAL_WIDTH * scale)) / 2;
+        const offsetY = (mapLayout.height - (MAP_ORIGINAL_HEIGHT * scale)) / 2;
+
+        const scaledX = originalX * scale;
+        const scaledY = originalY * scale;
 
         return {
-            left: scaledX -10, // Subtract half of the marker width
-            top: scaledY - 10 // Subtract half of the marker height
+            left: offsetX + scaledX - 10,
+            top: offsetY + scaledY - 10
         };
     };
 
@@ -104,7 +148,9 @@ const MapView = ({ route }) => {
                     resizeMode="contain"
                 />
                 {nearestPoint && (
-                    <View style={[styles.userMarker, calculatePixelPosition(nearestPoint)]} />
+                    <View style={[styles.markerContainer, calculatePixelPosition(nearestPoint)]}>
+                        <PulsingCircle isSatelliteView={isSatelliteView} />
+                    </View>
                 )}
             </View>
             <TouchableOpacity
@@ -117,11 +163,6 @@ const MapView = ({ route }) => {
                     color={isDarkMode ? 'white' : 'black'}
                 />
             </TouchableOpacity>
-            {location && (
-                <Text style={styles.locationText}>
-                    Lat: {location.coords.latitude.toFixed(4)}, Lon: {location.coords.longitude.toFixed(4)}
-                </Text>
-            )}
         </View>
     );
 };
@@ -141,7 +182,7 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: '100%',
-        position: 'absolute',
+        resizeMode: 'contain',
     },
     button: {
         position: 'absolute',
@@ -166,14 +207,54 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
     },
-    userMarker: {
+    markerContainer: {
         position: 'absolute',
         width: 20,
         height: 20,
-        borderRadius: 10,
-        backgroundColor: 'red',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    pulsingCircleContainer: {
+        width: 14,
+        height: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    pulsingCircleInner: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: 'rgba(112, 235, 64, 1)',
         borderWidth: 2,
         borderColor: 'white',
+    },
+    pulsingCircleOverlay: {
+        position: 'absolute',
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        borderWidth: 2,
+        borderColor: 'white',
+    },
+    shadowDark: {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    shadowLight: {
+        shadowColor: "#fff",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
 });
 
