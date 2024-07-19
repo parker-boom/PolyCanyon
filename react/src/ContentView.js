@@ -5,11 +5,10 @@ import OnboardingView from './OnboardingView';
 import MainView from './MainView';
 import { NavigationContainer } from '@react-navigation/native';
 import { StructureProvider } from './StructureData'; 
-import mapPointsData from './mapPoints.json';
+import { MapPointsProvider } from './MapPoint';
 
 const ContentView = () => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(true);
-  const [mapPoints, setMapPoints] = useState([]);
 
   useEffect(() => {
     const checkFirstLaunch = async () => {
@@ -24,13 +23,6 @@ const ContentView = () => {
     };
 
     checkFirstLaunch();
-
-    // Process map points
-    const processedData = mapPointsData.map(point => ({
-      ...point,
-      landmark: point.landmark === null ? -1 : point.landmark
-    }));
-    setMapPoints(processedData);
   }, []);
 
   const handleOnboardingComplete = () => {
@@ -40,15 +32,17 @@ const ContentView = () => {
 
   return (
     <StructureProvider>
-      <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
-        {isFirstLaunch ? (
-          <OnboardingView onComplete={handleOnboardingComplete} />
-        ) : (
-          <NavigationContainer>
-            <MainView mapPoints={mapPoints} />
-          </NavigationContainer>
-        )}
-      </View>
+      <MapPointsProvider>
+        <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
+          {isFirstLaunch ? (
+            <OnboardingView onComplete={handleOnboardingComplete} />
+          ) : (
+            <NavigationContainer>
+              <MainView />
+            </NavigationContainer>
+          )}
+        </View>
+      </MapPointsProvider>
     </StructureProvider>
   );
 };

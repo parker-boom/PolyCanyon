@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; 
 import DetailView from './DetailView';
 import MapView from './MapView';
+import { useMapPoints } from './MapPoint';
 
 const Tab = createBottomTabNavigator();
 
@@ -13,7 +14,9 @@ const SettingView = () => (
   </View>
 );
 
-const MainView = ({ mapPoints }) => {
+const MainView = () => {
+  const { mapPoints } = useMapPoints();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
