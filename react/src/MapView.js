@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing, Dimensions } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing, Dimensions, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { requestLocationPermission, getCurrentLocation, isWithinSafeZone } from './LocationManager';
 import Geolocation from '@react-native-community/geolocation';
 import StructPopUp from './StructPopUp';
 import { useStructures } from './StructureData';
 import { useMapPoints } from './MapPoint';
+import { BlurView } from '@react-native-community/blur';
 
 const PulsingCircle = ({ isSatelliteView }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -49,21 +50,11 @@ const PulsingCircle = ({ isSatelliteView }) => {
     );
 };
 
-const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkMode }) => {
-    const [showStructPopup, setShowStructPopup] = useState(false);
-
-    const handleClose = () => {
-        setIsPresented(false);
-    };
-
-    const handleStructurePress = () => {
-        setShowStructPopup(true);
-    };
-
+const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkMode, onStructurePress }) => {
     return (
         <View style={styles.popupContainer}>
             <View style={styles.contentContainer}>
-                <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+                <TouchableOpacity style={styles.closeButton} onPress={() => setIsPresented(false)}>
                     <Icon 
                         name="close"
                         size={28}
@@ -74,17 +65,17 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
                     source={structure.closeUpImage}
                     style={styles.popupImage}
                 />
-                <TouchableOpacity style={styles.textContainer} onPress={handleStructurePress}>
+                <TouchableOpacity style={styles.textContainer} onPress={() => onStructurePress(structure)}>
                     <Text style={[styles.justVisitedText, { color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.8)' }]}>
                         Just Visited!
                     </Text>
                     <Text style={[styles.titleText, { color: isDarkMode ? 'white' : 'black' }]}>
                         {structure.title}
                     </Text>
-                    <Text style={[styles.numberText, { color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }]}>
-                        {structure.number}
-                    </Text>
                 </TouchableOpacity>
+                <Text style={[styles.numberText, { color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }]}>
+                    {structure.number}
+                </Text>
                 <Icon
                     name="chevron-forward"
                     size={20}
@@ -92,16 +83,6 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
                     style={styles.chevron}
                 />
             </View>
-            {showStructPopup && (
-                <StructPopUp
-                    structure={structure}
-                    isDarkMode={isDarkMode}
-                    onClose={() => {
-                        setShowStructPopup(false);
-                        setIsPresented(false);
-                    }}
-                />
-            )}
         </View>
     );
 };
@@ -117,6 +98,8 @@ const MapView = ({ route }) => {
     const [mapLayout, setMapLayout] = useState({ width: 0, height: 0 });
     const [visitedStructure, setVisitedStructure] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
+    const [showStructPopUp, setShowStructPopUp] = useState(false);
+    const [visitedLandmarks, setVisitedLandmarks] = useState(new Set());
 
     const lightMap = require('../assets/map/LightMap.jpg');
     const satelliteMap = require('../assets/map/SatelliteMap.jpg');
@@ -170,48 +153,52 @@ const MapView = ({ route }) => {
     };
 
     const markStructureAsVisited = (landmarkId) => {
-        setStructures(prevStructures => {
-            const updatedStructures = prevStructures.map(structure => {
-                if (structure.number === landmarkId) {
-                    if (!structure.isVisited) {
-                        setVisitedStructure(structure);
-                        setShowPopup(true);
+        const toVisit = [landmarkId];
+        const visitedSet = new Set();
+
+        while (toVisit.length > 0) {
+            const currentId = toVisit.pop();
+
+            if (visitedSet.has(currentId)) continue;
+            visitedSet.add(currentId);
+
+            setStructures(prevStructures => {
+                return prevStructures.map(structure => {
+                    if (structure.number === currentId && !structure.isVisited) {
+                        if (currentId === landmarkId) {
+                            setVisitedStructure(structure);
+                            setShowPopup(true);
+                        }
+                        return { ...structure, isVisited: true };
                     }
-                    return { ...structure, isVisited: true };
-                }
-                return structure;
+                    return structure;
+                });
             });
-            return updatedStructures;
-        });
 
-        const specialCases = {
-            8: [54, 196],
-            13: [19, 108],
-            14: [59, 80],
-            15: [21, 130],
-            17: [24, 132],
-            20: [26, 91],
-            22: [36, 113],
-            30: [49, 60],
-            31: [68, 161],
-            32: [23, 50]
-        };
+            const specialCases = {
+                8: [54, 196],
+                13: [19, 108],
+                14: [59, 80],
+                15: [21, 130],
+                17: [24, 132],
+                20: [26, 91],
+                22: [36, 113],
+                30: [49, 60],
+                31: [68, 161],
+                32: [23, 50]
+            };
 
-        if (specialCases[landmarkId]) {
-            specialCases[landmarkId].forEach(index => {
-                markPointAsVisitedByIndex(index);
-            });
+            if (specialCases[currentId]) {
+                specialCases[currentId].forEach(index => {
+                    const point = mapPoints.find(point => point.landmark === index);
+                    if (point && !visitedSet.has(index)) {
+                        toVisit.push(index);
+                    }
+                });
+            }
         }
     };
 
-    const markPointAsVisitedByIndex = (index) => {
-        const updatedMapPoints = [...mapPoints];
-        if (index >= 0 && index < updatedMapPoints.length) {
-            const newIndex = index - 1;
-            updatedMapPoints[newIndex].isVisited = true;
-            markStructureAsVisited(updatedMapPoints[newIndex].landmark);
-        }
-    };
 
     const calculatePixelPosition = (point) => {
         if (!point || !mapLayout.width || !mapLayout.height) return { left: 0, top: 0 };
@@ -238,6 +225,12 @@ const MapView = ({ route }) => {
     const onMapLayout = (event) => {
         const { width, height } = event.nativeEvent.layout;
         setMapLayout({ width, height });
+    };
+
+    const handleStructurePress = (structure) => {
+        setVisitedStructure(structure);
+        setShowPopup(false); // Close VisitedStructurePopUp
+        setShowStructPopUp(true); // Open StructPopUp
     };
 
     return (
@@ -278,8 +271,31 @@ const MapView = ({ route }) => {
                     isPresented={showPopup}
                     setIsPresented={setShowPopup}
                     isDarkMode={isDarkMode}
+                    onStructurePress={handleStructurePress}
                 />
             )}
+            <Modal
+                visible={showStructPopUp}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowStructPopUp(false)}
+            >
+                <BlurView
+                    style={StyleSheet.absoluteFill}
+                    blurType={isDarkMode ? "dark" : "light"}
+                    blurAmount={10}
+                >
+                    <View style={styles.modalContainer}>
+                        {visitedStructure && (
+                            <StructPopUp
+                                structure={visitedStructure}
+                                onClose={() => setShowStructPopUp(false)}
+                                isDarkMode={isDarkMode}
+                            />
+                        )}
+                    </View>
+                </BlurView>
+            </Modal>
         </View>
     );
 };
@@ -410,9 +426,17 @@ const styles = StyleSheet.create({
     numberText: {
         fontSize: 28,
         fontWeight: 'bold',
+        marginRight: 10,
     },
     chevron: {
         marginLeft: 10,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.0)', // Added to center, somehow works
     },
 });
 
