@@ -83,7 +83,6 @@ const images = {
   "M-35": require('../assets/photos/Main/M-35.jpg'),
   "M-36": require('../assets/photos/Main/M-36.jpg'),
 };
-
 const getCloseImagePath = number => images[`C-${number}`];
 const getMainImagePath = number => images[`M-${number}`];
 
@@ -103,25 +102,28 @@ export const StructureProvider = ({ children }) => {
     }, []);
 
     const resetVisitedStructures = () => {
-        const updatedStructures = structures.map(structure => ({
+        setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
             isVisited: false,
             isOpened: false,
             recentlyVisited: -1
-        }));
-        setStructures(updatedStructures);
+        })));
     };
 
     const setAllStructuresAsVisited = () => {
-        const visitedStructures = structures.map(structure => ({
+        setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
             isVisited: true
-        }));
-        setStructures(visitedStructures);
+        })));
     };
 
     return (
-        <StructureContext.Provider value={{ structures, resetVisitedStructures, setAllStructuresAsVisited }}>
+        <StructureContext.Provider value={{ 
+            structures, 
+            setStructures, 
+            resetVisitedStructures, 
+            setAllStructuresAsVisited 
+        }}>
             {children}
         </StructureContext.Provider>
     );
