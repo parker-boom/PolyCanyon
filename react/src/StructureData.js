@@ -89,13 +89,25 @@ const getCloseImagePath = number => images[`C-${number}`];
 const getMainImagePath = number => images[`M-${number}`];
 
 const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY';
+const VISIT_COUNTER_KEY = 'VISIT_COUNTER_KEY';
+const LAST_VISIT_DATE_KEY = 'LAST_VISIT_DATE_KEY';
+const DAYS_VISITED_KEY = 'DAYS_VISITED_KEY';
 
 export const StructureProvider = ({ children }) => {
     const [structures, setStructures] = useState([]);
+    const [visitCounter, setVisitCounter] = useState(0);
+    const [lastVisitDate, setLastVisitDate] = useState(null);
+    const [daysVisited, setDaysVisited] = useState(0);
 
-    const loadStructures = async () => {
+    const loadData = async () => {
         try {
-            const storedStructures = await AsyncStorage.getItem(STRUCTURES_STORAGE_KEY);
+            const [storedStructures, storedVisitCounter, storedLastVisitDate, storedDaysVisited] = await Promise.all([
+                AsyncStorage.getItem(STRUCTURES_STORAGE_KEY),
+                AsyncStorage.getItem(VISIT_COUNTER_KEY),
+                AsyncStorage.getItem(LAST_VISIT_DATE_KEY),
+                AsyncStorage.getItem(DAYS_VISITED_KEY)
+            ]);
+
             if (storedStructures !== null) {
                 setStructures(JSON.parse(storedStructures));
             } else {
@@ -109,28 +121,55 @@ export const StructureProvider = ({ children }) => {
                 }));
                 setStructures(initializedStructures);
             }
+
+            setVisitCounter(storedVisitCounter !== null ? parseInt(storedVisitCounter) : 0);
+            setLastVisitDate(storedLastVisitDate !== null ? new Date(storedLastVisitDate) : null);
+            setDaysVisited(storedDaysVisited !== null ? parseInt(storedDaysVisited) : 0);
         } catch (error) {
-            console.error('Failed to load structures', error);
+            console.error('Failed to load data', error);
         }
     };
 
-    const saveStructures = async (structs) => {
+    const saveData = async () => {
         try {
-            await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(structs));
+            await Promise.all([
+                AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(structures)),
+                AsyncStorage.setItem(VISIT_COUNTER_KEY, visitCounter.toString()),
+                AsyncStorage.setItem(LAST_VISIT_DATE_KEY, lastVisitDate ? lastVisitDate.toISOString() : ''),
+                AsyncStorage.setItem(DAYS_VISITED_KEY, daysVisited.toString())
+            ]);
         } catch (error) {
-            console.error('Failed to save structures', error);
+            console.error('Failed to save data', error);
         }
     };
 
     useEffect(() => {
-        loadStructures();
+        loadData();
     }, []);
 
     useEffect(() => {
-        if (structures.length > 0) {
-            saveStructures(structures);
+        saveData();
+    }, [structures, visitCounter, lastVisitDate, daysVisited]);
+
+    const markStructureAsVisited = (landmarkId) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        setVisitCounter(prev => prev + 1);
+
+        if (!lastVisitDate || lastVisitDate < today) {
+            setLastVisitDate(today);
+            setDaysVisited(prev => prev + 1);
         }
-    }, [structures]);
+
+        setStructures(prevStructures => 
+            prevStructures.map(structure => 
+                structure.number === landmarkId 
+                    ? { ...structure, isVisited: true, recentlyVisited: visitCounter + 1 }
+                    : structure
+            )
+        );
+    };
 
     const resetVisitedStructures = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
@@ -139,6 +178,9 @@ export const StructureProvider = ({ children }) => {
             isOpened: false,
             recentlyVisited: -1
         })));
+        setVisitCounter(0);
+        setLastVisitDate(null);
+        setDaysVisited(0);
     };
 
     const setAllStructuresAsVisited = () => {
@@ -153,7 +195,10 @@ export const StructureProvider = ({ children }) => {
             structures, 
             setStructures, 
             resetVisitedStructures, 
-            setAllStructuresAsVisited 
+            setAllStructuresAsVisited,
+            markStructureAsVisited,
+            visitCounter,
+            daysVisited
         }}>
             {children}
         </StructureContext.Provider>
