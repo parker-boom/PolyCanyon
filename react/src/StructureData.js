@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import rawStructureData from './structures.json'; // Ensure this path is correct
+import rawStructureData from './structures.json'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const StructureContext = createContext();
 
@@ -83,23 +84,53 @@ const images = {
   "M-35": require('../assets/photos/Main/M-35.jpg'),
   "M-36": require('../assets/photos/Main/M-36.jpg'),
 };
+
 const getCloseImagePath = number => images[`C-${number}`];
 const getMainImagePath = number => images[`M-${number}`];
+
+const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY';
 
 export const StructureProvider = ({ children }) => {
     const [structures, setStructures] = useState([]);
 
+    const loadStructures = async () => {
+        try {
+            const storedStructures = await AsyncStorage.getItem(STRUCTURES_STORAGE_KEY);
+            if (storedStructures !== null) {
+                setStructures(JSON.parse(storedStructures));
+            } else {
+                const initializedStructures = rawStructureData.map(s => ({
+                    ...s,
+                    closeUpImage: getCloseImagePath(s.number),
+                    mainImage: getMainImagePath(s.number),
+                    isVisited: false,
+                    isOpened: false,
+                    recentlyVisited: -1
+                }));
+                setStructures(initializedStructures);
+            }
+        } catch (error) {
+            console.error('Failed to load structures', error);
+        }
+    };
+
+    const saveStructures = async (structs) => {
+        try {
+            await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(structs));
+        } catch (error) {
+            console.error('Failed to save structures', error);
+        }
+    };
+
     useEffect(() => {
-        const initializedStructures = rawStructureData.map(s => ({
-            ...s,
-            closeUpImage: getCloseImagePath(s.number),
-            mainImage: getMainImagePath(s.number),
-            isVisited: false,
-            isOpened: false,
-            recentlyVisited: -1
-        }));
-        setStructures(initializedStructures);
+        loadStructures();
     }, []);
+
+    useEffect(() => {
+        if (structures.length > 0) {
+            saveStructures(structures);
+        }
+    }, [structures]);
 
     const resetVisitedStructures = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
