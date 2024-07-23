@@ -89,7 +89,7 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
 
 const MapView = ({ route }) => {
     const { mapPoints } = useMapPoints();
-    const { structures, setStructures, markStructureAsVisited  } = useStructures();
+    const { structures, setStructures } = useStructures();
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isSatelliteView, setIsSatelliteView] = useState(false);
     const [location, setLocation] = useState(null);
@@ -152,57 +152,54 @@ const MapView = ({ route }) => {
         return nearest;
     };
 
-    const handleStructureVisit = (landmarkId, isSpecialCase = false) => {
-        if (visitedLandmarks.has(landmarkId)) return;
+    const markStructureAsVisited = (landmarkId) => {
+        const toVisit = [landmarkId];
+        const visitedSet = new Set();
 
-        setVisitedLandmarks(prevVisitedLandmarks => new Set(prevVisitedLandmarks).add(landmarkId));
+        while (toVisit.length > 0) {
+            const currentId = toVisit.pop();
 
-        markStructureAsVisited(landmarkId);
+            if (visitedSet.has(currentId)) continue;
+            visitedSet.add(currentId);
 
-        const updatedStructure = structures.find(structure => structure.number === landmarkId);
-        if (updatedStructure && !updatedStructure.isVisited && !isSpecialCase) {
-            setVisitedStructure(updatedStructure);
-            setShowPopup(true);
-        }
-
-        const specialCases = {
-            8: [54, 196],
-            13: [19, 108],
-            14: [59, 80],
-            15: [21, 130],
-            17: [24, 132],
-            20: [26, 91],
-            22: [36, 113],
-            30: [49, 60],
-            31: [68, 161],
-            32: [23, 50]
-        };
-
-        if (specialCases[landmarkId]) {
-            specialCases[landmarkId].forEach(index => {
-                markPointAsVisitedByIndex(index, true);
+            setStructures(prevStructures => {
+                return prevStructures.map(structure => {
+                    if (structure.number === currentId && !structure.isVisited) {
+                        if (currentId === landmarkId) {
+                            setVisitedStructure(structure);
+                            setShowPopup(true);
+                        }
+                        return { ...structure, isVisited: true };
+                    }
+                    return structure;
+                });
             });
-        }
 
-        // Remove the landmark from visitedLandmarks after processing
-        setVisitedLandmarks(prevVisitedLandmarks => {
-            const updatedVisitedLandmarks = new Set(prevVisitedLandmarks);
-            updatedVisitedLandmarks.delete(landmarkId);
-            return updatedVisitedLandmarks;
-        });
+            const specialCases = {
+                8: [54, 196],
+                13: [19, 108],
+                14: [59, 80],
+                15: [21, 130],
+                17: [24, 132],
+                20: [26, 91],
+                22: [36, 113],
+                30: [49, 60],
+                31: [68, 161],
+                32: [23, 50]
+            };
+
+            if (specialCases[currentId]) {
+                specialCases[currentId].forEach(index => {
+                    const point = mapPoints.find(point => point.landmark === index);
+                    if (point && !visitedSet.has(index)) {
+                        toVisit.push(index);
+                    }
+                });
+            }
+        }
     };
 
 
-    const markPointAsVisitedByIndex = (index, isSpecialCase = false) => {
-        const updatedMapPoints = [...mapPoints];
-        if (index >= 0 && index < updatedMapPoints.length) {
-            const newIndex = index - 1;
-            updatedMapPoints[newIndex].isVisited = true;
-            handleStructureVisit(updatedMapPoints[newIndex].landmark, isSpecialCase);
-        }
-    };
-
-    
     const calculatePixelPosition = (point) => {
         if (!point || !mapLayout.width || !mapLayout.height) return { left: 0, top: 0 };
 

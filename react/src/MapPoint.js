@@ -25,6 +25,7 @@ export const MapPointsProvider = ({ children }) => {
                     longitude: point.Longitude,
                     pixelX: point["Pixel X"],
                     pixelY: point["Pixel Y"],
+                    isVisited: false,
                 }));
                 setMapPoints(processedData);
             }
@@ -51,8 +52,17 @@ export const MapPointsProvider = ({ children }) => {
         }
     }, [mapPoints]);
 
+    const resetVisitedMapPoints = () => {
+        setMapPoints(prevMapPoints => 
+            prevMapPoints.map(point => ({
+                ...point,
+                isVisited: false
+            }))
+        );
+    };
+
     return (
-        <MapPointsContext.Provider value={{ mapPoints, setMapPoints }}>
+        <MapPointsContext.Provider value={{ mapPoints, setMapPoints, resetVisitedMapPoints }}>
             {children}
         </MapPointsContext.Provider>
     );

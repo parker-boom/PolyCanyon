@@ -162,13 +162,22 @@ export const StructureProvider = ({ children }) => {
             setDaysVisited(prev => prev + 1);
         }
 
-        setStructures(prevStructures => 
-            prevStructures.map(structure => 
+        setStructures(prevStructures => {
+            const updatedStructures = prevStructures.map(structure => 
                 structure.number === landmarkId 
                     ? { ...structure, isVisited: true, recentlyVisited: visitCounter + 1 }
                     : structure
-            )
-        );
+            );
+            
+            // Check if all structures are now visited
+            if (updatedStructures.every(s => s.isVisited)) {
+                // This could be a place to increment a "all visited" counter if needed
+            }
+
+            return updatedStructures;
+        });
+
+        return structures.find(s => s.number === landmarkId);
     };
 
     const resetVisitedStructures = () => {
