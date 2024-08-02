@@ -1,3 +1,12 @@
+// MARK: - MapView Component
+/**
+ * MapView Component
+ * 
+ * This component displays a map showing the user's location and nearby structures.
+ * It supports switching between light and satellite views and adapts to Dark Mode.
+ * When Dark Mode is enabled, a different map image is displayed, and the background is set to black.
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing, Dimensions, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -7,7 +16,15 @@ import StructPopUp from './StructPopUp';
 import { useStructures } from './StructureData';
 import { useMapPoints } from './MapPoint';
 import { BlurView } from '@react-native-community/blur';
+import { useDarkMode } from './DarkMode';
 
+// MARK: - PulsingCircle Component
+/**
+ * PulsingCircle Component
+ * 
+ * This component displays a pulsing circle to indicate the user's current location on the map.
+ * The appearance adapts based on whether the satellite view is enabled.
+ */
 const PulsingCircle = ({ isSatelliteView }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -50,6 +67,13 @@ const PulsingCircle = ({ isSatelliteView }) => {
     );
 };
 
+// MARK: - VisitedStructurePopup Component
+/**
+ * VisitedStructurePopup Component
+ * 
+ * This component displays a popup when a structure is visited.
+ * The appearance adapts based on Dark Mode settings.
+ */
 const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkMode, onStructurePress }) => {
     return (
         <View style={styles.popupContainer}>
@@ -87,10 +111,17 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
     );
 };
 
+// MARK: - MapView Component
+/**
+ * MapView Component
+ * 
+ * This component displays the map and handles user interactions such as switching views and marking structures as visited.
+ * The map image changes based on whether Dark Mode is enabled, and the background is set to black.
+ */
 const MapView = ({ route }) => {
     const { mapPoints } = useMapPoints();
     const { structures, setStructures } = useStructures();
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const { isDarkMode } = useDarkMode();
     const [isSatelliteView, setIsSatelliteView] = useState(false);
     const [location, setLocation] = useState(null);
     const [nearestPoint, setNearestPoint] = useState(null);
@@ -103,11 +134,13 @@ const MapView = ({ route }) => {
 
     const lightMap = require('../assets/map/LightMap.jpg');
     const satelliteMap = require('../assets/map/SatelliteMap.jpg');
+    const darkMap = require('../assets/map/DarkMap.jpg');
     const blurredSatellite = require('../assets/map/BlurredSatellite.jpg');
 
     const MAP_ORIGINAL_WIDTH = 1843;
     const MAP_ORIGINAL_HEIGHT = 4164;
 
+    // Load location and setup location updates
     useEffect(() => {
         requestLocationPermission();
         const watchId = Geolocation.watchPosition(
@@ -121,6 +154,7 @@ const MapView = ({ route }) => {
         };
     }, [mapPoints, structures]);
 
+    // Handle location updates and find the nearest map point
     const handleLocationUpdate = (position) => {
         setLocation(position);
         if (isWithinSafeZone(position.coords)) {
@@ -134,6 +168,7 @@ const MapView = ({ route }) => {
         }
     };
 
+    // Find the nearest map point to the given coordinates
     const findNearestMapPoint = (coordinate, points) => {
         let nearest = null;
         let minDistance = Infinity;
@@ -152,6 +187,7 @@ const MapView = ({ route }) => {
         return nearest;
     };
 
+    // Mark a structure as visited and update the state
     const markStructureAsVisited = (landmarkId) => {
         const toVisit = [landmarkId];
         const visitedSet = new Set();
@@ -175,6 +211,7 @@ const MapView = ({ route }) => {
                 });
             });
 
+            // Special cases for landmarks that are interconnected
             const specialCases = {
                 8: [54, 196],
                 13: [19, 108],
@@ -199,7 +236,7 @@ const MapView = ({ route }) => {
         }
     };
 
-
+    // Calculate pixel position on the map based on original map points
     const calculatePixelPosition = (point) => {
         if (!point || !mapLayout.width || !mapLayout.height) return { left: 0, top: 0 };
 
@@ -222,11 +259,13 @@ const MapView = ({ route }) => {
         };
     };
 
+    // Handle layout changes of the map container
     const onMapLayout = (event) => {
         const { width, height } = event.nativeEvent.layout;
         setMapLayout({ width, height });
     };
 
+    // Handle structure press events and display the popup
     const handleStructurePress = (structure) => {
         setVisitedStructure(structure);
         setShowPopup(false); // Close VisitedStructurePopUp
@@ -234,18 +273,11 @@ const MapView = ({ route }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: isDarkMode ? 'black' : 'white' }]}>
             <View style={styles.mapContainer} onLayout={onMapLayout}>
-                {isSatelliteView && (
-                    <Image
-                        source={blurredSatellite}
-                        style={styles.background}
-                        resizeMode="cover"
-                    />
-                )}
                 <Image
                     ref={mapRef}
-                    source={isSatelliteView ? satelliteMap : lightMap}
+                    source={isSatelliteView ? satelliteMap : (isDarkMode ? darkMap : lightMap)}
                     style={styles.map}
                     resizeMode="contain"
                 />
@@ -256,7 +288,7 @@ const MapView = ({ route }) => {
                 )}
             </View>
             <TouchableOpacity
-                style={[styles.button, { backgroundColor: isDarkMode ? 'black' : 'white' }]}
+                style={[styles.button, { backgroundColor: isDarkMode ? 'black' : 'white', shadowColor: isDarkMode ? '#fff' : '#000' }]}
                 onPress={() => setIsSatelliteView(!isSatelliteView)}
             >
                 <Icon
@@ -300,17 +332,14 @@ const MapView = ({ route }) => {
     );
 };
 
+// MARK: - Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
     },
     mapContainer: {
         flex: 1,
         position: 'relative',
-    },
-    background: {
-        ...StyleSheet.absoluteFillObject,
     },
     map: {
         width: '100%',
@@ -326,7 +355,6 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 1,
         shadowRadius: 5,

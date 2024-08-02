@@ -1,21 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Animated, Modal } from 'react-native';
+// MARK: - DetailView Component
+/**
+ * DetailView Component
+ * 
+ * This component displays a list or grid of structures, allowing users to search,
+ * filter, and view details of each structure. It supports both light and dark modes.
+ * 
+ * Features:
+ * - Search functionality for structures
+ * - Filtering options (All, Visited, Unvisited)
+ * - Toggle between list and grid views
+ * - Dark mode support
+ * - Structure detail pop-up
+ * 
+ * The component uses various hooks for state management and integrates with
+ * the DarkModeContext for consistent theming across the app.
+ */
+
+import React, { useState, useEffect } from 'react';
+import { 
+    View, 
+    Text, 
+    FlatList, 
+    StyleSheet, 
+    TextInput, 
+    TouchableOpacity, 
+    Animated, 
+    Modal 
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';  
 import { useStructures } from './StructureData';
 import FastImage from 'react-native-fast-image';
 import { BlurView } from '@react-native-community/blur';
 import StructPopUp from './StructPopUp';
+import { useDarkMode } from './DarkMode';
 
 const DetailView = () => {
+    // MARK: - Hooks and Context
     const { structures } = useStructures();
+    const { isDarkMode } = useDarkMode();
     const [searchText, setSearchText] = useState('');
     const [isListView, setIsListView] = useState(false);
     const [filterState, setFilterState] = useState('all');
     const [popUpText, setPopUpText] = useState('');
     const popUpOpacity = useState(new Animated.Value(0))[0];
     const [selectedStructure, setSelectedStructure] = useState(null);
-    const [isDarkMode, setIsDarkMode] = useState(false);
 
+    // MARK: - Filtering Logic
     const filteredStructures = structures.filter(structure => {
         const searchLower = searchText.toLowerCase();
         const matchesSearch = structure.title.toLowerCase().includes(searchLower) || 
@@ -26,6 +56,7 @@ const DetailView = () => {
         if (filterState === 'unvisited') return matchesSearch && !structure.isVisited;
     });
 
+    // MARK: - Event Handlers
     const handleFilterChange = () => {
         let newFilterState;
         let newPopUpText;
@@ -54,18 +85,19 @@ const DetailView = () => {
         setSelectedStructure(structure);
     };
 
+    // MARK: - Render Functions
     const renderListItem = ({ item }) => (
         <TouchableOpacity onPress={() => handleStructurePress(item)}>
-            <View style={styles.row}>
-                <Text style={styles.number}>{item.number}</Text>
-                <Text style={styles.title}>{item.title}</Text>
+            <View style={[styles.row, isDarkMode && styles.darkRow]}>
+                <Text style={[styles.number, isDarkMode && styles.darkText]}>{item.number}</Text>
+                <Text style={[styles.title, isDarkMode && styles.darkText]}>{item.title}</Text>
                 <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
             </View>
         </TouchableOpacity>
     );
 
     const renderGridItem = ({ item }) => (
-        <TouchableOpacity onPress={() => handleStructurePress(item)} style={[styles.gridItem, styles.shadow]}>
+        <TouchableOpacity onPress={() => handleStructurePress(item)} style={[styles.gridItem, styles.shadow, isDarkMode && styles.darkGridItem]}>
             <View style={styles.imageContainer}>
                 <FastImage 
                     source={item.mainImage} 
@@ -75,33 +107,35 @@ const DetailView = () => {
                 {!item.isVisited && (
                     <BlurView
                         style={styles.blurView}
-                        blurType="light"
+                        blurType={isDarkMode ? "dark" : "light"}
                         blurAmount={2}
                     />
                 )}
             </View>
-            <View style={styles.gridInfoContainer}>
-                <Text style={styles.gridNumber}>{item.number}</Text>
-                <Text style={styles.gridTitle}>{item.title}</Text>
+            <View style={[styles.gridInfoContainer, isDarkMode && styles.darkGridInfoContainer]}>
+                <Text style={[styles.gridNumber, isDarkMode && styles.darkText]}>{item.number}</Text>
+                <Text style={[styles.gridTitle, isDarkMode && styles.darkText]}>{item.title}</Text>
             </View>
         </TouchableOpacity>
     );
 
+    // MARK: - Main Render
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, isDarkMode && styles.darkContainer]}>
             <View style={styles.searchContainerWrapper}>
-                <View style={styles.searchContainer}>
+                <View style={[styles.searchContainer, isDarkMode && styles.darkSearchContainer]}>
                     <TouchableOpacity onPress={handleFilterChange} style={styles.filterButton}>
                         <Ionicons 
                             name="eye" 
                             size={32}
-                            color={filterState === 'all' ? 'black' : filterState === 'visited' ? 'green' : 'red'} 
+                            color={filterState === 'all' ? (isDarkMode ? 'white' : 'black') : filterState === 'visited' ? 'green' : 'red'} 
                         />
                     </TouchableOpacity>
                     <View style={styles.searchBarContainer}>
                         <TextInput
-                            style={styles.searchBar}
+                            style={[styles.searchBar, isDarkMode && styles.darkSearchBar]}
                             placeholder="Search by number or title..."
+                            placeholderTextColor={isDarkMode ? '#888' : '#666'}
                             value={searchText}
                             onChangeText={setSearchText}
                             autoCapitalize="none"
@@ -109,17 +143,17 @@ const DetailView = () => {
                         />
                         {searchText !== "" && (
                             <TouchableOpacity onPress={() => setSearchText("")} style={styles.clearButton}>
-                                <Ionicons name="close-circle" size={20} color="gray" />
+                                <Ionicons name="close-circle" size={20} color={isDarkMode ? 'white' : 'gray'} />
                             </TouchableOpacity>
                         )}
                     </View>
                     <TouchableOpacity onPress={() => setIsListView(!isListView)} style={styles.toggleButton}>
-                        <Ionicons name={isListView ? "list-outline" : "grid-outline"} size={32} color="black" />
+                        <Ionicons name={isListView ? "list-outline" : "grid-outline"} size={32} color={isDarkMode ? 'white' : 'black'} />
                     </TouchableOpacity>
                 </View>
             </View>
             <FlatList
-                style={styles.list}
+                style={[styles.list, isDarkMode && styles.darkList]}
                 data={filteredStructures}
                 renderItem={isListView ? renderListItem : renderGridItem}
                 keyExtractor={item => item.number.toString()}
@@ -127,7 +161,7 @@ const DetailView = () => {
                 numColumns={isListView ? 1 : 2}
             />
             <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
-                <Text style={styles.popUpText}>{popUpText}</Text>
+                <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>{popUpText}</Text>
             </Animated.View>
             <Modal
                 visible={selectedStructure !== null}
@@ -147,10 +181,14 @@ const DetailView = () => {
     );
 };
 
+// MARK: - Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+    },
+    darkContainer: {
+        backgroundColor: 'black',
     },
     searchContainerWrapper: {
         padding: 10,
@@ -169,6 +207,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.95,
         shadowRadius: 13.84,
     },
+    darkSearchContainer: {
+        backgroundColor: '#2C2C2E',
+    },
     searchBarContainer: {
         flex: 1,
         flexDirection: 'row',
@@ -179,6 +220,9 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 18,
         color: 'black',
+    },
+    darkSearchBar: {
+        color: 'white',
     },
     clearButton: {
         padding: 5,
@@ -202,6 +246,9 @@ const styles = StyleSheet.create({
     list: {
         backgroundColor: 'white',
     },
+    darkList: {
+        backgroundColor: 'black',
+    },
     row: {
         flexDirection: 'row',
         padding: 15,
@@ -210,6 +257,10 @@ const styles = StyleSheet.create({
         borderBottomColor: 'grey',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    darkRow: {
+        backgroundColor: '#1C1C1E',
+        borderBottomColor: '#2C2C2E',
     },
     number: {
         fontSize: 18,
@@ -225,6 +276,9 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         flex: 1,
         color: 'black',
+    },
+    darkText: {
+        color: 'white',
     },
     statusIndicator: {
         width: 10,
@@ -250,8 +304,12 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.95,
-        shadowRadius: 13.84,
-        elevation: 15,
+        shadowRadius: 3.84,
+        elevation: 7.5,
+    },
+    darkGridItem: {
+        backgroundColor: '#1C1C1E',
+        shadowColor: '#FFF',
     },
     imageContainer: {
         width: '100%',
@@ -281,6 +339,9 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 15,
         borderBottomRightRadius: 15,
     },
+    darkGridInfoContainer: {
+        backgroundColor: 'rgba(28, 28, 30, 0.85)',
+    },
     gridNumber: {
         fontSize: 22,
         color: 'black',
@@ -309,6 +370,10 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         elevation: 5,
     },
+    darkPopUpText: {
+        color: 'white',
+        backgroundColor: '#2C2C2E',
+    },
 });
 
-export default DetailView; 
+export default DetailView;

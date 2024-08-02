@@ -1,28 +1,59 @@
+// MARK: - SettingsView Component
+/**
+ * SettingsView Component
+ * 
+ * This component represents the settings screen of the application.
+ * It allows users to toggle dark mode, adventure mode, reset visited structures,
+ * and access various information links.
+ * 
+ * Features:
+ * - Dark mode toggle (synced with app-wide context)
+ * - Adventure mode toggle
+ * - Reset visited structures
+ * - Access to location settings
+ * - Links to external information
+ * - Credits section
+ * 
+ * The component uses the DarkModeContext for app-wide dark mode state management.
+ * The background color and other elements adjust based on Dark Mode settings.
+ */
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, Alert, Linking, Platform, StyleSheet, ScrollView } from 'react-native';
+import { 
+    View, 
+    Text, 
+    Switch, 
+    TouchableOpacity, 
+    Alert, 
+    Linking, 
+    StyleSheet, 
+    ScrollView 
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useStructures } from './StructureData';
 import { useMapPoints } from './MapPoint';
+import { useDarkMode } from './DarkMode';
 
 const SettingsView = () => {
+    // MARK: - Hooks and Context
+    const { isDarkMode, toggleDarkMode } = useDarkMode();
     const { resetVisitedStructures, setAllStructuresAsVisited } = useStructures();
     const { resetVisitedMapPoints } = useMapPoints();
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [adventureMode, setAdventureMode] = useState(true);
 
+    // MARK: - Effects
     useEffect(() => {
         loadSettings();
     }, []);
 
     useEffect(() => {
         saveSettings();
-    }, [adventureMode, isDarkMode]);
+    }, [adventureMode]);
 
+    // MARK: - Settings Management
     const loadSettings = async () => {
         try {
-            const darkModeValue = await AsyncStorage.getItem('isDarkMode');
             const adventureModeValue = await AsyncStorage.getItem('adventureMode');
-            setIsDarkMode(darkModeValue === null ? false : JSON.parse(darkModeValue));
             setAdventureMode(adventureModeValue === null ? true : JSON.parse(adventureModeValue));
         } catch (error) {
             console.error('Failed to load settings', error);
@@ -31,13 +62,13 @@ const SettingsView = () => {
 
     const saveSettings = async () => {
         try {
-            await AsyncStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
             await AsyncStorage.setItem('adventureMode', JSON.stringify(adventureMode));
         } catch (error) {
             console.error('Failed to save settings', error);
         }
     };
 
+    // MARK: - Event Handlers
     const handleToggleAdventureMode = (value) => {
         if (!value) {
             Alert.alert(
@@ -82,15 +113,16 @@ const SettingsView = () => {
         Linking.openSettings();
     };
 
+    // MARK: - Render
     return (
         <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>
-            <View style={styles.section}>
+            <View style={[styles.section, isDarkMode && styles.darkSection]}>
                 <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>Settings</Text>
                 <View style={styles.settingItem}>
                     <Text style={[styles.settingText, isDarkMode && styles.darkText]}>Dark Mode</Text>
                     <Switch
                         value={isDarkMode}
-                        onValueChange={setIsDarkMode}
+                        onValueChange={toggleDarkMode}
                         trackColor={{ false: "#767577", true: "#81b0ff" }}
                         thumbColor={isDarkMode ? "#f5dd4b" : "#f4f3f4"}
                     />
@@ -107,25 +139,35 @@ const SettingsView = () => {
                 <Text style={[styles.caption, isDarkMode && styles.darkCaption]}>
                     Adventure mode automatically tracks your visited structures using your location.
                 </Text>
-                <TouchableOpacity style={styles.button} onPress={handleResetVisitedStructures}>
-                    <Text style={styles.buttonText}>Reset All Visited Structures</Text>
+                <TouchableOpacity 
+                    style={[styles.button, isDarkMode && styles.darkButton]} 
+                    onPress={handleResetVisitedStructures}
+                >
+                    <Text style={[styles.buttonText, isDarkMode && styles.darkButtonText]}>
+                        Reset All Visited Structures
+                    </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={openLocationSettings}>
-                    <Text style={styles.buttonText}>Open Location Settings</Text>
+                <TouchableOpacity 
+                    style={[styles.button, isDarkMode && styles.darkButton]} 
+                    onPress={openLocationSettings}
+                >
+                    <Text style={[styles.buttonText, isDarkMode && styles.darkButtonText]}>
+                        Open Location Settings
+                    </Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.section}>
+            <View style={[styles.section, isDarkMode && styles.darkSection]}>
                 <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>Information</Text>
                 <TouchableOpacity onPress={() => Linking.openURL('https://caed.calpoly.edu/history-structures')}>
-                    <Text style={styles.link}>Structures in In-depth</Text>
+                    <Text style={[styles.link, isDarkMode && styles.darkLink]}>Structures in In-depth</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => Linking.openURL('https://maps.apple.com/?address=Poly%20Canyon%20Rd,%20San%20Luis%20Obispo,%20CA%20%2093405,%20United%20States&auid=7360445136973306817&ll=35.314999,-120.652923&lsp=9902&q=Poly%20Canyon')}>
-                    <Text style={styles.link}>How to Get to Poly Canyon</Text>
+                    <Text style={[styles.link, isDarkMode && styles.darkLink]}>How to Get to Poly Canyon</Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.section}>
+            <View style={[styles.section, isDarkMode && styles.darkSection]}>
                 <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>Credits</Text>
                 <Text style={[styles.creditText, isDarkMode && styles.darkText]}>Parker Jones</Text>
                 <Text style={[styles.creditText, isDarkMode && styles.darkText]}>Cal Poly SLO</Text>
@@ -138,6 +180,7 @@ const SettingsView = () => {
     );
 };
 
+// MARK: - Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -145,7 +188,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F5F5',
     },
     darkContainer: {
-        backgroundColor: '#121212',
+        backgroundColor: 'black',
     },
     section: {
         marginBottom: 20,
@@ -157,9 +200,13 @@ const styles = StyleSheet.create({
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.23,
-        shadowRadius: 2.62,
-        elevation: 4,
+        shadowOpacity: 0.63,
+        shadowRadius: 4.62,
+        elevation: 5.5,
+    },
+    darkSection: {
+        backgroundColor: '#1E1E1E',
+        shadowColor: "#FFF",
     },
     sectionHeader: {
         fontSize: 18,
@@ -195,14 +242,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
     },
+    darkButton: {
+        backgroundColor: '#0A84FF',
+    },
     buttonText: {
         color: 'white',
         fontSize: 16,
+    },
+    darkButtonText: {
+        color: '#F5F5F5',
     },
     link: {
         color: '#007AFF',
         fontSize: 16,
         marginBottom: 10,
+    },
+    darkLink: {
+        color: '#0A84FF',
     },
     creditText: {
         fontSize: 14,

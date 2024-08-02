@@ -6,6 +6,7 @@ import MainView from './MainView';
 import { NavigationContainer } from '@react-navigation/native';
 import { StructureProvider } from './StructureData'; 
 import { MapPointsProvider } from './MapPoint';
+import { DarkModeProvider } from './DarkMode';
 
 const ContentView = () => {
   const [isFirstLaunch, setIsFirstLaunch] = useState(true);
@@ -31,19 +32,21 @@ const ContentView = () => {
   };
 
   return (
-    <StructureProvider>
-      <MapPointsProvider>
-        <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
-          {isFirstLaunch ? (
-            <OnboardingView onComplete={handleOnboardingComplete} />
-          ) : (
-            <NavigationContainer>
-              <MainView />
-            </NavigationContainer>
-          )}
-        </View>
-      </MapPointsProvider>
-    </StructureProvider>
+    <DarkModeProvider>
+      <StructureProvider>
+        <MapPointsProvider>
+          <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
+            {isFirstLaunch ? (
+              <OnboardingView onComplete={handleOnboardingComplete} />
+            ) : (
+              <NavigationContainer>
+                <MainView />
+              </NavigationContainer>
+            )}
+          </View>
+        </MapPointsProvider>
+      </StructureProvider>
+    </DarkModeProvider>
   );
 };
 
