@@ -1,9 +1,28 @@
+// MARK: - StructureContext
+/**
+ * StructureContext
+ * 
+ * This file defines a context and provider for managing structure data within the application.
+ * It includes functions to load and save structure data using AsyncStorage, mark structures as visited,
+ * reset visited structures, and keep track of visit statistics.
+ * 
+ * Features:
+ * - Load structure data from AsyncStorage or initial JSON data
+ * - Save structure data to AsyncStorage
+ * - Mark structures as visited
+ * - Reset visited structures
+ * - Track visit statistics (total visits, days visited, last visit date)
+ * - Custom hook to access structure context
+ */
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import rawStructureData from './structures.json'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// MARK: - Context Creation
 const StructureContext = createContext();
 
+// Custom hook to access Structure context
 export const useStructures = () => useContext(StructureContext);
 
 // Explicitly require each image
@@ -85,6 +104,7 @@ const images = {
   "M-36": require('../assets/photos/Main/M-36.jpg'),
 };
 
+// Functions to get the image paths
 const getCloseImagePath = number => images[`C-${number}`];
 const getMainImagePath = number => images[`M-${number}`];
 
@@ -93,12 +113,19 @@ const VISIT_COUNTER_KEY = 'VISIT_COUNTER_KEY';
 const LAST_VISIT_DATE_KEY = 'LAST_VISIT_DATE_KEY';
 const DAYS_VISITED_KEY = 'DAYS_VISITED_KEY';
 
+// MARK: - Provider Component
 export const StructureProvider = ({ children }) => {
+    // State variables to manage structure data and visit statistics
     const [structures, setStructures] = useState([]);
     const [visitCounter, setVisitCounter] = useState(0);
     const [lastVisitDate, setLastVisitDate] = useState(null);
     const [daysVisited, setDaysVisited] = useState(0);
 
+    // MARK: - Load Data
+    /**
+     * Loads structure data and visit statistics from AsyncStorage.
+     * If no saved data is found, initializes structure data from JSON file.
+     */
     const loadData = async () => {
         try {
             const [storedStructures, storedVisitCounter, storedLastVisitDate, storedDaysVisited] = await Promise.all([
@@ -130,6 +157,10 @@ export const StructureProvider = ({ children }) => {
         }
     };
 
+    // MARK: - Save Data
+    /**
+     * Saves structure data and visit statistics to AsyncStorage.
+     */
     const saveData = async () => {
         try {
             await Promise.all([
@@ -143,14 +174,23 @@ export const StructureProvider = ({ children }) => {
         }
     };
 
+    // Load data when the component mounts
     useEffect(() => {
         loadData();
     }, []);
 
+    // Save data whenever there are updates to structures or visit statistics
     useEffect(() => {
         saveData();
     }, [structures, visitCounter, lastVisitDate, daysVisited]);
 
+    // MARK: - Mark Structure As Visited
+    /**
+     * Marks a structure as visited and updates the visit statistics.
+     * 
+     * @param {number} landmarkId - The ID of the landmark to mark as visited.
+     * @returns {Object} - The structure that was marked as visited.
+     */
     const markStructureAsVisited = (landmarkId) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -180,6 +220,10 @@ export const StructureProvider = ({ children }) => {
         return structures.find(s => s.number === landmarkId);
     };
 
+    // MARK: - Reset Visited Structures
+    /**
+     * Resets the visited status of all structures and visit statistics.
+     */
     const resetVisitedStructures = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
@@ -192,6 +236,10 @@ export const StructureProvider = ({ children }) => {
         setDaysVisited(0);
     };
 
+    // MARK: - Set All Structures As Visited
+    /**
+     * Marks all structures as visited.
+     */
     const setAllStructuresAsVisited = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
@@ -199,6 +247,7 @@ export const StructureProvider = ({ children }) => {
         })));
     };
 
+    // Provide structure state and functions to children components
     return (
         <StructureContext.Provider value={{ 
             structures, 

@@ -1,11 +1,34 @@
+// MARK: - LocationManager
+/**
+ * LocationManager
+ * 
+ * This module provides functions to handle location permissions and manage
+ * geolocation-related operations within the app. It includes requesting location
+ * permissions, checking if coordinates are within a defined safe zone, finding
+ * the nearest map point, marking structures as visited, and getting the current location.
+ * 
+ * Features:
+ * - Request fine and background location permissions
+ * - Check if coordinates are within a safe zone
+ * - Find the nearest map point from a given coordinate
+ * - Mark a structure as visited
+ * - Get the current location with high accuracy
+ */
+
 import { PermissionsAndroid, Platform } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 
+// Safe zone coordinates
 const safeZoneCorners = {
   bottomLeft: { latitude: 35.31214, longitude: -120.65529 },
   topRight: { latitude: 35.31813, longitude: -120.65110 }
 };
 
+// MARK: - Request Location Permission
+/**
+ * Requests fine and background location permissions.
+ * Logs the status of the permissions to the console.
+ */
 const requestLocationPermission = async () => {
   try {
     const fineLocationGranted = await PermissionsAndroid.request(
@@ -46,6 +69,15 @@ const requestLocationPermission = async () => {
   }
 };
 
+// MARK: - Check Safe Zone
+/**
+ * Checks if the given coordinates are within the defined safe zone.
+ * 
+ * @param {Object} coordinate - The coordinates to check.
+ * @param {number} coordinate.latitude - The latitude of the coordinate.
+ * @param {number} coordinate.longitude - The longitude of the coordinate.
+ * @returns {boolean} - Returns true if within safe zone, otherwise false.
+ */
 const isWithinSafeZone = (coordinate) => {
   const { latitude, longitude } = coordinate;
   return latitude >= safeZoneCorners.bottomLeft.latitude &&
@@ -54,6 +86,14 @@ const isWithinSafeZone = (coordinate) => {
          longitude <= safeZoneCorners.topRight.longitude;
 };
 
+// MARK: - Find Nearest Map Point
+/**
+ * Finds the nearest map point to the given coordinates.
+ * 
+ * @param {Object} coordinate - The coordinates to compare.
+ * @param {Array} mapPoints - The list of map points to search through.
+ * @returns {Object|null} - The nearest map point, or null if no points are found.
+ */
 const findNearestMapPoint = (coordinate, mapPoints) => {
   let nearestPoint = null;
   let minDistance = Infinity;
@@ -72,6 +112,14 @@ const findNearestMapPoint = (coordinate, mapPoints) => {
   return nearestPoint;
 };
 
+// MARK: - Mark Structure As Visited
+/**
+ * Marks a structure as visited by updating the map points.
+ * 
+ * @param {number} landmarkId - The ID of the landmark to mark as visited.
+ * @param {Array} mapPoints - The list of map points to update.
+ * @returns {Array} - The updated list of map points.
+ */
 const markStructureAsVisited = (landmarkId, mapPoints) => {
   const updatedMapPoints = mapPoints.map(point => {
     if (point.landmark === landmarkId) {
@@ -80,11 +128,18 @@ const markStructureAsVisited = (landmarkId, mapPoints) => {
     return point;
   });
 
-  // Here you would typically update your state or storage with the updated mapPoints
   console.log(`Structure with landmark ID ${landmarkId} marked as visited`);
   return updatedMapPoints;
 };
 
+// MARK: - Get Current Location
+/**
+ * Gets the current location of the device and checks if it is within the safe zone.
+ * If within the safe zone, it finds the nearest map point and marks it as visited if necessary.
+ * 
+ * @param {Function} callback - The callback function to execute with the result.
+ * @param {Array} mapPoints - The list of map points to search through.
+ */
 const getCurrentLocation = (callback, mapPoints) => {
   Geolocation.getCurrentPosition(
     (position) => {

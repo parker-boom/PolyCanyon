@@ -1,3 +1,17 @@
+// MARK: - StructPopUp Component
+/**
+ * StructPopUp Component
+ * 
+ * This component displays a detailed popup view for a structure. 
+ * It allows users to swipe between images, view structure details, and close the popup.
+ * 
+ * Features:
+ * - Displays main and close-up images of a structure
+ * - Swipe gesture to switch between images
+ * - Close button to dismiss the popup
+ * - Supports dark mode
+ */
+
 import React, { useState, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, SafeAreaView, PanResponder, Animated } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
@@ -7,9 +21,11 @@ const { width, height } = Dimensions.get('window');
 const POPUP_HEIGHT = height * 0.90;
 
 const StructPopUp = ({ structure, onClose, isDarkMode }) => {
+  // State to track the currently selected image index
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const pan = useRef(new Animated.ValueXY()).current;
 
+  // PanResponder for handling swipe gestures
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
@@ -54,14 +70,11 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
           )}
           <View style={styles.overlay}>
             <Text style={[styles.number, isDarkMode && styles.darkText]}>{structure.number}</Text>
-            {/* Edit number style here */}
             <View style={styles.titleContainer}>
               <Text style={[styles.title, isDarkMode && styles.darkText]}>{structure.title}</Text>
-              {/* Edit title style here */}
               {structure.year !== "xxxx" && (
                 <Text style={[styles.year, isDarkMode && styles.darkText]}>{structure.year}</Text>
               )}
-              {/* Edit year style here */}
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <View style={styles.closeButtonCircle}>
@@ -78,13 +91,13 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
           <Text style={[styles.description, isDarkMode && styles.darkText]}>
             {structure.description === "iii" ? "More information coming soon!" : structure.description}
           </Text>
-          {/* Edit description style here */}
         </View>
       </View>
     </SafeAreaView>
   );
 };
 
+// MARK: - Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,

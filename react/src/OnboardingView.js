@@ -1,9 +1,23 @@
+// MARK: - OnboardingView Component
+/**
+ * OnboardingView Component
+ * 
+ * This component displays a series of onboarding images in a swiper view.
+ * Users can swipe through the images, and the last image triggers the onComplete function.
+ * 
+ * Features:
+ * - Displays a series of onboarding images
+ * - Allows swiping between images
+ * - Triggers onComplete function on the last image
+ */
+
 import React, { useRef } from 'react';
 import { View, Image, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-swiper';
 
 const { width, height } = Dimensions.get('window');
 
+// List of onboarding images
 const images = [
   require('../assets/onboarding/1.jpg'),
   require('../assets/onboarding/2.jpg'),
@@ -12,9 +26,11 @@ const images = [
 ];
 
 const OnboardingView = ({ onComplete }) => {
+  // Ref for the swiper component
   const swiperRef = useRef(null);
   const totalPages = images.length;
 
+  // MARK: - Render
   return (
     <View style={styles.container}>
       <Swiper
@@ -51,6 +67,7 @@ const OnboardingView = ({ onComplete }) => {
   );
 };
 
+// MARK: - Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
