@@ -33,6 +33,7 @@
 		DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD272C17B75100397065 /* FirebaseFirestore */; };
 		DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */; };
 		DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD2B2C17B75100397065 /* FirebaseStorage */; };
+		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -87,6 +88,7 @@
 			files = (
 				DB08BD242C17A02F00397065 /* FirebaseDatabaseSwift in Frameworks */,
 				DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */,
+				DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */,
 				DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */,
 				DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */,
 				DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */,
@@ -239,6 +241,7 @@
 				DB08BD272C17B75100397065 /* FirebaseFirestore */,
 				DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */,
 				DB08BD2B2C17B75100397065 /* FirebaseStorage */,
+				DB1CC6ED2C6DC1A000B9B777 /* Glur */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -314,6 +317,7 @@
 			mainGroup = D001C0412BBE319100C532F2;
 			packageReferences = (
 				DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */,
 			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
@@ -719,6 +723,14 @@
 				minimumVersion = 10.27.0;
 			};
 		};
+		DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/joogps/Glur.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -756,6 +768,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		DB1CC6ED2C6DC1A000B9B777 /* Glur */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */;
+			productName = Glur;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

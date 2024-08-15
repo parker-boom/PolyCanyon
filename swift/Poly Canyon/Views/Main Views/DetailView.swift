@@ -21,6 +21,8 @@
 // MARK: Code
 import SwiftUI
 import CoreLocation
+import Glur  //package for gradient blur [need to add as package dependency to use]
+
 
 struct DetailView: View {
     // MARK: - Properties
@@ -185,11 +187,12 @@ struct DetailView: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(isDarkMode ? .white : .black)
                             .font(.system(size: 20, weight: .semibold))
-                            .padding(.leading, -5)
+                            .padding(.trailing, 5)
                     }
                 }
             }
-            .padding(.horizontal, 5)
+            .padding(.leading, -5)
+            .padding(.trailing, 5)
             
             Toggle(isOn: $isGridView) {
                 Text("View Mode")
@@ -206,7 +209,7 @@ struct DetailView: View {
     // MARK: GridView
     // Grid view that shows all structures in a grid, with images
     var gridView: some View {
-        VStack{
+        VStack {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
                 ForEach(structureData.structures.filter { structure in
                     let searchMatch = searchText.isEmpty ? true : structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
@@ -220,20 +223,37 @@ struct DetailView: View {
                         return searchMatch && structure.isVisited && !structure.isOpened
                     case .unvisited:
                         return searchMatch && !structure.isVisited
-                   
                     }
                 }, id: \.id) { structure in
                     ZStack(alignment: .bottomLeading) {
                         ZStack(alignment: .topTrailing) {
 
-                            // Image
-                            Image(structure.imageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
-                                .clipped()
-                                .cornerRadius(15)
-                                .blur(radius: structure.isVisited ? 0 : 3)
+                            if structure.isVisited {
+                                
+                                // Image
+                                Image(structure.imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
+                                    .glur(radius: 6.0, offset: 0.6, interpolation: 0.4, direction: .down) // Apply the glur effect if visited
+                                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                                    .clipped()
+                                    .cornerRadius(15)
+                                
+                            } else {
+
+                                // Image
+                                Image(structure.imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
+                                    .clipped()
+                                    .cornerRadius(15)
+                                    .blur(radius: 2.5)
+                            }
+                            
+                            
+                           
 
                             // Is visited circle
                             if structure.isVisited && !structure.isOpened && isAdventureModeEnabled {
@@ -247,20 +267,20 @@ struct DetailView: View {
                             }
                         }
 
-                        // Information
+                        // Text overlay with blur effect
                         VStack(alignment: .leading, spacing: 3) {
                             HStack {
                                 Text("\(structure.number)")
                                     .font(.system(size: 22))
                                     .fontWeight(.semibold)
-                                    .foregroundColor(isDarkMode ? .white : .black)
-                                
+                                    .foregroundColor(.white)  // Set text color to white
+                                    
                                 Spacer()
                             }
                             
                             Text(structure.title)
                                 .font(.system(size: 18))
-                                .foregroundColor(isDarkMode ? .white : .black)
+                                .foregroundColor(.white)  // Set text color to white
                                 .minimumScaleFactor(0.5)
                                 .lineLimit(1)
                                 .allowsTightening(true)
@@ -269,9 +289,7 @@ struct DetailView: View {
                         .padding(.horizontal, 10)
                         .padding(.bottom, 10)
                         .padding(.top, 5)
-                        .frame(maxWidth: .infinity)
-                        .background(isDarkMode ? Color.black.opacity(1) : Color.white.opacity(1))
-                        .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+
                     }
 
                     // Open if selected
@@ -298,7 +316,9 @@ struct DetailView: View {
         .padding(.horizontal, 20)
         .padding(.top, 10)
         .padding(.bottom, 30)
-    } 
+    }
+
+
 
     // MARK: ListView
     // Show all structures in a smaller more concise list
@@ -704,7 +724,8 @@ struct RoundedCornerShape: Shape {
     }
 }
 
-// Search bar used
+
+// Search bar custom implementation
 struct SearchBar: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
@@ -717,26 +738,25 @@ struct SearchBar: UIViewRepresentable {
         searchBar.autocapitalizationType = .none
         searchBar.searchBarStyle = .minimal
 
-        searchBar.barTintColor = isDarkMode ? .black : .white
-        searchBar.tintColor = isDarkMode ? .white : .black
-        searchBar.setImage(UIImage(systemName: "magnifyingglass")?.withTintColor(isDarkMode ? .white : .black, renderingMode: .alwaysOriginal), for: .search, state: .normal)
+        // Remove background, icon, and set text color
+        searchBar.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
+        searchBar.setImage(UIImage(), for: .search, state: .normal) // Removes the search icon
+        searchBar.tintColor = .clear // Removes the tint color for the search icon
 
         let textField = searchBar.searchTextField
-        textField.textColor = isDarkMode ? .white : .black
-        textField.backgroundColor = isDarkMode ? UIColor(white: 0.2, alpha: 1.0) : .white
+        textField.backgroundColor = .clear // Removes background
+        textField.borderStyle = .none
+        textField.textColor = isDarkMode ? .white : .black // Set text color
 
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: isDarkMode ? UIColor.white.withAlphaComponent(0.7) : UIColor.black.withAlphaComponent(0.7)
+            .foregroundColor: UIColor.gray // Set placeholder color to gray
         ]
         textField.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
 
-        let toolbar = UIToolbar()
-        toolbar.sizeToFit()
-        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: context.coordinator, action: #selector(Coordinator.doneButtonTapped))
-        toolbar.items = [flexSpace, doneButton]
-        textField.inputAccessoryView = toolbar
-
+        // Add padding to the text field
+        textField.leftView = nil
+        textField.layoutMargins = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+        
         return searchBar
     }
 
@@ -758,17 +778,14 @@ struct SearchBar: UIViewRepresentable {
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             parent.text = searchText
         }
-
-        @objc func doneButtonTapped() {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
     }
 }
 
+// Custom UISearchBar to hide the "X" clear button
 class CustomUISearchBar: UISearchBar {
     override func layoutSubviews() {
         super.layoutSubviews()
-        // Remove the clear button
+        // Remove the clear button (X)
         if let textField = self.value(forKey: "searchField") as? UITextField {
             if let clearButton = textField.value(forKey: "clearButton") as? UIButton {
                 clearButton.isHidden = true
@@ -776,6 +793,7 @@ class CustomUISearchBar: UISearchBar {
         }
     }
 }
+
 
 // Custom toggle between grid and list view
 struct CustomToggleStyle: ToggleStyle {
