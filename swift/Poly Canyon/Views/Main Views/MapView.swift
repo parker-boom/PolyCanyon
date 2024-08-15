@@ -207,6 +207,9 @@ struct MapView: View {
                     if locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse {
                     if let location = locationManager.lastLocation {
                         
+                        
+                        
+                        
                         Button(action: {
                             withAnimation {
                                 showNearbyUnvisitedView.toggle()
@@ -246,6 +249,22 @@ struct MapView: View {
                                     .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
                             }
                         }
+                        
+                    
+                        
+                        // Text message displayed at the bottom
+                        if let nearestMapPoint = locationManager.nearestMapPoint, nearestMapPoint.pixelPosition.x == -499.232 {
+                            Text("You're Nearby!")
+                                .fontWeight(.semibold)
+                                .padding()
+                                .background(isDarkMode ? Color.black : Color.white)
+                                .foregroundColor(isDarkMode ? .white : .black)
+                                .cornerRadius(10)
+                                .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                                .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
+                        }
+
+
                         
                     }
                         

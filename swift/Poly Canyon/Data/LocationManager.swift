@@ -38,9 +38,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var mapPointManager: MapPointManager
     private var structureData: StructureData
     private var lastLoggedMapPoint: MapPoint?
-
+    
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
+    @Published var nearestMapPoint: MapPoint?
     @Published var isMonitoringSignificantLocationChanges = false
 
     // Define safe long and lat zone
@@ -151,6 +152,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         logLocationToFirebaseIfNeeded(location: location)
+        updateNearestMapPoint(for: location)
 
         if isWithinSafeZone(coordinate: location.coordinate) {
             lastLocation = location
@@ -161,8 +163,26 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             locationManager.startMonitoringSignificantLocationChanges()
             isMonitoringSignificantLocationChanges = true
         }
+        
+        logCurrentMapPoint()
+    }
+    
+    private func updateNearestMapPoint(for location: CLLocation) {
+        nearestMapPoint = findNearestMapPoint(to: location.coordinate)
     }
 
+    
+    private func logCurrentMapPoint() {
+        guard let mapPoint = nearestMapPoint else {
+            print("No nearest map point found.")
+            return
+        }
+        
+        // Log and print the structure value of the nearest map point
+        print("Current MapPoint Structure: \(mapPoint.landmark), Pixel Position: (x: \(mapPoint.pixelPosition.x), y: \(mapPoint.pixelPosition.y))")
+        
+        // Optionally, you can add more logging or save this information elsewhere if needed
+    }
 
     // Setup geo fence so user location isn't constantly tracked outside of Poly Canyon
     private func setupGeofenceForSafeZone() {

@@ -32,24 +32,28 @@ struct OnboardingView: View {
                 Spacer()
 
                 // All the pages
-                TabView(selection: $currentPage) {
-                    ForEach(0..<totalPages, id: \.self) { index in
-                        Image("\(index + 1)")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: UIScreen.main.bounds.width * 1, height: UIScreen.main.bounds.height, alignment: .bottom)
-                            .clipped()
-                            .onTapGesture {
-                                if index == totalPages - 1 {
-                                    isNewOnboardingCompleted = true
-                                }
-                            }
-                            .tag(index)
+                ZStack {
+                    TabView(selection: $currentPage) {
+                        ForEach(0..<totalPages, id: \.self) { index in
+                            Image("\(index + 1)")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height, alignment: .bottom)
+                                .clipped()
+                                .tag(index)
+                        }
+                    }
+                    .tabViewStyle(PageTabViewStyle())
+                    .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+                }
+                .contentShape(Rectangle()) // Makes the entire area tappable
+                .onTapGesture {
+                    if currentPage < totalPages - 1 {
+                        currentPage += 1
+                    } else {
+                        isNewOnboardingCompleted = true
                     }
                 }
-                .tabViewStyle(PageTabViewStyle())
-                .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-                
             }
             .edgesIgnoringSafeArea(.all)
         }
