@@ -34,6 +34,7 @@
 		DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */; };
 		DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD2B2C17B75100397065 /* FirebaseStorage */; };
 		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
+		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +96,7 @@
 				DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */,
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
 				DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */,
+				DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +244,7 @@
 				DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */,
 				DB08BD2B2C17B75100397065 /* FirebaseStorage */,
 				DB1CC6ED2C6DC1A000B9B777 /* Glur */,
+				DB991BA22C75BE4A0053A521 /* Zoomable */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -318,6 +321,7 @@
 			packageReferences = (
 				DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */,
+				DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */,
 			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
@@ -549,7 +553,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -586,7 +590,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -731,6 +735,14 @@
 				minimumVersion = 1.0.4;
 			};
 		};
+		DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ryohey/Zoomable";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -773,6 +785,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */;
 			productName = Glur;
+		};
+		DB991BA22C75BE4A0053A521 /* Zoomable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */;
+			productName = Zoomable;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

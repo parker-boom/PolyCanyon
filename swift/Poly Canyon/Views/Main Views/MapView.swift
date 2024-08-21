@@ -27,6 +27,8 @@
 // MARK: Code
 import SwiftUI
 import CoreLocation
+//import Zoomable
+
 
 struct MapView: View {
     // MARK: - Properties
@@ -48,7 +50,7 @@ struct MapView: View {
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
-    @State private var dragOffset: CGSize = .zero
+    //@State private var dragOffset: CGSize = .zero
     
     // booleans
     @State private var isSatelliteView: Bool = false
@@ -62,15 +64,26 @@ struct MapView: View {
     @State private var showStructPopup = false
     @State private var isDragging = false
     @State private var showNearbyUnvisitedView = false
+    @State private var dragStartLocation: CGPoint?
+    @State private var lastDragPosition: CGPoint?
+    @State private var lastDragTime: Date?
+    @State private var dragVelocity: CGSize = .zero
+    @GestureState private var magnifyBy = 1.0
+    @GestureState private var dragOffset: CGSize = .zero
+    @GestureState private var dragState = CGSize.zero
+
     
     // track number of time visiting all, and  times visited
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
     
-    // CONSTANTS
-    let maxScale: CGFloat = 2.5
+    // Constants for zoom and pan limits
     let minScale: CGFloat = 1.0
+    let maxScale: CGFloat = 3.0
+    let zoomSpeed: CGFloat = 0.1
+    let dragSpeed: CGFloat = 1.0
+    
     
     let safeZoneCorners = (
         bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
@@ -107,64 +120,11 @@ struct MapView: View {
                 Image(mapImage())
                     .resizable()
                     .scaledToFit()
-                    .frame(width: imageSize.width, height: imageSize.height)
-                    .scaleEffect(scale)
-                    .offset(x: offset.width + dragOffset.width, y: offset.height + dragOffset.height)
-                    .gesture(
-                        // Zoom in and out gesture
-                        MagnificationGesture()
-                            .onChanged { value in
-                                let delta = value / self.lastScale
-                                self.lastScale = value
-                                let newScale = self.scale * delta
-                                self.scale = min(self.maxScale, max(self.minScale, newScale))
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    //.zoomable(minZoomScale: minScale, doubleTapZoomScale: 2.0) // Implementing the zoomable modifier
+                                
+    
 
-                                if self.scale < 1.2 {
-                                    self.scale = self.minScale
-                                    self.centerImage(imageSize: imageSize, containerSize: geometry.size)
-                                    self.dragOffset = .zero
-                                } else {
-                                    self.offset = self.limitOffset(imageSize: imageSize, containerSize: geometry.size)
-                                }
-                            }
-                            .onEnded { _ in
-                                self.lastScale = 1.0
-                                if self.scale < 1.2 {
-                                    self.scale = self.minScale
-                                    self.centerImage(imageSize: imageSize, containerSize: geometry.size)
-                                    self.dragOffset = .zero
-                                } else {
-                                    self.offset = self.limitOffset(imageSize: imageSize, containerSize: geometry.size)
-                                }
-                                self.showResetButton = self.scale > self.minScale
-                            }
-                    )
-                    .simultaneousGesture(
-                        // Pan if you're zoomed in
-                        DragGesture()
-                            .onChanged { value in
-                                if self.scale > self.minScale {
-                                    self.isDragging = true
-                                    let sensitivity = self.scale * 0.35
-                                    let newOffset = CGSize(
-                                        width: value.translation.width / sensitivity,
-                                        height: value.translation.height / sensitivity
-                                    )
-                                    self.dragOffset = self.limitDragOffset(newOffset: newOffset, imageSize: imageSize)
-                                }
-                            }
-                            .onEnded { _ in
-                                if self.isDragging {
-                                    self.isDragging = false
-                                    self.offset = self.limitOffset(newOffset: CGSize(width: self.offset.width + self.dragOffset.width, height: self.offset.height + self.dragOffset.height), imageSize: imageSize, containerSize: geometry.size)
-                                    self.dragOffset = .zero
-                                }
-                            }
-                    )
-
-
-
-                
                 // Map view toggle button
                 Button(action: {
                     isSatelliteView.toggle()
@@ -299,7 +259,7 @@ struct MapView: View {
                 // Nearby unvisited structures view
                 VStack {
                     if showNearbyUnvisitedView && hasUnvisitedStructures {
-                        nearbyUnvisitedView     
+                        nearbyUnvisitedView
                     }
                 }
                 .padding(.top, 75)
@@ -448,7 +408,10 @@ struct MapView: View {
             }
         }
     }
-
+    
+    
+    
+    
     // Use distance function
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = locationManager.lastLocation else { return .infinity }
@@ -470,38 +433,6 @@ struct MapView: View {
         }
     }
     
-    
-    private func limitOffset(newOffset: CGSize? = nil, imageSize: CGSize, containerSize: CGSize) -> CGSize {
-        let offsetWidth = newOffset?.width ?? offset.width
-        let offsetHeight = newOffset?.height ?? offset.height
-        
-        let maxHorizontalOffset = (imageSize.width * scale - containerSize.width) / 2
-        let maxVerticalOffset = (imageSize.height * scale - containerSize.height) / 2
-        
-        let limitedOffsetWidth = min(max(offsetWidth, -maxHorizontalOffset), maxHorizontalOffset)
-        let limitedOffsetHeight = min(max(offsetHeight, -maxVerticalOffset), maxVerticalOffset)
-        
-        return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
-    }
-
-    // Limit how far the drag offset can go, so you don't hit blank space
-    private func limitDragOffset(newOffset: CGSize, imageSize: CGSize) -> CGSize {
-        let maxHorizontalOffset = (imageSize.width * scale - imageSize.width) / 2
-        let maxVerticalOffset = (imageSize.height * scale - imageSize.height) / 2
-        
-        let limitedOffsetWidth = min(max(newOffset.width, -maxHorizontalOffset - offset.width), maxHorizontalOffset - offset.width)
-        let limitedOffsetHeight = min(max(newOffset.height, -maxVerticalOffset - offset.height), maxVerticalOffset - offset.height)
-        
-        return CGSize(width: limitedOffsetWidth, height: limitedOffsetHeight)
-    }
-
-    // Center the image when zooming out
-    private func centerImage(imageSize: CGSize, containerSize: CGSize) {
-        let x = (containerSize.width - imageSize.width * scale) / 2
-        let y = (containerSize.height - imageSize.height * scale) / 2
-        self.offset = CGSize(width: x, height: y)
-    }
-    
     // Find the nearest of 60 map points based on the users current location, used to display current location
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
@@ -521,7 +452,7 @@ struct MapView: View {
         return nearestPoint
     }
 
-    // Find nearby map points 
+    // Find nearby map points
     private func findNearbyMapPoints() -> [MapPoint] {
         guard let userLocation = locationManager.lastLocation else { return [] }
 
@@ -587,7 +518,6 @@ struct MapView: View {
         withAnimation {
             scale = minScale
             offset = .zero
-            dragOffset = .zero
         }
     }
     
@@ -800,3 +730,10 @@ struct VisitedStructurePopup_Previews: PreviewProvider {
     }
 }
 
+
+// Extension to clamp values within a range
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        return min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}

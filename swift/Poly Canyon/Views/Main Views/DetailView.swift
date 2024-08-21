@@ -1,3 +1,4 @@
+
 // MARK: Overview
 /*
     DetailView.swift
@@ -229,7 +230,6 @@ struct DetailView: View {
                         ZStack(alignment: .topTrailing) {
 
                             if structure.isVisited {
-                                
                                 // Image
                                 Image(structure.imageName)
                                     .resizable()
@@ -239,10 +239,26 @@ struct DetailView: View {
                                     .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
                                     .clipped()
                                     .cornerRadius(15)
-                                
-                            } else {
 
-                                // Image
+                                if structure.isOpened {
+                                    // Checkmark at the top right
+                                    Image("Check")
+                                        .resizable()
+                                        .foregroundColor(.white)
+                                        .frame(width: 13, height: 13)
+                                        .padding(12)
+                                } else {
+                                    // Blue circle if visited but not opened
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.7))
+                                        .frame(width: 10, height: 10)
+                                        .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
+                                        .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
+                                        .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
+                                        .padding(12)
+                                }
+                            } else {
+                                // Image for unvisited
                                 Image(structure.imageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
@@ -250,20 +266,6 @@ struct DetailView: View {
                                     .clipped()
                                     .cornerRadius(15)
                                     .blur(radius: 2.5)
-                            }
-                            
-                            
-                           
-
-                            // Is visited circle
-                            if structure.isVisited && !structure.isOpened && isAdventureModeEnabled {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.7))
-                                    .frame(width: 10, height: 10)
-                                    .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
-                                    .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
-                                    .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
-                                    .padding(10)
                             }
                         }
 
@@ -289,7 +291,6 @@ struct DetailView: View {
                         .padding(.horizontal, 10)
                         .padding(.bottom, 10)
                         .padding(.top, 5)
-
                     }
 
                     // Open if selected
@@ -311,12 +312,12 @@ struct DetailView: View {
                 }
                 .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 6, x: 0, y: 0)
             }
-            
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
         .padding(.bottom, 30)
     }
+
 
 
 
@@ -465,7 +466,7 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
     
-    // Shows recently unopened views 
+    // Shows recently unopened views
     var recentlyUnopenedView: some View {
         let recentlyUnopenedStructures = structureData.structures
             .filter { !$0.isOpened && $0.isVisited }
