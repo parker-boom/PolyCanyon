@@ -27,7 +27,7 @@
 // MARK: Code
 import SwiftUI
 import CoreLocation
-//import Zoomable
+import Zoomable
 
 
 struct MapView: View {
@@ -121,7 +121,7 @@ struct MapView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    //.zoomable(minZoomScale: minScale, doubleTapZoomScale: 2.0) // Implementing the zoomable modifier
+                    .zoomable(minZoomScale: minScale, doubleTapZoomScale: 2.0) // Implementing the zoomable modifier
                                 
     
 

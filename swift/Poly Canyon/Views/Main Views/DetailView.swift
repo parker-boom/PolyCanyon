@@ -71,37 +71,24 @@ struct DetailView: View {
                 // Scroll view that displays either grid or list view
                 ScrollView {
                     if isGridView {
-
-                        // Recently Visited
-                        if structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled {
-                            
+                        if shouldShowRecentlyVisited {
                             recentlyVisitedView
                                 .padding(.top, 10)
                         }
-
-                        // Recently Unopened
-                        if structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled {
-                            
+                        
+                        if shouldShowRecentlyUnopened {
                             recentlyUnopenedView
                                 .padding(.top, 10)
-                            
-                            
                         }
-
-                        // Unvisited
-                        if structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled {
-                            
+                        
+                        if shouldShowNearbyUnvisited {
                             nearbyUnvisitedView
                                 .padding(.top, 10)
                         }
                         
                         // Show grid view
                         gridView
-                        
-                    }
-                    
-                    else {
-
+                    } else {
                         // Show list view
                         listView
                     }
@@ -212,20 +199,7 @@ struct DetailView: View {
     var gridView: some View {
         VStack {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
-                ForEach(structureData.structures.filter { structure in
-                    let searchMatch = searchText.isEmpty ? true : structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
-                    
-                    switch eyeIconState {
-                    case .all:
-                        return searchMatch
-                    case .visited:
-                        return searchMatch && structure.isVisited
-                    case .unopened:
-                        return searchMatch && structure.isVisited && !structure.isOpened
-                    case .unvisited:
-                        return searchMatch && !structure.isVisited
-                    }
-                }, id: \.id) { structure in
+                ForEach(filteredStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomLeading) {
                         ZStack(alignment: .topTrailing) {
 
@@ -325,21 +299,7 @@ struct DetailView: View {
     // Show all structures in a smaller more concise list
     var listView: some View {
         VStack(spacing: 0) {
-            ForEach(structureData.structures.filter { structure in
-                let searchMatch = searchText.isEmpty ? true : structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
-                
-                switch eyeIconState {
-                case .all:
-                    return searchMatch
-                case .visited:
-                    return searchMatch && structure.isVisited
-                case .unopened:
-                    return searchMatch && !structure.isOpened
-                case .unvisited:
-                    return searchMatch && !structure.isVisited
-                
-                }
-            }, id: \.id) { structure in
+            ForEach(filteredStructures, id: \.id) { structure in
                 
                 Divider()
                     .background(isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.4))
@@ -598,6 +558,37 @@ struct DetailView: View {
         .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
+    
+    var filteredStructures: [Structure] {
+        structureData.structures.filter { structure in
+            let searchMatch = searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
+            
+            switch eyeIconState {
+            case .all:
+                return searchMatch
+            case .visited:
+                return searchMatch && structure.isVisited
+            case .unopened:
+                return searchMatch && structure.isVisited && !structure.isOpened
+            case .unvisited:
+                return searchMatch && !structure.isVisited
+            }
+        }
+    }
+    
+    private var shouldShowRecentlyVisited: Bool {
+        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled
+    }
+
+    private var shouldShowRecentlyUnopened: Bool {
+        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled
+    }
+
+    private var shouldShowNearbyUnvisited: Bool {
+        structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled
+    }
+
+    
 
     // Get distance to nearby structures for unvisited
     func getDistance(to structure: Structure) -> CLLocationDistance {
