@@ -51,6 +51,7 @@ class StructureData: ObservableObject {
         } else {
             loadStructuresFromCSV()
         }
+        
     }
     
     // Reset visited structuress - triggered in settings
@@ -70,6 +71,8 @@ class StructureData: ObservableObject {
             updatedStructure.isVisited = true
             return updatedStructure
         }
+        objectWillChange.send()
+
     }
     
     // Use structures.csv to load the data
@@ -94,10 +97,13 @@ class StructureData: ObservableObject {
                     let year = values[3]
                     let imageName = "\(number)M"
                     let closeUp = "\(number)C"
+                    
                     let structure = Structure(number: number, title: title, imageName: imageName, closeUp: closeUp, description: description, year: year)
                     loadedStructures.append(structure)
                 }
             }
+            
+            
             
 
             DispatchQueue.main.async {

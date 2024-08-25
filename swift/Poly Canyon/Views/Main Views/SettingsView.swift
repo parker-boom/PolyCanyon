@@ -188,6 +188,19 @@ struct ModePopUp: View {
     @Binding var isDarkMode: Bool
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
+    
+    // Add a state variable to track the initial mode
+    @State private var initialMode: Bool
+
+    // Initialize the state variable in the initializer
+    init(isAdventureModeEnabled: Binding<Bool>, isPresented: Binding<Bool>, isDarkMode: Binding<Bool>, structureData: StructureData, mapPointManager: MapPointManager) {
+        self._isAdventureModeEnabled = isAdventureModeEnabled
+        self._isPresented = isPresented
+        self._isDarkMode = isDarkMode
+        self.structureData = structureData
+        self.mapPointManager = mapPointManager
+        self._initialMode = State(initialValue: isAdventureModeEnabled.wrappedValue)
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -219,13 +232,17 @@ struct ModePopUp: View {
             .multilineTextAlignment(.center)
             
             Button(action: {
-                let oldMode = isAdventureModeEnabled
-                if oldMode != isAdventureModeEnabled {
+                // Only apply changes if the mode has actually changed
+                if initialMode != isAdventureModeEnabled {
                     if !isAdventureModeEnabled {
+                        // Switching to Virtual Tour Mode
                         structureData.setAllStructuresAsVisited()
+                        print("Setting all structures as visited")
                     } else {
+                        // Switching to Adventure Mode
                         structureData.resetVisitedStructures()
                         mapPointManager.resetVisitedMapPoints()
+                        print("Resetting visited structures")
                     }
                 }
                 isPresented = false

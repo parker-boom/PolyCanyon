@@ -222,14 +222,16 @@ struct DetailView: View {
                                         .frame(width: 13, height: 13)
                                         .padding(12)
                                 } else {
-                                    // Blue circle if visited but not opened
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.7))
-                                        .frame(width: 10, height: 10)
-                                        .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
-                                        .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
-                                        .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
-                                        .padding(12)
+                                    if isAdventureModeEnabled {
+                                        // Blue circle if visited but not opened & adventure mode
+                                        Circle()
+                                            .fill(Color.blue.opacity(0.7))
+                                            .frame(width: 10, height: 10)
+                                            .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
+                                            .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
+                                            .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
+                                            .padding(12)
+                                    }
                                 }
                             } else {
                                 // Image for unvisited
