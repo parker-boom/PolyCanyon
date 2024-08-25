@@ -28,6 +28,7 @@ struct SettingsView: View {
     @State private var showAlert = false
     @State private var alertType: AlertType?
     @State private var pendingAdventureModeState: Bool = false
+    @State private var showModePopUp = false
 
     // App storage data figures
     @AppStorage("visitedCount") private var visitedCount: Int = 0
@@ -44,21 +45,27 @@ struct SettingsView: View {
             // App settings section
             Section(header: Text("Settings")) {
                 Toggle("Dark Mode", isOn: $isDarkMode)
-                Toggle("Adventure Mode", isOn: $isAdventureModeEnabled)
-                    .onChange(of: isAdventureModeEnabled) { isEnabled in
-                        if !isEnabled {
-                            pendingAdventureModeState = isEnabled
-                            alertType = .toggleAdventureModeOff
-                            showAlert = true
-                        } else {
-                            structureData.resetVisitedStructures()
-                            mapPointManager.resetVisitedMapPoints()
-                        }
-                    }
+                    
                 
-                Text("Adventure mode automatically tracks your visited structures using your location.")
-                    .font(.caption)
-                    .foregroundColor(isDarkMode ? .gray : Color.black.opacity(0.6))
+                HStack {
+
+                    
+                    Text(isAdventureModeEnabled ? "Adventure Mode" : "Virtual Tour Mode")
+                    
+                    Image(systemName: isAdventureModeEnabled ? "figure.walk" : "binoculars")
+                        .foregroundColor(isAdventureModeEnabled ? .green : .blue)
+                    
+                    Spacer()
+                    
+                    Button("Switch") {
+                        showModePopUp = true
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
                 
                 Button(action: {
                     alertType = .resetVisited
@@ -112,6 +119,27 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
+        .overlay(
+            Group {
+                if showModePopUp {
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                showModePopUp = false
+                            }
+                        
+                        ModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
+                                  isPresented: $showModePopUp,
+                                  isDarkMode: $isDarkMode,
+                                  structureData: structureData,
+                                  mapPointManager: mapPointManager)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 20)
+                    }
+                }
+            }
+        )
 
         // Alerts to confirm settings changed
         .alert(isPresented: $showAlert) {
@@ -153,6 +181,89 @@ struct SettingsView: View {
         }
     }
 }
+
+struct ModePopUp: View {
+    @Binding var isAdventureModeEnabled: Bool
+    @Binding var isPresented: Bool
+    @Binding var isDarkMode: Bool
+    @ObservedObject var structureData: StructureData
+    @ObservedObject var mapPointManager: MapPointManager
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Picker("Mode", selection: $isAdventureModeEnabled) {
+                HStack {
+                    Text("Virtual Tour Mode")
+                }
+                .tag(false)
+                HStack {
+                    Text("Adventure Mode")
+                }
+                .tag(true)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            
+            Image(isAdventureModeEnabled ? "AdventureModeImage" : "VirtualTourModeImage")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 150)
+            
+            VStack(spacing: 10) {
+                Text(isAdventureModeEnabled ? "Adventure Mode:" : "Virtual Tour Mode:")
+                    .font(.headline)
+                
+                BulletPoint(text: isAdventureModeEnabled ? "Uses your location" : "No location needed")
+                BulletPoint(text: isAdventureModeEnabled ? "Tracks your progress" : "All structures viewable")
+                BulletPoint(text: "Better for: \(isAdventureModeEnabled ? "In-person visits" : "Remote exploration")")
+            }
+            .multilineTextAlignment(.center)
+            
+            Button(action: {
+                let oldMode = isAdventureModeEnabled
+                if oldMode != isAdventureModeEnabled {
+                    if !isAdventureModeEnabled {
+                        structureData.setAllStructuresAsVisited()
+                    } else {
+                        structureData.resetVisitedStructures()
+                        mapPointManager.resetVisitedMapPoints()
+                    }
+                }
+                isPresented = false
+            }) {
+                Text("Confirm Choice")
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 10)
+                    .background(Color(red: 0.44, green: 0.92, blue: 0.25))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+        }
+        .padding()
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(20)
+        .shadow(radius: 10)
+    }
+}
+
+struct BulletPoint: View {
+    let text: String
+    
+    var body: some View {
+        Text("• \(text)")
+    }
+}
+
+struct PrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+    }
+}
+
 
 // MARK: - Preview
 struct SettingsView_Previews: PreviewProvider {

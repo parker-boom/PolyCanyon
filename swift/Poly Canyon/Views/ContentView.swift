@@ -24,6 +24,7 @@ struct ContentView: View {
     @AppStorage("isAdventureModeEnabled") private var isAdventureModeEnabled = true
 
 
+
     var body: some View {
         if !isNewOnboardingCompleted {
             OnboardingView(isNewOnboardingCompleted: $isNewOnboardingCompleted)

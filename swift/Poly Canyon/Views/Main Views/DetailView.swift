@@ -326,11 +326,13 @@ struct DetailView: View {
                             .padding(.trailing, 5)
                     }
                     
-                    // Walking figure green if visited
-                    Image(systemName: "figure.walk")
-                        .foregroundColor(structure.isVisited ? .green : .red)
-                        .font(.title2)
-                        .padding(.trailing, 10)
+                    if isAdventureModeEnabled {
+                        // Walking figure green if visited
+                        Image(systemName: "figure.walk")
+                            .foregroundColor(structure.isVisited ? .green : .red)
+                            .font(.title2)
+                            .padding(.trailing, 10)
+                    }
                 }
                 .padding(.vertical, 10)
                 .padding(.horizontal, 16)

@@ -30,6 +30,7 @@ class StructureData: ObservableObject {
         }
     }
     
+    
     // Call to load across app closes
     init() {
         loadFromUserDefaults()

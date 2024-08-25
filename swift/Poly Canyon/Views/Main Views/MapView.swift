@@ -62,28 +62,15 @@ struct MapView: View {
     @State private var allStructuresVisitedFlag = false
     @State private var showNearbyStructures = false
     @State private var showStructPopup = false
-    @State private var isDragging = false
+    @State private var showModePopUp = false
     @State private var showNearbyUnvisitedView = false
-    @State private var dragStartLocation: CGPoint?
-    @State private var lastDragPosition: CGPoint?
-    @State private var lastDragTime: Date?
-    @State private var dragVelocity: CGSize = .zero
-    @GestureState private var magnifyBy = 1.0
-    @GestureState private var dragOffset: CGSize = .zero
-    @GestureState private var dragState = CGSize.zero
 
-    
+    @GestureState private var magnifyBy = 1.0
+
     // track number of time visiting all, and  times visited
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
-    
-    // Constants for zoom and pan limits
-    let minScale: CGFloat = 1.0
-    let maxScale: CGFloat = 3.0
-    let zoomSpeed: CGFloat = 0.1
-    let dragSpeed: CGFloat = 1.0
-    
     
     let safeZoneCorners = (
         bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
@@ -121,7 +108,7 @@ struct MapView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    .zoomable(minZoomScale: minScale, doubleTapZoomScale: 2.0) // Implementing the zoomable modifier
+                    .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0) // Implementing the zoomable modifier
                                 
     
 
@@ -140,81 +127,121 @@ struct MapView: View {
                 .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
                 .padding(.top, -10)
                 
-                // Reset button
-                if showResetButton {
-                    Button(action: {
-                        resetMap()
-                        showResetButton = false
-                    }) {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.system(size: 24))
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .background(isDarkMode ? Color.black : Color.white)
-                            .cornerRadius(15)
-                            .padding()
-                    }
-                    .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
-                    .padding(.top, -10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                
                 
                 // If all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
                 if scale == 1.0 {
-
-                    // Make sure location enabled
-                    if locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse {
-                    if let location = locationManager.lastLocation {
-                        
-                        
-                        
-                        
-                        Button(action: {
-                            withAnimation {
-                                showNearbyUnvisitedView.toggle()
-                            }
-                        }) {
-                            Image(systemName: showNearbyUnvisitedView ? "chevron.up.circle.fill" : "mappin.and.ellipse")
-                                .font(.system(size: 24))
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(isDarkMode ? .white : .black)
-                                .background(isDarkMode ? Color.black : Color.white)
-                                .cornerRadius(15)
-                                .padding()
-                        }
-                        .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
-                        .padding(.top, -10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        
-                        let userCoordinate = location.coordinate
-
-                        // If they are within the area of poly canyon
-                        if !locationManager.isMonitoringSignificantLocationChanges {
-                            if let nearestPoint = findNearestMapPoint(to: userCoordinate) {
-                                let topLeft = topLeftOfImage(in: imageSize)
-                                
-                                let scaleWidth = displayedSize.width / originalWidth
-                                let scaleHeight = displayedSize.height / originalHeight
-                                
-                                let correctScale = min(scaleWidth, scaleHeight)
-                                
-                                let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
-                                let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
-                            
-                                // Show the circle on the map
-                                PulsingCircle()
-                                    .position(x: circleX, y: circleY)
-                                    .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
-                            }
-                        }
-                        
                     
+                    if !isAdventureModeEnabled {
+                        VStack {
+                            Text("Virtual Tour Mode Active")
+                                .font(.system(size: 16))
+                                .fontWeight(.semibold)
+                                .padding(.bottom, 1)
+                            
+                            Button("Change...") {
+                                showModePopUp = true
+                            }
+                            .font(.system(size: 14))
+                            .underline()
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 10)
+                            .padding(.top, 0)
+
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 18)
+                        .background(isDarkMode ? Color.black : Color.white)
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .cornerRadius(10)
+                        .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height - 75)
+                    }
+
+                    
+                    else {
                         
-                        // Text message displayed at the bottom
-                        if let nearestMapPoint = locationManager.nearestMapPoint, nearestMapPoint.pixelPosition.x == -499.232 {
-                            Text("You're Nearby!")
+                        // Make sure location enabled
+                        if locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse {
+                            if let location = locationManager.lastLocation {
+                                
+                                
+                                
+                                
+                                Button(action: {
+                                    withAnimation {
+                                        showNearbyUnvisitedView.toggle()
+                                    }
+                                }) {
+                                    Image(systemName: showNearbyUnvisitedView ? "chevron.up.circle.fill" : "mappin.and.ellipse")
+                                        .font(.system(size: 24))
+                                        .frame(width: 50, height: 50)
+                                        .foregroundColor(isDarkMode ? .white : .black)
+                                        .background(isDarkMode ? Color.black : Color.white)
+                                        .cornerRadius(15)
+                                        .padding()
+                                }
+                                .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                                .padding(.top, -10)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                
+                                let userCoordinate = location.coordinate
+                                
+                                // If they are within the area of poly canyon
+                                if !locationManager.isMonitoringSignificantLocationChanges {
+                                    if let nearestPoint = findNearestMapPoint(to: userCoordinate) {
+                                        let topLeft = topLeftOfImage(in: imageSize)
+                                        
+                                        let scaleWidth = displayedSize.width / originalWidth
+                                        let scaleHeight = displayedSize.height / originalHeight
+                                        
+                                        let correctScale = min(scaleWidth, scaleHeight)
+                                        
+                                        let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
+                                        let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
+                                        
+                                        // Show the circle on the map
+                                        PulsingCircle()
+                                            .position(x: circleX, y: circleY)
+                                            .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
+                                    }
+                                }
+                                
+                                
+                                
+                                // Text message displayed at the bottom
+                                if let nearestMapPoint = locationManager.nearestMapPoint, nearestMapPoint.pixelPosition.x == -499.232 {
+                                    Text("You're Nearby!")
+                                        .fontWeight(.semibold)
+                                        .padding()
+                                        .background(isDarkMode ? Color.black : Color.white)
+                                        .foregroundColor(isDarkMode ? .white : .black)
+                                        .cornerRadius(10)
+                                        .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                                        .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
+                                }
+                                
+                                
+                                
+                            }
+                            
+                            
+                            
+                            // Tell user they aren't in the area of Poly Canyon
+                            else {
+                                Text("Enter the area of Poly Canyon")
+                                    .fontWeight(.semibold)
+                                    .padding()
+                                    .background(isDarkMode ? Color.black : Color.white)
+                                    .foregroundColor(isDarkMode ? .white : .black)
+                                    .cornerRadius(10)
+                                    .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                                    .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
+                            }
+                        }
+                        // Ask user to enable location services if not
+                        else {
+                            Text("Enable location services")
                                 .fontWeight(.semibold)
                                 .padding()
                                 .background(isDarkMode ? Color.black : Color.white)
@@ -223,37 +250,11 @@ struct MapView: View {
                                 .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
                                 .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
                         }
-
-
-                        
                     }
-                        
                         
                     
-                    // Tell user they aren't in the area of Poly Canyon
-                    else {
-                        Text("Enter the area of Poly Canyon")
-                            .fontWeight(.semibold)
-                            .padding()
-                            .background(isDarkMode ? Color.black : Color.white)
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .cornerRadius(10)
-                            .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-                    }
                 }
-                    // Ask user to enable location services if not
-                    else {
-                        Text("Enable location services")
-                            .fontWeight(.semibold)
-                            .padding()
-                            .background(isDarkMode ? Color.black : Color.white)
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .cornerRadius(10)
-                            .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-                    }
-                }
+                    
 
                 // MARK: - Pop-Ups
                 // Nearby unvisited structures view
@@ -286,6 +287,25 @@ struct MapView: View {
  
             }
         }
+        .overlay(
+             Group {
+                 if showModePopUp {
+                     Color.black.opacity(0.4)
+                         .edgesIgnoringSafeArea(.all)
+                         .onTapGesture {
+                             showModePopUp = false
+                         }
+                     
+                     ModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
+                               isPresented: $showModePopUp,
+                               isDarkMode: $isDarkMode,
+                               structureData: structureData,
+                               mapPointManager: mapPointManager)
+                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                         .padding(.horizontal, 20)
+                 }
+             }
+         )
         
         // Show the onboarding map if it hasn't ever been shown
         .onAppear {
@@ -513,13 +533,6 @@ struct MapView: View {
         return CGSize(width: displayedWidth, height: displayedHeight)
     }
     
-    // zoom map all the way out
-    private func resetMap() {
-        withAnimation {
-            scale = minScale
-            offset = .zero
-        }
-    }
     
     // Get notifications when a user visits a structure
     private func subscribeToVisitedStructureNotification() {
