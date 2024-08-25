@@ -203,7 +203,7 @@ struct DetailView: View {
                     ZStack(alignment: .bottomLeading) {
                         ZStack(alignment: .topTrailing) {
 
-                            if structure.isVisited {
+                            if ( structure.isVisited && isAdventureModeEnabled ) || (!isAdventureModeEnabled) {
                                 // Image
                                 Image(structure.imageName)
                                     .resizable()
