@@ -324,7 +324,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     // Checks if a coordinate is within the predefined safe zone.
-    private func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
+    public func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
         let minLat = safeZoneCorners.bottomLeft.latitude
         let maxLat = safeZoneCorners.topRight.latitude
         let minLon = safeZoneCorners.bottomLeft.longitude
