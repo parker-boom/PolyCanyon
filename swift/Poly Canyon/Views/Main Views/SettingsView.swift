@@ -418,6 +418,7 @@ struct CustomModePopUp: View {
                 virtualTourColor: virtualTourColor
             )
             .padding(.horizontal)
+            .padding(.bottom, 15)
             
             ModeIcon(
                 imageName: isAdventureModeEnabled ? "figure.walk" : "binoculars",
@@ -425,6 +426,7 @@ struct CustomModePopUp: View {
                 isSelected: true
             )
             .frame(width: 60, height: 60)
+            .padding(.vertical, 10)
             
             VStack(alignment: .leading, spacing: 10) {
                 if isAdventureModeEnabled {
@@ -442,6 +444,8 @@ struct CustomModePopUp: View {
             Text("Better for: \(isAdventureModeEnabled ? "In-person visits" : "Remote exploration")")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(isDarkMode ? .white.opacity(0.7) : .gray)
+                .padding(.top, 15)
+                .padding(.bottom, -10)
             
             Button("Confirm Choice") {
                 if isAdventureModeEnabled {
@@ -477,9 +481,9 @@ struct BulletPoint: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Text("•")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
             Text(text)
-                .font(.system(size: 14))
+                .font(.system(size: 18))
         }
         .foregroundColor(isDarkMode ? .white : .black)
     }
