@@ -25,6 +25,7 @@ struct OnboardingView: View {
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .animation(.easeInOut, value: currentPage)
+        .preferredColorScheme(.light)
     }
 
     var welcomeSlide: some View {

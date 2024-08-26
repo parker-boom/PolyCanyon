@@ -296,7 +296,7 @@ struct MapView: View {
                              showModePopUp = false
                          }
                      
-                     ModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
+                     CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
                                isPresented: $showModePopUp,
                                isDarkMode: $isDarkMode,
                                structureData: structureData,
