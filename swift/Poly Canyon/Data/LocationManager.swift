@@ -65,40 +65,38 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
+        locationManager.distanceFilter = kCLDistanceFilterNone
+        locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.allowsBackgroundLocationUpdates = true
-        requestAlwaysAuthorizationIfNeeded()  
         
         // Initialize Firebase database reference
         firestoreRef = Firestore.firestore()
     }
+    
+    func requestWhenInUseAuthorization() {
+        locationManager.requestWhenInUseAuthorization()
+    }
 
+    func requestAlwaysAuthorization() {
+        locationManager.requestAlwaysAuthorization()
+    }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
-
+        
         switch manager.authorizationStatus {
-        case .authorizedWhenInUse:
-            // Prompt for "Always" authorization
-            locationManager.requestAlwaysAuthorization()
-        case .authorizedAlways:
+        case .authorizedWhenInUse, .authorizedAlways:
             locationManager.startUpdatingLocation()
-        case .denied, .restricted, .notDetermined:
-            print("Location authorization denied or not determined.")
+        case .denied, .restricted:
+            print("Location access denied or restricted")
+        case .notDetermined:
+            print("Location status not determined")
         @unknown default:
-            fatalError("Unhandled authorization status")
+            print("Unknown location authorization status")
         }
     }
 
     
-    
-    func requestAlwaysAuthorizationIfNeeded() {
-        if locationManager.authorizationStatus != .authorizedAlways {
-            locationManager.requestAlwaysAuthorization()
-        }
-    }
-
     // Setup location manager
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if #available(iOS 14.0, *) {
@@ -148,14 +146,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
 
     
-    // Updates the location when new location data is available.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
+        lastLocation = location
         logLocationToFirebaseIfNeeded(location: location)
         updateNearestMapPoint(for: location)
 
         if isWithinSafeZone(coordinate: location.coordinate) {
-            lastLocation = location
             checkVisitedLandmarks()
             startUpdatingLocation()
             isMonitoringSignificantLocationChanges = false
@@ -163,9 +160,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             locationManager.startMonitoringSignificantLocationChanges()
             isMonitoringSignificantLocationChanges = true
         }
-        
-        logCurrentMapPoint()
     }
+    
     
     private func updateNearestMapPoint(for location: CLLocation) {
         nearestMapPoint = findNearestMapPoint(to: location.coordinate)
@@ -324,13 +320,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
 
-}
-
-extension LocationManager {
-    // Requests "Always" authorization for location services.
-    func requestAlwaysAuthorization() {
-        locationManager.requestAlwaysAuthorization()
-    }
 }
 
 extension Notification.Name {

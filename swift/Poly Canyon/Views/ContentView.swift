@@ -19,24 +19,24 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage(Constants.currentOnboardingVersion) private var isNewOnboardingCompleted = false
+    @AppStorage("onboardingProcess") private var isNewOnboardingCompleted = false
     @AppStorage("isDarkMode") private var isDarkMode = false
-    @AppStorage("isAdventureModeEnabled") private var isAdventureModeEnabled = true
-
-
+    @AppStorage("adventureMode") private var isAdventureModeEnabled = true
+    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
 
     var body: some View {
         if !isNewOnboardingCompleted {
-            OnboardingView(isNewOnboardingCompleted: $isNewOnboardingCompleted)
+            OnboardingView(
+                isNewOnboardingCompleted: $isNewOnboardingCompleted,
+                locationManager: locationManager,
+                isAdventureModeEnabled: $isAdventureModeEnabled
+            )
         } else {
             MainView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
         }
     }
 }
 
-struct Constants {
-    static let currentOnboardingVersion = "currentOnboardingVersion"
-}
 
 // MARK: Preview
 struct ContentView_Previews: PreviewProvider {
