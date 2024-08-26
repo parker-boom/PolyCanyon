@@ -43,6 +43,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var lastLocation: CLLocation?
     @Published var nearestMapPoint: MapPoint?
     @Published var isMonitoringSignificantLocationChanges = false
+    @Published var isInSafeZone = false
 
     // Define safe long and lat zone
     private let safeZoneCorners = (
@@ -71,14 +72,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         // Initialize Firebase database reference
         firestoreRef = Firestore.firestore()
+        
+        setupGeofenceForSafeZone()
+    }
+    
+    func requestAlwaysAuthorization() {
+        locationManager.requestAlwaysAuthorization()
     }
     
     func requestWhenInUseAuthorization() {
         locationManager.requestWhenInUseAuthorization()
-    }
-
-    func requestAlwaysAuthorization() {
-        locationManager.requestAlwaysAuthorization()
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -86,7 +89,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            locationManager.startUpdatingLocation()
+            startLocationUpdates()
         case .denied, .restricted:
             print("Location access denied or restricted")
         case .notDetermined:
@@ -153,12 +156,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         updateNearestMapPoint(for: location)
 
         if isWithinSafeZone(coordinate: location.coordinate) {
+            if !isInSafeZone {
+                isInSafeZone = true
+                startBackgroundLocationUpdates()
+            }
             checkVisitedLandmarks()
-            startUpdatingLocation()
-            isMonitoringSignificantLocationChanges = false
         } else {
-            locationManager.startMonitoringSignificantLocationChanges()
-            isMonitoringSignificantLocationChanges = true
+            if isInSafeZone {
+                isInSafeZone = false
+                stopBackgroundLocationUpdates()
+            }
         }
     }
     
@@ -168,39 +175,34 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     
-    private func logCurrentMapPoint() {
-        guard let mapPoint = nearestMapPoint else {
-            print("No nearest map point found.")
-            return
-        }
-        
-        // Log and print the structure value of the nearest map point
-        print("Current MapPoint Structure: \(mapPoint.landmark), Pixel Position: (x: \(mapPoint.pixelPosition.x), y: \(mapPoint.pixelPosition.y))")
-        
-        // Optionally, you can add more logging or save this information elsewhere if needed
-    }
 
     // Setup geo fence so user location isn't constantly tracked outside of Poly Canyon
     private func setupGeofenceForSafeZone() {
-        let regionCenter = CLLocationCoordinate2D(latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
-                                                  longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2)
-        let region = CLCircularRegion(center: regionCenter, radius: 1500, identifier: "SafeZone")
+        let regionCenter = CLLocationCoordinate2D(
+            latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
+            longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2
+        )
+        let latDelta = safeZoneCorners.topRight.latitude - safeZoneCorners.bottomLeft.latitude
+        let lonDelta = safeZoneCorners.topRight.longitude - safeZoneCorners.bottomLeft.longitude
+        let radius = max(latDelta, lonDelta) * 111000 / 2 // Convert to meters (approx)
+        
+        let region = CLCircularRegion(center: regionCenter, radius: radius, identifier: "SafeZone")
         region.notifyOnEntry = true
         region.notifyOnExit = true
         locationManager.startMonitoring(for: region)
     }
 
-    // Declare safe zone
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         if region.identifier == "SafeZone" {
-            locationManager.startUpdatingLocation()
+            isInSafeZone = true
+            startBackgroundLocationUpdates()
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
         if region.identifier == "SafeZone" {
-            locationManager.stopUpdatingLocation()
-            locationManager.startMonitoringSignificantLocationChanges()
+            isInSafeZone = false
+            stopBackgroundLocationUpdates()
         }
     }
 
@@ -229,10 +231,23 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         //}
     }
 
-    // Stops all location updates.
-    func stopUpdatingLocation() {
-        locationManager.stopUpdatingLocation()
+    
+    private func startLocationUpdates() {
+        locationManager.startUpdatingLocation()
     }
+
+    private func startBackgroundLocationUpdates() {
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.startUpdatingLocation()
+    }
+
+    private func stopBackgroundLocationUpdates() {
+        locationManager.allowsBackgroundLocationUpdates = false
+        locationManager.stopUpdatingLocation()
+        locationManager.startMonitoringSignificantLocationChanges()
+    }
+    
+    
     
     // MARK: Landmark Functions
     // Checks proximity to landmarks and marks the nearest one visited.
