@@ -22,6 +22,26 @@
 
 // MARK: Code
 import Foundation
+import Foundation
+
+struct Structure: Identifiable, Codable {
+    let number: Int
+    let title: String
+    let description: String
+    let year: String
+    let students: String
+    let advisors: String
+    let additionalInfo: String
+    let architecturalStyle: String
+    let mainPhoto: String
+    let closeUp: String
+    var isVisited: Bool
+    var isOpened: Bool
+    var recentlyVisited: Int
+    var isLiked: Bool
+
+    var id: Int { number }
+}
 
 class StructureData: ObservableObject {
     @Published var structures: [Structure] = [] {
@@ -30,31 +50,34 @@ class StructureData: ObservableObject {
         }
     }
     
-    
-    // Call to load across app closes
+    private let currentDataVersion = 2
+
     init() {
         loadFromUserDefaults()
     }
-    
-    // Save things to user default
+
     func saveToUserDefaults() {
         if let encoded = try? JSONEncoder().encode(structures) {
             UserDefaults.standard.set(encoded, forKey: "structures")
+            UserDefaults.standard.set(currentDataVersion, forKey: "structuresDataVersion")
         }
     }
+    
 
-    // Load things from user defaults
     func loadFromUserDefaults() {
-        if let structuresData = UserDefaults.standard.data(forKey: "structures"),
-           let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
+        let savedDataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
+        
+        if savedDataVersion < currentDataVersion {
+            // Data structure has changed, reload from CSV
+            loadStructuresFromCSV()
+        } else if let structuresData = UserDefaults.standard.data(forKey: "structures"),
+                  let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
             self.structures = decodedStructures
         } else {
             loadStructuresFromCSV()
         }
-        
     }
-    
-    // Reset visited structuress - triggered in settings
+
     func resetVisitedStructures() {
         for index in structures.indices {
             structures[index].isVisited = false
@@ -63,51 +86,63 @@ class StructureData: ObservableObject {
         }
         objectWillChange.send()
     }
-    
-    // Set all structures as visited - triggered when adventure mode turned off
+
     func setAllStructuresAsVisited() {
         structures = structures.map { structure in
             var updatedStructure = structure
             updatedStructure.isVisited = true
             return updatedStructure
         }
-        objectWillChange.send()
-
     }
-    
-    // Use structures.csv to load the data
+
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
             return
         }
-        
+
         do {
             let csvData = try Data(contentsOf: url)
             let csvString = String(data: csvData, encoding: .utf8) ?? ""
             let lines = csvString.components(separatedBy: .newlines)
-            
+
             var loadedStructures: [Structure] = []
-            
+
             for line in lines.dropFirst() {
                 let values = line.components(separatedBy: ",")
-                if values.count >= 4 {
+                if values.count >= 8 {
                     let number = Int(values[0]) ?? 0
                     let title = values[1]
                     let description = values[2]
                     let year = values[3]
-                    let imageName = "\(number)M"
+                    let students = values[4]
+                    let advisors = values[5]
+                    let additionalInfo = values[6]
+                    let architecturalStyle = values[7]
+                    let mainPhoto = "\(number)M"
                     let closeUp = "\(number)C"
-                    
-                    let structure = Structure(number: number, title: title, imageName: imageName, closeUp: closeUp, description: description, year: year)
+                    let structure = Structure(
+                        number: number,
+                        title: title,
+                        description: description,
+                        year: year,
+                        students: students,
+                        advisors: advisors,
+                        additionalInfo: additionalInfo,
+                        architecturalStyle: architecturalStyle,
+                        mainPhoto: mainPhoto,
+                        closeUp: closeUp,
+                        isVisited: false,
+                        isOpened: false,
+                        recentlyVisited: -1,
+                        isLiked: false
+                    )
                     loadedStructures.append(structure)
                 }
             }
-            
-            
-            
 
             DispatchQueue.main.async {
                 self.structures = loadedStructures
+                self.saveToUserDefaults()
             }
         } catch {
             print("Error reading CSV file: \(error)")

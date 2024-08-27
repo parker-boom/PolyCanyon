@@ -306,7 +306,7 @@ struct MapView: View {
                 // Show every structure
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.imageName)
+                        Image(structure.mainPhoto)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
@@ -562,7 +562,7 @@ struct VisitedStructurePopup: View {
                         // Image of the visited structure
                         
                         
-                        Image(structure.imageName)
+                        Image(structure.mainPhoto)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)

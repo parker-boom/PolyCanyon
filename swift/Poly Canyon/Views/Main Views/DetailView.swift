@@ -198,14 +198,14 @@ struct DetailView: View {
     // Grid view that shows all structures in a grid, with images
     var gridView: some View {
         VStack {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 20) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 15) {
                 ForEach(filteredStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomLeading) {
                         ZStack(alignment: .topTrailing) {
 
                             if ( structure.isVisited && isAdventureModeEnabled ) || (!isAdventureModeEnabled) {
                                 // Image
-                                Image(structure.imageName)
+                                Image(structure.mainPhoto)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
@@ -235,7 +235,7 @@ struct DetailView: View {
                                 }
                             } else {
                                 // Image for unvisited
-                                Image(structure.imageName)
+                                Image(structure.mainPhoto)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
@@ -286,7 +286,7 @@ struct DetailView: View {
                         impactMed.impactOccurred()
                     }
                 }
-                .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 6, x: 0, y: 0)
+                .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 8, x: 0, y: 0)
             }
         }
         .padding(.horizontal, 20)
@@ -377,7 +377,7 @@ struct DetailView: View {
                 // Show image and number of each
                 ForEach(recentlyVisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.imageName)
+                        Image(structure.mainPhoto)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
@@ -443,7 +443,7 @@ struct DetailView: View {
                 // Show images and number for each
                 ForEach(recentlyUnopenedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.imageName)
+                        Image(structure.mainPhoto)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
@@ -511,7 +511,7 @@ struct DetailView: View {
                 // Show each image and number
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.imageName)
+                        Image(structure.mainPhoto)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
@@ -816,23 +816,6 @@ struct CustomToggleStyle: ToggleStyle {
     }
 }
 
-
-// MARK: - Structure
-
-// define Structure, which holds all the information for
-struct Structure: Identifiable, Codable {
-    let number: Int
-    let title: String
-    let imageName: String
-    let closeUp: String
-    let description: String
-    let year: String
-    var isVisited: Bool = false
-    var isOpened: Bool = false
-    var recentlyVisited: Int = -1
-    
-    var id: Int { number }
-}
 
 // allow notification from MapView to update a structure via adventure mode
 extension Notification.Name {

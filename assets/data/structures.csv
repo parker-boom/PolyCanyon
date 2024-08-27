@@ -1,37 +1,37 @@
-number,title,description,year
-1,Entry Arch,iii,1976
-2,Stone Wall,iii,1976
-3,Techtite Bridge,iii,1973
-4,Blade,iii,1963 / 2003
-5,Zenith Zigzag,iii,xxxx
-6,Palm Tree,iii,xxxx
-7,Tensile,iii,2003
-8,Geodesic Dome,iii,1957
-9,Cantilever Deck,iii,1990
-10,Bathroom,iii,1972
-11,Underground House,iii,1982
-12,Sun Dial,iii,1971
-13,Gunite Bridge,iii,1965
-14,Timber Truss,iii,1994
-15,Stick Structure,iii,1976
-16,Pyramid,iii,xxxx
-17,Bridge House,iii,1968
-18,Wooden Bridge,iii,xxxx
-19,Water Tower,iii,1969
-20,Observation Deck,iii,2019
-21,Poly Pavilion,iii,1985
-22,Serenity Wall,iii,xxxx
-23,Hay Bale Arch,iii,2004
-24,Fratessa Tower,iii,2004
-25,Tensegrity,iii,2022
-26,Shell House,iii,1975
-27,Green House,iii,1989
-28,Modular House,iii,1973
-29,Centering Center,iii,xxxx
-30,Pole Building,iii,1989
-31,Timber Tranquility,iii,xxxx
-32,BBQ Pit,iii,1975
-33,Stone Bridge,iii,xxxx
-34,Stone Structures,iii,xxxx
-35,Cardinal Cluster,iii,xxxx
-36,Moment Monument,iii,2024
+number,title,description,year,students,advisors,additional info, architect style, fun fact
+1,Entry Arch,iii,1976, iii, iii, iii, iii, iii
+2,Stone Wall,iii,1976, iii, iii, iii, iii, iii
+3,Techtite Bridge,iii,1973, iii, iii, iii, iii, iii
+4,Blade,iii,1963 / 2003, iii, iii, iii, iii, iii
+5,Zenith Zigzag,iii,xxxx, iii, iii, iii, iii, iii
+6,Palm Tree,iii,xxxx, iii, iii, iii, iii, iii
+7,Tensile,iii,2003, iii, iii, iii, iii, iii
+8,Geodesic Dome,iii,1957, iii, iii, iii, iii, iii
+9,Cantilever Deck,iii,1990, iii, iii, iii, iii, iii
+10,Bathroom,iii,1972, iii, iii, iii, iii, iii
+11,Underground House,iii,1982, iii, iii, iii, iii, iii
+12,Sun Dial,iii,1971, iii, iii, iii, iii, iii
+13,Gunite Bridge,iii,1965, iii, iii, iii, iii, iii
+14,Timber Truss,iii,1994, iii, iii, iii, iii, iii
+15,Stick Structure,iii,1976, iii, iii, iii, iii, iii
+16,Pyramid,iii,xxxx, iii, iii, iii, iii, iii
+17,Bridge House,iii,1968, iii, iii, iii, iii, iii
+18,Wooden Bridge,iii,xxxx, iii, iii, iii, iii, iii
+19,Water Tower,iii,1969, iii, iii, iii, iii, iii
+20,Observation Deck,iii,2019, iii, iii, iii, iii, iii
+21,Poly Pavilion,iii,1985, iii, iii, iii, iii, iii
+22,Serenity Wall,iii,xxxx, iii, iii, iii, iii, iii
+23,Hay Bale Arch,iii,2004, iii, iii, iii, iii, iii
+24,Fratessa Tower,iii,2004, iii, iii, iii, iii, iii
+25,Tensegrity,iii,2022, iii, iii, iii, iii, iii
+26,Shell House,iii,1975, iii, iii, iii, iii, iii
+27,Green House,iii,1989, iii, iii, iii, iii, iii
+28,Modular House,iii,1973, iii, iii, iii, iii, iii
+29,Centering Center,iii,xxxx, iii, iii, iii, iii, iii
+30,Pole Building,iii,1989, iii, iii, iii, iii, iii
+31,Timber Tranquility,iii,xxxx, iii, iii, iii, iii, iii
+32,BBQ Pit,iii,1975, iii, iii, iii, iii, iii
+33,Stone Bridge,iii,xxxx, iii, iii, iii, iii, iii
+34,Stone Structures,iii,xxxx, iii, iii, iii, iii, iii
+35,Cardinal Cluster,iii,xxxx, iii, iii, iii, iii, iii
+36,Moment Monument,iii,2024, iii, iii, iii, iii, iii

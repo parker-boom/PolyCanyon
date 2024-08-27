@@ -119,7 +119,7 @@ struct SettingsView: View {
                 VStack(spacing: 10) {
                     Image(systemName: isAdventureModeEnabled ? "figure.walk" : "binoculars")
                         .font(.system(size: 40))
-                        .foregroundColor(isAdventureModeEnabled ? .green : .blue)
+                        .foregroundColor(isAdventureModeEnabled ? .green : Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0))
                     
                     Text(isAdventureModeEnabled ? "Adventure Mode" : "Virtual Tour Mode")
                         .font(.system(size: 22, weight: .bold))
