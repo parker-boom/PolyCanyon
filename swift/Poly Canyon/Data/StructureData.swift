@@ -51,11 +51,11 @@ class StructureData: ObservableObject {
     }
     
     private let currentDataVersion = 2
-
+    
     init() {
         loadFromUserDefaults()
     }
-
+    
     func saveToUserDefaults() {
         if let encoded = try? JSONEncoder().encode(structures) {
             UserDefaults.standard.set(encoded, forKey: "structures")
@@ -63,7 +63,7 @@ class StructureData: ObservableObject {
         }
     }
     
-
+    
     func loadFromUserDefaults() {
         let savedDataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
         
@@ -77,7 +77,7 @@ class StructureData: ObservableObject {
             loadStructuresFromCSV()
         }
     }
-
+    
     func resetVisitedStructures() {
         for index in structures.indices {
             structures[index].isVisited = false
@@ -86,7 +86,7 @@ class StructureData: ObservableObject {
         }
         objectWillChange.send()
     }
-
+    
     func setAllStructuresAsVisited() {
         structures = structures.map { structure in
             var updatedStructure = structure
@@ -94,19 +94,19 @@ class StructureData: ObservableObject {
             return updatedStructure
         }
     }
-
+    
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
             return
         }
-
+        
         do {
             let csvData = try Data(contentsOf: url)
             let csvString = String(data: csvData, encoding: .utf8) ?? ""
             let lines = csvString.components(separatedBy: .newlines)
-
+            
             var loadedStructures: [Structure] = []
-
+            
             for line in lines.dropFirst() {
                 let values = line.components(separatedBy: ",")
                 if values.count >= 8 {
@@ -139,7 +139,7 @@ class StructureData: ObservableObject {
                     loadedStructures.append(structure)
                 }
             }
-
+            
             DispatchQueue.main.async {
                 self.structures = loadedStructures
                 self.saveToUserDefaults()
@@ -147,5 +147,15 @@ class StructureData: ObservableObject {
         } catch {
             print("Error reading CSV file: \(error)")
         }
+    }
+    
+    func toggleLike(for structureId: Int) {
+        if let index = structures.firstIndex(where: { $0.id == structureId }) {
+            structures[index].isLiked.toggle()
+        }
+    }
+    
+    func getLikedStructures() -> [Structure] {
+        return structures.filter { $0.isLiked }
     }
 }

@@ -26,6 +26,7 @@
 		D0871CFF2BBF46AD003ADF53 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */; };
 		D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0871D012BBF474D003ADF53 /* CoreLocation.framework */; };
 		D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F543522BC1C5440012F998 /* mapPoints.swift */; };
+		DB064B9D2C7DA1C300CB0E4C /* StructureSwipingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */; };
 		DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */; };
 		DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */; };
 		DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD212C17A02F00397065 /* FirebaseDatabase */; };
@@ -79,6 +80,7 @@
 		D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		D0871D012BBF474D003ADF53 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		D0F543522BC1C5440012F998 /* mapPoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mapPoints.swift; sourceTree = "<group>"; };
+		DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructureSwipingView.swift; sourceTree = "<group>"; };
 		DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../assets/data/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -193,6 +195,7 @@
 			children = (
 				D001C0772BBE356C00C532F2 /* MapView.swift */,
 				D00C0E332BCF7D9F00E7CFCD /* SettingsView.swift */,
+				DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */,
 				D001C0792BBE358200C532F2 /* DetailView.swift */,
 				D0492C2D2BC5E32C00E4AC08 /* StructPopUp.swift */,
 			);
@@ -374,6 +377,7 @@
 				D0871CFF2BBF46AD003ADF53 /* LocationManager.swift in Sources */,
 				D001C0782BBE356C00C532F2 /* MapView.swift in Sources */,
 				D00C0E342BCF7D9F00E7CFCD /* SettingsView.swift in Sources */,
+				DB064B9D2C7DA1C300CB0E4C /* StructureSwipingView.swift in Sources */,
 				D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */,
 				D001C07C2BBE359000C532F2 /* OnboardingView.swift in Sources */,
 				D00C0E362BCF8D9800E7CFCD /* StructureData.swift in Sources */,

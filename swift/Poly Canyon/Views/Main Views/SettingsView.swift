@@ -25,6 +25,7 @@ struct SettingsView: View {
     @State private var alertType: AlertType?
     @State private var pendingAdventureModeState: Bool = false
     @State private var showModePopUp = false
+    @State private var showStructureSwipingView = false
 
     @AppStorage("visitedCount") private var visitedCount: Int = 0
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
@@ -239,13 +240,19 @@ struct SettingsView: View {
                 .frame(height: 120)
                 .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
             } else {
-                Text("Swiping Mode")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-                    .cornerRadius(15)
+                Button(action: {
+                    showStructureSwipingView = true
+                }) {
+                    Text("Rate Structures")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .sheet(isPresented: $showStructureSwipingView) {
+                    SimpleStructureRatingView(structureData: structureData, isDarkMode: $isDarkMode)
+                }
             }
         }
     }
@@ -496,7 +503,7 @@ struct SettingsView_Previews: PreviewProvider {
             structureData: StructureData(),
             mapPointManager: MapPointManager(),
             isDarkMode: .constant(false),
-            isAdventureModeEnabled: .constant(true)
+            isAdventureModeEnabled: .constant(false)
         )
         .previewDisplayName("Light Mode")
         
@@ -504,7 +511,7 @@ struct SettingsView_Previews: PreviewProvider {
             structureData: StructureData(),
             mapPointManager: MapPointManager(),
             isDarkMode: .constant(true),
-            isAdventureModeEnabled: .constant(true)
+            isAdventureModeEnabled: .constant(false)
         )
         .previewDisplayName("Dark Mode")
     }
