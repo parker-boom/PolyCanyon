@@ -158,4 +158,6 @@ class StructureData: ObservableObject {
     func getLikedStructures() -> [Structure] {
         return structures.filter { $0.isLiked }
     }
+    
+    
 }

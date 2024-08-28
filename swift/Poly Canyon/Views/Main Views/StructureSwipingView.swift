@@ -199,15 +199,6 @@ struct RoundedCorner: Shape {
     }
 }
 
-struct StructureCard: View {
-    let structure: Structure
-    @Binding var isDarkMode: Bool
-
-    var body: some View {
-        StructPopUp(structure: structure, isDarkMode: $isDarkMode, onDismiss: {})
-    }
-}
-
 enum SwipeDirection {
     case left, right, top, bottom
 }

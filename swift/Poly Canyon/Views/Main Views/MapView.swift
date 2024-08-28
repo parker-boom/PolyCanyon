@@ -356,7 +356,7 @@ struct MapView: View {
         .padding(.bottom, 10)
         .sheet(isPresented: $showStructPopup) {
             if let structure = selectedStructure {
-                StructPopUp(structure: structure, isDarkMode: $isDarkMode) {
+                StructPopUp(structureData: structureData, structure: structure, isDarkMode: $isDarkMode) {
                     showStructPopup = false
                 }
             }
@@ -614,7 +614,7 @@ struct VisitedStructurePopup: View {
         }
         .frame(height: 120)
         .sheet(isPresented: $showStructPopup) {
-            StructPopUp(structure: structure, isDarkMode: $isDarkMode) {
+            StructPopUp(structureData: structureData, structure: structure, isDarkMode: $isDarkMode) {
                 isPresented = false
             }
         }

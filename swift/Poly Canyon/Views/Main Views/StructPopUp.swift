@@ -18,7 +18,8 @@ import SwiftUI
 
 struct StructPopUp: View {
     // MARK: - Properties
-    let structure: Structure?
+    @ObservedObject var structureData: StructureData
+    let structure: Structure
     @Binding var isDarkMode: Bool
     var onDismiss: () -> Void
     @Environment(\.presentationMode) var presentationMode
@@ -68,11 +69,11 @@ struct StructPopUp: View {
 
     private func imageCarousel(geometry: GeometryProxy) -> some View {
         TabView(selection: $currentImageIndex) {
-            Image(structure?.mainPhoto ?? "")
+            Image(structure.mainPhoto)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .tag(0)
-            Image(structure?.closeUp ?? "")
+            Image(structure.closeUp)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .tag(1)
@@ -99,9 +100,9 @@ struct StructPopUp: View {
         VStack {
             if isInfoPanelOpen {
                 VStack(alignment: .leading) {
-                    Text("\(structure?.number ?? 0)")
+                    Text("\(structure.number)")
                         .font(.system(size: 40, weight: .bold))
-                    Text(structure?.title ?? "")
+                    Text(structure.title)
                         .font(.system(size: 30, weight: .semibold))
                 }
                 .foregroundColor(.white)
@@ -112,9 +113,9 @@ struct StructPopUp: View {
             } else {
                 VStack(alignment: .leading) {
                     Spacer()
-                    Text("\(structure?.number ?? 0)")
+                    Text("\(structure.number)")
                         .font(.system(size: 40, weight: .bold))
-                    Text(structure?.title ?? "")
+                    Text(structure.title)
                         .font(.system(size: 30, weight: .semibold))
                 }
                 .foregroundColor(.white)
@@ -128,20 +129,25 @@ struct StructPopUp: View {
     }
 
     private var imageDots: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(Color.white)
-                .frame(width: currentImageIndex == 0 ? 10 : 8, height: currentImageIndex == 0 ? 10 : 8)
-                .opacity(currentImageIndex == 0 ? 1 : 0.5)
-            Circle()
-                .fill(Color.white)
-                .frame(width: currentImageIndex == 1 ? 10 : 8, height: currentImageIndex == 1 ? 10 : 8)
-                .opacity(currentImageIndex == 1 ? 1 : 0.5)
+        VStack {
+            LikeButton(structureData: structureData, structure: structure)
+            
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: currentImageIndex == 0 ? 10 : 8, height: currentImageIndex == 0 ? 10 : 8)
+                    .opacity(currentImageIndex == 0 ? 1 : 0.5)
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: currentImageIndex == 1 ? 10 : 8, height: currentImageIndex == 1 ? 10 : 8)
+                    .opacity(currentImageIndex == 1 ? 1 : 0.5)
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.6))
+            .cornerRadius(15)
+            .padding(10)
+            
         }
-        .padding(10)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(15)
-        .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
     }
 
@@ -191,21 +197,21 @@ struct StructPopUp: View {
     private func statisticsView(geometry: GeometryProxy) -> some View {
         VStack(alignment: .leading, spacing: 15) {
             HStack(spacing: 10) {
-                if structure?.year != "iii" {
-                    InfoPill(icon: "📅", title: "Year", value: structure?.year ?? "")
+                if structure.year != "iii" {
+                    InfoPill(icon: "📅", title: "Year", value: structure.year)
                 }
-                if structure?.architecturalStyle != "iii" {
-                    InfoPill(icon: "🏛️", title: "Style", value: structure?.architecturalStyle ?? "")
+                if structure.architecturalStyle != "iii" {
+                    InfoPill(icon: "🏛️", title: "Style", value: structure.architecturalStyle)
                 }
             }
 
-            if structure?.students != "iii" || structure?.advisors != "iii" {
-                InfoPill(icon: "👷", title: "Builders", value: "\(structure?.students ?? "") \(structure?.advisors ?? "")")
+            if structure.students != "iii" || structure.advisors != "iii" {
+                InfoPill(icon: "👷", title: "Builders", value: "\(structure.students) \(structure.advisors)")
                     .frame(height: 80)
             }
 
-            if structure?.additionalInfo != "iii" {
-                FunFactPill(icon: "✨", fact: structure?.additionalInfo ?? "No fun fact available")
+            if structure.additionalInfo != "iii" {
+                FunFactPill(icon: "✨", fact: structure.additionalInfo ?? "No fun fact available")
                     .frame(height: 100)
             }
 
@@ -216,7 +222,7 @@ struct StructPopUp: View {
 
     private var descriptionView: some View {
         ScrollView {
-            Text(structure?.description ?? "")
+            Text(structure.description)
                 .font(.system(size: 20))
                 .foregroundColor(isDarkMode ? .white : .black)
                 .padding(.horizontal, 10)
@@ -244,6 +250,21 @@ struct CustomTabSelector: View {
         }
         .background(Color.gray.opacity(0.2))
         .cornerRadius(20)
+    }
+}
+
+struct LikeButton: View {
+    @ObservedObject var structureData: StructureData
+    let structure: Structure
+    
+    var body: some View {
+        Button(action: {
+            structureData.toggleLike(for: structure.id)
+        }) {
+            Image(systemName: structure.isLiked ? "heart.fill" : "heart")
+                .foregroundColor(structure.isLiked ? .white : .white)
+                .font(.system(size: 42))
+        }
     }
 }
 
@@ -336,51 +357,31 @@ struct FunFactPill: View {
 // MARK: - Preview
 struct StructPopUp_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            StructPopUp(
-                structure: Structure(
-                    number: 1,
-                    title: "Sample Structure",
-                    description: "An unfinished structure built between 1983-1989, intended to include innovative features like an automatic watering system and sun-generated heating. It was operational from 2006-2008 and designed by Mark Jenefsky.",
-                    year: "2023",
-                    students: "John Doe, Jane Smith, Brobro,",
-                    advisors: "Prof. Johnson",
-                    additionalInfo: "This structure won an award for its innovative design and sustainable features and giant design.",
-                    architecturalStyle: "Modern",
-                    mainPhoto: "1M",
-                    closeUp: "1C",
-                    isVisited: false,
-                    isOpened: false,
-                    recentlyVisited: -1,
-                    isLiked: false
-                ),
-                isDarkMode: .constant(false),
-                onDismiss: {}
-            )
-            .previewDisplayName("Light Mode")
-
-            StructPopUp(
-                structure: Structure(
-                    number: 1,
-                    title: "Sample Structure",
-                    description: "An unfinished structure built between 1983-1989, intended to include innovative features like an automatic watering system and sun-generated heating. It was operational from 2006-2008 and designed by Mark Jenefsky.",
-                    year: "2023",
-                    students: "John Doe, Jane Smith, Brobro,",
-                    advisors: "Prof. Johnson",
-                    additionalInfo: "This structure won an award for its innovative design and sustainable features and giant design.",
-                    architecturalStyle: "Modern",
-                    mainPhoto: "1M",
-                    closeUp: "1C",
-                    isVisited: false,
-                    isOpened: false,
-                    recentlyVisited: -1,
-                    isLiked: false
-                ),
-                isDarkMode: .constant(true),
-                onDismiss: {}
-            )
-            .preferredColorScheme(.dark)
-            .previewDisplayName("Dark Mode")
+        let mockStructureData = StructureData()
+        let mockStructure = Structure(
+            number: 1,
+            title: "Sample Structure",
+            description: "This is a sample description",
+            year: "2023",
+            students: "John Doe, Jane Smith",
+            advisors: "Prof. Johnson",
+            additionalInfo: "Additional information here",
+            architecturalStyle: "Modern",
+            mainPhoto: "1M",
+            closeUp: "1C",
+            isVisited: false,
+            isOpened: false,
+            recentlyVisited: -1,
+            isLiked: false
+        )
+        
+        return StructPopUp(
+            structureData: mockStructureData,
+            structure: mockStructure,
+            isDarkMode: .constant(false)
+        ) {
+            // This is the onDismiss closure
+            print("Dismissed")
         }
     }
 }

@@ -97,10 +97,16 @@ struct DetailView: View {
                 
                 // Present pop up
                 .sheet(isPresented: $showPopup) {
-                    StructPopUp(structure: selectedStructure, isDarkMode: $isDarkMode){}
-                        .background(isDarkMode ? Color.black : Color.white)
-                        .edgesIgnoringSafeArea(.all)
-                }
+                     if let selectedStructure = selectedStructure {
+                         StructPopUp(
+                             structureData: structureData,
+                             structure: selectedStructure,
+                             isDarkMode: $isDarkMode
+                         ) {
+                             showPopup = false
+                         }
+                     }
+                 }
             }
             .background(isDarkMode ? Color.black : Color.white)
             
