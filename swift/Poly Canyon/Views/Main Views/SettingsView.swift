@@ -194,7 +194,7 @@ struct SettingsView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(isDarkMode ? .white : .black)
                 .padding(.bottom, -5)
-            
+
             if isAdventureModeEnabled {
                 Button(action: {
                     // Action to open directions
@@ -207,7 +207,7 @@ struct SettingsView: View {
                             .clipped()
                             .cornerRadius(15)
                             .blur(radius: 4.0)
-                        
+
                         HStack {
                             VStack(spacing: 10) {
                                 HStack(spacing: 15) {
@@ -225,14 +225,14 @@ struct SettingsView: View {
                             }
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 32))
                                 .foregroundColor(.white)
                                 .shadow(color: .white.opacity(0.8), radius: 2, x: 0, y: 1)
-                                
+
                         }
                         .padding()
                     }
@@ -243,16 +243,43 @@ struct SettingsView: View {
                 Button(action: {
                     showStructureSwipingView = true
                 }) {
-                    Text("Rate Structures")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                    ZStack {
+
+                        Color.red
+
+                        HStack {
+                            VStack(spacing: 10) {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 54))
+                                    .padding(.leading, -20)
+                                    .shadow(color: Color.black.opacity(0.4), radius: 5, x: 0, y: 2)
+
+                                Text("Pick your favorites")
+                                    .font(.system(size: 26, weight: .bold))
+                                    .shadow(color: .white.opacity(0.6), radius: 2, x: 0, y: 1)
+                            }
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 32))
+                                .foregroundColor(.white)
+                                .shadow(color: .white.opacity(0.8), radius: 2, x: 0, y: 1)
+
+                        }
                         .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                    }
+                    .cornerRadius(15)
                 }
                 .sheet(isPresented: $showStructureSwipingView) {
                     SimpleStructureRatingView(structureData: structureData, isDarkMode: $isDarkMode)
                 }
+                .frame(height: 120)
+                .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
+                
             }
         }
     }
@@ -503,7 +530,7 @@ struct SettingsView_Previews: PreviewProvider {
             structureData: StructureData(),
             mapPointManager: MapPointManager(),
             isDarkMode: .constant(false),
-            isAdventureModeEnabled: .constant(false)
+            isAdventureModeEnabled: .constant(true)
         )
         .previewDisplayName("Light Mode")
         

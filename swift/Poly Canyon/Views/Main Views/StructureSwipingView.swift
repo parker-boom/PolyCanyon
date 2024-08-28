@@ -1,39 +1,40 @@
 import SwiftUI
 
-import SwiftUI
-
 struct SimpleStructureRatingView: View {
     @ObservedObject var structureData: StructureData
     @Binding var isDarkMode: Bool
     @Environment(\.presentationMode) var presentationMode
-    @State private var currentIndex = 0
+    @AppStorage("ratingProgress") private var ratingProgress: Int = 0
+    @State private var currentIndex: Int
     @State private var offset: CGSize = .zero
     @State private var color: Color = .black
-    @State private var showingCompletionAlert = false
     @State private var likedCount = 0
-    
+
     private let swipeThreshold: CGFloat = 50.0
+
+    init(structureData: StructureData, isDarkMode: Binding<Bool>) {
+        self.structureData = structureData
+        self._isDarkMode = isDarkMode
+        self._currentIndex = State(initialValue: UserDefaults.standard.integer(forKey: "ratingProgress"))
+    }
 
     var body: some View {
         ZStack {
             backgroundColor
-            
+
             VStack {
                 Text("Rate Structures")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .padding(.top, 20)
                     .foregroundColor(isDarkMode ? .white : .black)
-                
-                
-                if currentIndex < 37 {
+
+                if currentIndex < structureData.structures.count {
                     Text("\(currentIndex + 1)/\(structureData.structures.count)")
                         .font(.headline)
                         .foregroundColor(isDarkMode ? .white : .black)
                         .padding(.bottom, 5)
-                }
 
-                if currentIndex < structureData.structures.count {
                     ZStack {
                         cardView(for: structureData.structures[currentIndex])
                             .offset(offset)
@@ -63,7 +64,7 @@ struct SimpleStructureRatingView: View {
                                 .foregroundColor(.red)
                                 .font(.system(size: 50))
                         }
-                        
+
                         Button(action: { swipeCard(width: 500) }) {
                             Image(systemName: "heart.circle.fill")
                                 .foregroundColor(.green)
@@ -72,12 +73,14 @@ struct SimpleStructureRatingView: View {
                     }
                     .padding(.bottom, 5)
 
-
                 } else {
                     completionView
                 }
-                
+
+                Spacer()
+
                 Button(action: {
+                    saveProgress()
                     presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Exit")
@@ -87,19 +90,74 @@ struct SimpleStructureRatingView: View {
                         .background(Color.red)
                         .cornerRadius(10)
                 }
-                .padding(.top, 10)
                 .padding(.bottom, 20)
-                
-                Spacer()
             }
         }
         .edgesIgnoringSafeArea(.all)
     }
-    
-    private var backgroundColor: some View {
-        isDarkMode ? Color.black.edgesIgnoringSafeArea(.all) : Color.white.edgesIgnoringSafeArea(.all)
+
+    private func swipeCard(width: CGFloat) {
+        if abs(width) > swipeThreshold {
+            if width > 0 {
+                likeStructure()
+            } else {
+                dislikeStructure()
+            }
+            moveToNextCard()
+        }
+        offset = .zero
     }
-    
+
+    private func moveToNextCard() {
+        currentIndex += 1
+        saveProgress()
+        if currentIndex >= structureData.structures.count {
+            resetProgress()
+        }
+    }
+
+    private func likeStructure() {
+        structureData.toggleLike(for: structureData.structures[currentIndex].id)
+        likedCount += 1
+    }
+
+    private func dislikeStructure() {
+        if structureData.structures[currentIndex].isLiked {
+            structureData.toggleLike(for: structureData.structures[currentIndex].id)
+            likedCount -= 1
+        }
+    }
+
+    private func saveProgress() {
+        UserDefaults.standard.set(currentIndex, forKey: "ratingProgress")
+    }
+
+    private func resetProgress() {
+        currentIndex = 0
+        UserDefaults.standard.set(0, forKey: "ratingProgress")
+    }
+
+    private var completionView: some View {
+        VStack(spacing: 20) {
+            Text("Rating Complete!")
+                .font(.title)
+                .fontWeight(.bold)
+
+            Text("\(likedCount)/\(structureData.structures.count) structures liked")
+                .font(.headline)
+
+            Button("Start Over") {
+                resetProgress()
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.blue)
+            .cornerRadius(10)
+        }
+        .foregroundColor(isDarkMode ? .white : .black)
+    }
+
     private func cardView(for structure: Structure) -> some View {
         ZStack(alignment: .bottom) {
             Image(structure.mainPhoto)
@@ -112,7 +170,7 @@ struct SimpleStructureRatingView: View {
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(color, lineWidth: 4)
                 )
-            
+
             Text(structure.title)
                 .font(.title)
                 .fontWeight(.bold)
@@ -124,60 +182,9 @@ struct SimpleStructureRatingView: View {
         }
         .shadow(radius: 10)
     }
-    
-    private func swipeCard(width: CGFloat) {
-        if abs(width) > swipeThreshold {
-            if width > 0 {
-                likeStructure()
-            } else {
-                dislikeStructure()
-            }
-            moveToNextCard()
-        }
-        offset = .zero
-    }
-    
-    private func likeStructure() {
-        print("Liked structure: \(structureData.structures[currentIndex].title)")
-        structureData.toggleLike(for: structureData.structures[currentIndex].id)
-        likedCount += 1
-    }
-    
-    private func dislikeStructure() {
-        print("Disliked structure: \(structureData.structures[currentIndex].title)")
-        // Ensure the structure is not liked if it was previously liked
-        if structureData.structures[currentIndex].isLiked {
-            structureData.toggleLike(for: structureData.structures[currentIndex].id)
-            likedCount -= 1
-        }
-    }
-    
-    private func moveToNextCard() {
-        currentIndex += 1
-        if currentIndex >= structureData.structures.count {
-            showingCompletionAlert = true
-        }
-    }
-    
-    private var completionView: some View {
-        VStack(spacing: 20) {
-            Text("Rating Complete!")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("\(likedCount)/\(structureData.structures.count) structures liked")
-                .font(.headline)
-            
-            Button("Exit") {
-                presentationMode.wrappedValue.dismiss()
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.blue)
-            .cornerRadius(10)
-        }
-        .foregroundColor(isDarkMode ? .white : .black)
+
+    private var backgroundColor: Color {
+        isDarkMode ? .black : .white
     }
 }
 

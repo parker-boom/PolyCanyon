@@ -26,32 +26,32 @@ import Glur  //package for gradient blur [need to add as package dependency to u
 
 
 struct DetailView: View {
-    // MARK: - Properties
-    
-    // BINDING
     @ObservedObject var structureData: StructureData
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var mapPointManager: MapPointManager
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
     @State private var selectedStructure: Structure?
-    
-    // STATE
+
     @State private var searchText = ""
     @State private var isGridView = true
     @State private var showPopup = false
     @State private var showOnboardingImage = false
     @AppStorage("visitedCount") private var visitedCount: Int = 0
 
-    
-    // eye icon
     @State private var showEyePopup = false
     @State private var eyeIconState: EyeIconState = .all
+    @State private var virtualTourSortState: VirtualTourSortState = .all
+
     enum EyeIconState {
         case all
         case visited
         case unopened
         case unvisited
+    }
+    
+    enum VirtualTourSortState  {
+        case all, favorites
     }
     
     
@@ -152,36 +152,27 @@ struct DetailView: View {
     // MARK: - Views and Helpers
     var headerView: some View {
         HStack {
-            // Eye icon button
-            Button(action: toggleEyeIconState) {
-                Image(systemName: "eye")
-                    .foregroundColor(getEyeIconColor())
-                    .font(.system(size: 28, weight: .semibold))
-                    .padding(5)
-                    .cornerRadius(8)
+            if isAdventureModeEnabled {
+                adventureModeEyeButton
+            } else {
+                virtualTourSortButton
             }
-            .padding(.leading, 5)
-            
-            // Search bar and toggle
-            HStack {
-                SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
-                    .frame(maxWidth: .infinity)
-                
-                if searchText != "" {
-                    Button(action: {
-                        searchText = ""
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(isDarkMode ? .white : .black)
-                            .font(.system(size: 20, weight: .semibold))
-                            .padding(.trailing, 5)
-                    }
+
+            SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+                .frame(maxWidth: .infinity)
+
+            if searchText != "" {
+                Button(action: {
+                    searchText = ""
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .font(.system(size: 20, weight: .semibold))
+                        .padding(.trailing, 5)
                 }
             }
-            .padding(.leading, -5)
-            .padding(.trailing, 5)
-            
+
             Toggle(isOn: $isGridView) {
                 Text("View Mode")
             }
@@ -192,6 +183,54 @@ struct DetailView: View {
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .padding(.horizontal, 10)
         .padding(.bottom, -5)
+    }
+
+    var adventureModeEyeButton: some View {
+        Button(action: toggleEyeIconState) {
+            Image(systemName: "eye")
+                .foregroundColor(getEyeIconColor())
+                .font(.system(size: 28, weight: .semibold))
+                .padding(5)
+                .cornerRadius(8)
+        }
+        .padding(.leading, 5)
+    }
+
+    var virtualTourSortButton: some View {
+        Button(action: toggleVirtualTourSortState) {
+            Image(systemName: virtualTourSortState == .all ? "circle.fill" : "heart.fill")
+                .foregroundColor(virtualTourSortState == .all ? .black : .red)
+                .font(.system(size: 28, weight: .semibold))
+                .padding(5)
+                .cornerRadius(8)
+        }
+        .padding(.leading, 5)
+    }
+
+    var filteredStructures: [Structure] {
+        let searchFiltered = structureData.structures.filter { structure in
+            searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
+        }
+
+        if isAdventureModeEnabled {
+            switch eyeIconState {
+            case .all:
+                return searchFiltered
+            case .visited:
+                return searchFiltered.filter { $0.isVisited }
+            case .unopened:
+                return searchFiltered.filter { $0.isVisited && !$0.isOpened }
+            case .unvisited:
+                return searchFiltered.filter { !$0.isVisited }
+            }
+        } else {
+            switch virtualTourSortState {
+            case .all:
+                return searchFiltered
+            case .favorites:
+                return searchFiltered.filter { $0.isLiked }
+            }
+        }
     }
 
     // MARK: GridView
@@ -563,23 +602,6 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
     
-    var filteredStructures: [Structure] {
-        structureData.structures.filter { structure in
-            let searchMatch = searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
-            
-            switch eyeIconState {
-            case .all:
-                return searchMatch
-            case .visited:
-                return searchMatch && structure.isVisited
-            case .unopened:
-                return searchMatch && structure.isVisited && !structure.isOpened
-            case .unvisited:
-                return searchMatch && !structure.isVisited
-            }
-        }
-    }
-    
     private var shouldShowRecentlyVisited: Bool {
         structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled
     }
@@ -613,11 +635,15 @@ struct DetailView: View {
             eyeIconState = .unvisited
         case .unvisited:
             eyeIconState = .all
-        
         }
-        
         showPopup(for: eyeIconState)
     }
+    
+    func toggleVirtualTourSortState() {
+        virtualTourSortState = virtualTourSortState == .all ? .favorites : .all
+        showPopup(for: virtualTourSortState)
+    }
+    
     
     // Change eye icon color based on which filter
     func getEyeIconColor() -> Color {
@@ -630,41 +656,24 @@ struct DetailView: View {
             return Color.blue.opacity(0.7)
         case .unvisited:
             return .red
-        
         }
-        
     }
 
     // Change eye popup message based on which filter
     func getPopupMessage() -> String {
-        switch eyeIconState {
-        case .all:
-            return "All"
-        case .visited:
-            return "Visited"
-        case .unopened:
-            return "Unopened"
-        case .unvisited:
-            return "Unvisited"
-        
-        }
-    }
+           if isAdventureModeEnabled {
+               switch eyeIconState {
+               case .all: return "All"
+               case .visited: return "Visited"
+               case .unopened: return "Unopened"
+               case .unvisited: return "Unvisited"
+               }
+           } else {
+               return virtualTourSortState == .all ? "All" : "Favorites"
+           }
+       }
 
-    // Show popup based on which filter
-    func showPopup(for state: EyeIconState) {
-        let message: String
-        switch state {
-        case .all:
-            message = "All"
-        case .visited:
-            message = "Visited"
-        case .unopened:
-            message = "Unopened"
-        case .unvisited:
-            message = "Unvisited"
-        
-        }
-            
+    func showPopup(for state: Any) {
         withAnimation {
             showEyePopup = true
         }
