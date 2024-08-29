@@ -27,6 +27,15 @@ struct StructPopUp: View {
     @State private var selectedTab: Int = 0
     @State private var isInfoPanelOpen: Bool = false
     @State private var currentImageIndex: Int = 0
+    @State private var isLiked: Bool
+    
+    init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, onDismiss: @escaping () -> Void) {
+        self.structureData = structureData
+        self.structure = structure
+        self._isDarkMode = isDarkMode
+        self.onDismiss = onDismiss
+        self._isLiked = State(initialValue: structure.isLiked)  // Initialize isLiked
+    }
 
     // MARK: - Body
     var body: some View {
@@ -130,7 +139,7 @@ struct StructPopUp: View {
 
     private var imageDots: some View {
         VStack {
-            LikeButton(structureData: structureData, structure: structure)
+            LikeButton(structureData: structureData, structure: structure, isLiked: $isLiked)
             
             HStack(spacing: 8) {
                 Circle()
@@ -215,7 +224,6 @@ struct StructPopUp: View {
                     .frame(height: 100)
             }
 
-            Spacer()
         }
         .padding(15)
     }
@@ -256,17 +264,20 @@ struct CustomTabSelector: View {
 struct LikeButton: View {
     @ObservedObject var structureData: StructureData
     let structure: Structure
-    
+    @Binding var isLiked: Bool
+
     var body: some View {
         Button(action: {
+            isLiked.toggle()
             structureData.toggleLike(for: structure.id)
         }) {
-            Image(systemName: structure.isLiked ? "heart.fill" : "heart")
-                .foregroundColor(structure.isLiked ? .white : .white)
+            Image(systemName: isLiked ? "heart.fill" : "heart")
+                .foregroundColor(isLiked ? .red : .white)
                 .font(.system(size: 42))
         }
     }
 }
+
 
 struct TabButton: View {
     let icon: String
