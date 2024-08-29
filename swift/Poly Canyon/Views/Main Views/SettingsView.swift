@@ -18,6 +18,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
+    @ObservedObject var locationManager: LocationManager
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
 
@@ -60,10 +61,11 @@ struct SettingsView: View {
                         }
                     
                     CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
-                                    isPresented: $showModePopUp,
-                                    isDarkMode: $isDarkMode,
-                                    structureData: structureData,
-                                    mapPointManager: mapPointManager)
+                                                        isPresented: $showModePopUp,
+                                                        isDarkMode: $isDarkMode,
+                                                        structureData: structureData,
+                                                        mapPointManager: mapPointManager,
+                                                        locationManager: locationManager)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
                 }
@@ -452,6 +454,7 @@ struct CustomModePopUp: View {
     @Binding var isDarkMode: Bool
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
+    @ObservedObject var locationManager: LocationManager
     
     let adventureModeColor = Color.green
     let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
@@ -500,6 +503,7 @@ struct CustomModePopUp: View {
                 } else {
                     structureData.setAllStructuresAsVisited()
                 }
+                locationManager.isAdventureModeEnabled = isAdventureModeEnabled
                 isPresented = false
             }
             .font(.system(size: 18, weight: .bold))
@@ -621,7 +625,12 @@ struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView(
             structureData: StructureData(),
-            mapPointManager: MapPointManager(),
+            mapPointManager: MapPointManager(), 
+            locationManager: LocationManager(
+                mapPointManager: MapPointManager(),
+                structureData: StructureData(),
+                isAdventureModeEnabled: true
+            ),
             isDarkMode: .constant(false),
             isAdventureModeEnabled: .constant(true)
         )
@@ -629,7 +638,12 @@ struct SettingsView_Previews: PreviewProvider {
         
         SettingsView(
             structureData: StructureData(),
-            mapPointManager: MapPointManager(),
+            mapPointManager: MapPointManager(), 
+            locationManager: LocationManager(
+                mapPointManager: MapPointManager(),
+                structureData: StructureData(),
+                isAdventureModeEnabled: true
+            ),
             isDarkMode: .constant(true),
             isAdventureModeEnabled: .constant(false)
         )

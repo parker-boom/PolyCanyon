@@ -55,9 +55,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var firestoreRef: Firestore!
     private var userID: String
 
-    var isAdventureModeEnabled: Bool
+    @Published var isAdventureModeEnabled: Bool {
+        didSet {
+            updateLocationTracking()
+        }
+    }
 
-    // Initializes the location manager and configures its settings.
     init(mapPointManager: MapPointManager, structureData: StructureData, isAdventureModeEnabled: Bool) {
         self.userID = UserDefaults.standard.string(forKey: "userID") ?? UUID().uuidString
         UserDefaults.standard.set(self.userID, forKey: "userID")
@@ -76,6 +79,37 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         firestoreRef = Firestore.firestore()
         
         setupGeofenceForSafeZone()
+        updateLocationTracking()
+    }
+
+    private func updateLocationTracking() {
+        if isAdventureModeEnabled {
+            startInAppTracking()
+        } else {
+            stopAllTracking()
+        }
+    }
+
+    private func startInAppTracking() {
+        locationManager.startUpdatingLocation()
+        print("In-app location tracking started")
+    }
+
+    private func startBackgroundTracking() {
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.startUpdatingLocation()
+        print("Background location tracking started")
+    }
+
+    private func stopAllTracking() {
+        locationManager.stopUpdatingLocation()
+        locationManager.allowsBackgroundLocationUpdates = false
+        print("All location tracking stopped")
+    }
+
+    private func stopBackgroundTracking() {
+        locationManager.allowsBackgroundLocationUpdates = false
+        print("Background location tracking stopped")
     }
     
     func requestAlwaysAuthorization() {
@@ -157,16 +191,18 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         logLocationToFirebaseIfNeeded(location: location)
         updateNearestMapPoint(for: location)
 
-        if isWithinSafeZone(coordinate: location.coordinate) {
-            if !isInSafeZone {
-                isInSafeZone = true
-                startBackgroundLocationUpdates()
-            }
-            checkVisitedLandmarks()
-        } else {
-            if isInSafeZone {
-                isInSafeZone = false
-                stopBackgroundLocationUpdates()
+        if isAdventureModeEnabled {
+            if isWithinSafeZone(coordinate: location.coordinate) {
+                if !isInSafeZone {
+                    isInSafeZone = true
+                    startBackgroundTracking()
+                }
+                checkVisitedLandmarks()
+            } else {
+                if isInSafeZone {
+                    isInSafeZone = false
+                    stopBackgroundTracking()
+                }
             }
         }
     }
@@ -187,24 +223,25 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         let latDelta = safeZoneCorners.topRight.latitude - safeZoneCorners.bottomLeft.latitude
         let lonDelta = safeZoneCorners.topRight.longitude - safeZoneCorners.bottomLeft.longitude
         let radius = max(latDelta, lonDelta) * 111000 / 2 // Convert to meters (approx)
-        
+
         let region = CLCircularRegion(center: regionCenter, radius: radius, identifier: "SafeZone")
         region.notifyOnEntry = true
         region.notifyOnExit = true
         locationManager.startMonitoring(for: region)
     }
 
+
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        if region.identifier == "SafeZone" {
+        if region.identifier == "SafeZone" && isAdventureModeEnabled {
             isInSafeZone = true
-            startBackgroundLocationUpdates()
+            startBackgroundTracking()
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
         if region.identifier == "SafeZone" {
             isInSafeZone = false
-            stopBackgroundLocationUpdates()
+            stopBackgroundTracking()
         }
     }
 

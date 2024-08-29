@@ -52,7 +52,7 @@ struct MainView: View {
                 } else if selection == 1 {
                     DetailView(structureData: structureData, locationManager: locationManager, mapPointManager: mapPointManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
                 } else if selection == 2 {
-                    SettingsView(structureData: structureData, mapPointManager: mapPointManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
+                    SettingsView(structureData: structureData, mapPointManager: mapPointManager, locationManager: locationManager, isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled)
                 }
             }
 
@@ -69,6 +69,7 @@ struct MainView: View {
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
+
 
 
 

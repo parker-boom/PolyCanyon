@@ -62,7 +62,6 @@ struct MapView: View {
     @State private var allStructuresVisitedFlag = false
     @State private var showNearbyStructures = false
     @State private var showStructPopup = false
-    @State private var showModePopUp = false
     @State private var showNearbyUnvisitedView = false
     @State private var isZoomedIn = false
     @State private var currentScale: CGFloat = 1.0
@@ -205,25 +204,6 @@ struct MapView: View {
                 
             }
         }
-        .overlay(
-            Group {
-                if showModePopUp {
-                    Color.black.opacity(0.4)
-                        .edgesIgnoringSafeArea(.all)
-                        .onTapGesture {
-                            showModePopUp = false
-                        }
-                    
-                    CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
-                                    isPresented: $showModePopUp,
-                                    isDarkMode: $isDarkMode,
-                                    structureData: structureData,
-                                    mapPointManager: mapPointManager)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.horizontal, 20)
-                }
-            }
-        )
         
         // Show the onboarding map if it hasn't ever been shown
         .onAppear {
@@ -440,14 +420,27 @@ struct MapWithLocationDot: View {
     }
 
     private func updateCircleVisibility() {
-        if let location = locationManager.lastLocation,
-           isAdventureModeEnabled,
-           locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse,
-           locationManager.isWithinSafeZone(coordinate: location.coordinate) {
-            showPulsingCircle = true
-        } else {
+        // First, check if Adventure Mode is enabled
+        guard isAdventureModeEnabled else {
             showPulsingCircle = false
+            return
         }
+
+        // Check location authorization status
+        guard locationManager.locationStatus == .authorizedAlways ||
+              locationManager.locationStatus == .authorizedWhenInUse else {
+            showPulsingCircle = false
+            return
+        }
+
+        // Check if we have a valid location
+        guard let location = locationManager.lastLocation else {
+            showPulsingCircle = false
+            return
+        }
+
+        // Finally, check if the location is within the safe zone
+        showPulsingCircle = locationManager.isWithinSafeZone(coordinate: location.coordinate)
     }
 
     private func circlePosition() -> CGPoint {
