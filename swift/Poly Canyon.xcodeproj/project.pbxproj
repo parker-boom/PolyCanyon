@@ -37,6 +37,7 @@
 		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
 		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
+		DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +83,7 @@
 		D0F543522BC1C5440012F998 /* mapPoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mapPoints.swift; sourceTree = "<group>"; };
 		DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructureSwipingView.swift; sourceTree = "<group>"; };
 		DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../assets/data/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -206,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */,
+				DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */,
 				D0F543522BC1C5440012F998 /* mapPoints.swift */,
 				D00C0E352BCF8D9800E7CFCD /* StructureData.swift */,
 				931EE1B52BEAD3630072F162 /* mapPoints.csv */,
@@ -381,6 +384,7 @@
 				D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */,
 				D001C07C2BBE359000C532F2 /* OnboardingView.swift in Sources */,
 				D00C0E362BCF8D9800E7CFCD /* StructureData.swift in Sources */,
+				DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */,
 				D0492C2E2BC5E32C00E4AC08 /* StructPopUp.swift in Sources */,
 				D001C04E2BBE319100C532F2 /* Poly_CanyonApp.swift in Sources */,
 			);

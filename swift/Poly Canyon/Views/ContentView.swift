@@ -22,13 +22,11 @@ struct ContentView: View {
     @AppStorage("onboardingProcess") private var isNewOnboardingCompleted = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("adventureMode") private var isAdventureModeEnabled = true
-    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
 
     var body: some View {
         if !isNewOnboardingCompleted {
             OnboardingView(
                 isNewOnboardingCompleted: $isNewOnboardingCompleted,
-                locationManager: locationManager,
                 isAdventureModeEnabled: $isAdventureModeEnabled
             )
         } else {
@@ -37,8 +35,6 @@ struct ContentView: View {
     }
 }
 
-
-// MARK: Preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()

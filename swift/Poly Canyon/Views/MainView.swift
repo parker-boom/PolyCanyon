@@ -27,23 +27,25 @@ import SwiftUI
 import Combine
 
 struct MainView: View {
-    // MARK: - Properties
-    
     @State private var selection = 1
-    @StateObject private var locationManager = LocationManager(mapPointManager: MapPointManager(), structureData: StructureData())
+    @StateObject private var locationManager: LocationManager
     @StateObject private var structureData = StructureData()
     @StateObject private var mapPointManager = MapPointManager()
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
-    
+
     @StateObject private var keyboardManager = KeyboardManager()
-    
-    // MARK: - Body
-    
+
+    init(isDarkMode: Binding<Bool>, isAdventureModeEnabled: Binding<Bool>) {
+        self._isDarkMode = isDarkMode
+        self._isAdventureModeEnabled = isAdventureModeEnabled
+        let mapPointManager = MapPointManager()
+        let structureData = StructureData()
+        self._locationManager = StateObject(wrappedValue: LocationManager(mapPointManager: mapPointManager, structureData: structureData, isAdventureModeEnabled: isAdventureModeEnabled.wrappedValue))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-
-            // The main tab view, holds all of the tab view pages
             ZStack {
                 if selection == 0 {
                     MapView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData, mapPointManager: mapPointManager, locationManager: locationManager)
@@ -54,8 +56,6 @@ struct MainView: View {
                 }
             }
 
-
-            // Helps kill the tab bar if keyboard is up
             if !keyboardManager.isKeyboardVisible {
                 CustomTabBar(onTabSelected: { tabIndex in
                     withAnimation {
@@ -71,11 +71,11 @@ struct MainView: View {
 }
 
 
+
 // MARK: - CustomTabBar
 struct CustomTabBar: View {
-
     
-    let tabBarHeight: CGFloat = 50 // Adjust this value to your desired height
+    let tabBarHeight: CGFloat = 50
     let onTabSelected: (Int) -> Void
     @Binding var selection: Int
     let isDarkMode: Bool

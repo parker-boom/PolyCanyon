@@ -55,14 +55,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var firestoreRef: Firestore!
     private var userID: String
 
+    var isAdventureModeEnabled: Bool
+
     // Initializes the location manager and configures its settings.
-    init(mapPointManager: MapPointManager, structureData: StructureData) {
+    init(mapPointManager: MapPointManager, structureData: StructureData, isAdventureModeEnabled: Bool) {
         self.userID = UserDefaults.standard.string(forKey: "userID") ?? UUID().uuidString
         UserDefaults.standard.set(self.userID, forKey: "userID")
-
-        self.mapPointManager = MapPointManager()
-        self.structureData = StructureData()
-
+        
+        self.mapPointManager = mapPointManager
+        self.structureData = structureData
+        self.isAdventureModeEnabled = isAdventureModeEnabled
+        
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -70,7 +73,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.allowsBackgroundLocationUpdates = true
         
-        // Initialize Firebase database reference
         firestoreRef = Firestore.firestore()
         
         setupGeofenceForSafeZone()

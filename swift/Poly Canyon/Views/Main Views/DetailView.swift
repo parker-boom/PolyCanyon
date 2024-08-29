@@ -943,7 +943,16 @@ extension Notification.Name {
 // MARK: - Preview
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(structureData: StructureData(), locationManager: LocationManager(mapPointManager: MapPointManager(), structureData: StructureData()), mapPointManager: MapPointManager(), isDarkMode: .constant(false), isAdventureModeEnabled: .constant(false))
+        DetailView(
+            structureData: StructureData(),
+            locationManager: LocationManager(
+                mapPointManager: MapPointManager(),
+                structureData: StructureData(),
+                isAdventureModeEnabled: true
+            ),
+            mapPointManager: MapPointManager(),
+            isDarkMode: .constant(false),
+            isAdventureModeEnabled: .constant(true)
+        )
     }
 }
-

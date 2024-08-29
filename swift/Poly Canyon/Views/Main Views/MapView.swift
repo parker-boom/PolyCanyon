@@ -295,22 +295,6 @@ struct MapView: View {
     }
 
 
-    
-    private var toggleNearbyUnvisitedButton: some View {
-        Button(action: {
-            withAnimation {
-                showNearbyUnvisitedView.toggle()
-            }
-        }) {
-            Image(systemName: showNearbyUnvisitedView ? "eye.slash.fill" : "eye.fill")
-                .foregroundColor(isDarkMode ? .white : .black)
-                .padding()
-                .background(isDarkMode ? Color.black : Color.white)
-                .clipShape(Circle())
-                .shadow(color: isDarkMode ? Color.white.opacity(0.2) : Color.black.opacity(0.2), radius: 5)
-        }
-    }
-    
     private func updateNearbyUnvisitedStructures() {
         guard let userLocation = locationManager.lastLocation else {
             nearbyUnvisitedStructures = []
@@ -674,6 +658,9 @@ struct NearbyUnvisitedView: View {
         VStack {
             HStack {
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
+                    
+                    Spacer()
+                    
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.mainPhoto)
                             .resizable()
@@ -714,8 +701,9 @@ struct NearbyUnvisitedView: View {
         .cornerRadius(15)
         .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 25)
+        .padding(.horizontal, 15)
         .padding(.bottom, 10)
+        .padding(.top, -10)
     }
 }
 
@@ -755,7 +743,17 @@ struct AllStructuresVisitedPopup: View {
 // MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
-        MapView(isDarkMode: .constant(true), isAdventureModeEnabled: .constant(true), structureData: StructureData(), mapPointManager: MapPointManager(), locationManager: LocationManager(mapPointManager: MapPointManager(), structureData: StructureData()))
+        MapView(
+            isDarkMode: .constant(true),
+            isAdventureModeEnabled: .constant(true),
+            structureData: StructureData(),
+            mapPointManager: MapPointManager(),
+            locationManager: LocationManager(
+                mapPointManager: MapPointManager(),
+                structureData: StructureData(),
+                isAdventureModeEnabled: true
+            )
+        )
     }
 }
 

@@ -3,12 +3,10 @@ import CoreLocation
 
 struct OnboardingView: View {
     @Binding var isNewOnboardingCompleted: Bool
-    @ObservedObject var locationManager: LocationManager
     @Binding var isAdventureModeEnabled: Bool
-    @State private var isAdventureModeRecommended: Bool = false
+    @StateObject private var locationManager = OnboardingLocationManager()
     @State private var currentPage = 0
     @State private var hasAskedForLocation = false
-    @State private var isNearby = false
 
     private let totalPages = 3
     let adventureModeColor = Color.green
@@ -31,16 +29,13 @@ struct OnboardingView: View {
     var welcomeSlide: some View {
         VStack {
             Spacer()
-            
-            Image("Icon")                 
+            Image("Icon")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 200, height: 200)
                 .cornerRadius(40)
                 .padding(.bottom, 30)
                 .shadow(color: .black.opacity(0.4), radius: 15)
-            
-            
             Text("Welcome to")
                 .font(.system(size: 36))
                 .foregroundColor(.black.opacity(1))
@@ -55,9 +50,7 @@ struct OnboardingView: View {
                 .foregroundColor(.black.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
             Spacer()
-            
             NavigationButton(text: "Next", action: {
                 withAnimation {
                     currentPage = 1
@@ -71,11 +64,9 @@ struct OnboardingView: View {
     var locationRequestSlide: some View {
         VStack {
             Spacer()
-            
             PulsingLocationDot()
                 .frame(width: 100, height: 100)
                 .padding(.bottom, 40)
-            
             Text("Enable")
                 .font(.system(size: 36))
                 .foregroundColor(.black.opacity(1))
@@ -90,27 +81,21 @@ struct OnboardingView: View {
                 .foregroundColor(.black.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
             Spacer()
-            
             if !hasAskedForLocation {
                 NavigationButton(text: "Allow Location Access", action: {
-                    locationManager.requestWhenInUseAuthorization()
+                    locationManager.requestLocation()
                     hasAskedForLocation = true
                 })
                 .padding(.bottom, 40)
-                
             } else {
                 NavigationButton(text: "Next", action: {
                     withAnimation {
                         currentPage = 2
                     }
-                    checkUserLocation()
                 })
                 .padding(.bottom, 40)
-                
             }
-            
         }
         .padding()
     }
@@ -137,7 +122,7 @@ struct OnboardingView: View {
             )
             .padding(.horizontal)
 
-            RecommendationLabel(isRecommended: isAdventureModeEnabled == isAdventureModeRecommended)
+            RecommendationLabel(isRecommended: isAdventureModeEnabled == locationManager.isNearCalPoly)
 
             VStack(alignment: .leading, spacing: 10) {
                 if isAdventureModeEnabled {
@@ -176,28 +161,11 @@ struct OnboardingView: View {
         }
         .padding()
         .background(Color.white)
-        .onAppear(perform: checkUserLocation)
-    }
-    
-    private func checkUserLocation() {
-        guard let userLocation = locationManager.lastLocation else {
-            setRecommendedMode(isAdventureModeRecommended: false)
-            return
+        .onAppear {
+            isAdventureModeEnabled = locationManager.isNearCalPoly
         }
-
-        let sanLuisObispo = CLLocation(latitude: 35.2828, longitude: -120.6596)
-        let distance = userLocation.distance(from: sanLuisObispo)
-
-        let isNearby = distance <= 160934 // 100 miles in meters
-        setRecommendedMode(isAdventureModeRecommended: isNearby)
-    }
-
-    private func setRecommendedMode(isAdventureModeRecommended: Bool) {
-        self.isAdventureModeRecommended = isAdventureModeRecommended
-        self.isAdventureModeEnabled = isAdventureModeRecommended
     }
 }
-
 struct ModeIcon: View {
     let imageName: String
     let color: Color
@@ -378,7 +346,6 @@ struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         OnboardingView(
             isNewOnboardingCompleted: .constant(false),
-            locationManager: LocationManager(mapPointManager: MapPointManager(), structureData: StructureData()),
             isAdventureModeEnabled: .constant(false)
         )
     }
