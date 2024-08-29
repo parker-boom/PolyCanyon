@@ -56,6 +56,25 @@ struct DetailView: View {
     }
     
     
+    // MARK: - Computed Properties for Sorting Options
+
+    private var hasVisitedStructures: Bool {
+        structureData.structures.contains { $0.isVisited }
+    }
+
+    private var hasUnopenedStructures: Bool {
+        structureData.structures.contains { $0.isVisited && !$0.isOpened }
+    }
+
+    private var hasUnvisitedStructures: Bool {
+        structureData.structures.contains { !$0.isVisited }
+    }
+
+    private var hasLikedStructures: Bool {
+        structureData.structures.contains { $0.isLiked }
+    }
+    
+    
     // MARK: - Body
     
     var body: some View {
@@ -140,8 +159,6 @@ struct DetailView: View {
         }
         .overlay(
             Group {
-
-                // Show eyePopUp when you change filters
                 if showEyePopup {
                     VStack {
                         Spacer()
@@ -157,6 +174,7 @@ struct DetailView: View {
     
     
     // MARK: - Views and Helpers
+
     var headerView: some View {
         HStack {
             if isAdventureModeEnabled {
@@ -193,7 +211,26 @@ struct DetailView: View {
     }
 
     var adventureModeEyeButton: some View {
-        Button(action: toggleEyeIconState) {
+        Menu {
+            Button(action: { eyeIconState = .all }) {
+                Label("All", systemImage: "eye")
+            }
+            if hasVisitedStructures {
+                Button(action: { eyeIconState = .visited }) {
+                    Label("Visited", systemImage: "checkmark.circle")
+                }
+            }
+            if hasUnopenedStructures {
+                Button(action: { eyeIconState = .unopened }) {
+                    Label("Unopened", systemImage: "envelope")
+                }
+            }
+            if hasUnvisitedStructures {
+                Button(action: { eyeIconState = .unvisited }) {
+                    Label("Unvisited", systemImage: "xmark.circle")
+                }
+            }
+        } label: {
             Image(systemName: "eye")
                 .foregroundColor(getEyeIconColor())
                 .font(.system(size: 28, weight: .semibold))
@@ -204,7 +241,16 @@ struct DetailView: View {
     }
 
     var virtualTourSortButton: some View {
-        Button(action: toggleVirtualTourSortState) {
+        Menu {
+            Button(action: { virtualTourSortState = .all }) {
+                Label("All", systemImage: "circle.fill")
+            }
+            if hasLikedStructures {
+                Button(action: { virtualTourSortState = .favorites }) {
+                    Label("Favorites", systemImage: "heart.fill")
+                }
+            }
+        } label: {
             Image(systemName: virtualTourSortState == .all ? "circle.fill" : "heart.fill")
                 .foregroundColor(virtualTourSortState == .all ? .black : .red)
                 .font(.system(size: 28, weight: .semibold))

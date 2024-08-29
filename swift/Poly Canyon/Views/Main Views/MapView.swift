@@ -66,7 +66,10 @@ struct MapView: View {
     @State private var showNearbyUnvisitedView = false
     @State private var isZoomedIn = false
     @State private var currentScale: CGFloat = 1.0
+    @State private var mapImageSize: CGSize = .zero
 
+    
+    @State private var nearbyUnvisitedStructures: [Structure] = []
     @GestureState private var magnifyBy = 1.0
 
     // track number of time visiting all, and  times visited
@@ -75,22 +78,11 @@ struct MapView: View {
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
     @AppStorage("showVirtualTourButton") private var showVirtualTourButton = true
     
-    let safeZoneCorners = (
-        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
-        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
-    )
-    
-    let originalWidth = 1843.0
-    let originalHeight = 4164.0
-    
-    
-
     
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topTrailing) {
-                
+            ZStack(alignment: .topLeading) { // Changed to .topLeading
                 // Background color based on dark mode
                 Color(isDarkMode ? .black : .white)
                     .edgesIgnoringSafeArea(.all)
@@ -102,27 +94,49 @@ struct MapView: View {
                         .edgesIgnoringSafeArea(.all)
                 }
                 
-                // Calculate image sizes
-                let imageSize = geometry.size
-                let originalImageSize = CGSize(width: originalWidth, height: originalHeight)
-                let displayedSize = displayedImageSize(originalSize: originalImageSize, containerSize: geometry.size, scale: scale)
+                // Map with location dot
+                MapWithLocationDot(
+                    mapImage: mapImage(),
+                    isDarkMode: isDarkMode,
+                    isSatelliteView: isSatelliteView,
+                    locationManager: locationManager,
+                    structureData: structureData,
+                    mapPointManager: mapPointManager,
+                    isAdventureModeEnabled: isAdventureModeEnabled,
+                    geometry: geometry
+                )
+                .zoomable(
+                    minZoomScale: 1.0,
+                    doubleTapZoomScale: 2.0
+                )
+                .onChange(of: currentScale) { newScale in
+                    isZoomedIn = newScale > 1.0
+                }
                 
-                
-                // Map image based on satellite view and dark mode
-                Image(mapImage())
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .zoomable(
-                        minZoomScale: 1.0,
-                        doubleTapZoomScale: 2.0
-                        )
-                        .onChange(of: currentScale) { newScale in
-                            isZoomedIn = newScale > 1.0
+                // Nearby unvisited structures toggle button
+                if isAdventureModeEnabled, let location = locationManager.lastLocation,
+                   locationManager.isWithinSafeZone(coordinate: location.coordinate) {
+                    Button(action: {
+                        withAnimation {
+                            showNearbyUnvisitedView.toggle()
+                            if showNearbyUnvisitedView {
+                                updateNearbyUnvisitedStructures()
+                            }
                         }
-    
-
-                // Map view toggle button
+                    }) {
+                        Image(systemName: showNearbyUnvisitedView ? "xmark.circle.fill" : "mappin.circle.fill")
+                            .font(.system(size: 24))
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(isDarkMode ? .white : .black)
+                            .background(isDarkMode ? Color.black : Color.white)
+                            .cornerRadius(15)
+                            .padding()
+                    }
+                    .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+                    .padding(.top, -10)
+                }
+                
+                // Map view toggle button (top right)
                 Button(action: {
                     isSatelliteView.toggle()
                 }) {
@@ -136,98 +150,80 @@ struct MapView: View {
                 }
                 .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
                 .padding(.top, -10)
+                .frame(maxWidth: .infinity, alignment: .topTrailing)
                 
-                
-                // If all the wayu zoomed out, location enabled, and in bounds, display the Pulsing circle
-                if !isZoomedIn {
-                    // Bottom messages and location indicator
-                    VStack {
-                        Spacer()
-                        
-                        if isAdventureModeEnabled {
-                            if locationManager.locationStatus == .denied || locationManager.locationStatus == .restricted {
-                                bottomMessage("Enable location services")
+                // Bottom messages
+                VStack {
+                    Spacer()
+                    
+                    if isAdventureModeEnabled {
+                        if locationManager.locationStatus == .denied || locationManager.locationStatus == .restricted {
+                            bottomMessage("Enable location services")
+                                .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
+                        } else if let location = locationManager.lastLocation {
+                            if !locationManager.isWithinSafeZone(coordinate: location.coordinate) {
+                                bottomMessage("Enter the area of Poly Canyon")
                                     .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-                            } else if let location = locationManager.lastLocation {
-                                if locationManager.isWithinSafeZone(coordinate: location.coordinate) {
-                                    if let nearestMapPoint = locationManager.nearestMapPoint, nearestMapPoint.pixelPosition.x == -499.232 {
-                                        bottomMessage("You're Nearby!")
-                                            .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-                                    } else {
-                                        // Show pulsating circle
-                                        if let nearestPoint = findNearestMapPoint(to: location.coordinate) {
-                                            let topLeft = topLeftOfImage(in: geometry.size)
-                                            let scaleWidth = displayedSize.width / originalWidth
-                                            let scaleHeight = displayedSize.height / originalHeight
-                                            let correctScale = min(scaleWidth, scaleHeight)
-                                            let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
-                                            let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
-                                            
-                                            PulsingCircle()
-                                                .position(x: circleX, y: circleY)
-                                                .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
-                                        }
-                                    }
-                                } else {
-                                    bottomMessage("Enter the area of Poly Canyon")
-                                        .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-                                }
                             }
                         }
                     }
                 }
-                    
-
+                
                 // MARK: - Pop-Ups
                 // Nearby unvisited structures view
-                VStack {
-                    if showNearbyUnvisitedView && hasUnvisitedStructures {
-                        nearbyUnvisitedView
-                    }
+                if showNearbyUnvisitedView && !nearbyUnvisitedStructures.isEmpty {
+                    NearbyUnvisitedView(
+                        structureData: structureData,
+                        locationManager: locationManager,
+                        mapPointManager: mapPointManager,
+                        isDarkMode: $isDarkMode,
+                        selectedStructure: $selectedStructure,
+                        showStructPopup: $showStructPopup,
+                        nearbyUnvisitedStructures: nearbyUnvisitedStructures
+                    )
+                    .padding(.top, 75)
+                    .transition(.move(edge: .top))
                 }
-                .padding(.top, 75)
-
                 
                 // PopUps when visiting structures
                 ZStack {
-                        // Show visited structure popup
-                        if showVisitedStructurePopup, let structure = visitedStructure {
-                            VisitedStructurePopup(structure: structure, isPresented: $showVisitedStructurePopup, isDarkMode: $isDarkMode, structureData: structureData)
-                                .transition(.move(edge: .bottom))
-                                .zIndex(1)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                                .padding(.bottom, 15)
-                        }
-                        // Congratulations message
-                        if showAllVisitedPopup {
-                            AllStructuresVisitedPopup(isPresented: $showAllVisitedPopup, isDarkMode: $isDarkMode)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color.clear)
-                        }
-                    
+                    // Show visited structure popup
+                    if showVisitedStructurePopup, let structure = visitedStructure {
+                        VisitedStructurePopup(structure: structure, isPresented: $showVisitedStructurePopup, isDarkMode: $isDarkMode, structureData: structureData)
+                            .transition(.move(edge: .bottom))
+                            .zIndex(1)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                            .padding(.bottom, 15)
+                    }
+                    // Congratulations message
+                    if showAllVisitedPopup {
+                        AllStructuresVisitedPopup(isPresented: $showAllVisitedPopup, isDarkMode: $isDarkMode)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.clear)
+                    }
                 }
- 
+                
             }
         }
         .overlay(
-             Group {
-                 if showModePopUp {
-                     Color.black.opacity(0.4)
-                         .edgesIgnoringSafeArea(.all)
-                         .onTapGesture {
-                             showModePopUp = false
-                         }
-                     
-                     CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
-                               isPresented: $showModePopUp,
-                               isDarkMode: $isDarkMode,
-                               structureData: structureData,
-                               mapPointManager: mapPointManager)
-                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                         .padding(.horizontal, 20)
-                 }
-             }
-         )
+            Group {
+                if showModePopUp {
+                    Color.black.opacity(0.4)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            showModePopUp = false
+                        }
+                    
+                    CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
+                                    isPresented: $showModePopUp,
+                                    isDarkMode: $isDarkMode,
+                                    structureData: structureData,
+                                    mapPointManager: mapPointManager)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 20)
+                }
+            }
+        )
         
         // Show the onboarding map if it hasn't ever been shown
         .onAppear {
@@ -267,6 +263,15 @@ struct MapView: View {
                 allStructuresVisitedFlag = false // Reset the flag
             }
         }
+        .sheet(item: $selectedStructure) { structure in
+            StructPopUp(
+                structureData: structureData,
+                structure: structure,
+                isDarkMode: $isDarkMode
+            ) {
+                selectedStructure = nil
+            }
+        }
         // For the geometry reader
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDarkMode ? Color.black : Color.white)
@@ -289,88 +294,42 @@ struct MapView: View {
         return structureData.structures.contains { !$0.isVisited }
     }
 
-    
-    // MARK: - Nearby Unvisited View
-    var nearbyUnvisitedView: some View {
-        // Filter to closest by and unvisited
-        let userLocation = locationManager.lastLocation
-        let nearbyUnvisitedStructures = structureData.structures
-            .filter { !$0.isVisited }
-            .sorted { getDistance(to: $0) < getDistance(to: $1) }
-            .prefix(3)
-        
-        return VStack {
-            HStack {
-                Spacer()
 
-                // Show every structure
-                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
-                    ZStack(alignment: .bottomTrailing) {
-                        Image(structure.mainPhoto)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipped()
-                            .cornerRadius(15)
-                        
-                        Text("\(structure.number)")
-                            .font(.system(size: 16))
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 2, x: 0, y: 0)
-                            .padding(4)
-                            .background(Color.black.opacity(0.6))
-                            .cornerRadius(5)
-                            .offset(x: -5, y: -5)
-                    }
-                    .frame(width: 80, height: 80)
-                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
-                    .onTapGesture {
-                        selectedStructure = structure
-                        showStructPopup = true
-                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                            structureData.objectWillChange.send()
-                        }
-                        
-                        // Generate haptic feedback
-                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                        impactMed.impactOccurred()
-                    }
-                    
-                    Spacer()
-                }
+    
+    private var toggleNearbyUnvisitedButton: some View {
+        Button(action: {
+            withAnimation {
+                showNearbyUnvisitedView.toggle()
             }
-            
-            Text("Nearby Unvisited Structures")
-                .font(.headline)
+        }) {
+            Image(systemName: showNearbyUnvisitedView ? "eye.slash.fill" : "eye.fill")
                 .foregroundColor(isDarkMode ? .white : .black)
-                .padding(.top, 5)
-                .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .padding(10)
-        .background(isDarkMode ? Color.black : Color.white)
-        .cornerRadius(15)
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
-        .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 10)
-        .sheet(isPresented: $showStructPopup) {
-            if let structure = selectedStructure {
-                StructPopUp(structureData: structureData, structure: structure, isDarkMode: $isDarkMode) {
-                    showStructPopup = false
-                }
-            }
+                .padding()
+                .background(isDarkMode ? Color.black : Color.white)
+                .clipShape(Circle())
+                .shadow(color: isDarkMode ? Color.white.opacity(0.2) : Color.black.opacity(0.2), radius: 5)
         }
     }
     
-    
-    
+    private func updateNearbyUnvisitedStructures() {
+        guard let userLocation = locationManager.lastLocation else {
+            nearbyUnvisitedStructures = []
+            return
+        }
+        
+        nearbyUnvisitedStructures = structureData.structures
+            .filter { !$0.isVisited }
+            .sorted { getDistance(to: $0, from: userLocation) < getDistance(to: $1, from: userLocation) }
+            .prefix(3)
+            .map { $0 }
+    }
     
     // Use distance function
-    func getDistance(to structure: Structure) -> CLLocationDistance {
-        guard let userLocation = locationManager.lastLocation else { return .infinity }
-        let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
-        let structureCLLocation = CLLocation(latitude: structureLocation?.latitude ?? 0, longitude: structureLocation?.longitude ?? 0)
+    private func getDistance(to structure: Structure, from userLocation: CLLocation) -> CLLocationDistance {
+        guard let structureLocation = mapPointManager.mapPoints.first(where: { $0.landmark == structure.number })?.coordinate else {
+            return .infinity
+        }
+        let structureCLLocation = CLLocation(latitude: structureLocation.latitude, longitude: structureLocation.longitude)
         return userLocation.distance(from: structureCLLocation)
     }
 
@@ -387,24 +346,7 @@ struct MapView: View {
         }
     }
     
-    // Find the nearest of 60 map points based on the users current location, used to display current location
-    private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
-        var nearestPoint: MapPoint?
-        var minDistance = Double.infinity
-        
-        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        for point in mapPointManager.mapPoints {
-            let pointLocation = CLLocation(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
-            let distance = userLocation.distance(from: pointLocation)
-            if distance < minDistance {
-                minDistance = distance
-                nearestPoint = point
-            }
-        }
-        
-        return nearestPoint
-    }
+
 
     // Find nearby map points
     private func findNearbyMapPoints() -> [MapPoint] {
@@ -429,43 +371,9 @@ struct MapView: View {
         }
     }
 
-    // Calculate where the top left of the image is to help place the location circle in the correct position
-    private func topLeftOfImage(in imageSize: CGSize) -> CGPoint {
-        let containerAspectRatio = imageSize.width / imageSize.height
-        let imageAspectRatio = originalWidth / originalHeight
-        
-        let scaledSize: CGSize
-        if containerAspectRatio > imageAspectRatio {
-            let height = min(imageSize.height, originalHeight * scale)
-            let width = originalWidth * (height / originalHeight)
-            scaledSize = CGSize(width: width, height: height)
-        } else {
-            let width = min(imageSize.width, originalWidth * scale)
-            let height = originalHeight * (width / originalWidth)
-            scaledSize = CGSize(width: width, height: height)
-        }
-        
-        let x = (imageSize.width - scaledSize.width) / 2
-        let y = (imageSize.height - scaledSize.height) / 2
-        
-        let topLeftAfterOffset = CGPoint(x: x + offset.width, y: y + offset.height)
-        
-        
-        
-        return topLeftAfterOffset
-    }
     
-    // Calculate the size that the image is actually displaying on screen when scaled to device size
-    func displayedImageSize(originalSize: CGSize, containerSize: CGSize, scale: CGFloat) -> CGSize {
-        let widthRatio = containerSize.width / originalSize.width
-        let heightRatio = containerSize.height / originalSize.height
-        let ratio = min(widthRatio, heightRatio) * scale
-
-        let displayedWidth = originalSize.width * ratio
-        let displayedHeight = originalSize.height * ratio
-
-        return CGSize(width: displayedWidth, height: displayedHeight)
-    }
+    
+ 
     
     
     // Get notifications when a user visits a structure
@@ -501,6 +409,137 @@ struct MapView: View {
     }
 
 
+}
+
+
+struct MapWithLocationDot: View {
+    let mapImage: String
+    let isDarkMode: Bool
+    let isSatelliteView: Bool
+    let locationManager: LocationManager
+    let structureData: StructureData
+    let mapPointManager: MapPointManager
+    let isAdventureModeEnabled: Bool
+    let geometry: GeometryProxy
+
+    @State private var scale: CGFloat = 1.0
+    @State private var showPulsingCircle = false
+    @State private var offset: CGSize = .zero
+    
+    let safeZoneCorners = (
+        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
+        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
+    )
+    
+    let originalWidth = 1843.0
+    let originalHeight = 4164.0
+
+    var body: some View {
+        ZStack {
+            // Map image
+            Image(mapImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: geometry.size.width, height: geometry.size.height)
+
+            // Location dot
+            if showPulsingCircle {
+                PulsingCircle()
+                    .position(circlePosition())
+                    .shadow(color: isSatelliteView ? Color.white.opacity(0.8) : Color.black.opacity(0.8), radius: 4, x: 0, y: 0)
+            }
+        }
+        .onAppear(perform: updateCircleVisibility)
+        .onChange(of: locationManager.lastLocation) { _ in
+            updateCircleVisibility()
+        }
+    }
+
+    private func updateCircleVisibility() {
+        if let location = locationManager.lastLocation,
+           isAdventureModeEnabled,
+           locationManager.locationStatus == .authorizedAlways || locationManager.locationStatus == .authorizedWhenInUse,
+           locationManager.isWithinSafeZone(coordinate: location.coordinate) {
+            showPulsingCircle = true
+        } else {
+            showPulsingCircle = false
+        }
+    }
+
+    private func circlePosition() -> CGPoint {
+        guard let location = locationManager.lastLocation,
+              let nearestPoint = findNearestMapPoint(to: location.coordinate) else {
+            return .zero
+        }
+
+        let topLeft = topLeftOfImage(in: geometry.size)
+        let displayedSize = displayedImageSize(originalSize: CGSize(width: 1843, height: 4164), containerSize: geometry.size, scale: 1.0)
+        let scaleWidth = displayedSize.width / 1843
+        let scaleHeight = displayedSize.height / 4164
+        let correctScale = min(scaleWidth, scaleHeight)
+
+        let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
+        let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
+
+        return CGPoint(x: circleX, y: circleY)
+    }
+
+    // Find the nearest of 60 map points based on the users current location, used to display current location
+    private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
+        var nearestPoint: MapPoint?
+        var minDistance = Double.infinity
+        
+        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        for point in mapPointManager.mapPoints {
+            let pointLocation = CLLocation(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
+            let distance = userLocation.distance(from: pointLocation)
+            if distance < minDistance {
+                minDistance = distance
+                nearestPoint = point
+            }
+        }
+        
+        return nearestPoint
+    }
+
+    // Calculate where the top left of the image is to help place the location circle in the correct position
+    private func topLeftOfImage(in imageSize: CGSize) -> CGPoint {
+        let containerAspectRatio = imageSize.width / imageSize.height
+        let imageAspectRatio = originalWidth / originalHeight
+        
+        let scaledSize: CGSize
+        if containerAspectRatio > imageAspectRatio {
+            let height = min(imageSize.height, originalHeight * scale)
+            let width = originalWidth * (height / originalHeight)
+            scaledSize = CGSize(width: width, height: height)
+        } else {
+            let width = min(imageSize.width, originalWidth * scale)
+            let height = originalHeight * (width / originalWidth)
+            scaledSize = CGSize(width: width, height: height)
+        }
+        
+        let x = (imageSize.width - scaledSize.width) / 2
+        let y = (imageSize.height - scaledSize.height) / 2
+        
+        let topLeftAfterOffset = CGPoint(x: x + offset.width, y: y + offset.height)
+        
+        
+        
+        return topLeftAfterOffset
+    }
+
+    // Calculate the size that the image is actually displaying on screen when scaled to device size
+    func displayedImageSize(originalSize: CGSize, containerSize: CGSize, scale: CGFloat) -> CGSize {
+        let widthRatio = containerSize.width / originalSize.width
+        let heightRatio = containerSize.height / originalSize.height
+        let ratio = min(widthRatio, heightRatio) * scale
+
+        let displayedWidth = originalSize.width * ratio
+        let displayedHeight = originalSize.height * ratio
+
+        return CGSize(width: displayedWidth, height: displayedHeight)
+    }
 }
 
 // Pulsing circle used to indicate location, seperate structure so animation works after zooming in and out
@@ -618,6 +657,65 @@ struct VisitedStructurePopup: View {
                 isPresented = false
             }
         }
+    }
+}
+
+struct NearbyUnvisitedView: View {
+    @ObservedObject var structureData: StructureData
+    @ObservedObject var locationManager: LocationManager
+    @ObservedObject var mapPointManager: MapPointManager
+    @Binding var isDarkMode: Bool
+    @Binding var selectedStructure: Structure?
+    @Binding var showStructPopup: Bool
+
+    let nearbyUnvisitedStructures: [Structure]
+
+    var body: some View {
+        VStack {
+            HStack {
+                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.mainPhoto)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        showStructPopup = true
+                    }
+
+                    Spacer()
+                }
+            }
+
+            Text("Nearby Unvisited")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 25)
+        .padding(.bottom, 10)
     }
 }
 

@@ -26,6 +26,7 @@ struct SettingsView: View {
     @State private var pendingAdventureModeState: Bool = false
     @State private var showModePopUp = false
     @State private var showStructureSwipingView = false
+    @State private var showHowToGetTherePopup = false
 
     @AppStorage("visitedCount") private var visitedCount: Int = 0
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
@@ -65,6 +66,17 @@ struct SettingsView: View {
                                     mapPointManager: mapPointManager)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
+                }
+                if showHowToGetTherePopup {
+                    Color.black.opacity(0.4)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            showHowToGetTherePopup = false
+                        }
+                    
+                    HowToGetTherePopup(isPresented: $showHowToGetTherePopup, isDarkMode: $isDarkMode)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 20)
                 }
             }
         )
@@ -197,7 +209,7 @@ struct SettingsView: View {
 
             if isAdventureModeEnabled {
                 Button(action: {
-                    // Action to open directions
+                    showHowToGetTherePopup = true
                 }) {
                     ZStack {
                         Image("DirectionsBG")
@@ -520,6 +532,87 @@ struct BulletPoint: View {
                 .font(.system(size: 18))
         }
         .foregroundColor(isDarkMode ? .white : .black)
+    }
+}
+
+
+struct HowToGetTherePopup: View {
+    @Binding var isPresented: Bool
+    @Binding var isDarkMode: Bool
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Getting There")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(isDarkMode ? .white : .black)
+            
+            VStack(alignment: .leading, spacing: 15) {
+                Text("1. Park on Cal Poly's campus with a valid pass")
+                    .font(.system(size: 18))
+                    .foregroundColor(isDarkMode ? .white : .black)
+                
+                Button(action: {
+                    if let url = URL(string: "https://maps.apple.com/?address=San%20Luis%20Obispo,%20CA%2093405,%20United%20States&auid=11145378343369333363&ll=35.303104,-120.659140&lsp=9902&q=Poly%20Canyon%20Trail&t=h") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "car.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                        Text("Driving")
+                            .font(.system(size: 24, weight: .semibold))
+                    }
+                    
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.bottom, 5)
+                }
+                
+                Text("2. Navigate to the area using AllTrails")
+                    .font(.system(size: 18))
+                    .foregroundColor(isDarkMode ? .white : .black)
+                
+                Button(action: {
+                    if let url = URL(string: "https://www.alltrails.com/trail/us/california/architecture-graveyard-hike-private-property?sh=rvw6ps") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "figure.walk")
+                            .font(.system(size: 20, weight: .semibold))
+                        Text("Walking")
+                            .font(.system(size: 24, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.bottom, 5)
+                }
+                
+                Text("3. Once you see the arch, please return to the app!")
+                    .font(.system(size: 18))
+                    .foregroundColor(isDarkMode ? .white : .black)
+            }
+            .padding(.vertical)
+            
+            Button("Got it ") {
+                isPresented = false
+            }
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(8)
+            .background(Color.black.opacity(0.6))
+            .cornerRadius(10)
+        }
+        .padding()
+        .background(isDarkMode ? Color.black : Color.white)
+        .cornerRadius(20)
+        .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 }
 
