@@ -21,6 +21,7 @@
 
 // MARK: Code
 import SwiftUI
+import Combine
 import CoreLocation
 import Glur  //package for gradient blur [need to add as package dependency to use]
 
@@ -243,100 +244,30 @@ struct DetailView: View {
     // Grid view that shows all structures in a grid, with images
     var gridView: some View {
         VStack {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 20), count: 2), spacing: 15) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 2), spacing: 15) {
                 ForEach(filteredStructures, id: \.id) { structure in
-                    ZStack(alignment: .bottomLeading) {
-                        ZStack(alignment: .topTrailing) {
-
-                            if ( structure.isVisited && isAdventureModeEnabled ) || (!isAdventureModeEnabled) {
-                                // Image
-                                Image(structure.mainPhoto)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
-                                    .glur(radius: 6.0, offset: 0.6, interpolation: 0.4, direction: .down) // Apply the glur effect if visited
-                                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
-                                    .clipped()
-                                    .cornerRadius(15)
-
-                                if structure.isOpened {
-                                    // Checkmark at the top right
-                                    Image("Check")
-                                        .resizable()
-                                        .foregroundColor(.white)
-                                        .frame(width: 13, height: 13)
-                                        .padding(12)
-                                } else {
-                                    if isAdventureModeEnabled {
-                                        // Blue circle if visited but not opened & adventure mode
-                                        Circle()
-                                            .fill(Color.blue.opacity(0.7))
-                                            .frame(width: 10, height: 10)
-                                            .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
-                                            .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
-                                            .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
-                                            .padding(12)
-                                    }
+                    StructureGridItem(structure: structure, isDarkMode: isDarkMode, isAdventureModeEnabled: isAdventureModeEnabled)
+                        .onTapGesture {
+                            selectedStructure = structure
+                            if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+                                structureData.objectWillChange.send()
+                                if structureData.structures[index].isVisited {
+                                    structureData.structures[index].isOpened = true
                                 }
-                            } else {
-                                // Image for unvisited
-                                Image(structure.mainPhoto)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
-                                    .clipped()
-                                    .cornerRadius(15)
-                                    .blur(radius: 2.5)
                             }
-                        }
+                            showPopup = true
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 
-                        // Text overlay with blur effect
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack {
-                                Text("\(structure.number)")
-                                    .font(.system(size: 22))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)  // Set text color to white
-                                    
-                                Spacer()
-                            }
-                            
-                            Text(structure.title)
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)  // Set text color to white
-                                .minimumScaleFactor(0.5)
-                                .lineLimit(1)
-                                .allowsTightening(true)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+                            impactMed.impactOccurred()
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.bottom, 10)
-                        .padding(.top, 5)
-                    }
-
-                    // Open if selected
-                    .onTapGesture {
-                        selectedStructure = structure
-                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                            structureData.objectWillChange.send()
-                            if structureData.structures[index].isVisited {
-                                structureData.structures[index].isOpened = true
-                            }
-                        }
-                        showPopup = true
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        // Generate haptic feedback
-                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                        impactMed.impactOccurred()
-                    }
                 }
-                .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 8, x: 0, y: 0)
+                .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            .padding(.bottom, 30)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 10)
-        .padding(.bottom, 30)
     }
 
 
@@ -828,6 +759,132 @@ struct CustomToggleStyle: ToggleStyle {
         .background(isDarkMode ? Color.black.opacity(0.1) : Color.white.opacity(0.9))
         .cornerRadius(10)
         .padding(.trailing, 5)
+    }
+}
+
+struct StructureGridItem: View {
+    let structure: Structure
+    let isDarkMode: Bool
+    let isAdventureModeEnabled: Bool
+    
+    @StateObject private var imageLoader = ImageLoader()
+    
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            ZStack(alignment: .topTrailing) {
+                if (structure.isVisited && isAdventureModeEnabled) || (!isAdventureModeEnabled) {
+                    imageLoader.image?
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
+                        .glur(radius: 6.0, offset: 0.6, interpolation: 0.4, direction: .down)
+                        .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                        .clipped()
+                        .cornerRadius(15)
+                        .overlay(
+                            Group {
+                                if imageLoader.isLoading {
+                                    ProgressView()
+                                }
+                            }
+                        )
+                    
+                    if structure.isOpened {
+                        // Checkmark at the top right
+                        Image("Check")
+                            .resizable()
+                            .foregroundColor(.white)
+                            .frame(width: 13, height: 13)
+                            .padding(12)
+                    } else {
+                        if isAdventureModeEnabled {
+                            // Blue circle if visited but not opened & adventure mode
+                            Circle()
+                                .fill(Color.blue.opacity(0.7))
+                                .frame(width: 10, height: 10)
+                                .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
+                                .shadow(color: .white.opacity(0.7), radius: 2, x: 0, y: 0)
+                                .shadow(color: .white.opacity(0.8), radius: 4, x: 0, y: 0)
+                                .padding(12)
+                        }
+                    }
+                } else {
+                    Image(structure.mainPhoto)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
+                        .clipped()
+                        .cornerRadius(15)
+                        .blur(radius: 2.5)
+                }
+            }
+            
+            // Text overlay
+            VStack(alignment: .leading, spacing: 3) {
+                HStack {
+                    Text("\(structure.number)")
+                        .font(.system(size: 22))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                
+                Text(structure.title)
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                    .allowsTightening(true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+            .padding(.top, 5)
+        }
+        .onAppear {
+            imageLoader.load(imageName: structure.mainPhoto)
+        }
+        .onDisappear {
+            imageLoader.cancel()
+        }
+    }
+}
+
+class ImageLoader: ObservableObject {
+    @Published var image: Image?
+    @Published var isLoading = false
+    
+    private var cancellable: AnyCancellable?
+    
+    func load(imageName: String) {
+        guard image == nil else { return }
+        
+        isLoading = true
+        cancellable = loadImage(named: imageName)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                self?.isLoading = false
+                if case .failure(let error) = completion {
+                    print("Error loading image: \(error)")
+                }
+            } receiveValue: { [weak self] uiImage in
+                self?.image = Image(uiImage: uiImage)
+            }
+    }
+    
+    func cancel() {
+        cancellable?.cancel()
+    }
+    
+    private func loadImage(named imageName: String) -> AnyPublisher<UIImage, Error> {
+        return Future<UIImage, Error> { promise in
+            if let image = UIImage(named: imageName) {
+                promise(.success(image))
+            } else {
+                promise(.failure(NSError(domain: "ImageLoading", code: 0, userInfo: [NSLocalizedDescriptionKey: "Image not found"])))
+            }
+        }
+        .eraseToAnyPublisher()
     }
 }
 

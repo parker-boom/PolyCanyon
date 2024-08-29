@@ -15,6 +15,7 @@
 */
 
 import SwiftUI
+import Zoomable
 
 struct StructPopUp: View {
     // MARK: - Properties
@@ -52,7 +53,6 @@ struct StructPopUp: View {
 
                 if showInfo {
                     informationPanel(geometry: geometry)
-                        .transition(.move(edge: .bottom))
                 }
             }
         }
@@ -77,20 +77,10 @@ struct StructPopUp: View {
     }
 
     private func imageCarousel(geometry: GeometryProxy) -> some View {
-        TabView(selection: $currentImageIndex) {
-            Image(structure.mainPhoto)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .tag(0)
-            Image(structure.closeUp)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .tag(1)
-        }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .frame(width: geometry.size.width - 30, height: geometry.size.height * 0.75)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        ImprovedImageCarousel(mainPhoto: structure.mainPhoto, closeUp: structure.closeUp, currentImageIndex: $currentImageIndex, geometry: geometry)
     }
+
+    
 
     private var dismissButton: some View {
         Button(action: {
@@ -131,7 +121,7 @@ struct StructPopUp: View {
                 .shadow(color: .black, radius: 2, x: 0, y: 0)
                 .padding(20)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .transition(.move(edge: .bottom))
+                //.transition(.move(edge: .bottom))
             }
         }
         .animation(.easeInOut, value: isInfoPanelOpen)
@@ -364,6 +354,60 @@ struct FunFactPill: View {
         }
     }
 }
+
+
+struct ImprovedImageCarousel: View {
+    let mainPhoto: String
+    let closeUp: String
+    @Binding var currentImageIndex: Int
+    let geometry: GeometryProxy
+
+    var body: some View {
+        TabView(selection: $currentImageIndex) {
+            ZoomableImageView(imageName: mainPhoto)
+                .tag(0)
+            ZoomableImageView(imageName: closeUp)
+                .tag(1)
+        }
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .frame(width: geometry.size.width - 30, height: geometry.size.height * 0.75)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
+struct ZoomableImageView: View {
+    let imageName: String
+    @State private var scale: CGFloat = 1.0
+    @State private var lastScale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            
+            ZStack {
+                Image(imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size.width, height: size.height)
+                    .blur(radius: 20)
+                
+                Image(imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: size.width, height: size.height)
+                    .scaleEffect(1.2)
+                    .zoomable(
+                        minZoomScale: 1.0,
+                        doubleTapZoomScale: 2.0
+                        )
+            }
+            .clipped()
+        }
+    }
+}
+
 
 // MARK: - Preview
 struct StructPopUp_Previews: PreviewProvider {
