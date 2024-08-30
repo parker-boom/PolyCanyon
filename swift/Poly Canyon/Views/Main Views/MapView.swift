@@ -202,6 +202,24 @@ struct MapView: View {
                     }
                 }
                 
+                if showStructPopup, let selectedStructure = selectedStructure {
+                    Color.black.opacity(0.5)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            showStructPopup = false
+                        }
+                    
+                    StructPopUp(
+                        structureData: structureData,
+                        structure: selectedStructure,
+                        isDarkMode: $isDarkMode,
+                        isPresented: $showStructPopup
+                    )
+                    .padding(15)
+                    .frame(width: geometry.size.width - 30, height: geometry.size.height - 30)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                }
+                
             }
         }
         
@@ -241,15 +259,6 @@ struct MapView: View {
                 // Show congrats popup after closing structure popup
                 showAllVisitedPopup = true
                 allStructuresVisitedFlag = false // Reset the flag
-            }
-        }
-        .sheet(item: $selectedStructure) { structure in
-            StructPopUp(
-                structureData: structureData,
-                structure: structure,
-                isDarkMode: $isDarkMode
-            ) {
-                selectedStructure = nil
             }
         }
         // For the geometry reader
@@ -629,11 +638,6 @@ struct VisitedStructurePopup: View {
             .frame(width: geometry.size.width)
         }
         .frame(height: 120)
-        .sheet(isPresented: $showStructPopup) {
-            StructPopUp(structureData: structureData, structure: structure, isDarkMode: $isDarkMode) {
-                isPresented = false
-            }
-        }
     }
 }
 

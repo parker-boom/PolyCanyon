@@ -17,54 +17,72 @@
 import SwiftUI
 import Zoomable
 
+
 struct StructPopUp: View {
     // MARK: - Properties
     @ObservedObject var structureData: StructureData
     let structure: Structure
     @Binding var isDarkMode: Bool
-    var onDismiss: () -> Void
-    @Environment(\.presentationMode) var presentationMode
-    @State private var showInfo: Bool = false
+    @Binding var isPresented: Bool
+    @State private var dragOffset: CGSize = .zero
+    @State private var isShowingInfo: Bool = false
     @State private var selectedTab: Int = 0
-    @State private var isInfoPanelOpen: Bool = false
     @State private var currentImageIndex: Int = 0
     @State private var isLiked: Bool
-    
-    init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, onDismiss: @escaping () -> Void) {
-        self.structureData = structureData
+
+    // MARK: - Initialization
+    init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, isPresented: Binding<Bool>) {
+        self._structureData = ObservedObject(wrappedValue: structureData)
         self.structure = structure
         self._isDarkMode = isDarkMode
-        self.onDismiss = onDismiss
-        self._isLiked = State(initialValue: structure.isLiked)  // Initialize isLiked
+        self._isPresented = isPresented
+        self._isLiked = State(initialValue: structure.isLiked)
     }
 
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                backgroundColor
-                
-                VStack(spacing: 15) {
-                    imageSection(geometry: geometry)
-                    informationButton(geometry: geometry)
-                    Spacer()
+            VStack(spacing: 15) {
+                ZStack {
+                    if !isShowingInfo {
+                        imageSection(geometry: geometry)
+                    } else {
+                        informationPanel(geometry: geometry)
+                    }
                 }
-                .padding(.horizontal, 15)
+                .rotation3DEffect(
+                    .degrees(isShowingInfo ? 180 : 0),
+                    axis: (x: 0.0, y: 1.0, z: 0.0)
+                )
+                .animation(.easeInOut(duration: 0.5), value: isShowingInfo)
 
-                if showInfo {
-                    informationPanel(geometry: geometry)
-                }
+                informationButton(geometry: geometry)
             }
+            .padding(15)
+            .background(isDarkMode ? Color.black : Color.white)
+            .cornerRadius(20)
+            .shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.5), radius: 7, x: 0, y: 3)
+            .offset(y: dragOffset.height)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let yOffset = value.translation.height
+                        dragOffset = CGSize(width: 0, height: max(0, yOffset))
+                    }
+                    .onEnded { value in
+                        if dragOffset.height > 100 {
+                            isPresented = false
+                        }
+                        dragOffset = .zero
+                    }
+            )
+            
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.top, 10)
         .edgesIgnoringSafeArea(.all)
     }
 
     // MARK: - UI Components
-    private var backgroundColor: some View {
-        Color(isDarkMode ? .black : .white).edgesIgnoringSafeArea(.all)
-    }
-
     private func imageSection(geometry: GeometryProxy) -> some View {
         ZStack(alignment: .topLeading) {
             imageCarousel(geometry: geometry)
@@ -80,11 +98,9 @@ struct StructPopUp: View {
         ImprovedImageCarousel(mainPhoto: structure.mainPhoto, closeUp: structure.closeUp, currentImageIndex: $currentImageIndex, geometry: geometry)
     }
 
-    
-
     private var dismissButton: some View {
         Button(action: {
-            presentationMode.wrappedValue.dismiss()
+            isPresented = false
         }) {
             Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 30))
@@ -96,41 +112,23 @@ struct StructPopUp: View {
     }
 
     private var structureInfo: some View {
-        VStack {
-            if isInfoPanelOpen {
-                VStack(alignment: .leading) {
-                    Text("\(structure.number)")
-                        .font(.system(size: 40, weight: .bold))
-                    Text(structure.title)
-                        .font(.system(size: 30, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .shadow(color: .black, radius: 2, x: 0, y: 0)
-                .padding(20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .transition(.move(edge: .top))
-            } else {
-                VStack(alignment: .leading) {
-                    Spacer()
-                    Text("\(structure.number)")
-                        .font(.system(size: 40, weight: .bold))
-                    Text(structure.title)
-                        .font(.system(size: 30, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .shadow(color: .black, radius: 2, x: 0, y: 0)
-                .padding(20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                //.transition(.move(edge: .bottom))
-            }
+        VStack(alignment: .leading) {
+            Spacer()
+            Text("\(structure.number)")
+                .font(.system(size: 40, weight: .bold))
+            Text(structure.title)
+                .font(.system(size: 30, weight: .semibold))
         }
-        .animation(.easeInOut, value: isInfoPanelOpen)
+        .foregroundColor(.white)
+        .shadow(color: .black, radius: 2, x: 0, y: 0)
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
 
     private var imageDots: some View {
         VStack {
             LikeButton(structureData: structureData, structure: structure, isLiked: $isLiked)
-            
+
             HStack(spacing: 8) {
                 Circle()
                     .fill(Color.white)
@@ -145,22 +143,20 @@ struct StructPopUp: View {
             .background(Color.black.opacity(0.6))
             .cornerRadius(15)
             .padding(10)
-            
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
     }
 
     private func informationButton(geometry: GeometryProxy) -> some View {
         Button(action: {
-            withAnimation(.spring()) {
-                showInfo.toggle()
-                isInfoPanelOpen.toggle()
+            withAnimation(.easeInOut(duration: 0.5)) {
+                isShowingInfo.toggle()
             }
         }) {
             HStack {
-                Text(showInfo ? "Close  " : "Information  ")
+                Text(isShowingInfo ? "Images  " : "Information  ")
                     .font(.system(size: 22, weight: .semibold))
-                Image(systemName: showInfo ? "chevron.down" : "chevron.up")
+                Image(systemName: isShowingInfo ? "photo" : "info.circle")
                     .font(.system(size: 18, weight: .bold))
             }
             .foregroundColor(isDarkMode ? .white : .black)
@@ -175,10 +171,12 @@ struct StructPopUp: View {
     @ViewBuilder
     private func informationPanel(geometry: GeometryProxy) -> some View {
         VStack(spacing: 0) {
+            headerView
+            
             CustomTabSelector(selectedTab: $selectedTab)
                 .padding(.top, 15)
                 .padding(.bottom, 10)
-
+            
             TabView(selection: $selectedTab) {
                 statisticsView(geometry: geometry)
                     .tag(0)
@@ -187,35 +185,59 @@ struct StructPopUp: View {
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
-        .frame(width: geometry.size.width - 30, height: geometry.size.height * 0.5)
-        .background(Color(isDarkMode ? .gray : .white).opacity(0.95))
+        .frame(height: geometry.size.height * 0.75)
+        .background(isDarkMode ? Color.black : Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+    }
+
+    private var headerView: some View {
+        HStack {
+            Text("\(structure.number)")
+                .font(.system(size: 30, weight: .bold))
+            Spacer()
+            Text(structure.title)
+                .font(.system(size: 24, weight: .semibold))
+            Spacer()
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    isShowingInfo.toggle()
+                }
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(isDarkMode ? .white : .black)
+            }
+        }
+        .padding()
+        .background(isDarkMode ? Color.black : Color.white)
     }
 
     private func statisticsView(geometry: GeometryProxy) -> some View {
-        VStack(alignment: .leading, spacing: 15) {
-            HStack(spacing: 10) {
-                if structure.year != "iii" {
-                    InfoPill(icon: "📅", title: "Year", value: structure.year)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 15) {
+                HStack(spacing: 10) {
+                    if structure.year != "iii" {
+                        InfoPill(icon: "📅", title: "Year", value: structure.year)
+                    }
+                    if structure.architecturalStyle != "iii" {
+                        InfoPill(icon: "🏛️", title: "Style", value: structure.architecturalStyle)
+                    }
                 }
-                if structure.architecturalStyle != "iii" {
-                    InfoPill(icon: "🏛️", title: "Style", value: structure.architecturalStyle)
+
+                if structure.students != "iii" || structure.advisors != "iii" {
+                    InfoPill(icon: "👷", title: "Builders", value: "\(structure.students) \(structure.advisors)")
+                        .frame(height: 80)
+                }
+
+                if structure.additionalInfo != "iii" {
+                    FunFactPill(icon: "✨", fact: structure.additionalInfo ?? "No fun fact available")
+                        .frame(height: 100)
                 }
             }
-
-            if structure.students != "iii" || structure.advisors != "iii" {
-                InfoPill(icon: "👷", title: "Builders", value: "\(structure.students) \(structure.advisors)")
-                    .frame(height: 80)
-            }
-
-            if structure.additionalInfo != "iii" {
-                FunFactPill(icon: "✨", fact: structure.additionalInfo ?? "No fun fact available")
-                    .frame(height: 100)
-            }
-
+            .padding(15)
         }
-        .padding(15)
     }
 
     private var descriptionView: some View {
@@ -226,8 +248,6 @@ struct StructPopUp: View {
                 .padding(.horizontal, 10)
                 .padding(.top, 10)
                 .multilineTextAlignment(.center)
-
-            Spacer()
         }
     }
 }
@@ -433,10 +453,8 @@ struct StructPopUp_Previews: PreviewProvider {
         return StructPopUp(
             structureData: mockStructureData,
             structure: mockStructure,
-            isDarkMode: .constant(false)
-        ) {
-            // This is the onDismiss closure
-            print("Dismissed")
-        }
+            isDarkMode: .constant(false),
+            isPresented: .constant(true)
+        )
     }
 }

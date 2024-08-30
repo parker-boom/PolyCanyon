@@ -41,21 +41,12 @@ struct DetailView: View {
     @AppStorage("visitedCount") private var visitedCount: Int = 0
 
     @State private var showEyePopup = false
-    @State private var eyeIconState: EyeIconState = .all
-    @State private var virtualTourSortState: VirtualTourSortState = .all
+    @State private var sortState: SortState = .all
 
-    enum EyeIconState {
-        case all
-        case visited
-        case unopened
-        case unvisited
+    enum SortState {
+        case all, favorites, visited, unopened, unvisited
     }
-    
-    enum VirtualTourSortState  {
-        case all, favorites
-    }
-    
-    
+
     // MARK: - Computed Properties for Sorting Options
 
     private var hasVisitedStructures: Bool {
@@ -116,17 +107,21 @@ struct DetailView: View {
             
                 
                 // Present pop up
-                .sheet(isPresented: $showPopup) {
-                     if let selectedStructure = selectedStructure {
-                         StructPopUp(
-                             structureData: structureData,
-                             structure: selectedStructure,
-                             isDarkMode: $isDarkMode
-                         ) {
-                             showPopup = false
-                         }
-                     }
-                 }
+                .overlay(
+                    Group {
+                        if showPopup, let selectedStructure = selectedStructure {
+                            
+                            StructPopUp(
+                                structureData: structureData,
+                                structure: selectedStructure,
+                                isDarkMode: $isDarkMode,
+                                isPresented: $showPopup
+                            )
+                            .padding(15)
+                            
+                        }
+                    }
+                )
             }
             .background(isDarkMode ? Color.black : Color.white)
             
@@ -172,117 +167,137 @@ struct DetailView: View {
         .background(isDarkMode ? Color.black : Color.white)
     }
     
+    private func showStructurePopup(_ structure: Structure) {
+        selectedStructure = structure
+        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
+            structureData.objectWillChange.send()
+            if structureData.structures[index].isVisited {
+                structureData.structures[index].isOpened = true
+            }
+        }
+        showPopup = true
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
+        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+        impactMed.impactOccurred()
+    }
+    
     
     // MARK: - Views and Helpers
-
     var headerView: some View {
-        HStack {
-            if isAdventureModeEnabled {
-                adventureModeEyeButton
-            } else {
-                virtualTourSortButton
-            }
+           HStack {
+               sortButton
 
-            SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
-                .frame(maxWidth: .infinity)
+               SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+                   .frame(maxWidth: .infinity)
 
-            if searchText != "" {
-                Button(action: {
-                    searchText = ""
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(isDarkMode ? .white : .black)
-                        .font(.system(size: 20, weight: .semibold))
-                        .padding(.trailing, 5)
-                }
-            }
+               if searchText != "" {
+                   Button(action: {
+                       searchText = ""
+                       UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                   }) {
+                       Image(systemName: "xmark.circle.fill")
+                           .foregroundColor(isDarkMode ? .white : .black)
+                           .font(.system(size: 20, weight: .semibold))
+                           .padding(.trailing, 5)
+                   }
+               }
 
-            Toggle(isOn: $isGridView) {
-                Text("View Mode")
-            }
-            .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
-        }
-        .background(isDarkMode ? Color.black : Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
-        .padding(.horizontal, 10)
-        .padding(.bottom, -5)
-    }
+               Toggle(isOn: $isGridView) {
+                   Text("View Mode")
+               }
+               .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
+           }
+           .background(isDarkMode ? Color.black : Color.white)
+           .clipShape(RoundedRectangle(cornerRadius: 10))
+           .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+           .padding(.horizontal, 10)
+           .padding(.bottom, -5)
+       }
 
-    var adventureModeEyeButton: some View {
+    var sortButton: some View {
         Menu {
-            Button(action: { eyeIconState = .all }) {
-                Label("All", systemImage: "eye")
-            }
-            if hasVisitedStructures {
-                Button(action: { eyeIconState = .visited }) {
-                    Label("Visited", systemImage: "checkmark.circle")
-                }
-            }
-            if hasUnopenedStructures {
-                Button(action: { eyeIconState = .unopened }) {
-                    Label("Unopened", systemImage: "envelope")
-                }
-            }
-            if hasUnvisitedStructures {
-                Button(action: { eyeIconState = .unvisited }) {
-                    Label("Unvisited", systemImage: "xmark.circle")
-                }
-            }
-        } label: {
-            Image(systemName: "eye")
-                .foregroundColor(getEyeIconColor())
-                .font(.system(size: 28, weight: .semibold))
-                .padding(5)
-                .cornerRadius(8)
-        }
-        .padding(.leading, 5)
-    }
-
-    var virtualTourSortButton: some View {
-        Menu {
-            Button(action: { virtualTourSortState = .all }) {
+            Button(action: { sortState = .all }) {
                 Label("All", systemImage: "circle.fill")
             }
             if hasLikedStructures {
-                Button(action: { virtualTourSortState = .favorites }) {
+                Button(action: { sortState = .favorites }) {
                     Label("Favorites", systemImage: "heart.fill")
                 }
             }
+            if isAdventureModeEnabled {
+                if hasVisitedStructures {
+                    Button(action: { sortState = .visited }) {
+                        Label("Visited", systemImage: "checkmark.circle")
+                    }
+                }
+                if hasUnopenedStructures {
+                    Button(action: { sortState = .unopened }) {
+                        Label("Unopened", systemImage: "envelope")
+                    }
+                }
+                if hasUnvisitedStructures {
+                    Button(action: { sortState = .unvisited }) {
+                        Label("Unvisited", systemImage: "xmark.circle")
+                    }
+                }
+            }
         } label: {
-            Image(systemName: virtualTourSortState == .all ? "circle.fill" : "heart.fill")
-                .foregroundColor(virtualTourSortState == .all ? .black : .red)
+            Image(systemName: getSortButtonImageName())
+                .foregroundColor(getSortButtonColor())
                 .font(.system(size: 28, weight: .semibold))
                 .padding(5)
                 .cornerRadius(8)
         }
         .padding(.leading, 5)
+    }
+
+    func getSortButtonImageName() -> String {
+        switch sortState {
+        case .all:
+            return "circle.fill"
+        case .favorites:
+            return "heart.fill"
+        case .visited:
+            return "checkmark.circle"
+        case .unopened:
+            return "envelope"
+        case .unvisited:
+            return "xmark.circle"
+        }
+    }
+
+    func getSortButtonColor() -> Color {
+        switch sortState {
+        case .all:
+            return isDarkMode ? .white : .black
+        case .favorites:
+            return .red
+        case .visited:
+            return .green
+        case .unopened:
+            return .blue
+        case .unvisited:
+            return .red
+        }
     }
 
     var filteredStructures: [Structure] {
         let searchFiltered = structureData.structures.filter { structure in
             searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
         }
-
-        if isAdventureModeEnabled {
-            switch eyeIconState {
-            case .all:
-                return searchFiltered
-            case .visited:
-                return searchFiltered.filter { $0.isVisited }
-            case .unopened:
-                return searchFiltered.filter { $0.isVisited && !$0.isOpened }
-            case .unvisited:
-                return searchFiltered.filter { !$0.isVisited }
-            }
-        } else {
-            switch virtualTourSortState {
-            case .all:
-                return searchFiltered
-            case .favorites:
-                return searchFiltered.filter { $0.isLiked }
-            }
+        
+        switch sortState {
+        case .all:
+            return searchFiltered
+        case .favorites:
+            return searchFiltered.filter { $0.isLiked }
+        case .visited:
+            return searchFiltered.filter { $0.isVisited }
+        case .unopened:
+            return searchFiltered.filter { $0.isVisited && !$0.isOpened }
+        case .unvisited:
+            return searchFiltered.filter { !$0.isVisited }
         }
     }
 
@@ -586,15 +601,15 @@ struct DetailView: View {
     }
     
     private var shouldShowRecentlyVisited: Bool {
-        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && eyeIconState == .visited && isAdventureModeEnabled
+        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && sortState == .visited && isAdventureModeEnabled
     }
 
     private var shouldShowRecentlyUnopened: Bool {
-        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && eyeIconState == .unopened && isAdventureModeEnabled
+        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && sortState == .unopened && isAdventureModeEnabled
     }
 
     private var shouldShowNearbyUnvisited: Bool {
-        structureData.structures.contains(where: { !$0.isVisited }) && eyeIconState == .unvisited && isAdventureModeEnabled
+        structureData.structures.contains(where: { !$0.isVisited }) && sortState == .unvisited && isAdventureModeEnabled
     }
 
     
@@ -607,56 +622,25 @@ struct DetailView: View {
         return userLocation.distance(from: structureCLLocation)
     }
 
-    // Show the eye icon based on which filter
-    func toggleEyeIconState() {
-        switch eyeIconState {
-        case .all:
-            eyeIconState = .visited
-        case .visited:
-            eyeIconState = .unopened
-        case .unopened:
-            eyeIconState = .unvisited
-        case .unvisited:
-            eyeIconState = .all
-        }
-        showPopup(for: eyeIconState)
-    }
-    
-    func toggleVirtualTourSortState() {
-        virtualTourSortState = virtualTourSortState == .all ? .favorites : .all
-        showPopup(for: virtualTourSortState)
-    }
-    
-    
-    // Change eye icon color based on which filter
-    func getEyeIconColor() -> Color {
-        switch eyeIconState {
-        case .all:
-            return isDarkMode ? .white : .black
-        case .visited:
-            return .green
-        case .unopened:
-            return Color.blue.opacity(0.7)
-        case .unvisited:
-            return .red
-        }
-    }
+
 
     // Change eye popup message based on which filter
     func getPopupMessage() -> String {
-           if isAdventureModeEnabled {
-               switch eyeIconState {
-               case .all: return "All"
-               case .visited: return "Visited"
-               case .unopened: return "Unopened"
-               case .unvisited: return "Unvisited"
-               }
-           } else {
-               return virtualTourSortState == .all ? "All" : "Favorites"
-           }
-       }
+        switch sortState {
+        case .all:
+            return "All"
+        case .favorites:
+            return "Favorites"
+        case .visited:
+            return "Visited"
+        case .unopened:
+            return "Unopened"
+        case .unvisited:
+            return "Unvisited"
+        }
+    }
 
-    func showPopup(for state: Any) {
+    func showPopup(for state: SortState) {
         withAnimation {
             showEyePopup = true
         }

@@ -351,7 +351,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func markPointAsVisitedByIndex(_ index: Int) {
         let mapPoints = mapPointManager.mapPoints
         if index >= 0 && index < mapPoints.count {
-            var newIndex = index - 1;
+            let newIndex = index - 1;
             mapPoints[newIndex].isVisited = true
             markStructureAsVisited(mapPoints[newIndex].landmark)
         }
