@@ -1,1 +1,326 @@
-[{"number":1,"title":"Entry Arch","description":"iii","year":"1976"},{"number":2,"title":"Stone Wall","description":"iii","year":"1976"},{"number":3,"title":"Techtite Bridge","description":"iii","year":"1973"},{"number":4,"title":"Blade","description":"iii","year":"1963 \/ 2003"},{"number":5,"title":"Zenith Zigzag","description":"iii","year":"xxxx"},{"number":6,"title":"Palm Tree","description":"iii","year":"xxxx"},{"number":7,"title":"Tensile","description":"iii","year":"2003"},{"number":8,"title":"Geodesic Dome","description":"iii","year":"1957"},{"number":9,"title":"Cantilever Deck","description":"iii","year":"1990"},{"number":10,"title":"Bathroom","description":"iii","year":"1972"},{"number":11,"title":"Underground House","description":"iii","year":"1982"},{"number":12,"title":"Sun Dial","description":"iii","year":"1971"},{"number":13,"title":"Gunite Bridge","description":"iii","year":"1965"},{"number":14,"title":"Timber Truss","description":"iii","year":"1994"},{"number":15,"title":"Stick Structure","description":"iii","year":"1976"},{"number":16,"title":"Pyramid","description":"iii","year":"xxxx"},{"number":17,"title":"Bridge House","description":"iii","year":"1968"},{"number":18,"title":"Wooden Bridge","description":"iii","year":"xxxx"},{"number":19,"title":"Water Tower","description":"iii","year":"1969"},{"number":20,"title":"Observation Deck","description":"iii","year":"2019"},{"number":21,"title":"Poly Pavilion","description":"iii","year":"1985"},{"number":22,"title":"Serenity Wall","description":"iii","year":"xxxx"},{"number":23,"title":"Hay Bale Arch","description":"iii","year":"2004"},{"number":24,"title":"Fratessa Tower","description":"iii","year":"2004"},{"number":25,"title":"Tensegrity","description":"iii","year":"2022"},{"number":26,"title":"Shell House","description":"iii","year":"1975"},{"number":27,"title":"Green House","description":"iii","year":"1989"},{"number":28,"title":"Modular House","description":"iii","year":"1973"},{"number":29,"title":"Centering Center","description":"iii","year":"xxxx"},{"number":30,"title":"Pole Building","description":"iii","year":"1989"},{"number":31,"title":"Timber Tranquility","description":"iii","year":"xxxx"},{"number":32,"title":"BBQ Pit","description":"iii","year":"1975"},{"number":33,"title":"Stone Bridge","description":"iii","year":"xxxx"},{"number":34,"title":"Stone Structures","description":"iii","year":"xxxx"},{"number":35,"title":"Cardinal Cluster","description":"iii","year":"xxxx"},{"number":36,"title":"Moment Monument","description":"iii","year":"2024"}]
+[
+    {
+        "number": 1,
+        "title": "Entry Arch",
+        "description": "iii",
+        "year": "1976",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 2,
+        "title": "Stone Wall",
+        "description": "iii",
+        "year": "1976",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 3,
+        "title": "Techtite Bridge",
+        "description": "iii",
+        "year": "1973",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 4,
+        "title": "Blade",
+        "description": "iii",
+        "year": "1963 / 2003",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 5,
+        "title": "Zenith Zigzag",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 6,
+        "title": "Palm Tree",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 7,
+        "title": "Tensile",
+        "description": "iii",
+        "year": "2003",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 8,
+        "title": "Geodesic Dome",
+        "description": "iii",
+        "year": "1957",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 9,
+        "title": "Cantilever Deck",
+        "description": "iii",
+        "year": "1990",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 10,
+        "title": "Bathroom",
+        "description": "iii",
+        "year": "1972",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 11,
+        "title": "Underground House",
+        "description": "iii",
+        "year": "1982",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 12,
+        "title": "Sun Dial",
+        "description": "iii",
+        "year": "1971",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 13,
+        "title": "Gunite Bridge",
+        "description": "iii",
+        "year": "1965",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 14,
+        "title": "Timber Truss",
+        "description": "iii",
+        "year": "1994",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 15,
+        "title": "Stick Structure",
+        "description": "iii",
+        "year": "1976",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 16,
+        "title": "Pyramid",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 17,
+        "title": "Bridge House",
+        "description": "iii",
+        "year": "1968",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 18,
+        "title": "Wooden Bridge",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 19,
+        "title": "Water Tower",
+        "description": "iii",
+        "year": "1969",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 20,
+        "title": "Observation Deck",
+        "description": "iii",
+        "year": "2019",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 21,
+        "title": "Poly Pavilion",
+        "description": "iii",
+        "year": "1985",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 22,
+        "title": "Serenity Wall",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 23,
+        "title": "Hay Bale Arch",
+        "description": "iii",
+        "year": "2004",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 24,
+        "title": "Fratessa Tower",
+        "description": "iii",
+        "year": "2004",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 25,
+        "title": "Tensegrity",
+        "description": "iii",
+        "year": "2022",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 26,
+        "title": "Shell House",
+        "description": "iii",
+        "year": "1975",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 27,
+        "title": "Green House",
+        "description": "iii",
+        "year": "1989",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 28,
+        "title": "Modular House",
+        "description": "iii",
+        "year": "1973",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 29,
+        "title": "Centering Center",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 30,
+        "title": "Pole Building",
+        "description": "iii",
+        "year": "1989",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 31,
+        "title": "Timber Tranquility",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 32,
+        "title": "BBQ Pit",
+        "description": "iii",
+        "year": "1975",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 33,
+        "title": "Stone Bridge",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 34,
+        "title": "Stone Structures",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 35,
+        "title": "Cardinal Cluster",
+        "description": "iii",
+        "year": "xxxx",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    },
+    {
+        "number": 36,
+        "title": "Moment Monument",
+        "description": "iii",
+        "year": "2024",
+        "builders": "iii",
+        "architecture": "iii",
+        "funFact": "iii"
+    }
+]

@@ -15,10 +15,13 @@
  * - Get the current location with high accuracy
  */
 
-import { PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform, AppState } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import { useAdventureMode } from './AdventureModeContext';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+let foregroundWatchId = null;
+let backgroundWatchId = null;
 
 // Safe zone coordinates
 const safeZoneCorners = {
@@ -29,7 +32,6 @@ const safeZoneCorners = {
 // MARK: - Request Location Permission
 /**
  * Requests fine and background location permissions.
- * Logs the status of the permissions to the console.
  */
 const requestLocationPermission = async () => {
   try {
@@ -45,8 +47,6 @@ const requestLocationPermission = async () => {
     );
 
     if (fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("Fine location permission granted");
-
       const backgroundLocationGranted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
         {
@@ -57,17 +57,9 @@ const requestLocationPermission = async () => {
           buttonPositive: "OK"
         }
       );
-
-      if (backgroundLocationGranted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("Background location permission granted");
-      } else {
-        console.log("Background location permission denied");
-      }
-    } else {
-      console.log("Fine location permission denied");
     }
   } catch (err) {
-    console.warn(err);
+    // Error handling can be implemented here if needed
   }
 };
 
@@ -130,7 +122,6 @@ const markStructureAsVisited = (landmarkId, mapPoints) => {
     return point;
   });
 
-  console.log(`Structure with landmark ID ${landmarkId} marked as visited`);
   return updatedMapPoints;
 };
 
@@ -146,7 +137,6 @@ const getCurrentLocation = (callback, mapPoints) => {
   Geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
-      console.log('Current position:', position);
 
       if (isWithinSafeZone({ latitude, longitude })) {
         const nearestPoint = findNearestMapPoint({ latitude, longitude }, mapPoints);
@@ -161,7 +151,6 @@ const getCurrentLocation = (callback, mapPoints) => {
       }
     },
     (error) => {
-      console.log('Error getting current position:', error);
       callback(error, null, mapPoints);
     },
     {
@@ -177,7 +166,6 @@ let watchId = null;
 // MARK: - Start Location Tracking
 export const startLocationTracking = (callback) => {
   if (watchId !== null) {
-    console.log('Location tracking is already active');
     return;
   }
 
@@ -188,33 +176,115 @@ export const startLocationTracking = (callback) => {
   );
 };
 
+const startForegroundTracking = (callback) => {
+  if (foregroundWatchId !== null) {
+    return;
+  }
+
+  foregroundWatchId = Geolocation.watchPosition(
+    (position) => {
+      callback(null, position);
+      if (isWithinSafeZone(position.coords)) {
+        startBackgroundTracking(callback);
+      } else {
+        stopBackgroundTracking();
+      }
+    },
+    (error) => callback(error, null),
+    { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
+  );
+};
+
+const startBackgroundTracking = (callback) => {
+  if (backgroundWatchId !== null) {
+    return;
+  }
+
+  backgroundWatchId = Geolocation.watchPosition(
+    (position) => {
+      if (isWithinSafeZone(position.coords)) {
+        callback(null, position);
+      } else {
+        stopBackgroundTracking();
+      }
+    },
+    (error) => callback(error, null),
+    { 
+      enableHighAccuracy: true, 
+      distanceFilter: 50, 
+      interval: 60000, // Check every minute in background
+      fastestInterval: 30000,
+      forceRequestLocation: true,
+      showLocationDialog: true,
+    }
+  );
+};
+
+
 // MARK: - Stop Location Tracking
 export const stopLocationTracking = () => {
   if (watchId !== null) {
     Geolocation.clearWatch(watchId);
     watchId = null;
-    console.log('Location tracking stopped');
   }
 };
+
+
+const stopForegroundTracking = () => {
+  if (foregroundWatchId !== null) {
+    Geolocation.clearWatch(foregroundWatchId);
+    foregroundWatchId = null;
+  }
+};
+
+const stopBackgroundTracking = () => {
+  if (backgroundWatchId !== null) {
+    Geolocation.clearWatch(backgroundWatchId);
+    backgroundWatchId = null;
+  }
+};
+
+
+
 
 // MARK: - Use Location
 export const useLocation = (callback) => {
   const { adventureMode } = useAdventureMode();
-
-  // Using useEffect hook from React to manage side effects
-  
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
-    if (adventureMode) {
-      requestLocationPermission();
-      startLocationTracking(callback);
-    } else {
-      stopLocationTracking();
-    }
+    const handleAppStateChange = (nextAppState) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App has come to the foreground
+        if (adventureMode) {
+          startForegroundTracking(callback);
+        }
+      } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+        // App has gone to the background
+        stopForegroundTracking();
+        // Background tracking will continue if it was already started
+      }
+      appState.current = nextAppState;
+    };
 
-    // Cleanup function to stop tracking when component unmounts or dependencies change
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+    const setupLocationTracking = async () => {
+      if (adventureMode) {
+        await requestLocationPermission(true);
+        startForegroundTracking(callback);
+      } else {
+        stopForegroundTracking();
+        stopBackgroundTracking();
+      }
+    };
+
+    setupLocationTracking();
+
     return () => {
-      stopLocationTracking();
+      stopForegroundTracking();
+      stopBackgroundTracking();
+      appStateSubscription.remove();
     };
   }, [adventureMode, callback]);
 };

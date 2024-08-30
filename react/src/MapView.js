@@ -88,7 +88,7 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
                     />
                 </TouchableOpacity>
                 <Image
-                    source={structure.closeUpImage}
+                    source={structure.mainImage.image} 
                     style={styles.popupImage}
                 />
                 <TouchableOpacity style={styles.textContainer} onPress={() => onStructurePress(structure)}>

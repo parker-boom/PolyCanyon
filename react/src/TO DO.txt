@@ -1,4 +1,0 @@
-TO DO
-Check location logic working?
-Fix images in detail view grid view!!!!!
-Make map zoomable 

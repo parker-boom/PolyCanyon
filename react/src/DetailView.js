@@ -96,7 +96,9 @@ const DetailView = () => {
             <View style={[styles.row, isDarkMode && styles.darkRow]}>
                 <Text style={[styles.number, isDarkMode && styles.darkText]}>{item.number}</Text>
                 <Text style={[styles.title, isDarkMode && styles.darkText]}>{item.title}</Text>
-                <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
+                {adventureMode && (
+                    <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -105,7 +107,7 @@ const DetailView = () => {
         <TouchableOpacity onPress={() => handleStructurePress(item)} style={[styles.gridItem, styles.shadow, isDarkMode && styles.darkGridItem]}>
             <View style={styles.imageContainer}>
                 <FastImage 
-                    source={item.mainImage} 
+                    source={item.mainImage.image}
                     style={styles.gridImage}
                     resizeMode={FastImage.resizeMode.cover} 
                 />
@@ -116,6 +118,7 @@ const DetailView = () => {
                         blurAmount={2}
                     />
                 )}
+                <Text style={styles.gridNumberOverlay}>{item.number}</Text>
             </View>
             <View style={[styles.gridInfoContainer, isDarkMode && styles.darkGridInfoContainer]}>
                 <Text style={[styles.gridNumber, isDarkMode && styles.darkText]}>{item.number}</Text>

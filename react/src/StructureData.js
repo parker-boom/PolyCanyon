@@ -104,126 +104,101 @@ const images = {
   "M-36": require('../assets/photos/Main/M-36.jpg'),
 };
 
-// Functions to get the image paths
-const getCloseImagePath = number => images[`C-${number}`];
-const getMainImagePath = number => images[`M-${number}`];
+// Update these functions to return both the image object and its file path
+const getCloseImagePath = number => {
+  const key = `C-${number}`;
+  return { image: images[key], path: `../assets/photos/Close/${key}.jpg` };
+};
 
-const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY';
-const VISIT_COUNTER_KEY = 'VISIT_COUNTER_KEY';
-const LAST_VISIT_DATE_KEY = 'LAST_VISIT_DATE_KEY';
-const DAYS_VISITED_KEY = 'DAYS_VISITED_KEY';
+const getMainImagePath = number => {
+  const key = `M-${number}`;
+  return { image: images[key], path: `../assets/photos/Main/${key}.jpg` };
+};
+
+const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY_V3'; // New key to ensure fresh start
 
 // MARK: - Provider Component
 export const StructureProvider = ({ children }) => {
-    // State variables to manage structure data and visit statistics
     const [structures, setStructures] = useState([]);
-    const [visitCounter, setVisitCounter] = useState(0);
-    const [lastVisitDate, setLastVisitDate] = useState(null);
-    const [daysVisited, setDaysVisited] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // MARK: - Load Data
-    /**
-     * Loads structure data and visit statistics from AsyncStorage.
-     * If no saved data is found, initializes structure data from JSON file.
-     */
-    const loadData = async () => {
+    const resetAndReloadStructures = async () => {
+        setIsLoading(true);
         try {
-            const [storedStructures, storedVisitCounter, storedLastVisitDate, storedDaysVisited] = await Promise.all([
-                AsyncStorage.getItem(STRUCTURES_STORAGE_KEY),
-                AsyncStorage.getItem(VISIT_COUNTER_KEY),
-                AsyncStorage.getItem(LAST_VISIT_DATE_KEY),
-                AsyncStorage.getItem(DAYS_VISITED_KEY)
-            ]);
+            await AsyncStorage.removeItem(STRUCTURES_STORAGE_KEY);
 
+            const newStructures = rawStructureData.map(s => ({
+                ...s,
+                closeUpImage: getCloseImagePath(s.number),
+                mainImage: getMainImagePath(s.number),
+                isVisited: false,
+                isOpened: false,
+                recentlyVisited: -1
+            }));
+
+            setStructures(newStructures);
+            await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(newStructures));
+        } catch (error) {
+            console.error('Error resetting and reloading structures:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const loadStructures = async () => {
+        try {
+            const storedStructures = await AsyncStorage.getItem(STRUCTURES_STORAGE_KEY);
+            let loadedStructures;
             if (storedStructures !== null) {
-                setStructures(JSON.parse(storedStructures));
-            } else {
-                const initializedStructures = rawStructureData.map(s => ({
-                    ...s,
-                    closeUpImage: getCloseImagePath(s.number),
-                    mainImage: getMainImagePath(s.number),
-                    isVisited: false,
-                    isOpened: false,
-                    recentlyVisited: -1
+                loadedStructures = JSON.parse(storedStructures);
+                loadedStructures = loadedStructures.map(structure => ({
+                    ...structure,
+                    closeUpImage: getCloseImagePath(structure.number),
+                    mainImage: getMainImagePath(structure.number),
                 }));
-                setStructures(initializedStructures);
+            } else {
+                await resetAndReloadStructures();
+                loadedStructures = structures;
             }
 
-            setVisitCounter(storedVisitCounter !== null ? parseInt(storedVisitCounter) : 0);
-            setLastVisitDate(storedLastVisitDate !== null ? new Date(storedLastVisitDate) : null);
-            setDaysVisited(storedDaysVisited !== null ? parseInt(storedDaysVisited) : 0);
+            setStructures(loadedStructures);
         } catch (error) {
-            console.error('Failed to load data', error);
+            console.error('Error loading structures:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    // MARK: - Save Data
-    /**
-     * Saves structure data and visit statistics to AsyncStorage.
-     */
-    const saveData = async () => {
-        try {
-            await Promise.all([
-                AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(structures)),
-                AsyncStorage.setItem(VISIT_COUNTER_KEY, visitCounter.toString()),
-                AsyncStorage.setItem(LAST_VISIT_DATE_KEY, lastVisitDate ? lastVisitDate.toISOString() : ''),
-                AsyncStorage.setItem(DAYS_VISITED_KEY, daysVisited.toString())
-            ]);
-        } catch (error) {
-            console.error('Failed to save data', error);
-        }
-    };
-
-    // Load data when the component mounts
     useEffect(() => {
-        loadData();
+        loadStructures();
     }, []);
 
-    // Save data whenever there are updates to structures or visit statistics
     useEffect(() => {
-        saveData();
-    }, [structures, visitCounter, lastVisitDate, daysVisited]);
+        const saveStructures = async () => {
+            try {
+                await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(structures));
+            } catch (error) {
+                console.error('Error saving structures:', error);
+            }
+        };
 
-    // MARK: - Mark Structure As Visited
-    /**
-     * Marks a structure as visited and updates the visit statistics.
-     * 
-     * @param {number} landmarkId - The ID of the landmark to mark as visited.
-     * @returns {Object} - The structure that was marked as visited.
-     */
-    const markStructureAsVisited = (landmarkId) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        setVisitCounter(prev => prev + 1);
-
-        if (!lastVisitDate || lastVisitDate < today) {
-            setLastVisitDate(today);
-            setDaysVisited(prev => prev + 1);
+        if (structures.length > 0) {
+            saveStructures();
         }
+    }, [structures]);
 
+    const markStructureAsVisited = (landmarkId) => {
         setStructures(prevStructures => {
-            const updatedStructures = prevStructures.map(structure => 
+            return prevStructures.map(structure => 
                 structure.number === landmarkId 
-                    ? { ...structure, isVisited: true, recentlyVisited: visitCounter + 1 }
+                    ? { ...structure, isVisited: true }
                     : structure
             );
-            
-            // Check if all structures are now visited
-            if (updatedStructures.every(s => s.isVisited)) {
-                // This could be a place to increment a "all visited" counter if needed
-            }
-
-            return updatedStructures;
         });
 
         return structures.find(s => s.number === landmarkId);
     };
 
-    // MARK: - Reset Visited Structures
-    /**
-     * Resets the visited status of all structures and visit statistics.
-     */
     const resetVisitedStructures = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
@@ -231,15 +206,8 @@ export const StructureProvider = ({ children }) => {
             isOpened: false,
             recentlyVisited: -1
         })));
-        setVisitCounter(0);
-        setLastVisitDate(null);
-        setDaysVisited(0);
     };
 
-    // MARK: - Set All Structures As Visited
-    /**
-     * Marks all structures as visited.
-     */
     const setAllStructuresAsVisited = () => {
         setStructures(prevStructures => prevStructures.map(structure => ({
             ...structure,
@@ -247,16 +215,15 @@ export const StructureProvider = ({ children }) => {
         })));
     };
 
-    // Provide structure state and functions to children components
     return (
         <StructureContext.Provider value={{ 
             structures, 
             setStructures, 
-            resetVisitedStructures, 
-            setAllStructuresAsVisited,
+            resetAndReloadStructures,
+            isLoading,
             markStructureAsVisited,
-            visitCounter,
-            daysVisited
+            resetVisitedStructures,
+            setAllStructuresAsVisited
         }}>
             {children}
         </StructureContext.Provider>

@@ -4,8 +4,23 @@ import Swiper from 'react-native-swiper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { requestLocationPermission } from './LocationManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 
 const { width, height } = Dimensions.get('window');
+
+// Add the calculateDistance function
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance in kilometers
+  return distance;
+};
 
 const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -22,7 +37,13 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
 
   const checkUserLocation = async () => {
     try {
-      const position = await getCurrentPosition();
+      const position = await new Promise((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      });
       const distance = calculateDistance(position.coords.latitude, position.coords.longitude, 35.3050, -120.6625); // Cal Poly coordinates
       setIsNearCalPoly(distance <= 100);
       setIsAdventureModeEnabled(distance <= 100);
