@@ -23,14 +23,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StructureProvider } from './StructureData'; 
 import { MapPointsProvider } from './MapPoint';
 import { DarkModeProvider } from './DarkMode';
+import { AdventureModeProvider } from './AdventureModeContext';
 
 const ContentView = () => {
   const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(true);
-  const [adventureMode, setAdventureMode] = useState(true);
 
   useEffect(() => {
     checkFirstLaunchV2();
-    loadAdventureMode();
   }, []);
 
   const checkFirstLaunchV2 = async () => {
@@ -44,50 +43,28 @@ const ContentView = () => {
     }
   };
 
-  const loadAdventureMode = async () => {
-    try {
-      const value = await AsyncStorage.getItem('adventureMode');
-      if (value !== null) {
-        setAdventureMode(JSON.parse(value));
-      }
-    } catch (error) {
-      console.log('Error loading adventure mode:', error);
-    }
-  };
-
   const handleOnboardingComplete = () => {
     setIsFirstLaunchV2(false);
     AsyncStorage.setItem('isFirstLaunchV2', 'false');
-  };
-
-  const handleSetAdventureMode = async (newMode) => {
-    setAdventureMode(newMode);
-    try {
-      await AsyncStorage.setItem('adventureMode', JSON.stringify(newMode));
-    } catch (error) {
-      console.log('Error saving adventure mode:', error);
-    }
   };
 
   return (
     <DarkModeProvider>
       <StructureProvider>
         <MapPointsProvider>
-          <View style={{ flex: 1 }}>
-            {isFirstLaunchV2 ? (
-              <OnboardingView
-                onComplete={handleOnboardingComplete}
-                setAdventureModeGlobal={handleSetAdventureMode}
-              />
-            ) : (
-              <NavigationContainer>
-                <MainView 
-                  adventureMode={adventureMode} 
-                  setAdventureMode={handleSetAdventureMode} 
+          <AdventureModeProvider>
+            <View style={{ flex: 1 }}>
+              {isFirstLaunchV2 ? (
+                <OnboardingView
+                  onComplete={handleOnboardingComplete}
                 />
-              </NavigationContainer>
-            )}
-          </View>
+              ) : (
+                <NavigationContainer>
+                  <MainView />
+                </NavigationContainer>
+              )}
+            </View>
+          </AdventureModeProvider>
         </MapPointsProvider>
       </StructureProvider>
     </DarkModeProvider>

@@ -33,11 +33,14 @@ import FastImage from 'react-native-fast-image';
 import { BlurView } from '@react-native-community/blur';
 import StructPopUp from './StructPopUp';
 import { useDarkMode } from './DarkMode';
+import { useAdventureMode } from './AdventureModeContext';
+import { useLocation } from './LocationManager';
 
 const DetailView = () => {
     // MARK: - Hooks and Context
     const { structures } = useStructures();
     const { isDarkMode } = useDarkMode();
+    const { adventureMode } = useAdventureMode();
     const [searchText, setSearchText] = useState('');
     const [isListView, setIsListView] = useState(false);
     const [filterState, setFilterState] = useState('all');
@@ -58,6 +61,8 @@ const DetailView = () => {
 
     // MARK: - Event Handlers
     const handleFilterChange = () => {
+        if (!adventureMode) return;
+        
         let newFilterState;
         let newPopUpText;
 
@@ -104,7 +109,7 @@ const DetailView = () => {
                     style={styles.gridImage}
                     resizeMode={FastImage.resizeMode.cover} 
                 />
-                {!item.isVisited && (
+                {adventureMode && !item.isVisited && (
                     <BlurView
                         style={styles.blurView}
                         blurType={isDarkMode ? "dark" : "light"}
@@ -120,15 +125,30 @@ const DetailView = () => {
     );
 
     // MARK: - Main Render
+    useLocation((error, position) => {
+        if (!error && position) {
+            // Update any location-dependent state or perform actions
+        }
+    });
+
     return (
         <View style={[styles.container, isDarkMode && styles.darkContainer]}>
             <View style={styles.searchContainerWrapper}>
                 <View style={[styles.searchContainer, isDarkMode && styles.darkSearchContainer]}>
-                    <TouchableOpacity onPress={handleFilterChange} style={styles.filterButton}>
+                    <TouchableOpacity 
+                        style={styles.filterButton}
+                        onPress={adventureMode ? handleFilterChange : undefined}
+                        disabled={!adventureMode}
+                    >
                         <Ionicons 
                             name="eye" 
                             size={32}
-                            color={filterState === 'all' ? (isDarkMode ? 'white' : 'black') : filterState === 'visited' ? 'green' : 'red'} 
+                            color={adventureMode 
+                                ? (filterState === 'all' 
+                                    ? (isDarkMode ? 'white' : 'black') 
+                                    : filterState === 'visited' ? 'green' : 'red')
+                                : (isDarkMode ? '#666' : '#999')
+                            } 
                         />
                     </TouchableOpacity>
                     <View style={styles.searchBarContainer}>
@@ -160,9 +180,11 @@ const DetailView = () => {
                 key={isListView ? 'list' : 'grid'}
                 numColumns={isListView ? 1 : 2}
             />
-            <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
-                <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>{popUpText}</Text>
-            </Animated.View>
+            {adventureMode && (
+                <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
+                    <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>{popUpText}</Text>
+                </Animated.View>
+            )}
             <Modal
                 visible={selectedStructure !== null}
                 transparent={true}

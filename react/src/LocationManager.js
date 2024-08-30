@@ -17,6 +17,8 @@
 
 import { PermissionsAndroid, Platform } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
+import { useAdventureMode } from './AdventureModeContext';
+import { useEffect } from 'react';
 
 // Safe zone coordinates
 const safeZoneCorners = {
@@ -168,6 +170,53 @@ const getCurrentLocation = (callback, mapPoints) => {
       maximumAge: 10000
     }
   );
+};
+
+let watchId = null;
+
+// MARK: - Start Location Tracking
+export const startLocationTracking = (callback) => {
+  if (watchId !== null) {
+    console.log('Location tracking is already active');
+    return;
+  }
+
+  watchId = Geolocation.watchPosition(
+    (position) => callback(null, position),
+    (error) => callback(error, null),
+    { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
+  );
+};
+
+// MARK: - Stop Location Tracking
+export const stopLocationTracking = () => {
+  if (watchId !== null) {
+    Geolocation.clearWatch(watchId);
+    watchId = null;
+    console.log('Location tracking stopped');
+  }
+};
+
+// MARK: - Use Location
+export const useLocation = (callback) => {
+  const { adventureMode } = useAdventureMode();
+
+  // Using useEffect hook from React to manage side effects
+  
+
+  useEffect(() => {
+    if (adventureMode) {
+      requestLocationPermission();
+      startLocationTracking(callback);
+    } else {
+      stopLocationTracking();
+    }
+
+    // Cleanup function to stop tracking when component unmounts or dependencies change
+    return () => {
+      stopLocationTracking();
+    };
+  }, [adventureMode, callback]);
 };
 
 export { requestLocationPermission, getCurrentLocation, isWithinSafeZone };

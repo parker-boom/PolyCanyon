@@ -31,9 +31,11 @@ import { useMapPoints } from './MapPoint';
 import { useDarkMode } from './DarkMode';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModeSelectionPopup from './ModeSelectionPopup';
+import { useAdventureMode } from './AdventureModeContext';
+import { useLocation, requestLocationPermission } from './LocationManager';
 
-const SettingsView = ({ navigation, route }) => {
-    const { adventureMode, setAdventureMode } = route.params;
+const SettingsView = () => {
+    const { adventureMode, updateAdventureMode } = useAdventureMode();
     const { isDarkMode, toggleDarkMode } = useDarkMode();
     const { resetVisitedStructures, setAllStructuresAsVisited } = useStructures();
     const { resetVisitedMapPoints } = useMapPoints();
@@ -43,6 +45,12 @@ const SettingsView = ({ navigation, route }) => {
     useEffect(() => {
         setLocalAdventureMode(adventureMode);
     }, [adventureMode]);
+
+    useLocation((error, position) => {
+        if (!error && position) {
+            // Update any location-dependent state or perform actions
+        }
+    });
 
     // MARK: - Event Handlers
     const handleToggleMode = () => {
@@ -55,16 +63,10 @@ const SettingsView = ({ navigation, route }) => {
 
     const handleConfirmModeChange = useCallback(() => {
         if (localAdventureMode !== adventureMode) {
-            if (localAdventureMode) {
-                resetVisitedStructures();
-                resetVisitedMapPoints();
-            } else {
-                setAllStructuresAsVisited();
-            }
-            setAdventureMode(localAdventureMode);
+            updateAdventureMode(localAdventureMode);
         }
         setShowModePopup(false);
-    }, [localAdventureMode, adventureMode, resetVisitedStructures, resetVisitedMapPoints, setAllStructuresAsVisited, setAdventureMode]);
+    }, [localAdventureMode, adventureMode, updateAdventureMode]);
 
     const handleResetVisitedStructures = () => {
         Alert.alert(
@@ -84,14 +86,22 @@ const SettingsView = ({ navigation, route }) => {
     };
 
     const openLocationSettings = () => {
-        Linking.openSettings();
+        if (adventureMode) {
+            requestLocationPermission();
+        } else {
+            // Maybe show a message that location is not needed in Virtual Tour Mode
+            Alert.alert(
+                "Location Not Required",
+                "Location tracking is not needed in Virtual Tour Mode. Switch to Adventure Mode to use location features."
+            );
+        }
     };
 
     // MARK: - Render
     return (
         <>
             <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>
-                <View style={styles.section}>
+                <View style={[styles.section, isDarkMode && styles.darkSection]}>
                     <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>General Settings</Text>
                     
                     <View style={styles.settingItem}>
@@ -108,15 +118,15 @@ const SettingsView = ({ navigation, route }) => {
                         <Ionicons 
                             name={localAdventureMode ? "walk" : "search"} 
                             size={40} 
-                            color={localAdventureMode ? '#4CAF50' : '#FF6803'} 
+                            color={localAdventureMode ? (isDarkMode ? '#6ECF76' : '#4CAF50') : (isDarkMode ? '#FFA347' : '#FF6803')} 
                         />
                         <Text style={[styles.modeTitle, isDarkMode && styles.darkText]}>
                             {localAdventureMode ? "Adventure Mode" : "Virtual Tour Mode"}
                         </Text>
-                        <Text style={styles.modeDescription}>
+                        <Text style={[styles.modeDescription, isDarkMode && styles.darkModeDescription]}>
                             {localAdventureMode ? "Explore structures in person" : "Browse structures remotely"}
                         </Text>
-                        <TouchableOpacity style={styles.switchButton} onPress={handleToggleMode}>
+                        <TouchableOpacity style={[styles.switchButton, isDarkMode && styles.darkSwitchButton]} onPress={handleToggleMode}>
                             <Text style={styles.switchButtonText}>Switch</Text>
                         </TouchableOpacity>
                     </View>
@@ -126,25 +136,25 @@ const SettingsView = ({ navigation, route }) => {
                             onPress={handleResetVisitedStructures}
                             icon="refresh"
                             text="Reset Structures"
-                            color="red"
+                            color={isDarkMode ? "#FF6B6B" : "red"}
                             isDarkMode={isDarkMode}
                         />
                         <SettingsButton
                             onPress={openLocationSettings}
                             icon="location"
                             text="Location Settings"
-                            color="green"
+                            color={isDarkMode ? "#6ECF76" : "green"}
                             isDarkMode={isDarkMode}
                         />
                     </View>
                 </View>
 
-                <View style={styles.section}>
+                <View style={[styles.section, isDarkMode && styles.darkSection]}>
                     <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>Credits</Text>
                     <Text style={[styles.creditText, isDarkMode && styles.darkText]}>Parker Jones</Text>
                     <Text style={[styles.creditText, isDarkMode && styles.darkText]}>Cal Poly SLO</Text>
                     <Text style={[styles.creditText, isDarkMode && styles.darkText]}>CAED College & Department</Text>
-                    <Text style={styles.caption}>
+                    <Text style={[styles.caption, isDarkMode && styles.darkCaption]}>
                         Please email bug reports or issues to pjones15@calpoly.edu, thanks in advance!
                     </Text>
                 </View>
@@ -176,7 +186,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F5F5',
     },
     darkContainer: {
-        backgroundColor: 'black',
+        backgroundColor: '#121212',
     },
     section: {
         marginBottom: 20,
@@ -191,6 +201,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
         elevation: 4,
+    },
+    darkSection: {
+        backgroundColor: '#1E1E1E',
     },
     sectionHeader: {
         fontSize: 24,
@@ -227,12 +240,18 @@ const styles = StyleSheet.create({
         marginTop: 5,
         textAlign: 'center',
     },
+    darkModeDescription: {
+        color: '#B0B0B0',
+    },
     switchButton: {
         backgroundColor: '#2196F3',
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 20,
         marginTop: 15,
+    },
+    darkSwitchButton: {
+        backgroundColor: '#3D5AFE',
     },
     switchButtonText: {
         color: 'white',
@@ -269,6 +288,9 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: 'gray',
         marginTop: 10,
+    },
+    darkCaption: {
+        color: '#B0B0B0',
     },
 });
 

@@ -17,6 +17,8 @@ import { useStructures } from './StructureData';
 import { useMapPoints } from './MapPoint';
 import { BlurView } from '@react-native-community/blur';
 import { useDarkMode } from './DarkMode';
+import { useAdventureMode } from './AdventureModeContext'; // Add this import
+import { useLocation } from './LocationManager';
 
 // MARK: - PulsingCircle Component
 /**
@@ -122,6 +124,7 @@ const MapView = ({ route }) => {
     const { mapPoints } = useMapPoints();
     const { structures, setStructures } = useStructures();
     const { isDarkMode } = useDarkMode();
+    const { adventureMode } = useAdventureMode(); // Add this line to get the adventure mode state
     const [isSatelliteView, setIsSatelliteView] = useState(false);
     const [location, setLocation] = useState(null);
     const [nearestPoint, setNearestPoint] = useState(null);
@@ -140,19 +143,13 @@ const MapView = ({ route }) => {
     const MAP_ORIGINAL_WIDTH = 1843;
     const MAP_ORIGINAL_HEIGHT = 4164;
 
-    // Load location and setup location updates
-    useEffect(() => {
-        requestLocationPermission();
-        const watchId = Geolocation.watchPosition(
-            (position) => handleLocationUpdate(position),
-            (error) => {},
-            { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
-        );
-
-        return () => {
-            Geolocation.clearWatch(watchId);
-        };
-    }, [mapPoints, structures]);
+    useLocation((error, position) => {
+        if (error) {
+            console.log('Error getting current position:', error);
+        } else {
+            handleLocationUpdate(position);
+        }
+    });
 
     // Handle location updates and find the nearest map point
     const handleLocationUpdate = (position) => {
@@ -286,7 +283,7 @@ const MapView = ({ route }) => {
                     style={styles.map}
                     resizeMode="contain"
                 />
-                {nearestPoint && (
+                {adventureMode && nearestPoint && ( // Add adventureMode check here
                     <View style={[styles.markerContainer, calculatePixelPosition(nearestPoint)]}>
                         <PulsingCircle isSatelliteView={isSatelliteView} />
                     </View>
