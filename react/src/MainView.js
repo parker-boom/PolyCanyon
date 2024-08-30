@@ -19,7 +19,7 @@ import { DarkModeProvider, useDarkMode } from './DarkMode';
 
 const Tab = createBottomTabNavigator();
 
-const MainView = () => {
+const MainView = ({ adventureMode, setAdventureMode }) => {
     const { mapPoints } = useMapPoints();
     const { isDarkMode } = useDarkMode();
 
@@ -53,25 +53,26 @@ const MainView = () => {
             <Tab.Screen
                 name="Map"
                 component={MapView}
-                initialParams={{ mapPoints }}
+                initialParams={{ mapPoints, adventureMode }}
             />
             <Tab.Screen
                 name="Detail"
                 component={DetailView}
-                initialParams={{ mapPoints }}
+                initialParams={{ mapPoints, adventureMode }}
             />
             <Tab.Screen
                 name="Settings"
                 component={SettingsView}
+                initialParams={{ adventureMode, setAdventureMode }}
             />
         </Tab.Navigator>
     );
 };
 
 // MARK: - Wrapped MainView with DarkModeProvider
-const WrappedMainView = () => (
+const WrappedMainView = ({ adventureMode, setAdventureMode }) => (
     <DarkModeProvider>
-        <MainView />
+        <MainView adventureMode={adventureMode} setAdventureMode={setAdventureMode} />
     </DarkModeProvider>
 );
 

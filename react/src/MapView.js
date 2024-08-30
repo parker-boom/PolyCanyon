@@ -273,7 +273,12 @@ const MapView = ({ route }) => {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: isDarkMode ? 'black' : 'white' }]}>
+        <View style={styles.container}>
+            {isSatelliteView ? (
+                <Image source={blurredSatellite} style={StyleSheet.absoluteFill} blurRadius={10} />
+            ) : (
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: isDarkMode ? 'black' : 'white' }]} />
+            )}
             <View style={styles.mapContainer} onLayout={onMapLayout}>
                 <Image
                     ref={mapRef}
@@ -464,8 +469,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.0)', // Added to center, somehow works
+        backgroundColor: 'rgba(0, 0, 0, 0.0)',
     },
 });
+
 
 export default MapView;

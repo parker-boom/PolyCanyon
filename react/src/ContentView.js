@@ -11,6 +11,7 @@
  * - Displays onboarding view on first launch
  * - Wraps the app with various providers for state management
  * - Uses the NavigationContainer for navigation between views
+ * - Manages the global adventure mode state
  */
 
 import React, { useEffect, useState } from 'react';
@@ -24,43 +25,66 @@ import { MapPointsProvider } from './MapPoint';
 import { DarkModeProvider } from './DarkMode';
 
 const ContentView = () => {
-  // MARK: - State Variables
-  const [isFirstLaunch, setIsFirstLaunch] = useState(true);
+  const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(true);
+  const [adventureMode, setAdventureMode] = useState(true);
 
-  // MARK: - Effects
   useEffect(() => {
-    // Check if the app is being launched for the first time
-    const checkFirstLaunch = async () => {
-      try {
-        const value = await AsyncStorage.getItem('isFirstLaunch');
-        if (value !== null) {
-          setIsFirstLaunch(false);
-        }
-      } catch (error) {
-        console.log('Error checking first launch:', error);
-      }
-    };
-
-    checkFirstLaunch();
+    checkFirstLaunchV2();
+    loadAdventureMode();
   }, []);
 
-  // MARK: - Handlers
-  const handleOnboardingComplete = () => {
-    setIsFirstLaunch(false);
-    AsyncStorage.setItem('isFirstLaunch', 'false');
+  const checkFirstLaunchV2 = async () => {
+    try {
+      const value = await AsyncStorage.getItem('isFirstLaunchV2');
+      if (value !== null) {
+        setIsFirstLaunchV2(false);
+      }
+    } catch (error) {
+      console.log('Error checking first launch V2:', error);
+    }
   };
 
-  // MARK: - Render
+  const loadAdventureMode = async () => {
+    try {
+      const value = await AsyncStorage.getItem('adventureMode');
+      if (value !== null) {
+        setAdventureMode(JSON.parse(value));
+      }
+    } catch (error) {
+      console.log('Error loading adventure mode:', error);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setIsFirstLaunchV2(false);
+    AsyncStorage.setItem('isFirstLaunchV2', 'false');
+  };
+
+  const handleSetAdventureMode = async (newMode) => {
+    setAdventureMode(newMode);
+    try {
+      await AsyncStorage.setItem('adventureMode', JSON.stringify(newMode));
+    } catch (error) {
+      console.log('Error saving adventure mode:', error);
+    }
+  };
+
   return (
     <DarkModeProvider>
       <StructureProvider>
         <MapPointsProvider>
-          <View style={{ flex: 1, backgroundColor: isFirstLaunch ? 'lightblue' : 'lightgreen' }}>
-            {isFirstLaunch ? (
-              <OnboardingView onComplete={handleOnboardingComplete} />
+          <View style={{ flex: 1 }}>
+            {isFirstLaunchV2 ? (
+              <OnboardingView
+                onComplete={handleOnboardingComplete}
+                setAdventureModeGlobal={handleSetAdventureMode}
+              />
             ) : (
               <NavigationContainer>
-                <MainView />
+                <MainView 
+                  adventureMode={adventureMode} 
+                  setAdventureMode={handleSetAdventureMode} 
+                />
               </NavigationContainer>
             )}
           </View>

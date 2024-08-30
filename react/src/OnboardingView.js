@@ -1,73 +1,201 @@
-// MARK: - OnboardingView Component
-/**
- * OnboardingView Component
- * 
- * This component displays a series of onboarding images in a swiper view.
- * Users can swipe through the images, and the last image triggers the onComplete function.
- * 
- * Features:
- * - Displays a series of onboarding images
- * - Allows swiping between images
- * - Triggers onComplete function on the last image
- */
-
-import React, { useRef } from 'react';
-import { View, Image, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import Swiper from 'react-native-swiper';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { requestLocationPermission } from './LocationManager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
-// List of onboarding images
-const images = [
-  require('../assets/onboarding/1.jpg'),
-  require('../assets/onboarding/2.jpg'),
-  require('../assets/onboarding/3.jpg'),
-  require('../assets/onboarding/4.jpg'),
-];
+const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasAskedForLocation, setHasAskedForLocation] = useState(false);
+  const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(true);
+  const [isNearCalPoly, setIsNearCalPoly] = useState(false);
 
-const OnboardingView = ({ onComplete }) => {
-  // Ref for the swiper component
-  const swiperRef = useRef(null);
-  const totalPages = images.length;
+  const adventureModeColor = '#4CAF50';
+  const virtualTourColor = '#FF6803';
 
-  // MARK: - Render
+  useEffect(() => {
+    checkUserLocation();
+  }, []);
+
+  const checkUserLocation = async () => {
+    try {
+      const position = await getCurrentPosition();
+      const distance = calculateDistance(position.coords.latitude, position.coords.longitude, 35.3050, -120.6625); // Cal Poly coordinates
+      setIsNearCalPoly(distance <= 100);
+      setIsAdventureModeEnabled(distance <= 100);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      setIsNearCalPoly(false);
+      setIsAdventureModeEnabled(false);
+    }
+  };
+
+  const handleLocationPermission = async () => {
+    await requestLocationPermission();
+    setHasAskedForLocation(true);
+  };
+
+  const handleComplete = async () => {
+    await AsyncStorage.setItem('adventureMode', JSON.stringify(isAdventureModeEnabled));
+    setAdventureModeGlobal(isAdventureModeEnabled);
+    onComplete();
+  };
+
+  const renderWelcomeSlide = () => (
+    <View style={styles.slide}>
+      <Image source={require('../assets/icon.jpg')} style={styles.icon} />
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Welcome to</Text>
+        <Text style={[styles.title, styles.greenTitle, styles.boldTitle]}>Poly Canyon</Text>
+      </View>
+      <Text style={[styles.subtitle, styles.largerSubtitle]}>Explore and learn about Cal Poly's famous architectural structures</Text>
+      <View style={styles.bottomButtonContainer}>
+        {renderNavigationButton("Next", () => setCurrentPage(1))}
+      </View>
+    </View>
+  );
+
+  const renderLocationRequestSlide = () => (
+    <View style={styles.slide}>
+      <PulsingLocationDot />
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Enable</Text>
+        <Text style={[styles.title, styles.blueTitle, styles.boldTitle]}>Location Services</Text>
+      </View>
+      <Text style={[styles.subtitle, styles.largerSubtitle]}>We need your location to enhance your experience</Text>
+      {!hasAskedForLocation ? (
+        renderNavigationButton("Allow Location Access", handleLocationPermission)
+      ) : (
+        <View style={styles.bottomButtonContainer}>
+          {renderNavigationButton("Next", () => setCurrentPage(2))}
+        </View>
+      )}
+    </View>
+  );
+
+  const renderModeSelectionSlide = () => (
+    <View style={styles.slide}>
+      <Text style={[styles.title, styles.grayTitle, styles.largerTitle]}>Choose Your Experience</Text>
+      <View style={styles.iconSpacing}>
+        <ModeIcon
+          name={isAdventureModeEnabled ? "walk" : "search"}
+          color={isAdventureModeEnabled ? adventureModeColor : virtualTourColor}
+        />
+      </View>
+      <CustomModePicker
+        isAdventureModeEnabled={isAdventureModeEnabled}
+        setIsAdventureModeEnabled={setIsAdventureModeEnabled}
+        adventureModeColor={adventureModeColor}
+        virtualTourColor={virtualTourColor}
+      />
+      <View style={styles.recommendationSpacing}>
+        <RecommendationLabel isRecommended={isAdventureModeEnabled === isNearCalPoly} />
+      </View>
+      <View style={styles.centeredFeatureList}>
+        {isAdventureModeEnabled ? (
+          <>
+            <Text style={styles.largerFeatureItem}>• Explore structures in person</Text>
+            <Text style={styles.largerFeatureItem}>• Track your progress</Text>
+            <Text style={styles.largerFeatureItem}>• Use live location</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.largerFeatureItem}>• Browse remotely</Text>
+            <Text style={styles.largerFeatureItem}>• Learn about all structures</Text>
+            <Text style={styles.largerFeatureItem}>• No location needed</Text>
+          </>
+        )}
+      </View>
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity
+          style={[styles.completeButton, { backgroundColor: isAdventureModeEnabled ? adventureModeColor : virtualTourColor }]}
+          onPress={handleComplete}
+        >
+          <Text style={styles.completeButtonText}>Let's Go!</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const ModeIcon = ({ name, color }) => (
+    <View style={[styles.modeIcon, { backgroundColor: color }]}>
+      <Ionicons name={name} size={40} color="white" />
+    </View>
+  );
+
+  const CustomModePicker = ({ isAdventureModeEnabled, setIsAdventureModeEnabled, adventureModeColor, virtualTourColor }) => (
+    <View style={styles.modePicker}>
+      <TouchableOpacity
+        style={[styles.modeButton, !isAdventureModeEnabled && styles.selectedMode]}
+        onPress={() => setIsAdventureModeEnabled(false)}
+      >
+        <Text style={[styles.modeButtonText, !isAdventureModeEnabled && { color: virtualTourColor }]}>Virtual Tour</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.modeButton, isAdventureModeEnabled && styles.selectedMode]}
+        onPress={() => setIsAdventureModeEnabled(true)}
+      >
+        <Text style={[styles.modeButtonText, isAdventureModeEnabled && { color: adventureModeColor }]}>Adventure</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const RecommendationLabel = ({ isRecommended }) => (
+    <View style={[styles.recommendationLabel, { backgroundColor: isRecommended ? '#4CAF50' : '#FF5722' }]}>
+      <Ionicons name={isRecommended ? "checkmark-circle" : "close-circle"} size={20} color="white" />
+      <Text style={styles.recommendationText}>{isRecommended ? "Recommended" : "Not Recommended"}</Text>
+    </View>
+  );
+
+  const PulsingLocationDot = () => {
+    const pulseAnim = new Animated.Value(1);
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.2, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+        ])
+      ).start();
+    }, []);
+
+    return (
+      <View style={styles.pulsingDotContainer}>
+        <Animated.View style={[styles.pulsingDot, { transform: [{ scale: pulseAnim }] }]} />
+        <View style={styles.largerInnerDot} />
+      </View>
+    );
+  };
+
+  const renderNavigationButton = (text, onPress) => (
+    <TouchableOpacity style={styles.navigationButton} onPress={onPress}>
+      <Text style={styles.navigationButtonText}>{text}</Text>
+      <Ionicons name="chevron-forward" size={24} color="white" />
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <Swiper
-        ref={swiperRef}
         loop={false}
         showsPagination={true}
+        index={currentPage}
+        onIndexChanged={setCurrentPage}
         paginationStyle={styles.pagination}
         dotStyle={styles.dot}
         activeDotStyle={styles.activeDot}
       >
-        {images.map((image, index) => (
-          <TouchableOpacity
-            key={index}
-            activeOpacity={1}
-            onPress={() => {
-              if (index !== totalPages - 1) {
-                swiperRef.current.scrollBy(1);
-              } else {
-                onComplete();
-              }
-            }}
-            style={styles.slide}
-          >
-            <Image
-              source={image}
-              style={styles.image}
-              onLoad={() => console.log(`Image ${index + 1} loaded successfully.`)}
-              onError={(error) => console.log(`Error loading image ${index + 1}:`, error)}
-            />
-          </TouchableOpacity>
-        ))}
+        {renderWelcomeSlide()}
+        {renderLocationRequestSlide()}
+        {renderModeSelectionSlide()}
       </Swiper>
     </View>
   );
 };
 
-// MARK: - Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -77,28 +205,175 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  image: {
-    width: width,
-    height: height,
-    resizeMode: 'contain',
+  icon: {
+    width: 180,  // Increased size
+    height: 180, // Increased size
+    marginTop: 40,    // Less padding on top
+    marginBottom: 20, // Less padding on bottom
+    borderRadius: 36, // Adjusted for larger size
+  },
+  titleContainer: {
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  blackTitle: {
+    color: 'black',
+  },
+  largerTitle: {
+    fontSize: 36,
+  },
+  boldTitle: {
+    fontWeight: '900',
+  },
+  greenTitle: {
+    color: '#4CAF50',
+  },
+  blueTitle: {
+    color: '#2196F3',
+  },
+  subtitle: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 30,
+    color: '#666',
+  },
+  largerSubtitle: {
+    fontSize: 20,
+  },
+  modeIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modePicker: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 25,
+    marginBottom: 20,
+  },
+  modeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  selectedMode: {
+    backgroundColor: 'white',
+  },
+  modeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  recommendationLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  recommendationText: {
+    color: 'white',
+    marginLeft: 5,
+    fontWeight: 'bold',
+  },
+  featureList: {
+    alignSelf: 'stretch',
+    marginBottom: 30,
+  },
+  featureItem: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  completeButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+  },
+  completeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  pulsingDotContainer: {
+    width: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 30, // Added spacing below the circle
+  },
+  pulsingDot: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(33, 150, 243, 0.3)',
+    position: 'absolute',
+  },
+  largerInnerDot: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#2196F3',
+  },
+  navigationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2196F3',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginBottom: 30
+  },
+  navigationButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 10,
   },
   pagination: {
-    bottom: 30,
+    bottom: 20,
   },
   dot: {
-    backgroundColor: 'rgba(0,0,0,.2)',
     width: 8,
     height: 8,
     borderRadius: 4,
+    backgroundColor: '#bbb',
     margin: 3,
   },
   activeDot: {
-    backgroundColor: '#000',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    margin: 3,
+    backgroundColor: '#2196F3',
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center', // Center horizontally
+  },
+  iconSpacing: {
+    marginVertical: 20,
+  },
+  recommendationSpacing: {
+    marginBottom: 10,
+  },
+  centeredFeatureList: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  largerFeatureItem: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  grayTitle: {
+    color: '#666', // Gray color
   },
 });
 
