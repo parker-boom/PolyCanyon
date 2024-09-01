@@ -33,7 +33,8 @@ struct DetailView: View {
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
     @State private var selectedStructure: Structure?
-
+    @State private var showStructPopup = false
+    
     @State private var searchText = ""
     @State private var isGridView = true
     @State private var showPopup = false
@@ -70,15 +71,15 @@ struct DetailView: View {
     
     var body: some View {
         ZStack {
-           (isDarkMode ? Color.black : Color.white)
+            (isDarkMode ? Color.black : Color.white)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-
+                
                 // Header view for switching filters and views
                 headerView
                 
-                            
+                
                 // Scroll view that displays either grid or list view
                 ScrollView {
                     if isGridView {
@@ -104,24 +105,8 @@ struct DetailView: View {
                         listView
                     }
                 }
-            
                 
-                // Present pop up
-                .overlay(
-                    Group {
-                        if showPopup, let selectedStructure = selectedStructure {
-                            
-                            StructPopUp(
-                                structureData: structureData,
-                                structure: selectedStructure,
-                                isDarkMode: $isDarkMode,
-                                isPresented: $showPopup
-                            )
-                            .padding(15)
-                            
-                        }
-                    }
-                )
+                
             }
             .background(isDarkMode ? Color.black : Color.white)
             
@@ -141,6 +126,25 @@ struct DetailView: View {
                             }
                         }
                     }
+                }
+            }
+            if showStructPopup {
+                Color.black.opacity(0.5)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        showStructPopup = false
+                    }
+                
+                if let selectedStructure = selectedStructure {
+                    StructPopUp(
+                        structureData: structureData,
+                        structure: selectedStructure,
+                        isDarkMode: $isDarkMode,
+                        isPresented: $showStructPopup
+                    )
+                    .padding(15)
+                    .transition(.opacity)
+                    .zIndex(1)
                 }
             }
         }
@@ -308,7 +312,7 @@ struct DetailView: View {
                                     structureData.structures[index].isOpened = true
                                 }
                             }
-                            showPopup = true
+                            showStructPopup = true
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
 
                             let impactMed = UIImpactFeedbackGenerator(style: .rigid)
@@ -378,7 +382,7 @@ struct DetailView: View {
                             structureData.structures[index].isOpened = true
                         }
                     }
-                    showPopup = true
+                    showStructPopup = true
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     
                     // Generate haptic feedback
