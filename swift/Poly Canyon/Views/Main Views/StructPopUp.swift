@@ -226,13 +226,13 @@ struct StructPopUp: View {
                     }
                 }
 
-                if structure.students != "iii" || structure.advisors != "iii" {
-                    InfoPill(icon: "👷", title: "Builders", value: "\(structure.students) \(structure.advisors)")
+                if structure.builders != "iii" {
+                    InfoPill(icon: "👷", title: "Builders", value: " \(structure.builders)")
                         .frame(height: 80)
                 }
 
-                if structure.additionalInfo != "iii" {
-                    FunFactPill(icon: "✨", fact: structure.additionalInfo ?? "No fun fact available")
+                if structure.funFact != "iii" {
+                    FunFactPill(icon: "✨", fact: structure.funFact ?? "No fun fact available")
                         .frame(height: 100)
                 }
             }
@@ -428,33 +428,43 @@ struct ZoomableImageView: View {
     }
 }
 
-
 // MARK: - Preview
 struct StructPopUp_Previews: PreviewProvider {
     static var previews: some View {
         let mockStructureData = StructureData()
         let mockStructure = Structure(
-            number: 1,
-            title: "Sample Structure",
-            description: "This is a sample description",
-            year: "2023",
-            students: "John Doe, Jane Smith",
-            advisors: "Prof. Johnson",
-            additionalInfo: "Additional information here",
-            architecturalStyle: "Modern",
-            mainPhoto: "1M",
-            closeUp: "1C",
-            isVisited: false,
-            isOpened: false,
-            recentlyVisited: -1,
-            isLiked: false
+            number: 8,
+            title: "Geodesic Dome",
+            description: "The Geodesic Dome, an iconic structure in Poly Canyon, stands as a testament to innovative architectural design and engineering principles. Constructed in 1957, it showcases the visionary concepts of Buckminster Fuller, who popularized this efficient structural form. The dome's lattice-shell structure is composed of interconnected triangles, creating a self-supporting framework that distributes stress evenly across its surface. This design not only provides exceptional strength-to-weight ratio but also maximizes interior space with minimal material usage. The Geodesic Dome serves as an enduring example of sustainable architecture and continues to inspire students and visitors alike with its futuristic appearance and practical applications in modern construction techniques.",
+            year: "1957",
+            builders: "John Warren, Myles Murphey, Don Mills, Jack Stammer, Neil Moir, Don Tanklage, Bill Kohr",
+            architecturalStyle: "Geodesic Architecture",
+            funFact: "The Geodesic Dome can withstand extreme weather conditions and has inspired similar structures worldwide, including the famous Spaceship Earth at Walt Disney World's Epcot Center.",
+            mainPhoto: "8M",
+            closeUp: "8C",
+            isVisited: true,
+            isOpened: true,
+            recentlyVisited: 2,
+            isLiked: true
         )
         
-        return StructPopUp(
-            structureData: mockStructureData,
-            structure: mockStructure,
-            isDarkMode: .constant(false),
-            isPresented: .constant(true)
-        )
+        Group {
+            StructPopUp(
+                structureData: mockStructureData,
+                structure: mockStructure,
+                isDarkMode: .constant(false),
+                isPresented: .constant(true)
+            )
+            .previewDisplayName("Light Mode")
+
+            StructPopUp(
+                structureData: mockStructureData,
+                structure: mockStructure,
+                isDarkMode: .constant(true),
+                isPresented: .constant(true)
+            )
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Dark Mode")
+        }
     }
 }

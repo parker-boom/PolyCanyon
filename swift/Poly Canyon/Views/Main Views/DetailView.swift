@@ -127,14 +127,6 @@ struct DetailView: View {
             
             // MARK: - On Appear
             .onAppear {
-                // Load the structures from CSV on the first open
-                if structureData.structures.count < 36 {
-                    structureData.loadStructuresFromCSV()
-                }
-                // Less then 36 was just to make sure newest structure added
-
-        
-                
                 // Accept notifications to mark as visited if adventure mode enabled
                 if isAdventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in

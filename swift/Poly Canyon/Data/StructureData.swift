@@ -22,17 +22,15 @@
 
 // MARK: Code
 import Foundation
-import Foundation
 
 struct Structure: Identifiable, Codable {
     let number: Int
     let title: String
     let description: String
     let year: String
-    let students: String
-    let advisors: String
-    let additionalInfo: String
+    let builders: String
     let architecturalStyle: String
+    let funFact: String
     let mainPhoto: String
     let closeUp: String
     var isVisited: Bool
@@ -50,32 +48,46 @@ class StructureData: ObservableObject {
         }
     }
     
-    private let currentDataVersion = 2
+    private let currentDataVersion = 3
+    @Published var dataVersion: Int {
+        didSet {
+            if dataVersion != currentDataVersion {
+                reloadStructures()
+                print("reloading finished")
+            } else {
+                print("huh")
+            }
+        }
+    }
     
     init() {
+        self.dataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
         loadFromUserDefaults()
     }
     
     func saveToUserDefaults() {
         if let encoded = try? JSONEncoder().encode(structures) {
             UserDefaults.standard.set(encoded, forKey: "structures")
-            UserDefaults.standard.set(currentDataVersion, forKey: "structuresDataVersion")
+            UserDefaults.standard.set(dataVersion, forKey: "structuresDataVersion")
         }
     }
     
-    
     func loadFromUserDefaults() {
-        let savedDataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
-        
-        if savedDataVersion < currentDataVersion {
-            // Data structure has changed, reload from CSV
-            loadStructuresFromCSV()
+        if dataVersion < currentDataVersion {
+            reloadStructures()
         } else if let structuresData = UserDefaults.standard.data(forKey: "structures"),
                   let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
             self.structures = decodedStructures
         } else {
-            loadStructuresFromCSV()
+            reloadStructures()
         }
+    }
+    
+    func reloadStructures() {
+        structures.removeAll()
+        loadStructuresFromCSV()
+        dataVersion = currentDataVersion
+        saveToUserDefaults()
     }
     
     func resetVisitedStructures() {
@@ -109,15 +121,14 @@ class StructureData: ObservableObject {
             
             for line in lines.dropFirst() {
                 let values = line.components(separatedBy: ",")
-                if values.count >= 8 {
+                if values.count >= 7 {
                     let number = Int(values[0]) ?? 0
                     let title = values[1]
                     let description = values[2]
                     let year = values[3]
-                    let students = values[4]
-                    let advisors = values[5]
-                    let additionalInfo = values[6]
-                    let architecturalStyle = values[7]
+                    let builders = values[4]
+                    let architecturalStyle = values[5]
+                    let funFact = values[6]
                     let mainPhoto = "\(number)M"
                     let closeUp = "\(number)C"
                     let structure = Structure(
@@ -125,10 +136,9 @@ class StructureData: ObservableObject {
                         title: title,
                         description: description,
                         year: year,
-                        students: students,
-                        advisors: advisors,
-                        additionalInfo: additionalInfo,
+                        builders: builders,
                         architecturalStyle: architecturalStyle,
+                        funFact: funFact,
                         mainPhoto: mainPhoto,
                         closeUp: closeUp,
                         isVisited: false,
@@ -158,6 +168,4 @@ class StructureData: ObservableObject {
     func getLikedStructures() -> [Structure] {
         return structures.filter { $0.isLiked }
     }
-    
-    
 }

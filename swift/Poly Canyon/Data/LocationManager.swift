@@ -188,6 +188,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         lastLocation = location
+        print("Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
         logLocationToFirebaseIfNeeded(location: location)
         updateNearestMapPoint(for: location)
 
@@ -195,12 +196,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             if isWithinSafeZone(coordinate: location.coordinate) {
                 if !isInSafeZone {
                     isInSafeZone = true
+                    print("Entered safe zone")
                     startBackgroundTracking()
                 }
                 checkVisitedLandmarks()
             } else {
                 if isInSafeZone {
                     isInSafeZone = false
+                    print("Exited safe zone")
                     stopBackgroundTracking()
                 }
             }
@@ -304,45 +307,48 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             }
         }
         
-        if let nearestPoint = nearestMapPoint, nearestPoint.landmark != -1 && !nearestPoint.isVisited {
-            nearestPoint.isVisited = true
-            mapPointManager.saveVisitedStatus()
-            markStructureAsVisited(nearestPoint.landmark)
+        if let nearestPoint = nearestMapPoint {
             
-            // Check based on the landmark number and mark additional points as visited
-            switch nearestPoint.landmark {
-            case 8:
-                markPointAsVisitedByIndex(54)
-                markPointAsVisitedByIndex(196)
-            case 13:
-                markPointAsVisitedByIndex(19)
-                markPointAsVisitedByIndex(108)
-            case 14:
-                markPointAsVisitedByIndex(59)
-                markPointAsVisitedByIndex(80)
-            case 15:
-                markPointAsVisitedByIndex(21)
-                markPointAsVisitedByIndex(130)
-            case 17:
-                markPointAsVisitedByIndex(24)
-                markPointAsVisitedByIndex(132)
-            case 20:
-                markPointAsVisitedByIndex(26)
-                markPointAsVisitedByIndex(91)
-            case 22:
-                markPointAsVisitedByIndex(36)
-                markPointAsVisitedByIndex(113)
-            case 30:
-                markPointAsVisitedByIndex(49)
-                markPointAsVisitedByIndex(60)
-            case 31:
-                markPointAsVisitedByIndex(68)
-                markPointAsVisitedByIndex(161)
-            case 32:
-                markPointAsVisitedByIndex(23)
-                markPointAsVisitedByIndex(50)
-            default:
-                break
+            if nearestPoint.landmark != -1 && !nearestPoint.isVisited {
+                nearestPoint.isVisited = true
+                mapPointManager.saveVisitedStatus()
+                markStructureAsVisited(nearestPoint.landmark)
+                
+                // Check based on the landmark number and mark additional points as visited
+                switch nearestPoint.landmark {
+                case 7:
+                    markPointAsVisitedByIndex(54)
+                    markPointAsVisitedByIndex(196)
+                case 12:
+                    markPointAsVisitedByIndex(19)
+                    markPointAsVisitedByIndex(108)
+                case 13:
+                    markPointAsVisitedByIndex(59)
+                    markPointAsVisitedByIndex(80)
+                case 14:
+                    markPointAsVisitedByIndex(21)
+                    markPointAsVisitedByIndex(130)
+                case 16:
+                    markPointAsVisitedByIndex(24)
+                    markPointAsVisitedByIndex(132)
+                case 18:
+                    markPointAsVisitedByIndex(26)
+                    markPointAsVisitedByIndex(91)
+                case 20:
+                    markPointAsVisitedByIndex(36)
+                    markPointAsVisitedByIndex(113)
+                case 28:
+                    markPointAsVisitedByIndex(49)
+                    markPointAsVisitedByIndex(60)
+                case 29:
+                    markPointAsVisitedByIndex(68)
+                    markPointAsVisitedByIndex(161)
+                case 30:
+                    markPointAsVisitedByIndex(23)
+                    markPointAsVisitedByIndex(50)
+                default:
+                    break
+                }
             }
         }
     }

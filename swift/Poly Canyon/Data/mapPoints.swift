@@ -122,7 +122,7 @@ class MapPointManager: ObservableObject {
             return
         }
         mapPoints = MapPointLoader.loadMapPoints(from: url)
-        loadVisitedStatus()  // Load visited statuses after map points are loaded
+        loadVisitedStatus()
     }
 
     func resetVisitedMapPoints() {

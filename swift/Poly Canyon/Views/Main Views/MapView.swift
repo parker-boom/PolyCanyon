@@ -188,11 +188,18 @@ struct MapView: View {
                 ZStack {
                     // Show visited structure popup
                     if showVisitedStructurePopup, let structure = visitedStructure {
-                        VisitedStructurePopup(structure: structure, isPresented: $showVisitedStructurePopup, isDarkMode: $isDarkMode, structureData: structureData)
-                            .transition(.move(edge: .bottom))
-                            .zIndex(1)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                            .padding(.bottom, 15)
+                        VisitedStructurePopup(
+                            structure: structure,
+                            isPresented: $showVisitedStructurePopup,
+                            isDarkMode: $isDarkMode,
+                            showStructPopup: $showStructPopup,
+                            selectedStructure: $selectedStructure,
+                            structureData: structureData
+                        )
+                        .transition(.move(edge: .bottom))
+                        .zIndex(1)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .padding(.bottom, 15)
                     }
                     // Congratulations message
                     if showAllVisitedPopup {
@@ -558,7 +565,8 @@ struct VisitedStructurePopup: View {
     let structure: Structure
     @Binding var isPresented: Bool
     @Binding var isDarkMode: Bool
-    @State private var showStructPopup = false
+    @Binding var showStructPopup: Bool
+    @Binding var selectedStructure: Structure?
     @ObservedObject var structureData: StructureData
     
     var body: some View {
@@ -578,10 +586,12 @@ struct VisitedStructurePopup: View {
 
                 // Main clickable area
                 Button(action: {
+                    selectedStructure = structure
                     showStructPopup = true
                     if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
                         structureData.structures[index].isOpened = true
                     }
+                    isPresented = false
                 }) {
                     HStack {
                         // Image of the visited structure
@@ -755,20 +765,6 @@ struct MapView_Previews: PreviewProvider {
 }
 
 
-// Preview provider for VisitedStructurePopup
-struct VisitedStructurePopup_Previews: PreviewProvider {
-    @State static var isPresented = true
-    @State static var isDarkMode = false
-    static var previews: some View {
-        VisitedStructurePopup(
-            structure: StructureData().structures[10],
-            isPresented: $isPresented,
-            isDarkMode: $isDarkMode,
-            structureData: StructureData()
-        )
-        .previewLayout(.fixed(width: 400, height: 120))
-    }
-}
 
 
 // Extension to clamp values within a range
