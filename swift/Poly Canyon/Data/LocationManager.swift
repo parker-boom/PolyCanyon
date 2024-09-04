@@ -341,9 +341,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                     markPointAsVisitedByIndex(49)
                     markPointAsVisitedByIndex(60)
                 case 29:
-                    markPointAsVisitedByIndex(68)
-                    markPointAsVisitedByIndex(161)
-                case 30:
                     markPointAsVisitedByIndex(23)
                     markPointAsVisitedByIndex(50)
                 default:

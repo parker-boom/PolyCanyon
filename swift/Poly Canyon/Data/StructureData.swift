@@ -26,11 +26,10 @@ import Foundation
 struct Structure: Identifiable, Codable {
     let number: Int
     let title: String
-    let description: String
     let year: String
     let builders: String
-    let architecturalStyle: String
     let funFact: String
+    let description: String
     let mainPhoto: String
     let closeUp: String
     var isVisited: Bool
@@ -124,21 +123,19 @@ class StructureData: ObservableObject {
                 if values.count >= 7 {
                     let number = Int(values[0]) ?? 0
                     let title = values[1]
-                    let description = values[2]
-                    let year = values[3]
-                    let builders = values[4]
-                    let architecturalStyle = values[5]
-                    let funFact = values[6]
+                    let year = values[2]
+                    let builders = values[3]
+                    let funFact = values[4]
+                    let description = values[5]
                     let mainPhoto = "\(number)M"
                     let closeUp = "\(number)C"
                     let structure = Structure(
                         number: number,
                         title: title,
-                        description: description,
                         year: year,
                         builders: builders,
-                        architecturalStyle: architecturalStyle,
                         funFact: funFact,
+                        description: description,
                         mainPhoto: mainPhoto,
                         closeUp: closeUp,
                         isVisited: false,

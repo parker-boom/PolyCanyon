@@ -19,18 +19,15 @@ import Zoomable
 
 
 struct StructPopUp: View {
-    // MARK: - Properties
     @ObservedObject var structureData: StructureData
     let structure: Structure
     @Binding var isDarkMode: Bool
     @Binding var isPresented: Bool
     @State private var dragOffset: CGSize = .zero
     @State private var isShowingInfo: Bool = false
-    @State private var selectedTab: Int = 0
     @State private var currentImageIndex: Int = 0
     @State private var isLiked: Bool
 
-    // MARK: - Initialization
     init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, isPresented: Binding<Bool>) {
         self._structureData = ObservedObject(wrappedValue: structureData)
         self.structure = structure
@@ -39,7 +36,6 @@ struct StructPopUp: View {
         self._isLiked = State(initialValue: structure.isLiked)
     }
 
-    // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 15) {
@@ -76,13 +72,11 @@ struct StructPopUp: View {
                         dragOffset = .zero
                     }
             )
-            
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .edgesIgnoringSafeArea(.all)
     }
 
-    // MARK: - UI Components
     private func imageSection(geometry: GeometryProxy) -> some View {
         ZStack(alignment: .topLeading) {
             imageCarousel(geometry: geometry)
@@ -167,23 +161,25 @@ struct StructPopUp: View {
         }
     }
 
-    // MARK: - Information Panel
-    @ViewBuilder
     private func informationPanel(geometry: GeometryProxy) -> some View {
         VStack(spacing: 0) {
             headerView
             
-            CustomTabSelector(selectedTab: $selectedTab)
-                .padding(.top, 15)
-                .padding(.bottom, 10)
-            
-            TabView(selection: $selectedTab) {
-                statisticsView(geometry: geometry)
-                    .tag(0)
-                descriptionView
-                    .tag(1)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 15) {
+                    if structure.builders != "iii" {
+                        InfoPill(icon: "👷", title: "Builders", value: structure.builders, isDarkMode: isDarkMode)
+                    }
+                    
+                    if structure.funFact != "iii" {
+                        InfoPill(icon: "✨", title: "Fun Fact", value: structure.funFact ?? "No fun fact available", isDarkMode: isDarkMode)
+                    }
+                    
+                    InfoPill(icon: "📝", title: "Description", value: structure.description, isDarkMode: isDarkMode)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 5)
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
         .frame(height: geometry.size.height * 0.75)
         .background(isDarkMode ? Color.black : Color.white)
@@ -197,13 +193,16 @@ struct StructPopUp: View {
             Text("\(structure.number)")
                 .font(.system(size: 30, weight: .bold))
             Spacer()
-            Text(structure.title)
-                .font(.system(size: 24, weight: .semibold))
+            VStack {
+                Text(structure.title)
+                    .font(.system(size: 24, weight: .bold))
+                Text(structure.year)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+            }
             Spacer()
             Button(action: {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    isShowingInfo.toggle()
-                }
+                isPresented = false
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 24))
@@ -213,44 +212,8 @@ struct StructPopUp: View {
         .padding()
         .background(isDarkMode ? Color.black : Color.white)
     }
-
-    private func statisticsView(geometry: GeometryProxy) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                HStack(spacing: 10) {
-                    if structure.year != "iii" {
-                        InfoPill(icon: "📅", title: "Year", value: structure.year)
-                    }
-                    if structure.architecturalStyle != "iii" {
-                        InfoPill(icon: "🏛️", title: "Style", value: structure.architecturalStyle)
-                    }
-                }
-
-                if structure.builders != "iii" {
-                    InfoPill(icon: "👷", title: "Builders", value: " \(structure.builders)")
-                        .frame(height: 80)
-                }
-
-                if structure.funFact != "iii" {
-                    FunFactPill(icon: "✨", fact: structure.funFact ?? "No fun fact available")
-                        .frame(height: 100)
-                }
-            }
-            .padding(15)
-        }
-    }
-
-    private var descriptionView: some View {
-        ScrollView {
-            Text(structure.description)
-                .font(.system(size: 20))
-                .foregroundColor(isDarkMode ? .white : .black)
-                .padding(.horizontal, 10)
-                .padding(.top, 10)
-                .multilineTextAlignment(.center)
-        }
-    }
 }
+
 
 // MARK: - Supporting Views
 struct CustomTabSelector: View {
@@ -315,25 +278,24 @@ struct InfoPill: View {
     let icon: String
     let title: String
     let value: String
-    @Environment(\.colorScheme) var colorScheme
+    let isDarkMode: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(icon)
                 Text(title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.gray)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
             }
             Text(value)
-                .font(.system(size: 16, weight: .medium))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(isDarkMode ? .white : .black)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.gray.opacity(0.1))
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.1))
         .cornerRadius(20)
     }
 }
@@ -435,11 +397,10 @@ struct StructPopUp_Previews: PreviewProvider {
         let mockStructure = Structure(
             number: 8,
             title: "Geodesic Dome",
-            description: "The Geodesic Dome, an iconic structure in Poly Canyon, stands as a testament to innovative architectural design and engineering principles. Constructed in 1957, it showcases the visionary concepts of Buckminster Fuller, who popularized this efficient structural form. The dome's lattice-shell structure is composed of interconnected triangles, creating a self-supporting framework that distributes stress evenly across its surface. This design not only provides exceptional strength-to-weight ratio but also maximizes interior space with minimal material usage. The Geodesic Dome serves as an enduring example of sustainable architecture and continues to inspire students and visitors alike with its futuristic appearance and practical applications in modern construction techniques.",
             year: "1957",
             builders: "John Warren, Myles Murphey, Don Mills, Jack Stammer, Neil Moir, Don Tanklage, Bill Kohr",
-            architecturalStyle: "Geodesic Architecture",
             funFact: "The Geodesic Dome can withstand extreme weather conditions and has inspired similar structures worldwide, including the famous Spaceship Earth at Walt Disney World's Epcot Center.",
+            description: "The Geodesic Dome, an iconic structure in Poly Canyon, stands as a testament to innovative architectural design and engineering principles. Constructed in 1957, it showcases the visionary concepts of Buckminster Fuller, who popularized this efficient structural form. The dome's lattice-shell structure is composed of interconnected triangles, creating a self-supporting framework that distributes stress evenly across its surface. This design not only provides exceptional strength-to-weight ratio but also maximizes interior space with minimal material usage. The Geodesic Dome serves as an enduring example of sustainable architecture and continues to inspire students and visitors alike with its futuristic appearance and practical applications in modern construction techniques.",
             mainPhoto: "8M",
             closeUp: "8C",
             isVisited: true,
