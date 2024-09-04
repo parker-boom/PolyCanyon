@@ -58,12 +58,7 @@ const images = {
   "C-28": require('../assets/photos/Close/C-28.jpg'),
   "C-29": require('../assets/photos/Close/C-29.jpg'),
   "C-30": require('../assets/photos/Close/C-30.jpg'),
-  "C-31": require('../assets/photos/Close/C-31.jpg'),
-  "C-32": require('../assets/photos/Close/C-32.jpg'),
-  "C-33": require('../assets/photos/Close/C-33.jpg'),
-  "C-34": require('../assets/photos/Close/C-34.jpg'),
-  "C-35": require('../assets/photos/Close/C-35.jpg'),
-  "C-36": require('../assets/photos/Close/C-36.jpg'),
+
   
   // Main images
   "M-1": require('../assets/photos/Main/M-1.jpg'),
@@ -96,12 +91,6 @@ const images = {
   "M-28": require('../assets/photos/Main/M-28.jpg'),
   "M-29": require('../assets/photos/Main/M-29.jpg'),
   "M-30": require('../assets/photos/Main/M-30.jpg'),
-  "M-31": require('../assets/photos/Main/M-31.jpg'),
-  "M-32": require('../assets/photos/Main/M-32.jpg'),
-  "M-33": require('../assets/photos/Main/M-33.jpg'),
-  "M-34": require('../assets/photos/Main/M-34.jpg'),
-  "M-35": require('../assets/photos/Main/M-35.jpg'),
-  "M-36": require('../assets/photos/Main/M-36.jpg'),
 };
 
 // Update these functions to return both the image object and its file path
@@ -151,14 +140,16 @@ export const StructureProvider = ({ children }) => {
             let loadedStructures;
             if (storedStructures !== null) {
                 loadedStructures = JSON.parse(storedStructures);
-                loadedStructures = loadedStructures.map(structure => ({
-                    ...structure,
-                    closeUpImage: getCloseImagePath(structure.number),
-                    mainImage: getMainImagePath(structure.number),
-                }));
             } else {
-                await resetAndReloadStructures();
-                loadedStructures = structures;
+                loadedStructures = rawStructureData.map(s => ({
+                    ...s,
+                    closeUpImage: getCloseImagePath(s.number),
+                    mainImage: getMainImagePath(s.number),
+                    isVisited: false,
+                    isOpened: false,
+                    recentlyVisited: -1
+                }));
+                await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(loadedStructures));
             }
 
             setStructures(loadedStructures);
