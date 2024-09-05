@@ -36,6 +36,7 @@
 		DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD2B2C17B75100397065 /* FirebaseStorage */; };
 		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
 		DB7228052C8967DB00988A83 /* Shimmer in Frameworks */ = {isa = PBXBuildFile; productRef = DB7228042C8967DB00988A83 /* Shimmer */; };
+		DB80A5012C8A504D008412E2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB80A5002C8A504D008412E2 /* FirebaseAuth */; };
 		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
 		DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */; };
@@ -99,6 +100,7 @@
 				DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */,
 				DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */,
 				DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */,
+				DB80A5012C8A504D008412E2 /* FirebaseAuth in Frameworks */,
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
 				DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */,
 				DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */,
@@ -254,6 +256,7 @@
 				DB1CC6ED2C6DC1A000B9B777 /* Glur */,
 				DB991BA22C75BE4A0053A521 /* Zoomable */,
 				DB7228042C8967DB00988A83 /* Shimmer */,
+				DB80A5002C8A504D008412E2 /* FirebaseAuth */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -810,6 +813,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB7228032C8967B300988A83 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */;
 			productName = Shimmer;
+		};
+		DB80A5002C8A504D008412E2 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
 		};
 		DB991BA22C75BE4A0053A521 /* Zoomable */ = {
 			isa = XCSwiftPackageProductDependency;

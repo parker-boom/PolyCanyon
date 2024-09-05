@@ -30,6 +30,7 @@ import Foundation
 import CoreLocation
 import Combine
 import FirebaseFirestore
+import FirebaseAuth
 
 
 
@@ -38,28 +39,24 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var mapPointManager: MapPointManager
     private var structureData: StructureData
     private var lastLoggedMapPoint: MapPoint?
-    
+    private var firestoreRef: Firestore!
+    private var userID: String
+
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
     @Published var nearestMapPoint: MapPoint?
-    @Published var isMonitoringSignificantLocationChanges = false
-    @Published var isInSafeZone = false
-
-    // Define safe long and lat zone
-    private let safeZoneCorners = (
-        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
-        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
-    )
-    
-    // Declare Firebase database reference
-    private var firestoreRef: Firestore!
-    private var userID: String
+    @Published var isBackgroundTrackingActive = false
 
     @Published var isAdventureModeEnabled: Bool {
         didSet {
             updateLocationTracking()
         }
     }
+
+    private let safeZoneCorners = (
+        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
+        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
+    )
 
     init(mapPointManager: MapPointManager, structureData: StructureData, isAdventureModeEnabled: Bool) {
         self.userID = UserDefaults.standard.string(forKey: "userID") ?? UUID().uuidString
@@ -70,6 +67,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.isAdventureModeEnabled = isAdventureModeEnabled
         
         super.init()
+        
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = kCLDistanceFilterNone
@@ -77,49 +75,88 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.allowsBackgroundLocationUpdates = true
         
         firestoreRef = Firestore.firestore()
+        authenticateUser()
         
         setupGeofenceForSafeZone()
         updateLocationTracking()
     }
+    
+    // Firebase Anonymous Authentication
+    private func authenticateUser() {
+        if Auth.auth().currentUser == nil {
+            Auth.auth().signInAnonymously { authResult, error in
+                if let error = error {
+                    print("Error signing in anonymously: \(error)")
+                    return
+                }
+                if let user = authResult?.user {
+                    self.userID = user.uid // Use Firebase Auth UID for logging
+                    print("User signed in with UID: \(user.uid)")
+                }
+            }
+        } else {
+            self.userID = Auth.auth().currentUser?.uid ?? UUID().uuidString
+            print("User already signed in with UID: \(self.userID)")
+        }
+    }
 
     private func updateLocationTracking() {
         if isAdventureModeEnabled {
-            startInAppTracking()
+            startLocationUpdates()
         } else {
             stopAllTracking()
         }
     }
-
-    private func startInAppTracking() {
-        locationManager.startUpdatingLocation()
-        print("In-app location tracking started")
+    
+    func requestAlwaysAuthorization() {
+        locationManager.requestAlwaysAuthorization()
+        logLocationChange(message: "Requested Always Authorization")
     }
 
-    private func startBackgroundTracking() {
-        locationManager.allowsBackgroundLocationUpdates = true
+    func requestWhenInUseAuthorization() {
+        locationManager.requestWhenInUseAuthorization()
+        logLocationChange(message: "Requested When In Use Authorization")
+    }
+
+    func startUpdatingLocation() {
         locationManager.startUpdatingLocation()
-        print("Background location tracking started")
+        logLocationChange(message: "Started updating location")
+    }
+
+    private func startLocationUpdates() {
+        if isAdventureModeEnabled {
+            startUpdatingLocation()
+            if let location = lastLocation, isWithinSafeZone(coordinate: location.coordinate) {
+                startBackgroundTracking()
+            }
+        }
     }
 
     private func stopAllTracking() {
         locationManager.stopUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = false
-        print("All location tracking stopped")
+        isBackgroundTrackingActive = false
+        logLocationChange(message: "All location tracking stopped")
+    }
+
+    private func startBackgroundTracking() {
+        guard !isBackgroundTrackingActive else { return }
+        locationManager.allowsBackgroundLocationUpdates = true
+        isBackgroundTrackingActive = true
+        logLocationChange(message: "Background location tracking started")
     }
 
     private func stopBackgroundTracking() {
+        guard isBackgroundTrackingActive else { return }
         locationManager.allowsBackgroundLocationUpdates = false
-        print("Background location tracking stopped")
-    }
-    
-    func requestAlwaysAuthorization() {
-        locationManager.requestAlwaysAuthorization()
-    }
-    
-    func requestWhenInUseAuthorization() {
-        locationManager.requestWhenInUseAuthorization()
+        isBackgroundTrackingActive = false
+        logLocationChange(message: "Background location tracking stopped")
     }
 
+    private func logLocationChange(message: String) {
+        print(message)
+    }
+    
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
         
@@ -127,46 +164,103 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         case .authorizedWhenInUse, .authorizedAlways:
             startLocationUpdates()
         case .denied, .restricted:
-            print("Location access denied or restricted")
+            logLocationChange(message: "Location access denied or restricted")
         case .notDetermined:
-            print("Location status not determined")
+            logLocationChange(message: "Location status not determined")
         @unknown default:
-            print("Unknown location authorization status")
+            logLocationChange(message: "Unknown location authorization status")
         }
     }
 
-    
-    // Setup location manager
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if #available(iOS 14.0, *) {
-            // For iOS 14 and later, the new method will be called instead
-            return
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        
+        lastLocation = location
+        logLocationChange(message: "Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        logLocationToFirebaseIfNeeded(location: location)
+        updateNearestMapPoint(for: location)
+
+        if isAdventureModeEnabled {
+            if isWithinSafeZone(coordinate: location.coordinate) {
+                if !isBackgroundTrackingActive {
+                    startBackgroundTracking()
+                }
+                checkVisitedLandmarks()
+            } else if isBackgroundTrackingActive {
+                stopBackgroundTracking()
+            }
         }
-        locationStatus = status
-        handleAuthorization(status: status)
-        setupGeofenceForSafeZone()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        if region.identifier == "SafeZone" && isAdventureModeEnabled {
+            startBackgroundTracking()
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+        if region.identifier == "SafeZone" {
+            stopBackgroundTracking()
+        }
+    }
+
+    private func setupGeofenceForSafeZone() {
+        let regionCenter = CLLocationCoordinate2D(
+            latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
+            longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2
+        )
+        let latDelta = safeZoneCorners.topRight.latitude - safeZoneCorners.bottomLeft.latitude
+        let lonDelta = safeZoneCorners.topRight.longitude - safeZoneCorners.bottomLeft.longitude
+        let radius = max(latDelta, lonDelta) * 111000 / 2 // Convert to meters (approx)
+
+        let region = CLCircularRegion(center: regionCenter, radius: radius, identifier: "SafeZone")
+        region.notifyOnEntry = true
+        region.notifyOnExit = true
+        locationManager.startMonitoring(for: region)
     }
 
     private func logLocationToFirebaseIfNeeded(location: CLLocation) {
+        // Check if Adventure Mode is enabled
+        guard isAdventureModeEnabled else {
+            print("Adventure mode is disabled, not logging location.")
+            return
+        }
+        
+        // Check if the user is within the safe zone
+        guard isWithinSafeZone(coordinate: location.coordinate) else {
+            print("User is not within the safe zone, not logging location.")
+            return
+        }
+        
+        // Find the nearest map point
         guard let newMapPoint = findNearestMapPoint(to: location.coordinate),
-              newMapPoint != lastLoggedMapPoint else { return }
+              newMapPoint != lastLoggedMapPoint else {
+            print("Map point has not changed, not logging location.")
+            return
+        }
 
+        // Log the map point coordinates (not the user's exact location)
         let locationData: [String: Any] = [
-            "latitude": location.coordinate.latitude,
-            "longitude": location.coordinate.longitude,
+            "latitude": newMapPoint.coordinate.latitude,
+            "longitude": newMapPoint.coordinate.longitude,
             "timestamp": Timestamp(date: Date()),
             "userId": userID
         ]
+        
         firestoreRef.collection("user_locations").addDocument(data: locationData) { err in
             if let err = err {
                 print("Error adding document: \(err)")
+            } else {
+                print("Location logged to Firebase for map point: \(newMapPoint)")
             }
         }
+        
+        // Update the last logged map point
         lastLoggedMapPoint = newMapPoint
     }
 
-    
-    // Function to ensure that Firebase only gets pinged on mapPoint change
+
+
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
         var minDistance = Double.infinity
@@ -183,112 +277,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         return nearestPoint
     }
 
-
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        lastLocation = location
-        print("Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
-        logLocationToFirebaseIfNeeded(location: location)
-        updateNearestMapPoint(for: location)
-
-        if isAdventureModeEnabled {
-            if isWithinSafeZone(coordinate: location.coordinate) {
-                if !isInSafeZone {
-                    isInSafeZone = true
-                    print("Entered safe zone")
-                    startBackgroundTracking()
-                }
-                checkVisitedLandmarks()
-            } else {
-                if isInSafeZone {
-                    isInSafeZone = false
-                    print("Exited safe zone")
-                    stopBackgroundTracking()
-                }
-            }
-        }
-    }
-    
-    
     private func updateNearestMapPoint(for location: CLLocation) {
         nearestMapPoint = findNearestMapPoint(to: location.coordinate)
     }
-
-    
-
-    // Setup geo fence so user location isn't constantly tracked outside of Poly Canyon
-    private func setupGeofenceForSafeZone() {
-        let regionCenter = CLLocationCoordinate2D(
-            latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
-            longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2
-        )
-        let latDelta = safeZoneCorners.topRight.latitude - safeZoneCorners.bottomLeft.latitude
-        let lonDelta = safeZoneCorners.topRight.longitude - safeZoneCorners.bottomLeft.longitude
-        let radius = max(latDelta, lonDelta) * 111000 / 2 // Convert to meters (approx)
-
-        let region = CLCircularRegion(center: regionCenter, radius: radius, identifier: "SafeZone")
-        region.notifyOnEntry = true
-        region.notifyOnExit = true
-        locationManager.startMonitoring(for: region)
-    }
-
-
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        if region.identifier == "SafeZone" && isAdventureModeEnabled {
-            isInSafeZone = true
-            startBackgroundTracking()
-        }
-    }
-
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        if region.identifier == "SafeZone" {
-            isInSafeZone = false
-            stopBackgroundTracking()
-        }
-    }
-
-    // Handle different cases of authorization
-    private func handleAuthorization(status: CLAuthorizationStatus) {
-        switch status {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
-            if let lastLocation = lastLocation, isWithinSafeZone(coordinate: lastLocation.coordinate) {
-                startUpdatingLocation()
-            }
-        case .restricted, .denied:
-            break
-        @unknown default:
-            break
-        }
-    }
-
-    // Starts high-frequency location updates.
-    func startUpdatingLocation() {
-        //if CLLocationManager.locationServicesEnabled() {
-            if let lastLocation = lastLocation, isWithinSafeZone(coordinate: lastLocation.coordinate) {
-                locationManager.startMonitoringSignificantLocationChanges()
-            }
-        //}
-    }
-
-    
-    private func startLocationUpdates() {
-        locationManager.startUpdatingLocation()
-    }
-
-    private func startBackgroundLocationUpdates() {
-        locationManager.allowsBackgroundLocationUpdates = true
-        locationManager.startUpdatingLocation()
-    }
-
-    private func stopBackgroundLocationUpdates() {
-        locationManager.allowsBackgroundLocationUpdates = false
-        locationManager.stopUpdatingLocation()
-        locationManager.startMonitoringSignificantLocationChanges()
-    }
-    
     
     
     // MARK: Landmark Functions
