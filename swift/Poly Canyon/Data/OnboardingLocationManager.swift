@@ -13,16 +13,18 @@ class OnboardingLocationManager: NSObject, ObservableObject, CLLocationManagerDe
     @Published var locationStatus: CLAuthorizationStatus?
     @Published var lastLocation: CLLocation?
     @Published var isNearCalPoly: Bool = false
+    @Published var hasRequestedLocation = false
 
     override init() {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
     }
 
     func requestLocation() {
+        locationManager.requestWhenInUseAuthorization()
         locationManager.requestLocation()
+        hasRequestedLocation = true
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

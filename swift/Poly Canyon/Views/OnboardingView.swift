@@ -82,21 +82,16 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Spacer()
-            if !hasAskedForLocation {
-                NavigationButton(text: "Allow Location Access", action: {
-                    hasAskedForLocation = true
+            NavigationButton(text: locationManager.hasRequestedLocation ? "Next" : "Allow Location Access", action: {
+                if !locationManager.hasRequestedLocation {
                     locationManager.requestLocation()
-                    
-                })
-                .padding(.bottom, 40)
-            } else {
-                NavigationButton(text: "Next", action: {
+                } else {
                     withAnimation {
                         currentPage = 2
                     }
-                })
-                .padding(.bottom, 40)
-            }
+                }
+            })
+            .padding(.bottom, 40)
         }
         .padding()
     }
