@@ -16,14 +16,16 @@
  */
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import rawStructureData from './structures.json'; 
+import rawStructureData from './structures.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// MARK: - Context Creation
 const StructureContext = createContext();
 
-// Custom hook to access Structure context
 export const useStructures = () => useContext(StructureContext);
+
+const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY_V4';
+const DATA_VERSION_KEY = 'DATA_VERSION_KEY';
+const CURRENT_DATA_VERSION = 3; // Increment this to force a reload
 
 // Explicitly require each image
 const images = {
@@ -104,55 +106,30 @@ const getMainImagePath = number => {
   return { image: images[key], path: `../assets/photos/Main/${key}.jpg` };
 };
 
-const STRUCTURES_STORAGE_KEY = 'STRUCTURES_STORAGE_KEY_V3'; // New key to ensure fresh start
-
-// MARK: - Provider Component
 export const StructureProvider = ({ children }) => {
     const [structures, setStructures] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const resetAndReloadStructures = async () => {
-        setIsLoading(true);
-        try {
-            await AsyncStorage.removeItem(STRUCTURES_STORAGE_KEY);
-
-            const newStructures = rawStructureData.map(s => ({
-                ...s,
-                closeUpImage: getCloseImagePath(s.number),
-                mainImage: getMainImagePath(s.number),
-                isVisited: false,
-                isOpened: false,
-                recentlyVisited: -1
-            }));
-
-            setStructures(newStructures);
-            await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(newStructures));
-        } catch (error) {
-            console.error('Error resetting and reloading structures:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    useEffect(() => {
+        loadStructures();
+    }, []);
 
     const loadStructures = async () => {
+        setIsLoading(true);
         try {
+            const storedDataVersion = await AsyncStorage.getItem(DATA_VERSION_KEY);
             const storedStructures = await AsyncStorage.getItem(STRUCTURES_STORAGE_KEY);
-            let loadedStructures;
-            if (storedStructures !== null) {
-                loadedStructures = JSON.parse(storedStructures);
-            } else {
-                loadedStructures = rawStructureData.map(s => ({
-                    ...s,
-                    closeUpImage: getCloseImagePath(s.number),
-                    mainImage: getMainImagePath(s.number),
-                    isVisited: false,
-                    isOpened: false,
-                    recentlyVisited: -1
-                }));
-                await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(loadedStructures));
-            }
 
-            setStructures(loadedStructures);
+            if (storedDataVersion === null || parseInt(storedDataVersion) < CURRENT_DATA_VERSION) {
+                // Reload from JSON if data version is outdated or not set
+                await reloadStructuresFromJSON();
+            } else if (storedStructures !== null) {
+                // Load stored structures if available and data version is current
+                setStructures(JSON.parse(storedStructures));
+            } else {
+                // Initial load if no stored structures
+                await reloadStructuresFromJSON();
+            }
         } catch (error) {
             console.error('Error loading structures:', error);
         } finally {
@@ -160,9 +137,43 @@ export const StructureProvider = ({ children }) => {
         }
     };
 
-    useEffect(() => {
-        loadStructures();
-    }, []);
+    const reloadStructuresFromJSON = async () => {
+        const newStructures = rawStructureData.map(s => ({
+            ...s,
+            closeUpImage: getCloseImagePath(s.number),
+            mainImage: getMainImagePath(s.number),
+            isVisited: false,
+            isOpened: false,
+            recentlyVisited: -1
+        }));
+
+        // Merge with existing data to preserve user-specific fields
+        const mergedStructures = await mergeWithExistingData(newStructures);
+
+        setStructures(mergedStructures);
+        await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(mergedStructures));
+        await AsyncStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION.toString());
+    };
+
+    const mergeWithExistingData = async (newStructures) => {
+        const storedStructures = await AsyncStorage.getItem(STRUCTURES_STORAGE_KEY);
+        if (storedStructures !== null) {
+            const existingStructures = JSON.parse(storedStructures);
+            return newStructures.map(newStruct => {
+                const existingStruct = existingStructures.find(es => es.number === newStruct.number);
+                if (existingStruct) {
+                    return {
+                        ...newStruct,
+                        isVisited: existingStruct.isVisited,
+                        isOpened: existingStruct.isOpened,
+                        recentlyVisited: existingStruct.recentlyVisited
+                    };
+                }
+                return newStruct;
+            });
+        }
+        return newStructures;
+    };
 
     useEffect(() => {
         const saveStructures = async () => {
@@ -180,41 +191,50 @@ export const StructureProvider = ({ children }) => {
 
     const markStructureAsVisited = (landmarkId) => {
         setStructures(prevStructures => {
-            return prevStructures.map(structure => 
+            const updatedStructures = prevStructures.map(structure => 
                 structure.number === landmarkId 
-                    ? { ...structure, isVisited: true }
+                    ? { ...structure, isVisited: true, recentlyVisited: Date.now() }
                     : structure
             );
+            AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(updatedStructures));
+            return updatedStructures;
         });
 
         return structures.find(s => s.number === landmarkId);
     };
 
-    const resetVisitedStructures = () => {
-        setStructures(prevStructures => prevStructures.map(structure => ({
+    const markStructureAsOpened = (landmarkId) => {
+        setStructures(prevStructures => {
+            const updatedStructures = prevStructures.map(structure => 
+                structure.number === landmarkId 
+                    ? { ...structure, isOpened: true }
+                    : structure
+            );
+            AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(updatedStructures));
+            return updatedStructures;
+        });
+    };
+
+    const resetVisitedStructures = async () => {
+        const resetStructures = structures.map(structure => ({
             ...structure,
             isVisited: false,
             isOpened: false,
             recentlyVisited: -1
-        })));
-    };
-
-    const setAllStructuresAsVisited = () => {
-        setStructures(prevStructures => prevStructures.map(structure => ({
-            ...structure,
-            isVisited: true
-        })));
+        }));
+        setStructures(resetStructures);
+        await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(resetStructures));
     };
 
     return (
         <StructureContext.Provider value={{ 
             structures, 
             setStructures, 
-            resetAndReloadStructures,
             isLoading,
             markStructureAsVisited,
+            markStructureAsOpened,
             resetVisitedStructures,
-            setAllStructuresAsVisited
+            reloadStructuresFromJSON
         }}>
             {children}
         </StructureContext.Provider>

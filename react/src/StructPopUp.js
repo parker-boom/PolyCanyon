@@ -31,6 +31,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
 import { BlurView } from '@react-native-community/blur'; // Add this import
+import { LinearGradient } from 'react-native-linear-gradient';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -43,12 +44,13 @@ const POPUP_HEIGHT = height - (POPUP_PADDING * 2);
 
 const StructPopUp = ({ structure, onClose, isDarkMode }) => {
     const [isShowingInfo, setIsShowingInfo] = useState(false);
-    const [selectedTab, setSelectedTab] = useState('stats');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageAspectRatios, setImageAspectRatios] = useState([1, 1]);
 
     const pan = useRef(new Animated.ValueXY()).current;
     const flipAnimation = useRef(new Animated.Value(0)).current;
+    const [funFactAnimation] = useState(new Animated.Value(0));
+    const [rotateAnimation] = useState(new Animated.Value(0));
 
     useEffect(() => {
         const images = [structure.mainImage, structure.closeUpImage];
@@ -104,6 +106,33 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
             }
         });
     }, [structure.mainImage, structure.closeUpImage]);
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(funFactAnimation, {
+                    toValue: 1,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(funFactAnimation, {
+                    toValue: 0,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(rotateAnimation, {
+                toValue: 1,
+                duration: 4000,
+                useNativeDriver: true,
+            })
+        ).start();
+    }, []);
 
     const panResponder = PanResponder.create({
         onMoveShouldSetPanResponder: () => true,
@@ -207,46 +236,332 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
 
     const renderInformationPanel = () => (
         <View style={styles.informationPanel}>
-            <TouchableOpacity style={styles.closeInfoButton} onPress={onClose}>
-                <Ionicons name="close" size={24} color={isDarkMode ? "white" : "black"} />
-            </TouchableOpacity>
             <View style={styles.infoHeader}>
                 <Text style={[styles.infoHeaderNumber, isDarkMode && styles.darkText]}>{structure.number}</Text>
-                <Text style={[styles.infoHeaderTitle, isDarkMode && styles.darkText]}>{structure.title}</Text>
-            </View>
-            <View style={styles.tabSelector}>
-                <TouchableOpacity
-                    style={[styles.tabButton, selectedTab === 'stats' && styles.selectedTab]}
-                    onPress={() => setSelectedTab('stats')}
-                >
-                    <Ionicons name="stats-chart" size={20} color={isDarkMode ? "white" : "black"} style={styles.tabIcon} />
-                    <Text style={[styles.tabButtonText, isDarkMode && styles.darkText]}>Stats</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tabButton, selectedTab === 'info' && styles.selectedTab]}
-                    onPress={() => setSelectedTab('info')}
-                >
-                    <Ionicons name="information-circle" size={20} color={isDarkMode ? "white" : "black"} style={styles.tabIcon} />
-                    <Text style={[styles.tabButtonText, isDarkMode && styles.darkText]}>Info</Text>
+                <View style={styles.infoHeaderTitleContainer}>
+                    <Text style={[styles.infoHeaderTitle, isDarkMode && styles.darkText]}>{structure.title}</Text>
+                    {structure.year !== "xxxx" && (
+                        <Text style={[styles.infoHeaderYear, isDarkMode && styles.darkText]}>{structure.year}</Text>
+                    )}
+                </View>
+                <TouchableOpacity style={styles.closeInfoButton} onPress={onClose}>
+                    <Ionicons name="close-circle" size={30} color={isDarkMode ? "white" : "black"} />
                 </TouchableOpacity>
             </View>
-            {selectedTab === 'stats' ? renderStatisticsView() : renderDescriptionView()}
+            <ScrollView style={styles.infoScrollView}>
+                {structure.builders !== "iii" && (
+                    <InfoPill icon="👷" title="Builders" value={structure.builders} isDarkMode={isDarkMode} />
+                )}
+                <FunFactPill fact={structure["fun fact"]} isDarkMode={isDarkMode} animation={funFactAnimation} />
+                <DescriptionPill description={structure.description} isDarkMode={isDarkMode} />
+            </ScrollView>
         </View>
     );
 
-    const renderStatisticsView = () => (
-        <View style={styles.statsSection}>
-            <View style={styles.statRow}>
-                <InfoPill icon="📅" title="Year" value={structure.year} isDarkMode={isDarkMode} />
-                <InfoPill icon="🏛️" title="Style" value={structure.architecturalStyle} isDarkMode={isDarkMode} />
+    const InfoPill = ({ icon, title, value, isDarkMode }) => (
+        <View style={[styles.infoPill, isDarkMode && styles.darkInfoPill]}>
+            <View style={styles.infoPillHeader}>
+                <Text style={styles.infoPillIcon}>{icon}</Text>
+                <Text style={[styles.infoPillTitle, isDarkMode && styles.darkText]}>{title}</Text>
             </View>
-            <FunFactPill fact={structure.additionalInfo} isDarkMode={isDarkMode} />
+            <Text style={styles.infoPillValue}>{value}</Text>
         </View>
     );
 
-    const renderDescriptionView = () => (
-        <Text style={[styles.description, isDarkMode && styles.darkText]}>{structure.description}</Text>
+    const FunFactPill = ({ fact, isDarkMode, animation }) => {
+        const rotate = rotateAnimation.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg'],
+        });
+
+        return (
+            <View style={[styles.funFactPill, isDarkMode && styles.darkFunFactPill]}>
+                <Animated.View style={[
+                    StyleSheet.absoluteFill,
+                    styles.funFactGlow,
+                    { transform: [{ rotate }] }
+                ]}>
+                    <LinearGradient
+                        colors={['#FFD700', '#FFA500', '#FF4500', '#FF6347']}
+                        start={{x: 0, y: 0}}
+                        end={{x: 1, y: 1}}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Animated.View>
+                <View style={styles.funFactContent}>
+                    <View style={styles.funFactHeader}>
+                        <Text style={styles.funFactIcon}>✨</Text>
+                        <Text style={[styles.funFactTitle, isDarkMode && styles.darkText]}>Fun Fact</Text>
+                    </View>
+                    <Text style={styles.funFactValue}>{fact}</Text>
+                </View>
+            </View>
+        );
+    };
+
+    const DescriptionPill = ({ description, isDarkMode }) => (
+        <View style={[styles.descriptionPill, isDarkMode && styles.darkDescriptionPill]}>
+            <View style={styles.descriptionHeader}>
+                <Text style={styles.descriptionIcon}>📖</Text>
+                <Text style={[styles.descriptionTitle, isDarkMode && styles.darkText]}>Description</Text>
+            </View>
+            <Text style={styles.descriptionValue}>{description}</Text>
+        </View>
     );
+
+    const styles = StyleSheet.create({
+        outerContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        },
+        container: {
+            width: POPUP_WIDTH,
+            height: POPUP_HEIGHT,
+            backgroundColor: 'white',
+            borderRadius: 20,
+            overflow: 'hidden',
+            shadowColor: "#000",
+            shadowOffset: {
+                width: 0,
+                height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+        },
+        darkContainer: {
+            backgroundColor: 'black',
+        },
+        contentContainer: {
+            flex: 1,
+            padding: 10,
+        },
+        imageSection: {
+            flex: 1,
+            borderRadius: 10,
+            overflow: 'hidden',
+        },
+        imageContainer: {
+            width: POPUP_WIDTH - 20,
+            height: POPUP_HEIGHT - 80, // Subtract space for info button and padding
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            overflow: 'hidden',
+        },
+        image: {
+            // The width and height will be set dynamically
+        },
+        overlayContent: {
+            ...StyleSheet.absoluteFillObject,
+            padding: 20,
+            justifyContent: 'space-between',
+        },
+        dismissButton: {
+            alignSelf: 'flex-end',
+        },
+        structureInfo: {
+            alignItems: 'flex-start',
+        },
+        textShadow: {
+            textShadowColor: 'rgba(0, 0, 0, 0.75)',
+            textShadowOffset: { width: -1, height: 1 },
+            textShadowRadius: 10
+        },
+        structureNumber: {
+            fontSize: 40,
+            fontWeight: 'bold',
+            color: 'white',
+            marginBottom: 5,
+        },
+        structureTitle: {
+            fontSize: 30,
+            fontWeight: '600',
+            color: 'white',
+        },
+        imageDots: {
+            flexDirection: 'row',
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+        },
+        dot: {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            marginHorizontal: 4,
+        },
+        activeDot: {
+            backgroundColor: 'white',
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+        },
+        infoButton: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(200, 200, 200, 0.3)',
+            borderRadius: 15,
+            padding: 15,
+            marginHorizontal: 15,
+            marginVertical: 10,
+            marginBottom: 20, // Added bottom padding
+        },
+        darkInfoButton: {
+            backgroundColor: 'rgba(100, 100, 100, 0.3)',
+        },
+        infoButtonText: {
+            fontSize: 18,
+            fontWeight: '600',
+            marginRight: 10,
+        },
+        darkText: {
+            color: 'white',
+        },
+        informationPanel: {
+            flex: 1,
+            padding: 10,
+        },
+        infoHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+        },
+        infoHeaderNumber: {
+            fontSize: 28,
+            fontWeight: 'bold',
+            color: isDarkMode ? '#FFFFFF' : '#000000',
+        },
+        infoHeaderTitleContainer: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        infoHeaderTitle: {
+            fontSize: 22,
+            fontWeight: '700',
+            textAlign: 'center',
+            color: isDarkMode ? '#FFFFFF' : '#000000',
+        },
+        infoHeaderYear: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: isDarkMode ? '#CCCCCC' : '#666666',
+            marginTop: 0,
+        },
+        closeInfoButton: {
+            padding: 5,
+        },
+        infoScrollView: {
+            flex: 1,
+        },
+        infoPill: {
+            backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7',
+            borderRadius: 15,
+            padding: 15,
+            marginBottom: 15,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+        },
+        infoPillHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 5,
+        },
+        infoPillIcon: {
+            fontSize: 20,
+            marginRight: 10,
+            textShadowColor: 'rgba(0, 0, 0, 0.3)',
+            textShadowOffset: { width: 1, height: 1 },
+            textShadowRadius: 2,
+        },
+        infoPillTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: isDarkMode ? '#CCCCCC' : '#666666',
+        },
+        infoPillValue: {
+            fontSize: 18,
+            fontWeight: '400',
+            color: '#000000',
+        },
+        funFactPill: {
+            borderRadius: 15,
+            padding: 2,
+            marginBottom: 15,
+            overflow: 'hidden',
+        },
+        funFactGlow: {
+            borderRadius: 15,
+        },
+        funFactContent: {
+            backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7',
+            borderRadius: 13,
+            padding: 13,
+        },
+        funFactHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 5,
+        },
+        funFactIcon: {
+            fontSize: 20,
+            marginRight: 10,
+            textShadowColor: 'rgba(0, 0, 0, 0.3)',
+            textShadowOffset: { width: 1, height: 1 },
+            textShadowRadius: 2,
+        },
+        funFactTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: '#000000',
+        },
+        funFactValue: {
+            fontSize: 18,
+            fontWeight: '400',
+            color: '#000000',
+        },
+        descriptionPill: {
+            backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7',
+            borderRadius: 15,
+            padding: 15,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+        },
+        descriptionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 10,
+        },
+        descriptionIcon: {
+            fontSize: 20,
+            marginRight: 10,
+            textShadowColor: 'rgba(0, 0, 0, 0.3)',
+            textShadowOffset: { width: 1, height: 1 },
+            textShadowRadius: 2,
+        },
+        descriptionTitle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: isDarkMode ? '#FFFFFF' : '#000000',
+        },
+        descriptionValue: {
+            fontSize: 18,
+            lineHeight: 24,
+            fontWeight: '400',
+            color: '#000000',
+        },
+    });
 
     return (
         <View style={styles.outerContainer}>
@@ -271,240 +586,5 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
         </View>
     );
 };
-
-const InfoPill = ({ icon, title, value, isDarkMode }) => (
-    <View style={[styles.infoPill, isDarkMode && styles.darkInfoPill]}>
-        <Text style={styles.infoPillIcon}>{icon}</Text>
-        <Text style={[styles.infoPillTitle, isDarkMode && styles.darkText]}>{title}</Text>
-        <Text style={[styles.infoPillValue, isDarkMode && styles.darkText]}>{value}</Text>
-    </View>
-);
-
-const FunFactPill = ({ fact, isDarkMode }) => (
-    <View style={[styles.funFactPill, isDarkMode && styles.darkFunFactPill]}>
-        <Text style={styles.funFactIcon}>✨</Text>
-        <Text style={[styles.funFactTitle, isDarkMode && styles.darkText]}>Fun Fact</Text>
-        <Text style={[styles.funFactValue, isDarkMode && styles.darkText]}>{fact}</Text>
-    </View>
-);
-
-const styles = StyleSheet.create({
-    outerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    container: {
-        width: POPUP_WIDTH,
-        height: POPUP_HEIGHT,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        overflow: 'hidden',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    darkContainer: {
-        backgroundColor: 'black',
-    },
-    contentContainer: {
-        flex: 1,
-        padding: 10,
-    },
-    imageSection: {
-        flex: 1,
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    imageContainer: {
-        width: POPUP_WIDTH - 20,
-        height: POPUP_HEIGHT - 80, // Subtract space for info button and padding
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    image: {
-        // The width and height will be set dynamically
-    },
-    overlayContent: {
-        ...StyleSheet.absoluteFillObject,
-        padding: 20,
-        justifyContent: 'space-between',
-    },
-    dismissButton: {
-        alignSelf: 'flex-end',
-    },
-    structureInfo: {
-        alignItems: 'flex-start',
-    },
-    textShadow: {
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10
-    },
-    structureNumber: {
-        fontSize: 40,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 5,
-    },
-    structureTitle: {
-        fontSize: 30,
-        fontWeight: '600',
-        color: 'white',
-    },
-    imageDots: {
-        flexDirection: 'row',
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-    },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        marginHorizontal: 4,
-    },
-    activeDot: {
-        backgroundColor: 'white',
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    infoButton: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(200, 200, 200, 0.3)',
-        borderRadius: 15,
-        padding: 15,
-        marginHorizontal: 15,
-        marginVertical: 10,
-        marginBottom: 20, // Added bottom padding
-    },
-    darkInfoButton: {
-        backgroundColor: 'rgba(100, 100, 100, 0.3)',
-    },
-    infoButtonText: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginRight: 10,
-    },
-    darkText: {
-        color: 'white',
-    },
-    informationPanel: {
-        flex: 1,
-        padding: 10,
-    },
-    closeInfoButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        zIndex: 1,
-    },
-    infoHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-    },
-    infoHeaderNumber: {
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-    infoHeaderTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        flex: 1,
-        textAlign: 'center',
-    },
-    tabSelector: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 20,
-    },
-    tabButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-    },
-    tabIcon: {
-        marginRight: 5,
-    },
-    selectedTab: {
-        backgroundColor: 'rgba(200, 200, 200, 0.3)',
-    },
-    tabButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    statsSection: {
-        marginTop: 20,
-    },
-    statRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    infoPill: {
-        backgroundColor: 'rgba(200, 200, 200, 0.3)',
-        borderRadius: 15,
-        padding: 10,
-        flex: 1,
-        marginRight: 10,
-    },
-    darkInfoPill: {
-        backgroundColor: 'rgba(100, 100, 100, 0.3)',
-    },
-    infoPillIcon: {
-        fontSize: 20,
-    },
-    infoPillTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: 'gray',
-    },
-    infoPillValue: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    funFactPill: {
-        backgroundColor: 'rgba(100, 150, 255, 0.3)',
-        borderRadius: 15,
-        padding: 10,
-        marginTop: 10,
-    },
-    darkFunFactPill: {
-        backgroundColor: 'rgba(50, 100, 200, 0.3)',
-    },
-    funFactIcon: {
-        fontSize: 20,
-    },
-    funFactTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: 'gray',
-    },
-    funFactValue: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    description: {
-        fontSize: 18,
-        padding: 15,
-        textAlign: 'center',
-    },
-});
 
 export default StructPopUp;
