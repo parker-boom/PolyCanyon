@@ -84,8 +84,9 @@ struct OnboardingView: View {
             Spacer()
             if !hasAskedForLocation {
                 NavigationButton(text: "Allow Location Access", action: {
-                    locationManager.requestLocation()
                     hasAskedForLocation = true
+                    locationManager.requestLocation()
+                    
                 })
                 .padding(.bottom, 40)
             } else {

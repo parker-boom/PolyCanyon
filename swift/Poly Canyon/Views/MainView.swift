@@ -29,18 +29,21 @@ import Combine
 struct MainView: View {
     @State private var selection = 1
     @StateObject private var locationManager: LocationManager
-    @StateObject private var structureData = StructureData()
+    
     @StateObject private var mapPointManager = MapPointManager()
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
+    @ObservedObject var structureData: StructureData
 
     @StateObject private var keyboardManager = KeyboardManager()
 
-    init(isDarkMode: Binding<Bool>, isAdventureModeEnabled: Binding<Bool>) {
+    init(isDarkMode: Binding<Bool>, isAdventureModeEnabled: Binding<Bool>, structureData: StructureData) {
         self._isDarkMode = isDarkMode
         self._isAdventureModeEnabled = isAdventureModeEnabled
+        self._structureData = ObservedObject(wrappedValue: structureData)
+        
+        // Initialize other properties as needed...
         let mapPointManager = MapPointManager()
-        let structureData = StructureData()
         self._locationManager = StateObject(wrappedValue: LocationManager(mapPointManager: mapPointManager, structureData: structureData, isAdventureModeEnabled: isAdventureModeEnabled.wrappedValue))
     }
 
@@ -162,9 +165,11 @@ class KeyboardManager: ObservableObject {
     }
 }
 
+/*
 // MARK: - Preview
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView(isDarkMode: .constant(true), isAdventureModeEnabled: .constant(false))
     }
 }
+*/

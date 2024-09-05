@@ -1,35 +1,12 @@
-// MARK: Overview
-/*
-    StructureData.swift
-
-    This file defines the StructureData class, which manages the data for all structures in the app.
-
-    Key Components:
-    - Publishes an array of structures, saving changes to UserDefaults.
-    - Initializes by loading data from UserDefaults or from a CSV file if no data is found.
-
-    Functionality:
-    - saveToUserDefaults(): Encodes and saves the structures array to UserDefaults.
-    - loadFromUserDefaults(): Decodes and loads the structures array from UserDefaults.
-    - resetVisitedStructures(): Resets the visited status of all structures.
-    - setAllStructuresAsVisited(): Marks all structures as visited.
-    - loadStructuresFromCSV(): Loads structure data from a CSV file.
-*/
-
-
-
-
-
-// MARK: Code
 import Foundation
 
 struct Structure: Identifiable, Codable {
     let number: Int
     let title: String
+    let description: String
     let year: String
     let builders: String
     let funFact: String
-    let description: String
     let mainPhoto: String
     let closeUp: String
     var isVisited: Bool
@@ -41,28 +18,27 @@ struct Structure: Identifiable, Codable {
 }
 
 class StructureData: ObservableObject {
-    @Published var structures: [Structure] = [] {
-        didSet {
-            saveToUserDefaults()
-        }
-    }
-    
-    private let currentDataVersion = 3
-    @Published var dataVersion: Int {
-        didSet {
-            if dataVersion != currentDataVersion {
-                reloadStructures()
-                print("reloading finished")
-            } else {
-                print("huh")
-            }
-        }
-    }
-    
+    @Published var structures: [Structure] = []
+    private let currentDataVersion = 5
+    @Published var dataVersion: Int = 0
+    @Published var isLoading: Bool = true
+
     init() {
-        self.dataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
-        loadFromUserDefaults()
+        loadData()
     }
+    
+
+    private func loadData() {
+        self.isLoading = true
+        self.dataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
+        
+        if dataVersion != currentDataVersion {
+            reloadStructures()
+        } else {
+            loadFromUserDefaults()
+        }
+    }
+
     
     func saveToUserDefaults() {
         if let encoded = try? JSONEncoder().encode(structures) {
@@ -71,22 +47,32 @@ class StructureData: ObservableObject {
         }
     }
     
-    func loadFromUserDefaults() {
-        if dataVersion < currentDataVersion {
-            reloadStructures()
-        } else if let structuresData = UserDefaults.standard.data(forKey: "structures"),
-                  let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
-            self.structures = decodedStructures
+    private func loadFromUserDefaults() {
+        if let structuresData = UserDefaults.standard.data(forKey: "structures"),
+           let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
+            DispatchQueue.main.async {
+                self.structures = decodedStructures
+                self.isLoading = false
+            }
         } else {
             reloadStructures()
         }
     }
     
-    func reloadStructures() {
+    private func reloadStructures() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.clearExistingData()
+            self?.loadStructuresFromCSV()
+            DispatchQueue.main.async {
+                self?.dataVersion = self?.currentDataVersion ?? 0
+                self?.saveToUserDefaults()
+                self?.isLoading = false
+            }
+        }
+    }
+    
+    private func clearExistingData() {
         structures.removeAll()
-        loadStructuresFromCSV()
-        dataVersion = currentDataVersion
-        saveToUserDefaults()
     }
     
     func resetVisitedStructures() {
@@ -108,6 +94,7 @@ class StructureData: ObservableObject {
     
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
+            print("Error: Cannot find structures.csv file")
             return
         }
         
@@ -119,23 +106,24 @@ class StructureData: ObservableObject {
             var loadedStructures: [Structure] = []
             
             for line in lines.dropFirst() {
-                let values = line.components(separatedBy: ",")
-                if values.count >= 7 {
+                let values = csvScanner(line: line)
+                if values.count >= 6 {
                     let number = Int(values[0]) ?? 0
-                    let title = values[1]
-                    let year = values[2]
-                    let builders = values[3]
-                    let funFact = values[4]
-                    let description = values[5]
+                    let title = values[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let year = values[2].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let builders = values[3].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let funFact = values[4].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let description = values[5].trimmingCharacters(in: .whitespacesAndNewlines)
                     let mainPhoto = "\(number)M"
                     let closeUp = "\(number)C"
+                    
                     let structure = Structure(
                         number: number,
                         title: title,
+                        description: description,
                         year: year,
                         builders: builders,
                         funFact: funFact,
-                        description: description,
                         mainPhoto: mainPhoto,
                         closeUp: closeUp,
                         isVisited: false,
@@ -154,6 +142,33 @@ class StructureData: ObservableObject {
         } catch {
             print("Error reading CSV file: \(error)")
         }
+    }
+    
+    private func csvScanner(line: String) -> [String] {
+        var result: [String] = []
+        var currentField = ""
+        var insideQuotes = false
+        
+        for character in line {
+            switch character {
+            case "\"":
+                insideQuotes.toggle()
+            case ",":
+                if insideQuotes {
+                    currentField.append(character)
+                } else {
+                    result.append(currentField)
+                    currentField = ""
+                }
+            default:
+                currentField.append(character)
+            }
+        }
+        
+        // Add the last field
+        result.append(currentField)
+        
+        return result
     }
     
     func toggleLike(for structureId: Int) {
