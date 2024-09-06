@@ -1,21 +1,24 @@
 import SwiftUI
 
-struct SimpleStructureRatingView: View {
+struct StructureSwipingView: View {
     @ObservedObject var structureData: StructureData
     @Binding var isDarkMode: Bool
     @Environment(\.presentationMode) var presentationMode
-    @AppStorage("ratingProgress") private var ratingProgress: Int = 0
     @State private var currentIndex: Int
     @State private var offset: CGSize = .zero
     @State private var color: Color = .black
     @State private var likedCount = 0
+    @State private var hasFinishedRating = false
 
     private let swipeThreshold: CGFloat = 50.0
 
     init(structureData: StructureData, isDarkMode: Binding<Bool>) {
         self.structureData = structureData
         self._isDarkMode = isDarkMode
-        self._currentIndex = State(initialValue: UserDefaults.standard.integer(forKey: "ratingProgress"))
+        let savedIndex = UserDefaults.standard.integer(forKey: "ratingProgress")
+        let isCompleted = UserDefaults.standard.bool(forKey: "ratingCompleted")
+        self._currentIndex = State(initialValue: savedIndex)
+        self._hasFinishedRating = State(initialValue: isCompleted)
     }
 
     var body: some View {
@@ -23,139 +26,136 @@ struct SimpleStructureRatingView: View {
             backgroundColor
 
             VStack {
-                Text("Rate Structures")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 20)
-                    .foregroundColor(isDarkMode ? .white : .black)
-
-                if currentIndex < structureData.structures.count {
-                    Text("\(currentIndex + 1)/\(structureData.structures.count)")
-                        .font(.headline)
-                        .foregroundColor(isDarkMode ? .white : .black)
-                        .padding(.bottom, 5)
-
-                    ZStack {
-                        cardView(for: structureData.structures[currentIndex])
-                            .offset(offset)
-                            .rotationEffect(.degrees(Double(offset.width / 10)))
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { gesture in
-                                        offset = gesture.translation
-                                        withAnimation {
-                                            color = offset.width > 0 ? .green : .red
-                                        }
-                                    }
-                                    .onEnded { _ in
-                                        withAnimation {
-                                            swipeCard(width: offset.width)
-                                            color = .black
-                                        }
-                                    }
-                            )
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-
-                    HStack(spacing: 60) {
-                        Button(action: { swipeCard(width: -500) }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.red)
-                                .font(.system(size: 50))
-                        }
-
-                        Button(action: { swipeCard(width: 500) }) {
-                            Image(systemName: "heart.circle.fill")
-                                .foregroundColor(.green)
-                                .font(.system(size: 50))
-                        }
-                    }
-                    .padding(.bottom, 5)
-
+                if !hasFinishedRating {
+                    ratingContent
                 } else {
                     completionView
                 }
-
-                Spacer()
-
-                Button(action: {
-                    saveProgress()
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Exit")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
-                }
-                .padding(.bottom, 20)
             }
         }
         .edgesIgnoringSafeArea(.all)
+        .onAppear {
+            updateLikedCount()
+        }
     }
 
-    private func swipeCard(width: CGFloat) {
-        if abs(width) > swipeThreshold {
-            if width > 0 {
-                likeStructure()
-            } else {
-                dislikeStructure()
+    private var backgroundColor: Color {
+        isDarkMode ? .black : .white
+    }
+
+    private var ratingContent: some View {
+        VStack {
+            Text("Rate Structures")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.top, 20)
+
+            Text("\(currentIndex + 1)/\(structureData.structures.count)")
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.bottom, 5)
+
+            ZStack {
+                ForEach(structureData.structures.indices, id: \.self) { index in
+                    if index >= currentIndex && index <= currentIndex + 2 {
+                        cardView(for: structureData.structures[index])
+                            .offset(index == currentIndex ? offset : .zero)
+                            .rotationEffect(.degrees(Double(index == currentIndex ? offset.width / 10 : 0)))
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { gesture in
+                                        if index == currentIndex {
+                                            offset = gesture.translation
+                                            withAnimation {
+                                                color = offset.width > 0 ? .green : .red
+                                            }
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        if index == currentIndex {
+                                            withAnimation {
+                                                swipeCard(width: offset.width)
+                                                color = .black
+                                            }
+                                        }
+                                    }
+                            )
+                            .zIndex(Double(structureData.structures.count - index))
+                    }
+                }
             }
-            moveToNextCard()
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+
+            HStack(spacing: 60) {
+                Button(action: { swipeCard(width: -500) }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                        .font(.system(size: 50))
+                }
+
+                Button(action: { swipeCard(width: 500) }) {
+                    Image(systemName: "heart.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.system(size: 50))
+                }
+            }
+            .padding(.bottom, 20)
+
+            exitButton
         }
-        offset = .zero
-    }
-
-    private func moveToNextCard() {
-        currentIndex += 1
-        saveProgress()
-        if currentIndex >= structureData.structures.count {
-            resetProgress()
-        }
-    }
-
-    private func likeStructure() {
-        structureData.toggleLike(for: structureData.structures[currentIndex].id)
-        likedCount += 1
-    }
-
-    private func dislikeStructure() {
-        if structureData.structures[currentIndex].isLiked {
-            structureData.toggleLike(for: structureData.structures[currentIndex].id)
-            likedCount -= 1
-        }
-    }
-
-    private func saveProgress() {
-        UserDefaults.standard.set(currentIndex, forKey: "ratingProgress")
-    }
-
-    private func resetProgress() {
-        currentIndex = 0
-        UserDefaults.standard.set(0, forKey: "ratingProgress")
     }
 
     private var completionView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            PulsingHeart()
+                .frame(width: 100, height: 100)
+                .padding(.bottom, 15)
+            
             Text("Rating Complete!")
-                .font(.title)
-                .fontWeight(.bold)
-
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.bottom, 10)
             Text("\(likedCount)/\(structureData.structures.count) structures liked")
                 .font(.headline)
-
-            Button("Start Over") {
-                resetProgress()
+                .foregroundColor(isDarkMode ? .white : .black)
+                .padding(.bottom, 15)
+            
+            HStack(spacing: 15) {
+                Button(action: restartRating) {
+                    Label("Restart", systemImage: "arrow.clockwise")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 120, height: 50)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Label("Exit", systemImage: "xmark.circle")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 120, height: 50)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                }
             }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.blue)
-            .cornerRadius(10)
         }
-        .foregroundColor(isDarkMode ? .white : .black)
+    }
+
+    private var exitButton: some View {
+        Button(action: {
+            saveProgress()
+            presentationMode.wrappedValue.dismiss()
+        }) {
+            Text("Exit")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 30)
+                .background(Color.red)
+                .cornerRadius(10)
+        }
+        .padding(.bottom, 30)
     }
 
     private func cardView(for structure: Structure) -> some View {
@@ -174,20 +174,81 @@ struct SimpleStructureRatingView: View {
             Text(structure.title)
                 .font(.title)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
                 .padding()
                 .frame(maxWidth: .infinity)
                 .background(Color.black.opacity(0.7))
+                .foregroundColor(.white)
                 .cornerRadius(20, corners: [.bottomLeft, .bottomRight])
         }
         .shadow(radius: 10)
     }
 
-    private var backgroundColor: Color {
-        isDarkMode ? .black : .white
+    private func swipeCard(width: CGFloat) {
+        if abs(width) > swipeThreshold {
+            if width > 0 {
+                likeStructure()
+            } else {
+                dislikeStructure()
+            }
+            moveToNextCard()
+        }
+        offset = .zero
+    }
+
+    private func moveToNextCard() {
+        if currentIndex < structureData.structures.count - 1 {
+            currentIndex += 1
+            saveProgress()
+        } else {
+            hasFinishedRating = true
+            UserDefaults.standard.set(true, forKey: "ratingCompleted")
+        }
+    }
+
+    private func likeStructure() {
+        structureData.toggleLike(for: structureData.structures[currentIndex].id)
+        updateLikedCount()
+    }
+
+    private func dislikeStructure() {
+        if structureData.structures[currentIndex].isLiked {
+            structureData.toggleLike(for: structureData.structures[currentIndex].id)
+            updateLikedCount()
+        }
+    }
+
+    private func updateLikedCount() {
+        likedCount = structureData.structures.filter { $0.isLiked }.count
+    }
+
+    private func restartRating() {
+        currentIndex = 0
+        hasFinishedRating = false
+        UserDefaults.standard.set(false, forKey: "ratingCompleted")
+        saveProgress()
+        updateLikedCount()
+    }
+
+    private func saveProgress() {
+        UserDefaults.standard.set(currentIndex, forKey: "ratingProgress")
     }
 }
 
+struct PulsingHeart: View {
+    @State private var scale: CGFloat = 1.0
+
+    var body: some View {
+        Image(systemName: "heart.fill")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .foregroundColor(.red)
+            .scaleEffect(scale)
+            .animation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true), value: scale)
+            .onAppear {
+                self.scale = 1.2
+            }
+    }
+}
 
 struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
@@ -198,6 +259,7 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
+
 
 enum SwipeDirection {
     case left, right, top, bottom

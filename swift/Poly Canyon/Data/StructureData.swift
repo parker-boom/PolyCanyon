@@ -92,6 +92,13 @@ class StructureData: ObservableObject {
         }
     }
     
+    func resetFavorites() {
+        for index in structures.indices {
+            structures[index].isLiked = false
+        }
+        objectWillChange.send()
+    }
+    
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
             print("Error: Cannot find structures.csv file")

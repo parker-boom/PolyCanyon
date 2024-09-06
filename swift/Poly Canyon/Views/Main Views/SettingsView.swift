@@ -34,7 +34,7 @@ struct SettingsView: View {
     @AppStorage("dayCount") private var dayCount: Int = 0
     
     enum AlertType {
-        case resetVisited, toggleAdventureModeOff
+        case resetVisited, resetFavorites, toggleAdventureModeOff
     }
     
     var body: some View {
@@ -45,7 +45,6 @@ struct SettingsView: View {
                 if isAdventureModeEnabled {
                     statisticsSection
                 }
-                
                 creditsSection
             }
             .padding()
@@ -61,11 +60,11 @@ struct SettingsView: View {
                         }
                     
                     CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
-                                                        isPresented: $showModePopUp,
-                                                        isDarkMode: $isDarkMode,
-                                                        structureData: structureData,
-                                                        mapPointManager: mapPointManager,
-                                                        locationManager: locationManager)
+                                    isPresented: $showModePopUp,
+                                    isDarkMode: $isDarkMode,
+                                    structureData: structureData,
+                                    mapPointManager: mapPointManager,
+                                    locationManager: locationManager)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
                 }
@@ -91,6 +90,15 @@ struct SettingsView: View {
                     primaryButton: .destructive(Text("Yes")) {
                         structureData.resetVisitedStructures()
                         mapPointManager.resetVisitedMapPoints()
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .resetFavorites:
+                return Alert(
+                    title: Text("Reset Favorites"),
+                    message: Text("Are you sure you want to reset all favorite structures?"),
+                    primaryButton: .destructive(Text("Yes")) {
+                        structureData.resetFavorites()
                     },
                     secondaryButton: .cancel()
                 )
@@ -164,11 +172,11 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     SettingsButton(
                         action: {
-                            alertType = .resetVisited
+                            alertType = isAdventureModeEnabled ? .resetVisited : .resetFavorites
                             showAlert = true
                         },
-                        imageName: "arrow.clockwise",
-                        text: "Reset Structures",
+                        imageName: isAdventureModeEnabled ? "arrow.clockwise" : "heart.slash.fill",
+                        text: isAdventureModeEnabled ? "Reset Structures" : "Reset Favorites",
                         imgColor: .red,
                         isDarkMode: isDarkMode
                     )
@@ -177,7 +185,7 @@ struct SettingsView: View {
                         action: {
                             openSettings()
                         },
-                        imageName: "location",
+                        imageName: "location.fill",
                         text: "Location Settings",
                         imgColor: .green,
                         isDarkMode: isDarkMode
@@ -210,90 +218,39 @@ struct SettingsView: View {
                 .padding(.bottom, -5)
 
             if isAdventureModeEnabled {
-                Button(action: {
-                    showHowToGetTherePopup = true
-                }) {
-                    ZStack {
-                        Image("DirectionsBG")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 120)
-                            .clipped()
-                            .cornerRadius(15)
-                            .blur(radius: 4.0)
-
-                        HStack {
-                            VStack(spacing: 10) {
-                                HStack(spacing: 15) {
-                                    Image(systemName: "car.fill")
-                                        .font(.system(size: 28))
-                                    Image(systemName: "arrow.right")
-                                        .font(.system(size: 22))
-                                    Image(systemName: "figure.walk")
-                                        .font(.system(size: 28))
-                                }
-                                .shadow(color: .white.opacity(0.9), radius: 2, x: 0, y: 1)
-                                Text("How to get there")
-                                    .font(.system(size: 26, weight: .bold))
-                                    .shadow(color: .white.opacity(0.6), radius: 2, x: 0, y: 1)
-                            }
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 32))
-                                .foregroundColor(.white)
-                                .shadow(color: .white.opacity(0.8), radius: 2, x: 0, y: 1)
-
+                InformationButton(
+                    action: { showHowToGetTherePopup = true },
+                    title: "How to get there",
+                    icon: AnyView(
+                        HStack(spacing: 15) {
+                            Image(systemName: "car.fill")
+                                .font(.system(size: 28))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 22))
+                            Image(systemName: "figure.walk")
+                                .font(.system(size: 28))
                         }
-                        .padding()
-                    }
-                }
-                .frame(height: 120)
-                .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
+                    ),
+                    gradientColors: [Color.blue.opacity(0.7), Color.blue.opacity(0.3)],
+                    isDarkMode: isDarkMode
+                )
             } else {
-                Button(action: {
-                    showStructureSwipingView = true
-                }) {
-                    ZStack {
-
-                        Color.red
-
-                        HStack {
-                            VStack(spacing: 10) {
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 54))
-                                    .padding(.leading, -20)
-                                    .shadow(color: Color.black.opacity(0.4), radius: 5, x: 0, y: 2)
-
-                                Text("Pick your favorites")
-                                    .font(.system(size: 26, weight: .bold))
-                                    .shadow(color: .white.opacity(0.6), radius: 2, x: 0, y: 1)
-                            }
+                InformationButton(
+                    action: { showStructureSwipingView = true },
+                    title: "Pick your favorites",
+                    icon: AnyView(
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 54))
                             .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 32))
-                                .foregroundColor(.white)
-                                .shadow(color: .white.opacity(0.8), radius: 2, x: 0, y: 1)
-
-                        }
-                        .padding()
-                    }
-                    .cornerRadius(15)
-                }
+                    ),
+                    gradientColors: isDarkMode
+                    ? [Color.red.opacity(0.9), Color.red.opacity(0.4)]
+                    : [Color.red.opacity(0.8), Color.red.opacity(0.3)],
+                    isDarkMode: isDarkMode
+                )
                 .sheet(isPresented: $showStructureSwipingView) {
-                    SimpleStructureRatingView(structureData: structureData, isDarkMode: $isDarkMode)
+                    StructureSwipingView(structureData: structureData, isDarkMode: $isDarkMode)
                 }
-                .frame(height: 120)
-                .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
-                
             }
         }
     }
@@ -349,6 +306,45 @@ struct SettingsView: View {
                 UIApplication.shared.open(url, options: [:], completionHandler: nil)
             }
         }
+    }
+}
+
+struct InformationButton: View {
+    let action: () -> Void
+    let title: String
+    let icon: AnyView
+    let gradientColors: [Color]
+    let isDarkMode: Bool
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                LinearGradient(gradient: Gradient(colors: gradientColors), startPoint: .leading, endPoint: .trailing)
+                    //.blur(radius: 10)
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 10) {
+                        icon
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        Text(title)
+                            .font(.system(size: 26, weight: .bold))
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    }
+                    .foregroundColor(.white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 32))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+                .padding()
+            }
+        }
+        .frame(height: 120)
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
     }
 }
 

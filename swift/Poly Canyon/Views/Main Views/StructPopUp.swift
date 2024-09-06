@@ -60,7 +60,6 @@ struct StructPopUp: View {
             .background(isDarkMode ? Color.black : Color.white)
             .cornerRadius(20)
             .shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.5), radius: 7, x: 0, y: 3)
-            .offset(y: dragOffset.height)
             .gesture(
                 DragGesture()
                     .onChanged { value in
@@ -218,24 +217,6 @@ struct StructPopUp: View {
 
 
 // MARK: - Supporting Views
-struct CustomTabSelector: View {
-    @Binding var selectedTab: Int
-
-    var body: some View {
-        HStack {
-            TabButton(icon: "chart.bar.fill", title: "Stats", isSelected: selectedTab == 0) {
-                selectedTab = 0
-            }
-
-            TabButton(icon: "info.circle.fill", title: "Info", isSelected: selectedTab == 1) {
-                selectedTab = 1
-            }
-        }
-        .background(Color.gray.opacity(0.2))
-        .cornerRadius(20)
-    }
-}
-
 struct LikeButton: View {
     @ObservedObject var structureData: StructureData
     let structure: Structure
@@ -292,7 +273,7 @@ struct InfoPill: View {
                     .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
             }
             Text(value)
-                .font(.system(size: 16, weight: .regular))
+                .font(.system(size: 18, weight: .regular))
                 .foregroundColor(isDarkMode ? .white : .black)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -321,7 +302,7 @@ struct FunFactPill: View {
                     .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
             }
             Text(fact)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
         }
         .frame(maxWidth: .infinity, alignment: .leading)

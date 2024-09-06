@@ -1,5 +1,7 @@
 import SwiftUI
 import CoreLocation
+import Shiny
+
 
 struct OnboardingView: View {
     @Binding var isNewOnboardingCompleted: Bool
@@ -29,13 +31,17 @@ struct OnboardingView: View {
     var welcomeSlide: some View {
         VStack {
             Spacer()
-            Image("Icon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 200, height: 200)
-                .cornerRadius(40)
-                .padding(.bottom, 30)
-                .shadow(color: .black.opacity(0.4), radius: 15)
+            
+                Image("Icon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+                    .cornerRadius(40)
+                    .padding(.bottom, 30)
+                    .shadow(color: .black.opacity(0.4), radius: 15)
+                    .shiny()
+
+
             Text("Welcome to")
                 .font(.system(size: 36))
                 .foregroundColor(.black.opacity(1))

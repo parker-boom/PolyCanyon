@@ -37,6 +37,7 @@
 		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
 		DB7228052C8967DB00988A83 /* Shimmer in Frameworks */ = {isa = PBXBuildFile; productRef = DB7228042C8967DB00988A83 /* Shimmer */; };
 		DB80A5012C8A504D008412E2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB80A5002C8A504D008412E2 /* FirebaseAuth */; };
+		DB844DED2C8A73AE00A41931 /* Shiny in Frameworks */ = {isa = PBXBuildFile; productRef = DB844DEC2C8A73AE00A41931 /* Shiny */; };
 		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
 		DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */; };
@@ -104,6 +105,7 @@
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
 				DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */,
 				DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */,
+				DB844DED2C8A73AE00A41931 /* Shiny in Frameworks */,
 				DB7228052C8967DB00988A83 /* Shimmer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -257,6 +259,7 @@
 				DB991BA22C75BE4A0053A521 /* Zoomable */,
 				DB7228042C8967DB00988A83 /* Shimmer */,
 				DB80A5002C8A504D008412E2 /* FirebaseAuth */,
+				DB844DEC2C8A73AE00A41931 /* Shiny */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -335,6 +338,7 @@
 				DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */,
 				DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */,
 				DB7228032C8967B300988A83 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */,
+				DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */,
 			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
@@ -758,6 +762,14 @@
 				minimumVersion = 1.5.1;
 			};
 		};
+		DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maustinstar/shiny";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 		DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ryohey/Zoomable";
@@ -818,6 +830,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		DB844DEC2C8A73AE00A41931 /* Shiny */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */;
+			productName = Shiny;
 		};
 		DB991BA22C75BE4A0053A521 /* Zoomable */ = {
 			isa = XCSwiftPackageProductDependency;
