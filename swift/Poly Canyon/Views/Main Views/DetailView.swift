@@ -109,6 +109,12 @@ struct DetailView: View {
                 
             }
             .background(isDarkMode ? Color.black : Color.white)
+            .onAppear {
+                let firstVisit = UserDefaults.standard.integer(forKey: "firstVisitedStructure")
+                if firstVisit != 0 {
+                    structureData.ensureStructureVisited(firstVisit)
+                }
+            }
             
             // MARK: - On Appear
             .onAppear {

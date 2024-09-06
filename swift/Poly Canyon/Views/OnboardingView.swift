@@ -8,7 +8,6 @@ struct OnboardingView: View {
     @Binding var isAdventureModeEnabled: Bool
     @StateObject private var locationManager = OnboardingLocationManager()
     @State private var currentPage = 0
-    @State private var hasAskedForLocation = false
 
     private let totalPages = 3
     let adventureModeColor = Color.green
@@ -26,6 +25,13 @@ struct OnboardingView: View {
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .animation(.easeInOut, value: currentPage)
         .preferredColorScheme(.light)
+        .onChange(of: locationManager.isLocationDetermined) { newValue in
+            print("DEBUG: Location determined changed to \(newValue)")
+            if newValue {
+                isAdventureModeEnabled = locationManager.isNearCalPoly
+                print("DEBUG: Setting isAdventureModeEnabled to \(isAdventureModeEnabled)")
+            }
+        }
     }
 
     var welcomeSlide: some View {
@@ -65,6 +71,9 @@ struct OnboardingView: View {
             .padding(.bottom, 40)
         }
         .padding()
+        .onAppear {
+            print("DEBUG: Welcome slide appeared")
+        }
     }
 
     var locationRequestSlide: some View {
@@ -88,18 +97,27 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Spacer()
-            NavigationButton(text: locationManager.hasRequestedLocation ? "Next" : "Allow Location Access", action: {
-                if !locationManager.hasRequestedLocation {
-                    locationManager.requestLocation()
-                } else {
+            if !locationManager.hasRequestedPermission {
+                NavigationButton(text: "Allow Location Access", action: {
+                    print("DEBUG: Requesting location permission")
+                    locationManager.requestPermission()
+                })
+                .padding(.bottom, 40)
+            } else {
+                NavigationButton(text: "Next", action: {
+                    print("DEBUG: Moving to mode selection slide and fetching location")
+                    locationManager.fetchLocation()
                     withAnimation {
                         currentPage = 2
                     }
-                }
-            })
-            .padding(.bottom, 40)
+                })
+                .padding(.bottom, 40)
+            }
         }
         .padding()
+        .onAppear {
+            print("DEBUG: Location request slide appeared")
+        }
     }
 
     var modeSelectionSlide: some View {
@@ -165,6 +183,9 @@ struct OnboardingView: View {
         .background(Color.white)
         .onAppear {
             isAdventureModeEnabled = locationManager.isNearCalPoly
+            print("DEBUG: Mode selection slide appeared")
+            print("DEBUG: isAdventureModeEnabled: \(isAdventureModeEnabled)")
+            print("DEBUG: locationManager.isNearCalPoly: \(locationManager.isNearCalPoly)")
         }
     }
 }

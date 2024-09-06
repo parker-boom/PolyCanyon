@@ -152,6 +152,12 @@ class StructureData: ObservableObject {
         saveToUserDefaults()
         objectWillChange.send()
     }
+    
+    func ensureStructureVisited(_ number: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isVisited = true
+        }
+    }
 
     func resetFavorites() {
         for index in structures.indices {

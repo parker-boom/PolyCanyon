@@ -70,6 +70,7 @@ struct MapView: View {
     @State private var mapImageSize: CGSize = .zero
     @State private var isVirtualWalkthroughActive = false
     @State private var currentWalkthroughMapPoint: MapPoint?
+    @State private var firstVisitedStructure: Int?
     
     @State private var nearbyUnvisitedStructures: [Structure] = []
     @GestureState private var magnifyBy = 1.0
@@ -83,12 +84,13 @@ struct MapView: View {
     @AppStorage("showVirtualTourButton") private var showVirtualTourButton = true
     @AppStorage("hasShownRateStructuresPopup") private var hasShownRateStructuresPopup = false
     @AppStorage("virtualTourCurrentStructure") private var currentStructureIndex = 0
+    @AppStorage("hasCompletedFirstVisit") private var hasCompletedFirstVisit = false
     
     
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topLeading) { // Changed to .topLeading
+            ZStack(alignment: .topLeading) { // Changed to .toƒpLeading
                 // Background color based on dark mode
                 Color(isDarkMode ? .black : .white)
                     .edgesIgnoringSafeArea(.all)
@@ -111,15 +113,17 @@ struct MapView: View {
                     isAdventureModeEnabled: isAdventureModeEnabled,
                     geometry: geometry,
                     isVirtualWalkthroughActive: isVirtualWalkthroughActive,
-                    currentStructureIndex: currentStructureIndex
+                    currentStructureIndex: currentStructureIndex, currentWalkthroughMapPoint: currentWalkthroughMapPoint
                 )
+                .onChange(of: isVirtualWalkthroughActive) { newValue in
+                    if newValue {
+                        updateCurrentMapPoint()
+                    }
+                }
                 .zoomable(
                     minZoomScale: 1.0,
                     doubleTapZoomScale: 2.0
                 )
-                .onChange(of: currentScale) { newScale in
-                    isZoomedIn = newScale > 1.0
-                }
                 
                 // Nearby unvisited structures toggle button
                 if isAdventureModeEnabled, let location = locationManager.lastLocation,
@@ -321,16 +325,15 @@ struct MapView: View {
     }
     
 
+    
     private var virtualWalkThroughButton: some View {
         Button(action: {
             withAnimation {
                 isVirtualWalkthroughActive.toggle()
-                
                 if isVirtualWalkthroughActive {
                     updateCurrentMapPoint()
                 }
             }
-            
         }) {
             Image(systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill")
                 .font(.system(size: 24))
@@ -347,7 +350,7 @@ struct MapView: View {
         let currentStructure = structureData.structures[currentStructureIndex]
         currentWalkthroughMapPoint = mapPointManager.mapPoints.first { $0.landmark == currentStructure.number }
     }
-    
+
     private func moveToNextStructure() {
         currentStructureIndex = (currentStructureIndex + 1) % structureData.structures.count
         updateCurrentMapPoint()
@@ -457,11 +460,17 @@ struct MapView: View {
     
     // Get notifications when a user visits a structure
     private func subscribeToVisitedStructureNotification() {
-        NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
             if let landmarkId = notification.object as? Int,
                let structure = structureData.structures.first(where: { $0.number == landmarkId }) {
-                self.visitedStructure = structure
-                self.showVisitedStructurePopup = true
+                
+                if !hasCompletedFirstVisit {
+                    firstVisitedStructure = landmarkId
+                    hasCompletedFirstVisit = true
+                    showVisitedStructurePopup(for: structure)
+                } else if structure.number != firstVisitedStructure {
+                    showVisitedStructurePopup(for: structure)
+                }
                 
                 // Check and update day count
                 let currentDate = Date()
@@ -478,13 +487,18 @@ struct MapView: View {
                     self.dayCount += 1
                     self.previousDayVisited = todayString
                 }
-            }
-            
-            // Check if all structures are visited
-            if self.structureData.structures.allSatisfy({ $0.isVisited }) {
-                self.allStructuresVisitedFlag = true
+                
+                // Check if all structures are visited
+                if self.structureData.structures.allSatisfy({ $0.isVisited }) {
+                    self.allStructuresVisitedFlag = true
+                }
             }
         }
+    }
+
+    private func showVisitedStructurePopup(for structure: Structure) {
+        self.visitedStructure = structure
+        self.showVisitedStructurePopup = true
     }
 
 
@@ -582,6 +596,7 @@ struct MapWithLocationDot: View {
     let geometry: GeometryProxy
     let isVirtualWalkthroughActive: Bool
     let currentStructureIndex: Int
+    let currentWalkthroughMapPoint: MapPoint?
 
     @State private var showPulsingCircle = false
     @State private var scale: CGFloat = 1.0
@@ -613,9 +628,7 @@ struct MapWithLocationDot: View {
             updateCircleVisibility()
         }
         .onChange(of: currentStructureIndex) { _ in
-            if isVirtualWalkthroughActive {
                 updateCircleVisibility()
-            }
         }
     }
 
@@ -645,16 +658,17 @@ struct MapWithLocationDot: View {
         } else if isVirtualWalkthroughActive {
             return walkthroughCirclePosition()
         }
-        return .zero
+        return CGPoint(x: -100, y: -100) // Off-screen position
     }
 
     private func walkthroughCirclePosition() -> CGPoint {
-        if let mapPoint = mapPointManager.mapPoints.first(where: { $0.landmark == structureData.structures[currentStructureIndex].number }) {
+        if let mapPoint = currentWalkthroughMapPoint {
             return calculateCirclePosition(for: mapPoint)
         }
-        return .zero
+        return CGPoint(x: -100, y: -100) // Off-screen position if no point is set
     }
-
+    
+    
     private func regularCirclePosition() -> CGPoint {
         guard let location = locationManager.lastLocation,
               let nearestPoint = findNearestMapPoint(to: location.coordinate) else {
