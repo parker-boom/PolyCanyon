@@ -116,14 +116,8 @@ struct DetailView: View {
                 if isAdventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
                         if let landmarkId = notification.object as? Int {
-                            if let index = structureData.structures.firstIndex(where: { $0.number == landmarkId }) {
-                                structureData.structures[index].isVisited = true
-                                
-                                if structureData.structures[index].recentlyVisited == -1 {
-                                    structureData.structures[index].recentlyVisited = visitedCount
-                                    visitedCount += 1
-                                }
-                            }
+                            structureData.markStructureAsVisited(landmarkId, recentlyVisitedCount: visitedCount)
+                            visitedCount += 1
                         }
                     }
                 }
@@ -306,15 +300,12 @@ struct DetailView: View {
                     StructureGridItem(structure: structure, isDarkMode: isDarkMode, isAdventureModeEnabled: isAdventureModeEnabled)
                         .onTapGesture {
                             selectedStructure = structure
-                            if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                                structureData.objectWillChange.send()
-                                if structureData.structures[index].isVisited {
-                                    structureData.structures[index].isOpened = true
-                                }
+                            if structure.isVisited {
+                                structureData.markStructureAsOpened(structure.number)
                             }
                             showStructPopup = true
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
+                            
                             let impactMed = UIImpactFeedbackGenerator(style: .rigid)
                             impactMed.impactOccurred()
                         }
@@ -328,18 +319,14 @@ struct DetailView: View {
     }
 
 
-
-
     // MARK: ListView
     // Show all structures in a smaller more concise list
     var listView: some View {
         VStack(spacing: 0) {
             ForEach(filteredStructures, id: \.id) { structure in
-                
                 Divider()
                     .background(isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.4))
                 
-                // Show number then title
                 HStack {
                     Text("\(structure.number)")
                         .foregroundColor(isDarkMode ? .white : .black)
@@ -354,38 +341,41 @@ struct DetailView: View {
                     
                     Spacer()
                     
-                    if structure.isVisited && !structure.isOpened && isAdventureModeEnabled{
-                        Circle()
-                            .fill(Color.blue.opacity(0.7))
-                            .frame(width: 8, height: 8)
-                            .padding(.trailing, 5)
-                    }
-                    
                     if isAdventureModeEnabled {
-                        // Walking figure green if visited
+                        if structure.isVisited && !structure.isOpened {
+                            Circle()
+                                .fill(Color.blue.opacity(0.7))
+                                .frame(width: 8, height: 8)
+                                .padding(.trailing, 5)
+                        }
+                        
                         Image(systemName: "figure.walk")
                             .foregroundColor(structure.isVisited ? .green : .red)
                             .font(.title2)
                             .padding(.trailing, 10)
+                    } else {
+                        Button(action: {
+                            structureData.toggleLike(for: structure.id)
+                        }) {
+                            Image(systemName: structure.isLiked ? "heart.fill" : "heart")
+                                .foregroundColor(structure.isLiked ? .red : .white)
+                                .font(.system(size: 22))
+                        }
+                        .padding(.trailing, 10)
                     }
                 }
                 .padding(.vertical, 10)
                 .padding(.horizontal, 16)
                 .background(isDarkMode ? Color.black : Color.white)
                 
-                // Show pop up if clicked
                 .onTapGesture {
                     selectedStructure = structure
-                    if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                        structureData.objectWillChange.send()
-                        if structureData.structures[index].isVisited {
-                            structureData.structures[index].isOpened = true
-                        }
+                    if structure.isVisited {
+                        structureData.markStructureAsOpened(structure.number)
                     }
                     showStructPopup = true
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    
-                    // Generate haptic feedback
+
                     let impactMed = UIImpactFeedbackGenerator(style: .rigid)
                     impactMed.impactOccurred()
                 }
@@ -432,14 +422,12 @@ struct DetailView: View {
                     // Open if clicked on
                     .onTapGesture {
                         selectedStructure = structure
-                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                            structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
+                        if structure.isVisited {
+                            structureData.markStructureAsOpened(structure.number)
                         }
-                        showPopup = true
+                        showStructPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        // Generate haptic feedback
+
                         let impactMed = UIImpactFeedbackGenerator(style: .rigid)
                         impactMed.impactOccurred()
                     }
@@ -498,14 +486,12 @@ struct DetailView: View {
                     // Open if tap
                     .onTapGesture {
                         selectedStructure = structure
-                        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-                            structureData.objectWillChange.send()
-                            structureData.structures[index].isOpened = true
+                        if structure.isVisited {
+                            structureData.markStructureAsOpened(structure.number)
                         }
-                        showPopup = true
+                        showStructPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        // Generate haptic feedback
+
                         let impactMed = UIImpactFeedbackGenerator(style: .rigid)
                         impactMed.impactOccurred()
                     }
@@ -566,13 +552,12 @@ struct DetailView: View {
                     // Open if selected
                     .onTapGesture {
                         selectedStructure = structure
-                        if structureData.structures.firstIndex(where: { $0.id == structure.id }) != nil {
-                            structureData.objectWillChange.send()
+                        if structure.isVisited {
+                            structureData.markStructureAsOpened(structure.number)
                         }
-                        showPopup = true
+                        showStructPopup = true
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        // Generate haptic feedback
+
                         let impactMed = UIImpactFeedbackGenerator(style: .rigid)
                         impactMed.impactOccurred()
                     }

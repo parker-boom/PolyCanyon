@@ -132,5 +132,6 @@ class MapPointManager: ObservableObject {
             }
         }
         saveVisitedStatus()
+        objectWillChange.send()
     }
 }

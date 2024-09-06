@@ -19,90 +19,39 @@ struct Structure: Identifiable, Codable {
 
 class StructureData: ObservableObject {
     @Published var structures: [Structure] = []
-    private let currentDataVersion = 5
-    @Published var dataVersion: Int = 0
     @Published var isLoading: Bool = true
+    
+    private let structuresKey = "persistedStructures"
 
     init() {
         loadData()
     }
-    
 
     private func loadData() {
         self.isLoading = true
-        self.dataVersion = UserDefaults.standard.integer(forKey: "structuresDataVersion")
         
-        if dataVersion != currentDataVersion {
-            reloadStructures()
+        if let savedStructures = loadFromUserDefaults() {
+            self.structures = savedStructures
+            self.isLoading = false
         } else {
-            loadFromUserDefaults()
+            loadStructuresFromCSV()
         }
     }
 
-    
-    func saveToUserDefaults() {
-        if let encoded = try? JSONEncoder().encode(structures) {
-            UserDefaults.standard.set(encoded, forKey: "structures")
-            UserDefaults.standard.set(dataVersion, forKey: "structuresDataVersion")
-        }
-    }
-    
-    private func loadFromUserDefaults() {
-        if let structuresData = UserDefaults.standard.data(forKey: "structures"),
+    private func loadFromUserDefaults() -> [Structure]? {
+        if let structuresData = UserDefaults.standard.data(forKey: structuresKey),
            let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
-            DispatchQueue.main.async {
-                self.structures = decodedStructures
-                self.isLoading = false
-            }
-        } else {
-            reloadStructures()
+            return decodedStructures
+        }
+        return nil
+    }
+
+    private func saveToUserDefaults() {
+        if let encoded = try? JSONEncoder().encode(structures) {
+            UserDefaults.standard.set(encoded, forKey: structuresKey)
         }
     }
-    
-    private func reloadStructures() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.clearExistingData()
-            self?.loadStructuresFromCSV()
-            DispatchQueue.main.async {
-                self?.dataVersion = self?.currentDataVersion ?? 0
-                self?.saveToUserDefaults()
-                self?.isLoading = false
-            }
-        }
-    }
-    
-    private func clearExistingData() {
-        structures.removeAll()
-    }
-    
-    func hasRatedStructures() -> Bool {
-        return structures.contains { $0.isLiked }
-    }
-    
-    func resetVisitedStructures() {
-        for index in structures.indices {
-            structures[index].isVisited = false
-            structures[index].isOpened = false
-            structures[index].recentlyVisited = -1
-        }
-        objectWillChange.send()
-    }
-    
-    func setAllStructuresAsVisited() {
-        structures = structures.map { structure in
-            var updatedStructure = structure
-            updatedStructure.isVisited = true
-            return updatedStructure
-        }
-    }
-    
-    func resetFavorites() {
-        for index in structures.indices {
-            structures[index].isLiked = false
-        }
-        objectWillChange.send()
-    }
-    
+
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
             print("Error: Cannot find structures.csv file")
@@ -149,12 +98,14 @@ class StructureData: ObservableObject {
             DispatchQueue.main.async {
                 self.structures = loadedStructures
                 self.saveToUserDefaults()
+                self.isLoading = false
             }
         } catch {
             print("Error reading CSV file: \(error)")
+            self.isLoading = false
         }
     }
-    
+
     private func csvScanner(line: String) -> [String] {
         var result: [String] = []
         var currentField = ""
@@ -176,19 +127,67 @@ class StructureData: ObservableObject {
             }
         }
         
-        // Add the last field
         result.append(currentField)
-        
         return result
     }
-    
+
+    func resetVisitedStructures() {
+        for index in structures.indices {
+            structures[index].isVisited = false
+            structures[index].isOpened = false
+            structures[index].recentlyVisited = -1
+        }
+        saveToUserDefaults()
+        objectWillChange.send()
+    }
+
+    func hasRatedStructures() -> Bool {
+        return structures.contains { $0.isLiked }
+    }
+
+    func setAllStructuresAsVisited() {
+        for index in structures.indices {
+            structures[index].isVisited = true
+        }
+        saveToUserDefaults()
+        objectWillChange.send()
+    }
+
+    func resetFavorites() {
+        for index in structures.indices {
+            structures[index].isLiked = false
+        }
+        saveToUserDefaults()
+        objectWillChange.send()
+    }
+
     func toggleLike(for structureId: Int) {
         if let index = structures.firstIndex(where: { $0.id == structureId }) {
             structures[index].isLiked.toggle()
+            saveToUserDefaults()
+        }
+    }
+
+    func getLikedStructures() -> [Structure] {
+        return structures.filter { $0.isLiked }
+    }
+    
+    func markStructureAsVisited(_ number: Int, recentlyVisitedCount: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isVisited = true
+            if structures[index].recentlyVisited == -1 {
+                structures[index].recentlyVisited = recentlyVisitedCount
+            }
+            saveToUserDefaults()
+            objectWillChange.send()
         }
     }
     
-    func getLikedStructures() -> [Structure] {
-        return structures.filter { $0.isLiked }
+    func markStructureAsOpened(_ number: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isOpened = true
+            saveToUserDefaults()
+            objectWillChange.send()
+        }
     }
 }

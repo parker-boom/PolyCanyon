@@ -493,12 +493,6 @@ struct CustomModePopUp: View {
                 .padding(.bottom, -10)
             
             Button("Confirm Choice") {
-                if isAdventureModeEnabled {
-                    structureData.resetVisitedStructures()
-                    mapPointManager.resetVisitedMapPoints()
-                } else {
-                    structureData.setAllStructuresAsVisited()
-                }
                 locationManager.isAdventureModeEnabled = isAdventureModeEnabled
                 isPresented = false
             }

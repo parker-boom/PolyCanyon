@@ -353,6 +353,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     // Marks a landmark as visited in the system notifications.
     private func markStructureAsVisited(_ landmarkId: Int) {
+        
         NotificationCenter.default.post(name: .structureVisited, object: landmarkId)
     }
     

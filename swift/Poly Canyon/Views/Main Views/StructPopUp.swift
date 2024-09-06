@@ -53,7 +53,13 @@ struct StructPopUp: View {
                     axis: (x: 0.0, y: 1.0, z: 0.0)
                 )
                 .animation(.easeInOut(duration: 0.5), value: isShowingInfo)
-
+                .onAppear {
+                    if structure.isVisited {
+                        structureData.markStructureAsOpened(structure.number)
+                    }
+                }
+                
+                
                 informationButton(geometry: geometry)
             }
             .padding(15)
@@ -197,9 +203,11 @@ struct StructPopUp: View {
             VStack {
                 Text(structure.title)
                     .font(.system(size: 24, weight: .bold))
-                Text(structure.year)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                if structure.year != "xxxx" {
+                    Text(structure.year)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                }
             }
             Spacer()
             Button(action: {
