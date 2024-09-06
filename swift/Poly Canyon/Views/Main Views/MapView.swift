@@ -68,17 +68,21 @@ struct MapView: View {
     @State private var isZoomedIn = false
     @State private var currentScale: CGFloat = 1.0
     @State private var mapImageSize: CGSize = .zero
-
+    @State private var isVirtualWalkthroughActive = false
+    @State private var currentWalkthroughMapPoint: MapPoint?
     
     @State private var nearbyUnvisitedStructures: [Structure] = []
     @GestureState private var magnifyBy = 1.0
 
+    
+    
     // track number of time visiting all, and  times visited
     @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
     @AppStorage("showVirtualTourButton") private var showVirtualTourButton = true
     @AppStorage("hasShownRateStructuresPopup") private var hasShownRateStructuresPopup = false
+    @AppStorage("virtualTourCurrentStructure") private var currentStructureIndex = 0
     
     
     // MARK: - Body
@@ -105,7 +109,9 @@ struct MapView: View {
                     structureData: structureData,
                     mapPointManager: mapPointManager,
                     isAdventureModeEnabled: isAdventureModeEnabled,
-                    geometry: geometry
+                    geometry: geometry,
+                    isVirtualWalkthroughActive: isVirtualWalkthroughActive,
+                    currentStructureIndex: currentStructureIndex
                 )
                 .zoomable(
                     minZoomScale: 1.0,
@@ -136,6 +142,10 @@ struct MapView: View {
                     }
                     .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
                     .padding(.top, -10)
+                }
+                
+                if !isAdventureModeEnabled {
+                    virtualWalkThroughButton
                 }
                 
                 // Map view toggle button (top right)
@@ -185,6 +195,14 @@ struct MapView: View {
                     )
                     .padding(.top, 75)
                     .transition(.move(edge: .top))
+                }
+                
+                VStack {
+                    Spacer()
+                    if isVirtualWalkthroughActive {
+                        virtualWalkThroughBar
+                            .transition(.move(edge: .bottom))
+                    }
                 }
                 
                 // PopUps when visiting structures
@@ -244,6 +262,8 @@ struct MapView: View {
                     .transition(.opacity)
                     .zIndex(1)
             }
+            
+
         }
         .onAppear {
             if !isAdventureModeEnabled && !hasShownRateStructuresPopup && !structureData.hasRatedStructures() {
@@ -299,6 +319,58 @@ struct MapView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDarkMode ? Color.black : Color.white)
     }
+    
+
+    private var virtualWalkThroughButton: some View {
+        Button(action: {
+            withAnimation {
+                isVirtualWalkthroughActive.toggle()
+                
+                if isVirtualWalkthroughActive {
+                    updateCurrentMapPoint()
+                }
+            }
+            
+        }) {
+            Image(systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill")
+                .font(.system(size: 24))
+                .foregroundColor(isDarkMode ? .white : .black)
+                .frame(width: 50, height: 50)
+                .background(isDarkMode ? Color.black : Color.white)
+                .cornerRadius(15)
+        }
+        .padding(.leading, 15)
+        .shadow(color: isDarkMode ? Color.white.opacity(0.6) : Color.black.opacity(0.8), radius: 5, x: 0, y: 0)
+    }
+
+    private func updateCurrentMapPoint() {
+        let currentStructure = structureData.structures[currentStructureIndex]
+        currentWalkthroughMapPoint = mapPointManager.mapPoints.first { $0.landmark == currentStructure.number }
+    }
+    
+    private func moveToNextStructure() {
+        currentStructureIndex = (currentStructureIndex + 1) % structureData.structures.count
+        updateCurrentMapPoint()
+    }
+
+    private func moveToPreviousStructure() {
+        currentStructureIndex = (currentStructureIndex - 1 + structureData.structures.count) % structureData.structures.count
+        updateCurrentMapPoint()
+    }
+
+    private var virtualWalkThroughBar: some View {
+        VirtualWalkThroughBar(
+            structure: structureData.structures[currentStructureIndex],
+            onNext: moveToNextStructure,
+            onPrevious: moveToPreviousStructure,
+            onTap: {
+                selectedStructure = structureData.structures[currentStructureIndex]
+                showStructPopup = true
+            }
+        )
+        .transition(.move(edge: .bottom))
+    }
+    
     
     private func bottomMessage(_ text: String) -> some View {
             Text(text)
@@ -418,6 +490,86 @@ struct MapView: View {
 
 }
 
+struct VirtualWalkThroughBar: View {
+    let structure: Structure
+    let onNext: () -> Void
+    let onPrevious: () -> Void
+    let onTap: () -> Void
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(colorScheme == .dark ? Color.black : Color.white)
+                    .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 5)
+
+                HStack(spacing: 0) {
+                    arrowButton(direction: .previous)
+                    
+                    Spacer()
+                    
+                    structureInfo
+                    
+                    Spacer()
+                    
+                    arrowButton(direction: .next)
+                }
+                .padding(.horizontal, 15)
+            }
+            .frame(width: geometry.size.width, height: 120)
+        }
+        .frame(height: 120)
+        .padding(.bottom, 10)
+    }
+    
+    private var structureInfo: some View {
+        Button(action: onTap) {
+            HStack(spacing: 15) {
+                Image(structure.mainPhoto)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("#\(structure.number)")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(colorScheme == .dark ? .white.opacity(0.7) : .black.opacity(0.7))
+                    
+                    Text(structure.title)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(10)
+            .background(colorScheme == .dark ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+            .cornerRadius(20)
+        }
+    }
+    
+    private func arrowButton(direction: ArrowDirection) -> some View {
+        Button(action: direction == .next ? onNext : onPrevious) {
+            Image(systemName: direction == .next ? "chevron.right" : "chevron.left")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundColor(colorScheme == .dark ? .white : .black)
+                .frame(width: 40, height: 40)
+                .background(colorScheme == .dark ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
+                .clipShape(Circle())
+        }
+    }
+    
+    private enum ArrowDirection {
+        case next, previous
+    }
+}
+
 
 struct MapWithLocationDot: View {
     let mapImage: String
@@ -428,15 +580,12 @@ struct MapWithLocationDot: View {
     let mapPointManager: MapPointManager
     let isAdventureModeEnabled: Bool
     let geometry: GeometryProxy
+    let isVirtualWalkthroughActive: Bool
+    let currentStructureIndex: Int
 
-    @State private var scale: CGFloat = 1.0
     @State private var showPulsingCircle = false
+    @State private var scale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
-    
-    let safeZoneCorners = (
-        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
-        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
-    )
     
     let originalWidth = 1843.0
     let originalHeight = 4164.0
@@ -448,7 +597,7 @@ struct MapWithLocationDot: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: geometry.size.width, height: geometry.size.height)
-
+            
             // Location dot
             if showPulsingCircle {
                 PulsingCircle()
@@ -460,49 +609,73 @@ struct MapWithLocationDot: View {
         .onChange(of: locationManager.lastLocation) { _ in
             updateCircleVisibility()
         }
+        .onChange(of: isVirtualWalkthroughActive) { _ in
+            updateCircleVisibility()
+        }
+        .onChange(of: currentStructureIndex) { _ in
+            if isVirtualWalkthroughActive {
+                updateCircleVisibility()
+            }
+        }
     }
 
     private func updateCircleVisibility() {
-        // First, check if Adventure Mode is enabled
-        guard isAdventureModeEnabled else {
-            showPulsingCircle = false
-            return
-        }
+        if isAdventureModeEnabled {
+            guard locationManager.locationStatus == .authorizedAlways ||
+                  locationManager.locationStatus == .authorizedWhenInUse else {
+                showPulsingCircle = false
+                return
+            }
 
-        // Check location authorization status
-        guard locationManager.locationStatus == .authorizedAlways ||
-              locationManager.locationStatus == .authorizedWhenInUse else {
-            showPulsingCircle = false
-            return
-        }
+            guard let location = locationManager.lastLocation else {
+                showPulsingCircle = false
+                return
+            }
 
-        // Check if we have a valid location
-        guard let location = locationManager.lastLocation else {
-            showPulsingCircle = false
-            return
+            showPulsingCircle = locationManager.isWithinSafeZone(coordinate: location.coordinate)
+        } else {
+            // Virtual tour mode
+            showPulsingCircle = isVirtualWalkthroughActive
         }
-
-        // Finally, check if the location is within the safe zone
-        showPulsingCircle = locationManager.isWithinSafeZone(coordinate: location.coordinate)
     }
 
     private func circlePosition() -> CGPoint {
+        if isAdventureModeEnabled {
+            return regularCirclePosition()
+        } else if isVirtualWalkthroughActive {
+            return walkthroughCirclePosition()
+        }
+        return .zero
+    }
+
+    private func walkthroughCirclePosition() -> CGPoint {
+        if let mapPoint = mapPointManager.mapPoints.first(where: { $0.landmark == structureData.structures[currentStructureIndex].number }) {
+            return calculateCirclePosition(for: mapPoint)
+        }
+        return .zero
+    }
+
+    private func regularCirclePosition() -> CGPoint {
         guard let location = locationManager.lastLocation,
               let nearestPoint = findNearestMapPoint(to: location.coordinate) else {
             return .zero
         }
+        return calculateCirclePosition(for: nearestPoint)
+    }
 
+    private func calculateCirclePosition(for mapPoint: MapPoint) -> CGPoint {
         let topLeft = topLeftOfImage(in: geometry.size)
-        let displayedSize = displayedImageSize(originalSize: CGSize(width: 1843, height: 4164), containerSize: geometry.size, scale: 1.0)
+        let displayedSize = displayedImageSize(originalSize: CGSize(width: 1843, height: 4164), containerSize: geometry.size, scale: scale)
         let scaleWidth = displayedSize.width / 1843
         let scaleHeight = displayedSize.height / 4164
         let correctScale = min(scaleWidth, scaleHeight)
 
-        let circleX = ((nearestPoint.pixelPosition.x) * correctScale) + topLeft.x
-        let circleY = ((nearestPoint.pixelPosition.y) * correctScale) + topLeft.y
+        let circleX = ((mapPoint.pixelPosition.x) * correctScale) + topLeft.x
+        let circleY = ((mapPoint.pixelPosition.y) * correctScale) + topLeft.y
 
         return CGPoint(x: circleX, y: circleY)
     }
+
 
     // Find the nearest of 60 map points based on the users current location, used to display current location
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
