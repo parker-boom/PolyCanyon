@@ -75,6 +75,10 @@ class StructureData: ObservableObject {
         structures.removeAll()
     }
     
+    func hasRatedStructures() -> Bool {
+        return structures.contains { $0.isLiked }
+    }
+    
     func resetVisitedStructures() {
         for index in structures.indices {
             structures[index].isVisited = false

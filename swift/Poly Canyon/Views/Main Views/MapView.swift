@@ -44,6 +44,8 @@ struct MapView: View {
     @State private var visitedStructure: Structure?
     @State private var selectedStructure: Structure?
     @State private var nearbyMapPoints: [MapPoint] = []
+    @State private var showRateStructuresPopup = false
+    @State private var showStructureSwipingView = false
     
     // STATE
     // numbers for gestures
@@ -76,6 +78,7 @@ struct MapView: View {
     @AppStorage("dayCount") private var dayCount: Int = 0
     @AppStorage("previousDayVisited") private var previousDayVisited: String?
     @AppStorage("showVirtualTourButton") private var showVirtualTourButton = true
+    @AppStorage("hasShownRateStructuresPopup") private var hasShownRateStructuresPopup = false
     
     
     // MARK: - Body
@@ -227,9 +230,33 @@ struct MapView: View {
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
                 
+
+                
+            }
+            if showRateStructuresPopup {
+                Color.black.opacity(0.4)
+                    .edgesIgnoringSafeArea(.all)
+                    .transition(.opacity)
+
+                RateStructuresPopup(isPresented: $showRateStructuresPopup, showStructureSwipingView: $showStructureSwipingView)
+                    .frame(width: geometry.size.width * 0.8)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    .transition(.opacity)
+                    .zIndex(1)
             }
         }
-        
+        .onAppear {
+            if !isAdventureModeEnabled && !hasShownRateStructuresPopup && !structureData.hasRatedStructures() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation {
+                        showRateStructuresPopup = true
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showStructureSwipingView) {
+            StructureSwipingView(structureData: structureData, isDarkMode: $isDarkMode)
+        }
         // Show the onboarding map if it hasn't ever been shown
         .onAppear {
             subscribeToVisitedStructureNotification()
@@ -747,12 +774,62 @@ struct AllStructuresVisitedPopup: View {
 }
 
 
+struct RateStructuresPopup: View {
+    @Binding var isPresented: Bool
+    @Binding var showStructureSwipingView: Bool
+    @AppStorage("hasShownRateStructuresPopup") private var hasShownRateStructuresPopup = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            PulsingHeart()
+                .frame(width: 80, height: 80)
+            
+            Text("Rate Structures")
+                .font(.system(size: 24, weight: .bold))
+            
+            Text("Swipe through and rate the structures to customize your experience!")
+                .font(.system(size: 16))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button(action: {
+                showStructureSwipingView = true
+                isPresented = false
+                hasShownRateStructuresPopup = true
+            }) {
+                Text("Start Rating")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(width: 200)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            
+            Button(action: {
+                isPresented = false
+                hasShownRateStructuresPopup = true
+            }) {
+                Text("Maybe Later")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(radius: 10)
+    }
+}
+
+
+
 // MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
         MapView(
             isDarkMode: .constant(true),
-            isAdventureModeEnabled: .constant(true),
+            isAdventureModeEnabled: .constant(false),
             structureData: StructureData(),
             mapPointManager: MapPointManager(),
             locationManager: LocationManager(
