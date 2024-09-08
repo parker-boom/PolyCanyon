@@ -15,6 +15,16 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+
+
+      <meta-data
+        android:name="com.google.firebase.analytics.DEFAULT_ENABLED"
+        android:value="true" />
+      <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="your-app-id" /> <!-- Replace with your Firebase app ID -->
+
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

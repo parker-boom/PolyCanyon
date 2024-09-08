@@ -2,30 +2,37 @@
 /**
  * MapView Component
  * 
- * This component displays a map showing the user's location and nearby structures.
- * It supports switching between light and satellite views and adapts to Dark Mode.
- * When Dark Mode is enabled, a different map image is displayed, and the background is set to black.
+ * This component displays an interactive map showing the user's location and nearby structures.
+ * Key features:
+ * - Switches between light, dark, and satellite views
+ * - Tracks user location in Adventure Mode
+ * - Marks structures as visited when nearby
+ * - Displays popups for visited structures and ratings
+ * - Adapts to Dark Mode
+ * 
+ * The component uses various sub-components and hooks to manage state and render the UI.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing, Dimensions, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { requestLocationPermission, getCurrentLocation, isWithinSafeZone } from './LocationManager';
+import { requestLocationPermission, getCurrentLocation, isWithinSafeZone } from '../Data/LocationManager';
 import Geolocation from '@react-native-community/geolocation';
-import StructPopUp from './StructPopUp';
-import { useStructures } from './StructureData';
-import { useMapPoints } from './MapPoint';
+import StructPopUp from '../PopUps/StructPopUp';
+import { useStructures } from '../Data/StructureData';
+import { useMapPoints } from '../Data/MapPoint';
 import { BlurView } from '@react-native-community/blur';
-import { useDarkMode } from './DarkMode';
-import { useAdventureMode } from './AdventureModeContext'; // Add this import
-import { useLocation } from './LocationManager';
+import { useDarkMode } from '../States/DarkMode';
+import { useAdventureMode } from '../States/AdventureModeContext'; // Add this import
+import { useLocation } from '../Data/LocationManager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import RatingPopup from '../PopUps/RatingPopup';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // MARK: - PulsingCircle Component
 /**
- * PulsingCircle Component
- * 
- * This component displays a pulsing circle to indicate the user's current location on the map.
- * The appearance adapts based on whether the satellite view is enabled.
+ * Displays a pulsing circle to indicate the user's current location on the map.
+ * Adapts appearance based on satellite view.
  */
 const PulsingCircle = ({ isSatelliteView }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -71,15 +78,16 @@ const PulsingCircle = ({ isSatelliteView }) => {
 
 // MARK: - VisitedStructurePopup Component
 /**
- * VisitedStructurePopup Component
- * 
- * This component displays a popup when a structure is visited.
- * The appearance adapts based on Dark Mode settings.
+ * Displays a popup when a structure is visited.
+ * Adapts appearance based on Dark Mode settings.
  */
 const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkMode, onStructurePress }) => {
     return (
         <View style={styles.popupContainer}>
-            <View style={styles.contentContainer}>
+            <View style={[
+                styles.contentContainer,
+                isDarkMode ? styles.darkContentContainer : styles.lightContentContainer
+            ]}>
                 <TouchableOpacity style={styles.closeButton} onPress={() => setIsPresented(false)}>
                     <Icon 
                         name="close"
@@ -114,12 +122,6 @@ const VisitedStructurePopup = ({ structure, isPresented, setIsPresented, isDarkM
 };
 
 // MARK: - MapView Component
-/**
- * MapView Component
- * 
- * This component displays the map and handles user interactions such as switching views and marking structures as visited.
- * The map image changes based on whether Dark Mode is enabled, and the background is set to black.
- */
 const MapView = ({ route }) => {
     const { mapPoints } = useMapPoints();
     const { structures, setStructures } = useStructures();
@@ -134,22 +136,77 @@ const MapView = ({ route }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [showStructPopUp, setShowStructPopUp] = useState(false);
     const [visitedLandmarks, setVisitedLandmarks] = useState(new Set());
+    const [showRatingPopup, setShowRatingPopup] = useState(false);
+    const [showRatingReminder, setShowRatingReminder] = useState(false);
+    const [pulseAnim] = useState(new Animated.Value(1));
+    const [ratingIndex, setRatingIndex] = useState(0);
 
-    const lightMap = require('../assets/map/LightMap.jpg');
-    const satelliteMap = require('../assets/map/SatelliteMap.jpg');
-    const darkMap = require('../assets/map/DarkMap.jpg');
-    const blurredSatellite = require('../assets/map/BlurredSatellite.jpg');
+    const lightMap = require('../../assets/map/LightMap.jpg');
+    const satelliteMap = require('../../assets/map/SatelliteMap.jpg');
+    const darkMap = require('../../assets/map/DarkMap.jpg');
+    const blurredSatellite = require('../../assets/map/BlurredSatellite.jpg');
 
     const MAP_ORIGINAL_WIDTH = 1843;
     const MAP_ORIGINAL_HEIGHT = 4164;
 
+    const FAVORITE_POPUP_KEY = 'FAVORITE_POPUP_KEY';
+
     useLocation((error, position) => {
-        if (error) {
-            console.log('Error getting current position:', error);
-        } else {
-            handleLocationUpdate(position);
+        if (adventureMode) {
+            if (error) {
+                console.log('Error getting current position:', error);
+            } else {
+                handleLocationUpdate(position);
+            }
         }
-    });
+    }, mapPoints);
+
+    useEffect(() => {
+        if (!adventureMode) {
+            checkFavoritePopup();
+        }
+    }, [adventureMode]);
+
+    useEffect(() => {
+        if (showRatingReminder) {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 1.2, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true })
+                ])
+            ).start();
+        }
+    }, [showRatingReminder]);
+
+    const checkFavoritePopup = async () => {
+        try {
+            const value = await AsyncStorage.getItem(FAVORITE_POPUP_KEY);
+            if (value === null) {
+                setShowRatingReminder(true);
+            }
+        } catch (error) {
+            console.error('Error checking favorite popup:', error);
+        }
+    };
+
+    const handleRateNow = async () => {
+        setShowRatingReminder(false);
+        setShowRatingPopup(true);
+        try {
+            await AsyncStorage.setItem(FAVORITE_POPUP_KEY, 'true');
+        } catch (error) {
+            console.error('Error saving favorite popup state:', error);
+        }
+    };
+
+    const handleMaybeLater = async () => {
+        setShowRatingReminder(false);
+        try {
+            await AsyncStorage.setItem(FAVORITE_POPUP_KEY, 'true');
+        } catch (error) {
+            console.error('Error saving favorite popup state:', error);
+        }
+    };
 
     // Handle location updates and find the nearest map point
     const handleLocationUpdate = (position) => {
@@ -269,6 +326,10 @@ const MapView = ({ route }) => {
         setShowStructPopUp(true); // Open StructPopUp
     };
 
+    const handleCloseRatingPopup = () => {
+        setShowRatingPopup(false);
+    };
+
     return (
         <View style={styles.container}>
             {isSatelliteView ? (
@@ -314,12 +375,8 @@ const MapView = ({ route }) => {
                 animationType="fade"
                 onRequestClose={() => setShowStructPopUp(false)}
             >
-                <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType={isDarkMode ? "dark" : "light"}
-                    blurAmount={10}
-                >
-                    <View style={styles.modalContainer}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
                         {visitedStructure && (
                             <StructPopUp
                                 structure={visitedStructure}
@@ -328,8 +385,33 @@ const MapView = ({ route }) => {
                             />
                         )}
                     </View>
-                </BlurView>
+                </View>
             </Modal>
+
+            {showRatingReminder && (
+                <View style={styles.ratingReminderWrapper}>
+                    <View style={[styles.ratingReminderContainer, isDarkMode && styles.darkRatingReminderContainer]}>
+                        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                            <Ionicons name="heart" size={100} color="red" />
+                        </Animated.View>
+                        <Text style={[styles.ratingReminderText, isDarkMode && styles.darkText]}>
+                            Please rate your favorite structures!
+                        </Text>
+                        <TouchableOpacity style={styles.rateNowButton} onPress={handleRateNow}>
+                            <Text style={styles.rateNowButtonText}>Rate Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleMaybeLater}>
+                            <Text style={[styles.maybeLaterText, isDarkMode && styles.darkText]}>Maybe Later</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+            <RatingPopup 
+                isVisible={showRatingPopup}
+                onClose={handleCloseRatingPopup}
+                isDarkMode={isDarkMode}
+            />
         </View>
     );
 };
@@ -421,10 +503,8 @@ const styles = StyleSheet.create({
     contentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
         borderRadius: 15,
         padding: 10,
-        shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 2,
@@ -432,6 +512,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+    },
+    lightContentContainer: {
+        backgroundColor: 'white',
+        shadowColor: "#000",
+    },
+    darkContentContainer: {
+        backgroundColor: '#333',
+        shadowColor: "#fff",
     },
     closeButton: {
         padding: 5,
@@ -461,12 +549,72 @@ const styles = StyleSheet.create({
     chevron: {
         marginLeft: 10,
     },
-    modalContainer: {
+    modalOverlay: {
         flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    modalContent: {
+        width: '100%',
+        height: '100%',
+        maxWidth: 600,
+        maxHeight: '90%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    ratingReminderWrapper: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
+    },
+    ratingReminderContainer: {
+        backgroundColor: 'white',
         padding: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.0)',
+        borderRadius: 10,
+        alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
+        maxWidth: '80%', // Limit the width
+    },
+    darkRatingReminderContainer: {
+        backgroundColor: '#333',
+        shadowColor: "#fff",
+    },
+    ratingReminderText: {
+        fontSize: 18,
+        marginVertical: 15,
+        textAlign: 'center',
+    },
+    rateNowButton: {
+        backgroundColor: '#2196F3',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    rateNowButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    maybeLaterText: {
+        fontSize: 16,
+        color: '#666',
+    },
+    darkText: {
+        color: 'white',
     },
 });
 

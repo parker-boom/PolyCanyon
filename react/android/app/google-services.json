@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "199677808759",
+    "firebase_url": "https://poly-canyon-default-rtdb.firebaseio.com",
+    "project_id": "poly-canyon",
+    "storage_bucket": "poly-canyon.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199677808759:android:927e809483378837b73672",
+        "android_client_info": {
+          "package_name": "com.polycanyon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIAObxndndmjJjUkHj7LPcRmA5NShKejY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

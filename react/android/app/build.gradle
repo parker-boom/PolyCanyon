@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: 'com.google.gms.google-services'
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -79,8 +80,8 @@ android {
         applicationId "com.polycanyon"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0"
+        versionCode 3
+        versionName "2.0"
     }
     signingConfigs {
         debug {
@@ -122,7 +123,17 @@ dependencies {
     }
 
     implementation project(':react-native-vector-icons')
+
+    // Add Firebase BoM and the necessary Firebase services
+    implementation platform('com.google.firebase:firebase-bom:33.2.0')
+
+    // Add Firebase Authentication (anonymous auth, as per your use case)
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Add Firebase Firestore if you're using it
+    implementation 'com.google.firebase:firebase-firestore'
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+

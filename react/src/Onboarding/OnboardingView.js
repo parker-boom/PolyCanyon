@@ -2,72 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import Swiper from 'react-native-swiper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { requestLocationPermission } from './LocationManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Geolocation from '@react-native-community/geolocation';
+import { requestLocationPermission, getCurrentLocation, isNearSanLuisObispo } from './OnboardingLocationManager';
+import { useAdventureMode } from '../States/AdventureModeContext';
 
 const { width, height } = Dimensions.get('window');
 
-// Add the calculateDistance function
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Radius of the Earth in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c; // Distance in kilometers
-  return distance;
-};
-
-const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
+// Main component
+const OnboardingView = ({ onComplete }) => {
+  // State management
   const [currentPage, setCurrentPage] = useState(0);
   const [hasAskedForLocation, setHasAskedForLocation] = useState(false);
-  const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(true);
-  const [isNearCalPoly, setIsNearCalPoly] = useState(false);
+  const [isAdventureModeRecommended, setIsAdventureModeRecommended] = useState(false);
+  const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(false);
+  const { updateAdventureMode } = useAdventureMode();
 
+  // Color constants
   const adventureModeColor = '#4CAF50';
   const virtualTourColor = '#FF6803';
 
-  useEffect(() => {
-    checkUserLocation();
-  }, []);
-
-  const checkUserLocation = async () => {
-    try {
-      const position = await new Promise((resolve, reject) => {
-        Geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
-      });
-      const distance = calculateDistance(position.coords.latitude, position.coords.longitude, 35.3050, -120.6625); // Cal Poly coordinates
-      setIsNearCalPoly(distance <= 100);
-      setIsAdventureModeEnabled(distance <= 100);
-    } catch (error) {
-      console.error('Error getting location:', error);
-      setIsNearCalPoly(false);
+  // Handle location permission and determine if Adventure Mode is recommended
+  const handleLocationPermission = async () => {
+    const permissionGranted = await requestLocationPermission();
+    setHasAskedForLocation(true);
+    
+    if (permissionGranted) {
+      try {
+        const position = await getCurrentLocation();
+        const nearSLO = isNearSanLuisObispo(position);
+        setIsAdventureModeRecommended(nearSLO);
+        setIsAdventureModeEnabled(nearSLO);
+      } catch (error) {
+        console.error('Error getting location:', error);
+        setIsAdventureModeRecommended(false);
+        setIsAdventureModeEnabled(false);
+      }
+    } else {
+      setIsAdventureModeRecommended(false);
       setIsAdventureModeEnabled(false);
     }
   };
 
-  const handleLocationPermission = async () => {
-    await requestLocationPermission();
-    setHasAskedForLocation(true);
-  };
-
+  // Complete onboarding and save Adventure Mode preference
   const handleComplete = async () => {
     await AsyncStorage.setItem('adventureMode', JSON.stringify(isAdventureModeEnabled));
-    setAdventureModeGlobal(isAdventureModeEnabled);
+    updateAdventureMode(isAdventureModeEnabled);
     onComplete();
   };
 
+  // Render individual slides
   const renderWelcomeSlide = () => (
     <View style={styles.slide}>
-      <Image source={require('../assets/icon.jpg')} style={styles.icon} />
+      <Image source={require('../../assets/icon.jpg')} style={styles.icon} />
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Welcome to</Text>
         <Text style={[styles.title, styles.greenTitle, styles.boldTitle]}>Poly Canyon</Text>
@@ -113,7 +99,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
         virtualTourColor={virtualTourColor}
       />
       <View style={styles.recommendationSpacing}>
-        <RecommendationLabel isRecommended={isAdventureModeEnabled === isNearCalPoly} />
+        <RecommendationLabel isRecommended={isAdventureModeEnabled === isAdventureModeRecommended} />
       </View>
       <View style={styles.centeredFeatureList}>
         {isAdventureModeEnabled ? (
@@ -141,6 +127,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
     </View>
   );
 
+  // Custom components for Mode Selection slide
   const ModeIcon = ({ name, color }) => (
     <View style={[styles.modeIcon, { backgroundColor: color }]}>
       <Ionicons name={name} size={40} color="white" />
@@ -171,6 +158,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
     </View>
   );
 
+  // Animated location dot component
   const PulsingLocationDot = () => {
     const pulseAnim = new Animated.Value(1);
 
@@ -191,6 +179,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
     );
   };
 
+  // Navigation button component
   const renderNavigationButton = (text, onPress) => (
     <TouchableOpacity style={styles.navigationButton} onPress={onPress}>
       <Text style={styles.navigationButtonText}>{text}</Text>
@@ -198,6 +187,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
     </TouchableOpacity>
   );
 
+  // Main render method
   return (
     <View style={styles.container}>
       <Swiper
@@ -217,6 +207,7 @@ const OnboardingView = ({ onComplete, setAdventureModeGlobal }) => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -229,11 +220,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   icon: {
-    width: 180,  // Increased size
-    height: 180, // Increased size
-    marginTop: 40,    // Less padding on top
-    marginBottom: 20, // Less padding on bottom
-    borderRadius: 36, // Adjusted for larger size
+    width: 180, 
+    height: 180, 
+    marginTop: 40,   
+    marginBottom: 20, 
+    borderRadius: 36, 
   },
   titleContainer: {
     marginBottom: 10,
@@ -329,7 +320,7 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30, // Added spacing below the circle
+    marginBottom: 30, 
   },
   pulsingDot: {
     width: 100,
@@ -377,7 +368,7 @@ const styles = StyleSheet.create({
     bottom: 60,
     left: 0,
     right: 0,
-    alignItems: 'center', // Center horizontally
+    alignItems: 'center', 
   },
   iconSpacing: {
     marginVertical: 20,
@@ -394,7 +385,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   grayTitle: {
-    color: '#666', // Gray color
+    color: '#666',
+
   },
 });
 
