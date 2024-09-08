@@ -71,6 +71,7 @@ struct MapView: View {
     @State private var isVirtualWalkthroughActive = false
     @State private var currentWalkthroughMapPoint: MapPoint?
     @State private var firstVisitedStructure: Int?
+    @State private var showVirtualWalkthroughPopup = false
     
     @State private var nearbyUnvisitedStructures: [Structure] = []
     @GestureState private var magnifyBy = 1.0
@@ -86,6 +87,7 @@ struct MapView: View {
     @AppStorage("virtualTourCurrentStructure") private var currentStructureIndex = 0
     @AppStorage("hasCompletedFirstVisit") private var hasCompletedFirstVisit = false
     @AppStorage("hasShownAdventureModeAlert") private var hasShownAdventureModeAlert = false
+    @AppStorage("hasShownVirtualWalkthroughPopup") private var hasShownVirtualWalkthroughPopup = false
     
     
     // MARK: - Body
@@ -312,12 +314,38 @@ struct MapView: View {
                                 showRateStructuresPopup = false
                                 showStructureSwipingView = true
                                 hasShownRateStructuresPopup = true
+                                checkAndShowVirtualWalkthroughPopup()
                             },
                             secondaryButton: .init(title: "Maybe Later") {
                                 showRateStructuresPopup = false
                                 hasShownRateStructuresPopup = true
+                                checkAndShowVirtualWalkthroughPopup()
                             },
                             isPresented: $showRateStructuresPopup,
+                            isDarkMode: $isDarkMode
+                        )
+                    }
+                    
+                    if showVirtualWalkthroughPopup {
+                        Color.black.opacity(0.4)
+                            .edgesIgnoringSafeArea(.all)
+                            .transition(.opacity)
+                        
+                        CustomAlert(
+                            icon: "figure.walk",
+                            iconColor: .blue,
+                            title: "Virtual Walkthrough",
+                            subtitle: "Go through each structure as if you were there in person",
+                            primaryButton: .init(title: "Start Walkthrough") {
+                                showVirtualWalkthroughPopup = false
+                                isVirtualWalkthroughActive = true
+                                hasShownVirtualWalkthroughPopup = true
+                            },
+                            secondaryButton: .init(title: "Maybe Later") {
+                                showVirtualWalkthroughPopup = false
+                                hasShownVirtualWalkthroughPopup = true
+                            },
+                            isPresented: $showVirtualWalkthroughPopup,
                             isDarkMode: $isDarkMode
                         )
                     }
@@ -349,6 +377,15 @@ struct MapView: View {
     }
     
 
+    private func checkAndShowVirtualWalkthroughPopup() {
+        if !isAdventureModeEnabled && !hasShownVirtualWalkthroughPopup {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation {
+                    showVirtualWalkthroughPopup = true
+                }
+            }
+        }
+    }
     
     private var virtualWalkThroughButton: some View {
         Button(action: {
