@@ -24,11 +24,13 @@ const MapPointsContext = createContext();
 export const useMapPoints = () => useContext(MapPointsContext);
 
 const MAP_POINTS_STORAGE_KEY = 'MAP_POINTS_STORAGE_KEY';
+const MAP_POINTS_RELOADED_KEY = 'MAP_POINTS_RELOADED_KEY';
 
 // MARK: - Provider Component
 export const MapPointsProvider = ({ children }) => {
     // State variable to manage map points
     const [mapPoints, setMapPoints] = useState([]);
+    const [mapPointsReloaded, setMapPointsReloaded] = useState(false);
 
     // MARK: - Load Map Points
     /**
@@ -37,10 +39,9 @@ export const MapPointsProvider = ({ children }) => {
      */
     const loadMapPoints = async () => {
         try {
-            const storedMapPoints = await AsyncStorage.getItem(MAP_POINTS_STORAGE_KEY);
-            if (storedMapPoints !== null) {
-                setMapPoints(JSON.parse(storedMapPoints));
-            } else {
+            const reloaded = await AsyncStorage.getItem(MAP_POINTS_RELOADED_KEY);
+            
+            if (reloaded !== 'true') {
                 // Process map points from JSON data if there's no saved data
                 const processedData = mapPointsData.map(point => ({
                     ...point,
@@ -52,6 +53,14 @@ export const MapPointsProvider = ({ children }) => {
                     isVisited: false,
                 }));
                 setMapPoints(processedData);
+                await saveMapPoints(processedData);
+                await AsyncStorage.setItem(MAP_POINTS_RELOADED_KEY, 'true');
+                setMapPointsReloaded(true);
+            } else {
+                const storedMapPoints = await AsyncStorage.getItem(MAP_POINTS_STORAGE_KEY);
+                if (storedMapPoints !== null) {
+                    setMapPoints(JSON.parse(storedMapPoints));
+                }
             }
         } catch (error) {
             console.error('Failed to load map points', error);

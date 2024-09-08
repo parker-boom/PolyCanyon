@@ -144,7 +144,8 @@ export const StructureProvider = ({ children }) => {
             mainImage: getMainImagePath(s.number),
             isVisited: false,
             isOpened: false,
-            recentlyVisited: -1
+            recentlyVisited: -1,
+            isLiked: false // Add this line
         }));
 
         // Merge with existing data to preserve user-specific fields
@@ -166,7 +167,8 @@ export const StructureProvider = ({ children }) => {
                         ...newStruct,
                         isVisited: existingStruct.isVisited,
                         isOpened: existingStruct.isOpened,
-                        recentlyVisited: existingStruct.recentlyVisited
+                        recentlyVisited: existingStruct.recentlyVisited,
+                        isLiked: existingStruct.isLiked || false // Add this line
                     };
                 }
                 return newStruct;
@@ -203,6 +205,7 @@ export const StructureProvider = ({ children }) => {
         return structures.find(s => s.number === landmarkId);
     };
 
+    // Mark structure as opened
     const markStructureAsOpened = (landmarkId) => {
         setStructures(prevStructures => {
             const updatedStructures = prevStructures.map(structure => 
@@ -215,6 +218,7 @@ export const StructureProvider = ({ children }) => {
         });
     };
 
+    // Reset visited structures
     const resetVisitedStructures = async () => {
         const resetStructures = structures.map(structure => ({
             ...structure,
@@ -226,6 +230,33 @@ export const StructureProvider = ({ children }) => {
         await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(resetStructures));
     };
 
+    // Reset favorited structures
+    const resetFavoritedStructures = async () => {
+        const resetStructures = structures.map(structure => ({
+            ...structure,
+            isLiked: false
+        }));
+        setStructures(resetStructures);
+        await AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(resetStructures));
+    };
+
+    // Toggle the liked status
+    const toggleStructureLiked = (landmarkId, liked) => {
+        setStructures(prevStructures => {
+            const updatedStructures = prevStructures.map(structure => 
+                structure.number === landmarkId 
+                    ? { ...structure, isLiked: liked }
+                    : structure
+            );
+            AsyncStorage.setItem(STRUCTURES_STORAGE_KEY, JSON.stringify(updatedStructures));
+            return updatedStructures;
+        });
+    };
+
+    const countLikedStructures = () => {
+        return structures.filter(s => s.isLiked).length;
+    };
+
     return (
         <StructureContext.Provider value={{ 
             structures, 
@@ -234,7 +265,10 @@ export const StructureProvider = ({ children }) => {
             markStructureAsVisited,
             markStructureAsOpened,
             resetVisitedStructures,
-            reloadStructuresFromJSON
+            reloadStructuresFromJSON,
+            toggleStructureLiked,
+            countLikedStructures,
+            resetFavoritedStructures 
         }}>
             {children}
         </StructureContext.Provider>

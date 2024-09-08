@@ -33,21 +33,24 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModeSelectionPopup from './ModeSelectionPopup';
 import { useAdventureMode } from './AdventureModeContext';
 import { useLocation, requestLocationPermission } from './LocationManager';
+import RatingPopup from './RatingPopup';
 
 const SettingsView = () => {
     const { adventureMode, updateAdventureMode } = useAdventureMode();
     const { isDarkMode, toggleDarkMode } = useDarkMode();
-    const { resetVisitedStructures, setAllStructuresAsVisited } = useStructures();
+    const { resetVisitedStructures, resetFavoritedStructures } = useStructures();
     const { resetVisitedMapPoints } = useMapPoints();
     const [showModePopup, setShowModePopup] = useState(false);
     const [localAdventureMode, setLocalAdventureMode] = useState(adventureMode);
+    const [showRatingPopup, setShowRatingPopup] = useState(false);
+    const [ratingIndex, setRatingIndex] = useState(0);
 
     useEffect(() => {
         setLocalAdventureMode(adventureMode);
     }, [adventureMode]);
 
     useLocation((error, position) => {
-        if (!error && position) {
+        if (adventureMode && !error && position) {
             // Update any location-dependent state or perform actions
         }
     });
@@ -83,6 +86,30 @@ const SettingsView = () => {
                 }
             ]
         );
+    };
+
+    const handleResetFavoriteStructures = () => {
+        Alert.alert(
+            "Reset Favorite Structures",
+            "Are you sure you want to reset all favorite structures?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Yes", 
+                    onPress: () => {
+                        resetFavoritedStructures();
+                    } 
+                }
+            ]
+        );
+    };
+
+    const handleRateStructures = () => {
+        setShowRatingPopup(true);
+    };
+
+    const handleCloseRatingPopup = () => {
+        setShowRatingPopup(false);
     };
 
     const openLocationSettings = () => {
@@ -132,20 +159,41 @@ const SettingsView = () => {
                     </View>
 
                     <View style={styles.buttonContainer}>
-                        <SettingsButton
-                            onPress={handleResetVisitedStructures}
-                            icon="refresh"
-                            text="Reset Structures"
-                            color={isDarkMode ? "#FF6B6B" : "red"}
-                            isDarkMode={isDarkMode}
-                        />
-                        <SettingsButton
-                            onPress={openLocationSettings}
-                            icon="location"
-                            text="Location Settings"
-                            color={isDarkMode ? "#6ECF76" : "green"}
-                            isDarkMode={isDarkMode}
-                        />
+                        {adventureMode ? (
+                            <>
+                                <SettingsButton
+                                    onPress={handleResetVisitedStructures}
+                                    icon="refresh"
+                                    text="Reset Structures"
+                                    color={isDarkMode ? "#FF6B6B" : "red"}
+                                    isDarkMode={isDarkMode}
+                                />
+                                <SettingsButton
+                                    onPress={openLocationSettings}
+                                    icon="location"
+                                    text="Location Settings"
+                                    color={isDarkMode ? "#6ECF76" : "green"}
+                                    isDarkMode={isDarkMode}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <SettingsButton
+                                    onPress={handleResetFavoriteStructures}
+                                    icon="heart-dislike"
+                                    text="Reset Favorites"
+                                    color={isDarkMode ? "#FF6B6B" : "red"}
+                                    isDarkMode={isDarkMode}
+                                />
+                                <SettingsButton
+                                    onPress={handleRateStructures}
+                                    icon="heart"
+                                    text="Rate Structures"
+                                    color={isDarkMode ? "#FF6B6B" : "red"}
+                                    isDarkMode={isDarkMode}
+                                />
+                            </>
+                        )}
                     </View>
                 </View>
 
@@ -165,6 +213,11 @@ const SettingsView = () => {
                 onConfirm={handleConfirmModeChange}
                 currentMode={localAdventureMode}
                 selectedMode={localAdventureMode}
+                isDarkMode={isDarkMode}
+            />
+            <RatingPopup 
+                isVisible={showRatingPopup}
+                onClose={handleCloseRatingPopup}
                 isDarkMode={isDarkMode}
             />
         </>

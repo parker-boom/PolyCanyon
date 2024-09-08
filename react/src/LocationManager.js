@@ -15,10 +15,12 @@
  * - Get the current location with high accuracy
  */
 
+import { useEffect, useState, useRef } from 'react';
 import { PermissionsAndroid, Platform, AppState } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import { useAdventureMode } from './AdventureModeContext';
-import { useEffect, useRef } from 'react';
+import FirebaseService from './FirebaseService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let foregroundWatchId = null;
 let backgroundWatchId = null;
@@ -28,6 +30,7 @@ const safeZoneCorners = {
   bottomLeft: { latitude: 35.31214, longitude: -120.65529 },
   topRight: { latitude: 35.31813, longitude: -120.65110 }
 };
+
 
 // MARK: - Request Location Permission
 /**
@@ -63,6 +66,7 @@ const requestLocationPermission = async () => {
   }
 };
 
+
 // MARK: - Check Safe Zone
 /**
  * Checks if the given coordinates are within the defined safe zone.
@@ -80,31 +84,6 @@ const isWithinSafeZone = (coordinate) => {
          longitude <= safeZoneCorners.topRight.longitude;
 };
 
-// MARK: - Find Nearest Map Point
-/**
- * Finds the nearest map point to the given coordinates.
- * 
- * @param {Object} coordinate - The coordinates to compare.
- * @param {Array} mapPoints - The list of map points to search through.
- * @returns {Object|null} - The nearest map point, or null if no points are found.
- */
-const findNearestMapPoint = (coordinate, mapPoints) => {
-  let nearestPoint = null;
-  let minDistance = Infinity;
-
-  mapPoints.forEach(point => {
-    const distance = Math.sqrt(
-      Math.pow(coordinate.latitude - point.latitude, 2) +
-      Math.pow(coordinate.longitude - point.longitude, 2)
-    );
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestPoint = point;
-    }
-  });
-
-  return nearestPoint;
-};
 
 // MARK: - Mark Structure As Visited
 /**
@@ -124,6 +103,7 @@ const markStructureAsVisited = (landmarkId, mapPoints) => {
 
   return updatedMapPoints;
 };
+
 
 // MARK: - Get Current Location
 /**
@@ -244,49 +224,177 @@ const stopBackgroundTracking = () => {
   }
 };
 
+export const findNearestMapPoint = (coordinate, mapPoints) => {
+  if (!mapPoints || !Array.isArray(mapPoints) || mapPoints.length === 0) {
+    console.log("MapPoints is undefined or empty");
+    return null;
+  }
+  
+  let nearestPoint = null;
+  let minDistance = Infinity;
+
+  mapPoints.forEach(point => {
+    const distance = Math.sqrt(
+      Math.pow(coordinate.latitude - point.latitude, 2) +
+      Math.pow(coordinate.longitude - point.longitude, 2)
+    );
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestPoint = point;
+    }
+  });
+
+  return nearestPoint;
+};
+
 
 
 
 // MARK: - Use Location
-export const useLocation = (callback) => {
+export const useLocation = (callback, mapPoints) => {
   const { adventureMode } = useAdventureMode();
   const appState = useRef(AppState.currentState);
+  const [userId, setUserId] = useState(null);
+  const [lastLoggedMapPoint, setLastLoggedMapPoint] = useState(null);
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState) => {
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App has come to the foreground
-        if (adventureMode) {
-          startForegroundTracking(callback);
+
+    const initializeUser = async () => {
+        const uid = await FirebaseService.getUserId();
+        setUserId(uid);
+    };
+    initializeUser();
+
+      const handleAppStateChange = (nextAppState) => {
+          if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+              if (adventureMode) {
+                  startForegroundTracking(handleLocationUpdate);
+              }
+          } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+              stopForegroundTracking();
+          }
+          appState.current = nextAppState;
+      };
+
+      const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+      const setupLocationTracking = async () => {
+          if (adventureMode) {
+              await requestLocationPermission();
+              startForegroundTracking(handleLocationUpdate);
+          } else {
+              stopForegroundTracking();
+              stopBackgroundTracking();
+          }
+      };
+
+      setupLocationTracking();
+
+      return () => {
+          stopForegroundTracking();
+          stopBackgroundTracking();
+          appStateSubscription.remove();
+      };
+  }, [adventureMode, callback, mapPoints]);
+
+  const handleLocationUpdate = (error, position) => {
+    if (error) {
+        console.error("Location error:", error);
+        callback(error, null);
+        return;
+    }
+
+    callback(null, position);
+    logLocationToFirebaseIfNeeded(position);
+};
+
+const logLocationToFirebaseIfNeeded = async (position) => {
+    if (!adventureMode || !userId) {
+        console.log("Not logging location: AdventureMode off or no UserID");
+        return;
+    }
+
+    const { latitude, longitude } = position.coords;
+    if (!isWithinSafeZone({ latitude, longitude })) {
+        console.log("Not in safe zone, not logging location");
+        return;
+    }
+
+    const newMapPoint = findNearestMapPoint({ latitude, longitude }, mapPoints);
+    if (!newMapPoint || (lastLoggedMapPoint && 
+        newMapPoint.latitude === lastLoggedMapPoint.latitude && 
+        newMapPoint.longitude === lastLoggedMapPoint.longitude)) {
+        console.log("Map point unchanged, not logging");
+        return;
+    }
+
+    await FirebaseService.logLocation(newMapPoint, userId);
+    setLastLoggedMapPoint(newMapPoint);
+  };
+
+  const startForegroundTracking = (callback) => {
+    if (foregroundWatchId !== null) {
+      return;
+    }
+
+    foregroundWatchId = Geolocation.watchPosition(
+      (position) => {
+        callback(null, position);
+        if (isWithinSafeZone(position.coords)) {
+          startBackgroundTracking(callback);
+        } else {
+          stopBackgroundTracking();
         }
-      } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
-        // App has gone to the background
-        stopForegroundTracking();
-        // Background tracking will continue if it was already started
+      },
+      (error) => callback(error, null),
+      { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
+    );
+  };
+
+  const startBackgroundTracking = (callback) => {
+    if (backgroundWatchId !== null) {
+      return;
+    }
+
+    backgroundWatchId = Geolocation.watchPosition(
+      (position) => {
+        if (isWithinSafeZone(position.coords)) {
+          callback(null, position);
+        } else {
+          stopBackgroundTracking();
+        }
+      },
+      (error) => callback(error, null),
+      { 
+        enableHighAccuracy: true, 
+        distanceFilter: 50, 
+        interval: 60000, // Check every minute in background
+        fastestInterval: 30000,
+        forceRequestLocation: true,
+        showLocationDialog: true,
       }
-      appState.current = nextAppState;
-    };
+    );
+  };
 
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+  const stopForegroundTracking = () => {
+    if (foregroundWatchId !== null) {
+      Geolocation.clearWatch(foregroundWatchId);
+      foregroundWatchId = null;
+    }
+  };
 
-    const setupLocationTracking = async () => {
-      if (adventureMode) {
-        await requestLocationPermission(true);
-        startForegroundTracking(callback);
-      } else {
-        stopForegroundTracking();
-        stopBackgroundTracking();
-      }
-    };
+  const stopBackgroundTracking = () => {
+    if (backgroundWatchId !== null) {
+      Geolocation.clearWatch(backgroundWatchId);
+      backgroundWatchId = null;
+    }
+  };
 
-    setupLocationTracking();
-
-    return () => {
-      stopForegroundTracking();
-      stopBackgroundTracking();
-      appStateSubscription.remove();
-    };
-  }, [adventureMode, callback]);
+  return {
+    requestLocationPermission,
+    getCurrentLocation,
+    isWithinSafeZone
+  };
 };
 
 export { requestLocationPermission, getCurrentLocation, isWithinSafeZone };

@@ -7,7 +7,7 @@
  * 
  * Features:
  * - Search functionality for structures
- * - Filtering options (All, Visited, Unvisited)
+ * - Filtering options (All, Visited, Unvisited, Favorites)
  * - Toggle between list and grid views
  * - Dark mode support
  * - Structure detail pop-up
@@ -38,15 +38,32 @@ import { useLocation } from './LocationManager';
 
 const DetailView = () => {
     // MARK: - Hooks and Context
-    const { structures } = useStructures();
+    const { structures, toggleStructureLiked } = useStructures();
     const { isDarkMode } = useDarkMode();
     const { adventureMode } = useAdventureMode();
     const [searchText, setSearchText] = useState('');
     const [isListView, setIsListView] = useState(false);
     const [filterState, setFilterState] = useState('all');
-    const [popUpText, setPopUpText] = useState('');
     const popUpOpacity = useState(new Animated.Value(0))[0];
     const [selectedStructure, setSelectedStructure] = useState(null);
+    const [popUpText, setPopUpText] = useState('');
+    const [localLikedStatus, setLocalLikedStatus] = useState({});
+
+    useEffect(() => {
+        const initialLikedStatus = {};
+        structures.forEach(structure => {
+            initialLikedStatus[structure.number] = structure.isLiked;
+        });
+        setLocalLikedStatus(initialLikedStatus);
+    }, [structures]);
+
+    const handleFavoriteToggle = (structureNumber) => {
+        setLocalLikedStatus(prevStatus => {
+            const newStatus = { ...prevStatus, [structureNumber]: !prevStatus[structureNumber] };
+            toggleStructureLiked(structureNumber);
+            return newStatus;
+        });
+    };
 
     // MARK: - Filtering Logic
     const filteredStructures = structures.filter(structure => {
@@ -54,32 +71,59 @@ const DetailView = () => {
         const matchesSearch = structure.title.toLowerCase().includes(searchLower) || 
                              structure.number.toString().includes(searchLower);
 
-        if (filterState === 'all') return matchesSearch;
-        if (filterState === 'visited') return matchesSearch && structure.isVisited;
-        if (filterState === 'unvisited') return matchesSearch && !structure.isVisited;
+        switch (filterState) {
+            case 'all':
+                return matchesSearch;
+            case 'visited':
+                return matchesSearch && structure.isVisited;
+            case 'unvisited':
+                return matchesSearch && !structure.isVisited;
+            case 'favorites':
+                return matchesSearch && structure.isLiked;
+            default:
+                return matchesSearch;
+        }
     });
+
+    // MARK: - Helper Functions
+    const hasVisited = structures.some(s => s.isVisited);
+    const hasUnvisited = structures.some(s => !s.isVisited);
+    const hasFavorites = structures.some(s => s.isLiked);
 
     // MARK: - Event Handlers
     const handleFilterChange = () => {
-        if (!adventureMode) return;
-        
         let newFilterState;
         let newPopUpText;
 
-        if (filterState === 'all') {
-            newFilterState = 'visited';
-            newPopUpText = 'Visited';
-        } else if (filterState === 'visited') {
-            newFilterState = 'unvisited';
-            newPopUpText = 'Unvisited';
-        } else {
-            newFilterState = 'all';
-            newPopUpText = 'All';
+        const filterOptions = ['all', 'favorites'];
+        if (adventureMode) {
+            if (hasVisited) filterOptions.push('visited');
+            if (hasUnvisited) filterOptions.push('unvisited');
+        }
+
+        const currentIndex = filterOptions.indexOf(filterState);
+        const nextIndex = (currentIndex + 1) % filterOptions.length;
+        newFilterState = filterOptions[nextIndex];
+
+        switch (newFilterState) {
+            case 'all':
+                newPopUpText = 'All';
+                break;
+            case 'visited':
+                newPopUpText = 'Visited';
+                break;
+            case 'unvisited':
+                newPopUpText = 'Unvisited';
+                break;
+            case 'favorites':
+                newPopUpText = 'Favorites';
+                break;
         }
 
         setFilterState(newFilterState);
         setPopUpText(newPopUpText);
 
+        // Always show the pop-up, regardless of adventureMode
         Animated.sequence([
             Animated.timing(popUpOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
             Animated.timing(popUpOpacity, { toValue: 0, duration: 700, useNativeDriver: true, delay: 1000 })
@@ -96,8 +140,19 @@ const DetailView = () => {
             <View style={[styles.row, isDarkMode && styles.darkRow]}>
                 <Text style={[styles.number, isDarkMode && styles.darkText]}>{item.number}</Text>
                 <Text style={[styles.title, isDarkMode && styles.darkText]}>{item.title}</Text>
-                {adventureMode && (
+                {adventureMode ? (
                     <View style={[styles.statusIndicator, item.isVisited ? styles.visited : styles.notVisited]} />
+                ) : (
+                    <TouchableOpacity 
+
+                        style={styles.heartContainer}
+                    >
+                        <Ionicons 
+                            name={localLikedStatus[item.number] ? "heart" : "heart-outline"} 
+                            size={24}
+                            color={localLikedStatus[item.number] ? "red" : (isDarkMode ? "white" : "black")}
+                        />
+                    </TouchableOpacity>
                 )}
             </View>
         </TouchableOpacity>
@@ -129,7 +184,7 @@ const DetailView = () => {
 
     // MARK: - Main Render
     useLocation((error, position) => {
-        if (!error && position) {
+        if (adventureMode && !error && position) {
             // Update any location-dependent state or perform actions
         }
     });
@@ -140,18 +195,12 @@ const DetailView = () => {
                 <View style={[styles.searchContainer, isDarkMode && styles.darkSearchContainer]}>
                     <TouchableOpacity 
                         style={styles.filterButton}
-                        onPress={adventureMode ? handleFilterChange : undefined}
-                        disabled={!adventureMode}
+                        onPress={handleFilterChange}
                     >
                         <Ionicons 
-                            name="eye" 
+                            name={filterState === 'favorites' ? 'heart' : 'eye'} 
                             size={32}
-                            color={adventureMode 
-                                ? (filterState === 'all' 
-                                    ? (isDarkMode ? 'white' : 'black') 
-                                    : filterState === 'visited' ? 'green' : 'red')
-                                : (isDarkMode ? '#666' : '#999')
-                            } 
+                            color={getFilterColor(filterState, isDarkMode)}
                         />
                     </TouchableOpacity>
                     <View style={styles.searchBarContainer}>
@@ -183,11 +232,9 @@ const DetailView = () => {
                 key={isListView ? 'list' : 'grid'}
                 numColumns={isListView ? 1 : 2}
             />
-            {adventureMode && (
-                <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
-                    <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>{popUpText}</Text>
-                </Animated.View>
-            )}
+            <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
+                <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>{popUpText}</Text>
+            </Animated.View>
             <Modal
                 visible={selectedStructure !== null}
                 transparent={true}
@@ -204,6 +251,17 @@ const DetailView = () => {
             </Modal>
         </View>
     );
+};
+
+// Helper function to get the filter icon color
+const getFilterColor = (currentFilterState, isDarkMode) => {
+    switch (currentFilterState) {
+        case 'all': return isDarkMode ? 'white' : 'black';
+        case 'visited': return 'green';
+        case 'unvisited': return 'red';
+        case 'favorites': return 'pink';
+        default: return isDarkMode ? 'white' : 'black';
+    }
 };
 
 // MARK: - Styles
@@ -279,7 +337,7 @@ const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: 'white',
         borderBottomWidth: 1,
-        borderBottomColor: 'grey',
+        borderBottomColor: '#E0E0E0',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
@@ -291,13 +349,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         width: 30,
         textAlign: 'center',
-        fontWeight: 'thin',
+        fontWeight: '300',
         color: 'black',
         opacity: 0.75,
     },
     title: {
-        fontSize: 23,
-        fontWeight: 'bold',
+        fontSize: 18,
+        fontWeight: '500',
         marginLeft: 10,
         flex: 1,
         color: 'black',
@@ -306,17 +364,19 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     statusIndicator: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
         marginLeft: 10,
-        marginRight: 10,
     },
     visited: {
-        backgroundColor: 'green',
+        backgroundColor: '#4CAF50',
     },
     notVisited: {
-        backgroundColor: 'red',
+        backgroundColor: '#F44336',
+    },
+    heartContainer: {
+        padding: 5,
     },
     gridItem: {
         flex: 1,

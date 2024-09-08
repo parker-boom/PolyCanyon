@@ -32,6 +32,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
 import { BlurView } from '@react-native-community/blur'; // Add this import
 import { LinearGradient } from 'react-native-linear-gradient';
+import { useStructures } from './StructureData';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -51,6 +52,8 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
     const flipAnimation = useRef(new Animated.Value(0)).current;
     const [funFactAnimation] = useState(new Animated.Value(0));
     const [rotateAnimation] = useState(new Animated.Value(0));
+    const { toggleStructureLiked } = useStructures();
+    const [localIsLiked, setLocalIsLiked] = useState(structure.isLiked);
 
     useEffect(() => {
         const images = [structure.mainImage, structure.closeUpImage];
@@ -174,6 +177,12 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
         transform: [{ rotateY: backInterpolate }]
     };
 
+    const handleFavoriteToggle = () => {
+        const newLikedStatus = !localIsLiked;
+        setLocalIsLiked(newLikedStatus);
+        toggleStructureLiked(structure.number, newLikedStatus);
+    };
+
     const renderImageSection = () => (
         <View style={styles.imageSection}>
             <ScrollView
@@ -231,6 +240,16 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
                     <View key={index} style={[styles.dot, currentImageIndex === index && styles.activeDot]} />
                 ))}
             </View>
+            <TouchableOpacity 
+                style={styles.heartIcon} 
+                onPress={handleFavoriteToggle}
+            >
+                <Ionicons 
+                    name={localIsLiked ? "heart" : "heart-outline"} 
+                    size={40} 
+                    color={localIsLiked ? "red" : "white"} 
+                />
+            </TouchableOpacity>
         </View>
     );
 
@@ -560,6 +579,12 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
             lineHeight: 24,
             fontWeight: '400',
             color: '#000000',
+        },
+        heartIcon: {
+            position: 'absolute',
+            bottom: 50, // Positioned just above the image dots
+            right: 20,
+            zIndex: 10,
         },
     });
 
