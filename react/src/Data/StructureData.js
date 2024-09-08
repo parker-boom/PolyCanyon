@@ -274,7 +274,20 @@ export const StructureProvider = ({ children }) => {
         return structures.filter(s => s.isLiked).length;
     };
 
-    // Provide context value to children components
+    // Add these new functions
+    const hasVisitedStructures = () => {
+        return structures.some(s => s.isVisited);
+    };
+
+    const hasUnvisitedStructures = () => {
+        return structures.some(s => !s.isVisited);
+    };
+
+    const hasFavoritedStructures = () => {
+        return structures.some(s => s.isLiked);
+    };
+
+    // Update the context value to include these new functions
     return (
         <StructureContext.Provider value={{ 
             structures, 
@@ -286,7 +299,10 @@ export const StructureProvider = ({ children }) => {
             reloadStructuresFromJSON,
             toggleStructureLiked,
             countLikedStructures,
-            resetFavoritedStructures 
+            resetFavoritedStructures,
+            hasVisitedStructures,
+            hasUnvisitedStructures,
+            hasFavoritedStructures
         }}>
             {children}
         </StructureContext.Provider>

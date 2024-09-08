@@ -37,7 +37,13 @@ import { useLocation } from '../Data/LocationManager';
 // MARK: - Main Component
 const DetailView = () => {
     // MARK: - Hooks and State
-    const { structures, toggleStructureLiked } = useStructures();
+    const { 
+        structures, 
+        toggleStructureLiked, 
+        hasVisitedStructures, 
+        hasUnvisitedStructures, 
+        hasFavoritedStructures 
+    } = useStructures();
     const { isDarkMode } = useDarkMode();
     const { adventureMode } = useAdventureMode();
     const [searchText, setSearchText] = useState('');
@@ -91,14 +97,14 @@ const DetailView = () => {
 
     // MARK: - Event Handlers
     const handleFilterChange = () => {
-        // Cycle through filter options and update state
         let newFilterState;
         let newPopUpText;
 
-        const filterOptions = ['all', 'favorites'];
+        const filterOptions = ['all'];
+        if (hasFavoritedStructures()) filterOptions.push('favorites');
         if (adventureMode) {
-            if (hasVisited) filterOptions.push('visited');
-            if (hasUnvisited) filterOptions.push('unvisited');
+            if (hasVisitedStructures()) filterOptions.push('visited');
+            if (hasUnvisitedStructures()) filterOptions.push('unvisited');
         }
 
         const currentIndex = filterOptions.indexOf(filterState);
