@@ -2,15 +2,18 @@
 /**
  * StructPopUp Component
  * 
- * This component displays a detailed popup view for a structure. 
- * It allows users to swipe between images, view structure details, and close the popup.
+ * This component displays a detailed popup view for a structure in a React Native app.
+ * It provides an interactive and visually appealing interface for users to explore
+ * structure details.
  * 
- * Features:
- * - Swipeable main and close-up images with indicator dots
- * - Animated information panel
- * - Custom tab selector for stats and description
+ * Key Features:
+ * - Swipeable image gallery with main and close-up images
+ * - Animated information panel with structure details
  * - Dark mode support
- * - Dismiss button and structure title/number overlay
+ * - Like/favorite functionality
+ * - Dismissible popup with gesture support
+ * - Adaptive layout for different image aspect ratios
+ * - Fun fact animation
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -30,9 +33,9 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
-import { BlurView } from '@react-native-community/blur'; // Add this import
+import { BlurView } from '@react-native-community/blur';
 import { LinearGradient } from 'react-native-linear-gradient';
-import { useStructures } from './StructureData';
+import { useStructures } from '../Data/StructureData';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);

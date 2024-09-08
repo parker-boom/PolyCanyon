@@ -2,28 +2,28 @@
 /**
  * LocationManager
  * 
- * This module provides functions to handle location permissions and manage
- * geolocation-related operations within the app. It includes requesting location
- * permissions, checking if coordinates are within a defined safe zone, finding
- * the nearest map point, marking structures as visited, and getting the current location.
+ * This module provides comprehensive location management for a React Native app.
+ * It handles location permissions, real-time tracking, safe zone checks, and
+ * integration with Firebase for location logging.
  * 
- * Features:
- * - Request fine and background location permissions
- * - Check if coordinates are within a safe zone
- * - Find the nearest map point from a given coordinate
- * - Mark a structure as visited
- * - Get the current location with high accuracy
+ * Key features:
+ * - Request and manage fine and background location permissions
+ * - Track user location in foreground and background
+ * - Check if coordinates are within a defined safe zone
+ * - Find the nearest map point from current location
+ * - Mark structures as visited based on proximity
+ * - Log location data to Firebase when in adventure mode
+ * - Adapt tracking behavior based on app state (active/background)
  */
 
 import { useEffect, useState, useRef } from 'react';
 import { PermissionsAndroid, Platform, AppState } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import { useAdventureMode } from './AdventureModeContext';
-import FirebaseService from './FirebaseService';
+import { useAdventureMode } from '../States/AdventureModeContext';
+import FirebaseService from '../States/FirebaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-let foregroundWatchId = null;
-let backgroundWatchId = null;
+// MARK: - Constants
 
 // Safe zone coordinates
 const safeZoneCorners = {
@@ -31,10 +31,15 @@ const safeZoneCorners = {
   topRight: { latitude: 35.31813, longitude: -120.65110 }
 };
 
+// Tracking IDs
+let foregroundWatchId = null;
+let backgroundWatchId = null;
 
-// MARK: - Request Location Permission
+// MARK: - Permission Handling
+
 /**
  * Requests fine and background location permissions.
+ * Prompts the user with permission dialogs for both types.
  */
 const requestLocationPermission = async () => {
   try {
@@ -66,10 +71,10 @@ const requestLocationPermission = async () => {
   }
 };
 
+// MARK: - Location Utilities
 
-// MARK: - Check Safe Zone
 /**
- * Checks if the given coordinates are within the defined safe zone.
+ * Checks if given coordinates are within the defined safe zone.
  * 
  * @param {Object} coordinate - The coordinates to check.
  * @param {number} coordinate.latitude - The latitude of the coordinate.
@@ -84,10 +89,8 @@ const isWithinSafeZone = (coordinate) => {
          longitude <= safeZoneCorners.topRight.longitude;
 };
 
-
-// MARK: - Mark Structure As Visited
 /**
- * Marks a structure as visited by updating the map points.
+ * Marks a structure as visited in the map points array.
  * 
  * @param {number} landmarkId - The ID of the landmark to mark as visited.
  * @param {Array} mapPoints - The list of map points to update.
@@ -104,11 +107,8 @@ const markStructureAsVisited = (landmarkId, mapPoints) => {
   return updatedMapPoints;
 };
 
-
-// MARK: - Get Current Location
 /**
- * Gets the current location of the device and checks if it is within the safe zone.
- * If within the safe zone, it finds the nearest map point and marks it as visited if necessary.
+ * Gets current location and processes it (safe zone check, nearest point, etc.)
  * 
  * @param {Function} callback - The callback function to execute with the result.
  * @param {Array} mapPoints - The list of map points to search through.
@@ -141,9 +141,13 @@ const getCurrentLocation = (callback, mapPoints) => {
   );
 };
 
-let watchId = null;
+// MARK: - Location Tracking
 
-// MARK: - Start Location Tracking
+/**
+ * Starts tracking location with high accuracy.
+ * 
+ * @param {Function} callback - The callback function to execute with the result.
+ */
 export const startLocationTracking = (callback) => {
   if (watchId !== null) {
     return;
@@ -156,6 +160,12 @@ export const startLocationTracking = (callback) => {
   );
 };
 
+/**
+ * Starts foreground location tracking.
+ * Initiates background tracking when entering safe zone.
+ * 
+ * @param {Function} callback - The callback function to execute with the result.
+ */
 const startForegroundTracking = (callback) => {
   if (foregroundWatchId !== null) {
     return;
@@ -175,6 +185,11 @@ const startForegroundTracking = (callback) => {
   );
 };
 
+/**
+ * Starts background location tracking within safe zone.
+ * 
+ * @param {Function} callback - The callback function to execute with the result.
+ */
 const startBackgroundTracking = (callback) => {
   if (backgroundWatchId !== null) {
     return;
@@ -200,8 +215,9 @@ const startBackgroundTracking = (callback) => {
   );
 };
 
-
-// MARK: - Stop Location Tracking
+/**
+ * Stops all location tracking.
+ */
 export const stopLocationTracking = () => {
   if (watchId !== null) {
     Geolocation.clearWatch(watchId);
@@ -209,7 +225,7 @@ export const stopLocationTracking = () => {
   }
 };
 
-
+// Helper functions to stop specific tracking types
 const stopForegroundTracking = () => {
   if (foregroundWatchId !== null) {
     Geolocation.clearWatch(foregroundWatchId);
@@ -224,6 +240,17 @@ const stopBackgroundTracking = () => {
   }
 };
 
+// MARK: - Map Point Utilities
+
+/**
+ * Finds the nearest map point to given coordinates.
+ * 
+ * @param {Object} coordinate - The coordinates to find the nearest point for.
+ * @param {number} coordinate.latitude - The latitude of the coordinate.
+ * @param {number} coordinate.longitude - The longitude of the coordinate.
+ * @param {Array} mapPoints - The list of map points to search through.
+ * @returns {Object|null} - The nearest map point or null if not found.
+ */
 export const findNearestMapPoint = (coordinate, mapPoints) => {
   if (!mapPoints || !Array.isArray(mapPoints) || mapPoints.length === 0) {
     console.log("MapPoints is undefined or empty");
@@ -247,10 +274,16 @@ export const findNearestMapPoint = (coordinate, mapPoints) => {
   return nearestPoint;
 };
 
+// MARK: - Location Hook
 
-
-
-// MARK: - Use Location
+/**
+ * Custom hook for managing location tracking and updates.
+ * Handles adventure mode, app state changes, and Firebase logging.
+ * 
+ * @param {Function} callback - The callback function to execute with the result.
+ * @param {Array} mapPoints - The list of map points to search through.
+ * @returns {Object} - An object containing utility functions.
+ */
 export const useLocation = (callback, mapPoints) => {
   const { adventureMode } = useAdventureMode();
   const appState = useRef(AppState.currentState);
@@ -297,6 +330,12 @@ export const useLocation = (callback, mapPoints) => {
       };
   }, [adventureMode, callback, mapPoints]);
 
+  /**
+   * Handles location updates and triggers Firebase logging if needed.
+   * 
+   * @param {Object|null} error - The error object if an error occurred.
+   * @param {Object|null} position - The position object containing location data.
+   */
   const handleLocationUpdate = (error, position) => {
     if (error) {
         console.error("Location error:", error);
@@ -308,6 +347,11 @@ export const useLocation = (callback, mapPoints) => {
     logLocationToFirebaseIfNeeded(position);
 };
 
+/**
+ * Logs location to Firebase if conditions are met (adventure mode, in safe zone, etc.)
+ * 
+ * @param {Object} position - The position object containing location data.
+ */
 const logLocationToFirebaseIfNeeded = async (position) => {
     if (!adventureMode || !userId) {
         console.log("Not logging location: AdventureMode off or no UserID");
@@ -332,64 +376,6 @@ const logLocationToFirebaseIfNeeded = async (position) => {
     setLastLoggedMapPoint(newMapPoint);
   };
 
-  const startForegroundTracking = (callback) => {
-    if (foregroundWatchId !== null) {
-      return;
-    }
-
-    foregroundWatchId = Geolocation.watchPosition(
-      (position) => {
-        callback(null, position);
-        if (isWithinSafeZone(position.coords)) {
-          startBackgroundTracking(callback);
-        } else {
-          stopBackgroundTracking();
-        }
-      },
-      (error) => callback(error, null),
-      { enableHighAccuracy: true, distanceFilter: 10, interval: 5000, fastestInterval: 2000 }
-    );
-  };
-
-  const startBackgroundTracking = (callback) => {
-    if (backgroundWatchId !== null) {
-      return;
-    }
-
-    backgroundWatchId = Geolocation.watchPosition(
-      (position) => {
-        if (isWithinSafeZone(position.coords)) {
-          callback(null, position);
-        } else {
-          stopBackgroundTracking();
-        }
-      },
-      (error) => callback(error, null),
-      { 
-        enableHighAccuracy: true, 
-        distanceFilter: 50, 
-        interval: 60000, // Check every minute in background
-        fastestInterval: 30000,
-        forceRequestLocation: true,
-        showLocationDialog: true,
-      }
-    );
-  };
-
-  const stopForegroundTracking = () => {
-    if (foregroundWatchId !== null) {
-      Geolocation.clearWatch(foregroundWatchId);
-      foregroundWatchId = null;
-    }
-  };
-
-  const stopBackgroundTracking = () => {
-    if (backgroundWatchId !== null) {
-      Geolocation.clearWatch(backgroundWatchId);
-      backgroundWatchId = null;
-    }
-  };
-
   return {
     requestLocationPermission,
     getCurrentLocation,
@@ -397,4 +383,5 @@ const logLocationToFirebaseIfNeeded = async (position) => {
   };
 };
 
+// Export utility functions
 export { requestLocationPermission, getCurrentLocation, isWithinSafeZone };

@@ -2,30 +2,32 @@
 /**
  * MainView Component
  * 
- * This component sets up the bottom tab navigation for the app.
- * It includes tabs for Map, Detail, and Settings views.
- * The component now responds to dark mode changes, updating the tab bar appearance accordingly.
- * It uses the recommended 'screenOptions' approach for configuring the tab bar.
+ * This component sets up the bottom tab navigation for the app, including Map, Detail, and Settings views.
+ * It dynamically adjusts the tab bar appearance based on dark mode settings.
+ * The component utilizes various contexts and hooks for state management (mapPoints, darkMode, adventureMode).
+ * It employs the 'screenOptions' approach for configuring the tab bar, ensuring a consistent look across the app.
  */
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DetailView from './DetailView';
-import MapView from './MapView';
-import SettingsView from './SettingView';
-import { useMapPoints } from './MapPoint';
-import { DarkModeProvider, useDarkMode } from './DarkMode';
-import { useAdventureMode } from './AdventureModeContext';
+import DetailView from './MainViews/DetailView';
+import MapView from './MainViews/MapView';
+import SettingsView from './MainViews/SettingView';
+import { useMapPoints } from './Data/MapPoint';
+import { DarkModeProvider, useDarkMode } from './States/DarkMode';
+import { useAdventureMode } from './States/AdventureModeContext';
 
 const Tab = createBottomTabNavigator();
 
 const MainView = () => {
+    // MARK: - Hooks
+    // Access shared state and context
     const { mapPoints } = useMapPoints();
     const { isDarkMode } = useDarkMode();
     const { adventureMode } = useAdventureMode();
 
-    // MARK: - Screen Options
+    // MARK: - Tab Bar Configuration
     const screenOptions = ({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
@@ -50,18 +52,22 @@ const MainView = () => {
         },
     });
 
+    // MARK: - Tab Navigator
     return (
         <Tab.Navigator screenOptions={screenOptions}>
+            {/* Map Tab */}
             <Tab.Screen
                 name="Map"
                 component={MapView}
                 initialParams={{ mapPoints, adventureMode }}
             />
+            {/* Detail Tab */}
             <Tab.Screen
                 name="Detail"
                 component={DetailView}
                 initialParams={{ mapPoints, adventureMode }}
             />
+            {/* Settings Tab */}
             <Tab.Screen
                 name="Settings"
                 component={SettingsView}
@@ -70,7 +76,8 @@ const MainView = () => {
     );
 };
 
-// MARK: - Wrapped MainView with DarkModeProvider
+// MARK: - DarkMode Wrapper
+// Ensure DarkMode context is available throughout the app
 const WrappedMainView = () => (
     <DarkModeProvider>
         <MainView />

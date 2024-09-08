@@ -2,33 +2,35 @@
 /**
  * DarkMode
  * 
- * This file defines a context and provider for managing dark mode settings across the application.
- * It includes functions to load and save the dark mode state using AsyncStorage, and provides
- * a toggle function to switch between dark mode and light mode.
+ * This file implements a dark mode functionality for a React Native application using Context API.
+ * It provides:
+ * - A DarkModeProvider component to manage and persist dark mode state
+ * - A toggle function to switch between dark and light modes
+ * - AsyncStorage integration for persisting user preferences
+ * - A custom hook (useDarkMode) for easy access to dark mode context
  * 
- * Features:
- * - Provides dark mode state and toggle function
- * - Persists dark mode setting using AsyncStorage
- * - Custom hook to access dark mode context
+ * The implementation ensures consistent dark mode behavior across app sessions and components.
  */
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // MARK: - Context Creation
+// Create a new context for dark mode
 const DarkModeContext = createContext();
 
 // MARK: - Provider Component
 export const DarkModeProvider = ({ children }) => {
-  // State variable to manage dark mode
+  // State to track whether dark mode is active
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Load dark mode settings on component mount
+  // Load saved dark mode settings when the component mounts
   useEffect(() => {
     loadDarkModeSettings();
   }, []);
 
   // MARK: - Load Dark Mode Settings
+  // Retrieve dark mode preference from AsyncStorage
   const loadDarkModeSettings = async () => {
     try {
       const darkModeValue = await AsyncStorage.getItem('isDarkMode');
@@ -39,6 +41,7 @@ export const DarkModeProvider = ({ children }) => {
   };
 
   // MARK: - Toggle Dark Mode
+  // Switch dark mode state and save the new preference
   const toggleDarkMode = async () => {
     const newDarkModeValue = !isDarkMode;
     setIsDarkMode(newDarkModeValue);
@@ -58,6 +61,7 @@ export const DarkModeProvider = ({ children }) => {
 };
 
 // MARK: - Custom Hook
+// Hook for consuming dark mode context in other components
 export const useDarkMode = () => {
   const context = useContext(DarkModeContext);
   if (context === undefined) {

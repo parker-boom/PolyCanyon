@@ -9,35 +9,38 @@ import {
     Animated
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useStructures } from './StructureData';
+import { useStructures } from '../Data/StructureData';
 import FastImage from 'react-native-fast-image';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+// Constants
 const { width, height } = Dimensions.get('window');
 const RATING_INDEX_KEY = 'RATING_INDEX_KEY';
 
+// Main component
 const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
+    // Custom hook for structure data
     const { structures, toggleStructureLiked, countLikedStructures } = useStructures();
+    
+    // State management
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isComplete, setIsComplete] = useState(false);
 
+    // Load current index when modal becomes visible
     useEffect(() => {
         if (isVisible) {
             loadCurrentIndex();
         }
     }, [isVisible]);
 
+    // AsyncStorage functions
     const loadCurrentIndex = async () => {
         try {
             const savedIndex = await AsyncStorage.getItem(RATING_INDEX_KEY);
             if (savedIndex !== null) {
                 const index = parseInt(savedIndex, 10);
                 setCurrentIndex(index);
-                if (index >= structures.length) {
-                    setIsComplete(true);
-                } else {
-                    setIsComplete(false);
-                }
+                setIsComplete(index >= structures.length);
             }
         } catch (error) {
             console.error('Error loading current index:', error);
@@ -52,6 +55,7 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
         }
     };
 
+    // Rating handlers
     const handleRate = async (liked) => {
         if (!isComplete && currentIndex < structures.length) {
             const currentStructure = structures[currentIndex];
@@ -61,9 +65,7 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
             setCurrentIndex(newIndex);
             await saveCurrentIndex(newIndex);
             
-            if (newIndex >= structures.length) {
-                setIsComplete(true);
-            }
+            setIsComplete(newIndex >= structures.length);
         }
     };
 
@@ -79,28 +81,10 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
         await saveCurrentIndex(newIndex);
     };
 
+    // Render functions
     const renderRatingContent = () => {
         if (isComplete || currentIndex >= structures.length) {
-            const likedCount = countLikedStructures();
-            return (
-                <View style={styles.completeContainer}>
-                    <View style={styles.pulsingHeart}>
-                        <Ionicons name="heart" size={100} color="red" />
-                    </View>
-                    <Text style={[styles.completeText, isDarkMode && styles.darkText]}>
-                        You've rated all structures!
-                    </Text>
-                    <Text style={[styles.likedCountText, isDarkMode && styles.darkText]}>
-                        Liked: {likedCount} / {structures.length}
-                    </Text>
-                    <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
-                        <Text style={styles.restartButtonText}>Restart</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.exitButtonComplete} onPress={handleExit}>
-                        <Text style={styles.exitButtonTextComplete}>Exit</Text>
-                    </TouchableOpacity>
-                </View>
-            );
+            return renderCompletionScreen();
         }
 
         const currentStructure = structures[currentIndex];
@@ -109,6 +93,33 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
             return null;
         }
 
+        return renderRatingScreen(currentStructure);
+    };
+
+    const renderCompletionScreen = () => {
+        const likedCount = countLikedStructures();
+        return (
+            <View style={styles.completeContainer}>
+                <View style={styles.pulsingHeart}>
+                    <Ionicons name="heart" size={100} color="red" />
+                </View>
+                <Text style={[styles.completeText, isDarkMode && styles.darkText]}>
+                    You've rated all structures!
+                </Text>
+                <Text style={[styles.likedCountText, isDarkMode && styles.darkText]}>
+                    Liked: {likedCount} / {structures.length}
+                </Text>
+                <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
+                    <Text style={styles.restartButtonText}>Restart</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.exitButtonComplete} onPress={handleExit}>
+                    <Text style={styles.exitButtonTextComplete}>Exit</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
+    const renderRatingScreen = (currentStructure) => {
         return (
             <View style={styles.contentContainer}>
                 <Text style={[styles.rateStructuresTitle, isDarkMode && styles.darkText]}>
@@ -145,6 +156,7 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
         );
     };
 
+    // Main render
     return (
         <Modal
             visible={isVisible}
@@ -163,6 +175,7 @@ const RatingPopup = ({ isVisible, onClose, isDarkMode }) => {
     );
 };
 
+// Styles
 const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,

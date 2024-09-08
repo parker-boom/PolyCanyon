@@ -1,9 +1,11 @@
 import { PermissionsAndroid } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 
+// Constants
 const SAN_LUIS_OBISPO_COORDS = { latitude: 35.2828, longitude: -120.6596 };
 const MAX_DISTANCE_MILES = 50;
 
+// Request location permission from the user
 export const requestLocationPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
@@ -23,6 +25,7 @@ export const requestLocationPermission = async () => {
   }
 };
 
+// Get the user's current location
 export const getCurrentLocation = () => {
   return new Promise((resolve, reject) => {
     Geolocation.getCurrentPosition(
@@ -33,6 +36,7 @@ export const getCurrentLocation = () => {
   });
 };
 
+// Calculate distance between two sets of coordinates using the Haversine formula
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 3958.8; // Earth's radius in miles
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -45,6 +49,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+// Check if the given position is within MAX_DISTANCE_MILES of San Luis Obispo
 export const isNearSanLuisObispo = (position) => {
   const distance = calculateDistance(
     position.coords.latitude,
@@ -54,3 +59,6 @@ export const isNearSanLuisObispo = (position) => {
   );
   return distance <= MAX_DISTANCE_MILES;
 };
+
+// Location management module for React Native Android app
+// Handles permissions, current location retrieval, and proximity checks to San Luis Obispo

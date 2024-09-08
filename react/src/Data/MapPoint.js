@@ -2,15 +2,14 @@
 /**
  * MapPointsContext
  * 
- * This file defines a context and provider for managing map points within the application.
- * It includes functions to load and save map points using AsyncStorage, reset visited map points,
- * and provides the map points data to other components through context.
- * 
- * Features:
+ * This file manages map points data using React Context and AsyncStorage.
+ * It provides functionality to:
  * - Load map points from AsyncStorage or initial JSON data
  * - Save map points to AsyncStorage
  * - Reset visited status of all map points
- * - Custom hook to access map points context
+ * - Access map points data and functions via a custom hook
+ * 
+ * The context ensures consistent map point data across the application.
  */
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
@@ -20,15 +19,16 @@ import mapPointsData from './mapPoints.json';
 // MARK: - Context Creation
 const MapPointsContext = createContext();
 
-// Custom hook to access MapPoints context
+// Custom hook for easy access to MapPoints context
 export const useMapPoints = () => useContext(MapPointsContext);
 
+// Storage keys for AsyncStorage
 const MAP_POINTS_STORAGE_KEY = 'MAP_POINTS_STORAGE_KEY';
 const MAP_POINTS_RELOADED_KEY = 'MAP_POINTS_RELOADED_KEY';
 
 // MARK: - Provider Component
 export const MapPointsProvider = ({ children }) => {
-    // State variable to manage map points
+    // State for map points and reload status
     const [mapPoints, setMapPoints] = useState([]);
     const [mapPointsReloaded, setMapPointsReloaded] = useState(false);
 

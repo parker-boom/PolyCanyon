@@ -4,20 +4,24 @@ import Swiper from 'react-native-swiper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestLocationPermission, getCurrentLocation, isNearSanLuisObispo } from './OnboardingLocationManager';
-import { useAdventureMode } from './AdventureModeContext';
+import { useAdventureMode } from '../States/AdventureModeContext';
 
 const { width, height } = Dimensions.get('window');
 
+// Main component
 const OnboardingView = ({ onComplete }) => {
+  // State management
   const [currentPage, setCurrentPage] = useState(0);
   const [hasAskedForLocation, setHasAskedForLocation] = useState(false);
   const [isAdventureModeRecommended, setIsAdventureModeRecommended] = useState(false);
   const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(false);
   const { updateAdventureMode } = useAdventureMode();
 
+  // Color constants
   const adventureModeColor = '#4CAF50';
   const virtualTourColor = '#FF6803';
 
+  // Handle location permission and determine if Adventure Mode is recommended
   const handleLocationPermission = async () => {
     const permissionGranted = await requestLocationPermission();
     setHasAskedForLocation(true);
@@ -39,15 +43,17 @@ const OnboardingView = ({ onComplete }) => {
     }
   };
 
+  // Complete onboarding and save Adventure Mode preference
   const handleComplete = async () => {
     await AsyncStorage.setItem('adventureMode', JSON.stringify(isAdventureModeEnabled));
     updateAdventureMode(isAdventureModeEnabled);
-    onComplete(); // This will mark onboarding as complete and move to MainView
+    onComplete();
   };
 
+  // Render individual slides
   const renderWelcomeSlide = () => (
     <View style={styles.slide}>
-      <Image source={require('../assets/icon.jpg')} style={styles.icon} />
+      <Image source={require('../../assets/icon.jpg')} style={styles.icon} />
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Welcome to</Text>
         <Text style={[styles.title, styles.greenTitle, styles.boldTitle]}>Poly Canyon</Text>
@@ -121,6 +127,7 @@ const OnboardingView = ({ onComplete }) => {
     </View>
   );
 
+  // Custom components for Mode Selection slide
   const ModeIcon = ({ name, color }) => (
     <View style={[styles.modeIcon, { backgroundColor: color }]}>
       <Ionicons name={name} size={40} color="white" />
@@ -151,6 +158,7 @@ const OnboardingView = ({ onComplete }) => {
     </View>
   );
 
+  // Animated location dot component
   const PulsingLocationDot = () => {
     const pulseAnim = new Animated.Value(1);
 
@@ -171,6 +179,7 @@ const OnboardingView = ({ onComplete }) => {
     );
   };
 
+  // Navigation button component
   const renderNavigationButton = (text, onPress) => (
     <TouchableOpacity style={styles.navigationButton} onPress={onPress}>
       <Text style={styles.navigationButtonText}>{text}</Text>
@@ -178,6 +187,7 @@ const OnboardingView = ({ onComplete }) => {
     </TouchableOpacity>
   );
 
+  // Main render method
   return (
     <View style={styles.container}>
       <Swiper
@@ -197,6 +207,7 @@ const OnboardingView = ({ onComplete }) => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -209,11 +220,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   icon: {
-    width: 180,  // Increased size
-    height: 180, // Increased size
-    marginTop: 40,    // Less padding on top
-    marginBottom: 20, // Less padding on bottom
-    borderRadius: 36, // Adjusted for larger size
+    width: 180, 
+    height: 180, 
+    marginTop: 40,   
+    marginBottom: 20, 
+    borderRadius: 36, 
   },
   titleContainer: {
     marginBottom: 10,
@@ -309,7 +320,7 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30, // Added spacing below the circle
+    marginBottom: 30, 
   },
   pulsingDot: {
     width: 100,
@@ -357,7 +368,7 @@ const styles = StyleSheet.create({
     bottom: 60,
     left: 0,
     right: 0,
-    alignItems: 'center', // Center horizontally
+    alignItems: 'center', 
   },
   iconSpacing: {
     marginVertical: 20,
@@ -374,7 +385,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   grayTitle: {
-    color: '#666', // Gray color
+    color: '#666',
+
   },
 });
 

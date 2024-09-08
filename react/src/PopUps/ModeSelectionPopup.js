@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+// Main component definition
 const ModeSelectionPopup = ({ isVisible, onSelect, onConfirm, currentMode, selectedMode, isDarkMode }) => {
+    // Define colors for each mode
     const adventureColor = '#4CAF50';
     const virtualTourColor = '#FF6803';
 
@@ -12,10 +14,12 @@ const ModeSelectionPopup = ({ isVisible, onSelect, onConfirm, currentMode, selec
             transparent={true}
             visible={isVisible}
         >
+            {/* Main container with dark mode support */}
             <View style={[styles.centeredView, isDarkMode && styles.darkCenteredView]}>
                 <View style={[styles.modalView, isDarkMode && styles.darkModalView]}>
                     <Text style={[styles.modalTitle, isDarkMode && styles.darkText]}>Switch it Up</Text>
                     
+                    {/* Adventure Mode button */}
                     <TouchableOpacity
                         style={[
                             styles.modeButton, 
@@ -30,6 +34,7 @@ const ModeSelectionPopup = ({ isVisible, onSelect, onConfirm, currentMode, selec
                         </View>
                     </TouchableOpacity>
                     
+                    {/* Virtual Tour Mode button */}
                     <TouchableOpacity
                         style={[
                             styles.modeButton, 
@@ -44,6 +49,7 @@ const ModeSelectionPopup = ({ isVisible, onSelect, onConfirm, currentMode, selec
                         </View>
                     </TouchableOpacity>
                     
+                    {/* Confirm button */}
                     <TouchableOpacity 
                         style={[styles.confirmButton, { backgroundColor: selectedMode ? adventureColor : virtualTourColor }]} 
                         onPress={onConfirm}
@@ -56,6 +62,7 @@ const ModeSelectionPopup = ({ isVisible, onSelect, onConfirm, currentMode, selec
     );
 };
 
+// Styles definition
 const styles = StyleSheet.create({
     centeredView: {
         flex: 1,
