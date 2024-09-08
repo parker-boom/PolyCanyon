@@ -27,14 +27,20 @@ struct SettingsView: View {
     @State private var pendingAdventureModeState: Bool = false
     @State private var showModePopUp = false
     @State private var showStructureSwipingView = false
-    @State private var showHowToGetTherePopup = false
+    @State private var showHowToGetThereGuide = false
+    @State private var showResetAlert = false
+    @State private var resetAlertType: ResetAlertType?
+    
 
     @AppStorage("visitedCount") private var visitedCount: Int = 0
-    @AppStorage("visitedAllCount") private var visitedAllCount: Int = 0
-    @AppStorage("dayCount") private var dayCount: Int = 0
     
     enum AlertType {
         case resetVisited, resetFavorites, toggleAdventureModeOff
+    }
+    
+    enum ResetAlertType {
+        case structures
+        case favorites
     }
     
     var body: some View {
@@ -68,56 +74,61 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
                 }
-                if showHowToGetTherePopup {
-                    Color.black.opacity(0.4)
+                if showHowToGetThereGuide {
+                    Color.black.opacity(0.5)
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture {
-                            showHowToGetTherePopup = false
+                            showHowToGetThereGuide = false
                         }
                     
-                    HowToGetTherePopup(isPresented: $showHowToGetTherePopup, isDarkMode: $isDarkMode)
+                    HowToGetThereGuide(isPresented: $showHowToGetThereGuide, isDarkMode: $isDarkMode)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 20)
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+                if showResetAlert {
+                    resetAlertView
                 }
             }
         )
-        .alert(isPresented: $showAlert) {
-            switch alertType {
-            case .resetVisited:
-                return Alert(
-                    title: Text("Reset All Visited Structures"),
-                    message: Text("Are you sure you want to reset all visited structures?"),
-                    primaryButton: .destructive(Text("Yes")) {
-                        structureData.resetVisitedStructures()
-                        mapPointManager.resetVisitedMapPoints()
-                    },
-                    secondaryButton: .cancel()
-                )
-            case .resetFavorites:
-                return Alert(
-                    title: Text("Reset Favorites"),
-                    message: Text("Are you sure you want to reset all favorite structures?"),
-                    primaryButton: .destructive(Text("Yes")) {
-                        structureData.resetFavorites()
-                    },
-                    secondaryButton: .cancel()
-                )
-            case .toggleAdventureModeOff:
-                return Alert(
-                    title: Text("Toggle Adventure Mode Off"),
-                    message: Text("This will mark all structures as visited. Are you sure?"),
-                    primaryButton: .destructive(Text("Yes")) {
-                        structureData.setAllStructuresAsVisited()
-                        isAdventureModeEnabled = pendingAdventureModeState
-                    },
-                    secondaryButton: .cancel() {
-                        isAdventureModeEnabled = true
-                    }
-                )
-            case .none:
-                return Alert(title: Text("Error"))
+    }
+    
+    private var resetAlertView: some View {
+            Group {
+                if let alertType = resetAlertType {
+                    CustomAlert(
+                        icon: alertType == .structures ? "arrow.counterclockwise" : "heart.slash.fill", iconColor: alertType == .structures ? .orange : .red,
+                        title: alertType == .structures ? "Reset Visited Structures" : "Reset Favorites",
+                        subtitle: alertType == .structures ?
+                            "Are you sure you want to reset all visited structures? This action cannot be undone." :
+                            "Are you sure you want to reset all favorite structures? This action cannot be undone.",
+                        primaryButton: .init(title: "Reset") {
+                            if alertType == .structures {
+                                structureData.resetVisitedStructures()
+                                mapPointManager.resetVisitedMapPoints()
+                            } else {
+                                structureData.resetFavorites()
+                            }
+                        },
+                        secondaryButton: .init(title: "Cancel") {
+                            // Handle cancellation
+                        },
+                        isPresented: $showResetAlert,
+                        isDarkMode: $isDarkMode
+                    )
+                }
             }
         }
+
+        // Update these functions to set the alert type and show the alert
+    private func showResetStructuresAlert() {
+        resetAlertType = .structures
+        showResetAlert = true
+    }
+
+    private func showResetFavoritesAlert() {
+        resetAlertType = .favorites
+        showResetAlert = true
     }
     
     var generalSettingsSection: some View {
@@ -172,8 +183,11 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     SettingsButton(
                         action: {
-                            alertType = isAdventureModeEnabled ? .resetVisited : .resetFavorites
-                            showAlert = true
+                            if isAdventureModeEnabled {
+                                showResetStructuresAlert()
+                            } else {
+                                showResetFavoritesAlert()
+                            }
                         },
                         imageName: isAdventureModeEnabled ? "arrow.clockwise" : "heart.slash.fill",
                         text: isAdventureModeEnabled ? "Reset Structures" : "Reset Favorites",
@@ -205,7 +219,7 @@ struct SettingsView: View {
             
             HStack(spacing: 10) {
                 StatBox(title: "Visited", value: visitedCount, iconName: "checkmark.circle.fill", isDarkMode: isDarkMode)
-                StatBox(title: "Days", value: dayCount, iconName: "calendar", isDarkMode: isDarkMode)
+                StatBox(title: "Days", value: locationManager.dayCount, iconName: "calendar", isDarkMode: isDarkMode)
             }
         }
     }
@@ -219,7 +233,7 @@ struct SettingsView: View {
 
             if isAdventureModeEnabled {
                 InformationButton(
-                    action: { showHowToGetTherePopup = true },
+                    action: { showHowToGetThereGuide = true },
                     title: "How to get there",
                     icon: AnyView(
                         HStack(spacing: 15) {
@@ -530,86 +544,291 @@ struct BulletPoint: View {
 }
 
 
-struct HowToGetTherePopup: View {
+
+
+struct HowToGetThereGuide: View {
     @Binding var isPresented: Bool
     @Binding var isDarkMode: Bool
+    @State private var currentPage = 0
+    @AppStorage("howToGetThereGuideIndex") private var savedIndex = 0
+
+    let pages = [
+        GuidePage(
+            emoji: "🚗",
+            title: "Parking",
+            description: "Park at the H-1 or H-4 parking lot with a valid Cal Poly parking pass.",
+            buttonText: "Maps",
+            buttonIcon: "map",
+            buttonAction: { UIApplication.shared.open(URL(string: "https://maps.apple.com/?address=San%20Luis%20Obispo,%20CA%2093405,%20United%20States&auid=11145378343369333363&ll=35.303104,-120.659140&lsp=9902&q=Poly%20Canyon%20Trail&t=h")!) },
+            color: .blue
+        ),
+        GuidePage(
+            emoji: "🚶",
+            title: "Follow AllTrails",
+            description: "Use AllTrails for the best navigation to Poly Canyon.",
+            buttonText: "AllTrails",
+            buttonIcon: "map.fill",
+            buttonAction: { UIApplication.shared.open(URL(string: "https://www.alltrails.com/trail/us/california/architecture-graveyard-hike-private-property?sh=rvw6ps")!) },
+            color: .green
+        ),
+        GuidePage(
+            emoji: "🏞️",
+            title: "Final Steps",
+            description: "1. From campus or parking, walk until you reach the yellow gate.\n2. Stay on the gravel road until you see the Poly Canyon arch.",
+            buttonText: "Done",
+            buttonIcon: nil,
+            buttonAction: nil,
+            color: .orange
+        )
+    ]
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Getting There")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
-            
-            VStack(alignment: .leading, spacing: 15) {
-                Text("1. Park on Cal Poly's campus with a valid pass")
-                    .font(.system(size: 18))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                
+        VStack(spacing: 0) {
+            // Progress indicator
+            HStack {
+                ForEach(0..<3) { index in
+                    Rectangle()
+                        .fill(currentPage == index ? pages[index].color : Color.black.opacity(0.3))
+                        .frame(height: 3)
+                        .animation(.easeInOut, value: currentPage)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+
+            // Close button
+            HStack {
+                Spacer()
                 Button(action: {
-                    if let url = URL(string: "https://maps.apple.com/?address=San%20Luis%20Obispo,%20CA%2093405,%20United%20States&auid=11145378343369333363&ll=35.303104,-120.659140&lsp=9902&q=Poly%20Canyon%20Trail&t=h") {
-                        UIApplication.shared.open(url)
+                    isPresented = false
+                    savedIndex = currentPage
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .font(.system(size: 24))
+                }
+            }
+            .padding(.trailing)
+            .padding(.top, 5)
+
+            // Main content
+            TabView(selection: $currentPage) {
+                ForEach(0..<3) { index in
+                    pageView(for: pages[index])
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .animation(.easeInOut, value: currentPage)
+            .transition(.slide)
+
+            // Next/Done button
+            HStack {
+                Button(action: {
+                    if currentPage < 2 {
+                        currentPage += 1
+                    } else {
+                        isPresented = false
+                        savedIndex = 0
                     }
                 }) {
-                    HStack {
-                        Image(systemName: "car.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                        Text("Driving")
-                            .font(.system(size: 24, weight: .semibold))
-                    }
-                    
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.bottom, 5)
+                    Text(currentPage < 2 ? "Next" : "Done")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 30)
+                        .background(pages[currentPage].color)
+                        .cornerRadius(10)
                 }
                 
-                Text("2. Navigate to the area using AllTrails")
-                    .font(.system(size: 18))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                
-                Button(action: {
-                    if let url = URL(string: "https://www.alltrails.com/trail/us/california/architecture-graveyard-hike-private-property?sh=rvw6ps") {
-                        UIApplication.shared.open(url)
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "figure.walk")
-                            .font(.system(size: 20, weight: .semibold))
-                        Text("Walking")
-                            .font(.system(size: 24, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.bottom, 5)
-                }
-                
-                Text("3. Once you see the arch, please return to the app!")
-                    .font(.system(size: 18))
-                    .foregroundColor(isDarkMode ? .white : .black)
+
             }
-            .padding(.vertical)
-            
-            Button("Got it ") {
-                isPresented = false
-            }
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundColor(.white)
-            .padding(8)
-            .background(Color.black.opacity(0.6))
-            .cornerRadius(10)
+            .padding()
         }
-        .padding()
+        .frame(width: 300, height: 450)
         .background(isDarkMode ? Color.black : Color.white)
         .cornerRadius(20)
-        .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .shadow(radius: 10)
+        .onAppear {
+            currentPage = savedIndex
+        }
+    }
+
+    func pageView(for page: GuidePage) -> some View {
+        VStack(spacing: 20) {
+            Text(page.emoji)
+                .font(.system(size: 80))
+            Text(page.title)
+                .font(.title2)
+                .fontWeight(.bold)
+            Text(page.description)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            if let action = page.buttonAction, let icon = page.buttonIcon {
+                Button(action: action) {
+                    HStack {
+                        Image(systemName: icon)
+                        Text(page.buttonText)
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(page.color)
+                    .cornerRadius(10)
+                }
+            }
+            Spacer()
+        }
+        .foregroundColor(isDarkMode ? .white : .black)
     }
 }
 
+struct GuidePage {
+    let emoji: String
+    let title: String
+    let description: String
+    let buttonText: String
+    let buttonIcon: String?
+    let buttonAction: (() -> Void)?
+    let color: Color
+}
+
+
+
+
+
+struct CustomAlert: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let primaryButton: AlertButton
+    let secondaryButton: AlertButton
+    let isPresented: Binding<Bool>
+    @Binding var isDarkMode: Bool
+
+    struct AlertButton {
+        let title: String
+        let action: () -> Void
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    isPresented.wrappedValue = false
+                }
+
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(isDarkMode ? Color.black : Color.white)
+                    .frame(width: 120, height: 120)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 60))
+                            .foregroundColor(iconColor)
+                    )
+                    .offset(y: 60)
+                    .zIndex(1)
+
+                VStack(spacing: 15) {
+                    Text(title)
+                        .font(.system(size: 22, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .padding(.top, 70)
+
+                    Text(subtitle)
+                        .font(.system(size: 16))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                        .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+
+                    VStack(spacing: 15) {
+                        Button(action: {
+                            isPresented.wrappedValue = false
+                            primaryButton.action()
+                        }) {
+                            Text(primaryButton.title)
+                                .font(.system(size: 18, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+
+                        Button(action: {
+                            isPresented.wrappedValue = false
+                            secondaryButton.action()
+                        }) {
+                            Text(secondaryButton.title)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                                .underline()
+                        }
+                    }
+                    .padding(.top, 10)
+                    .padding(.bottom, 20)
+                }
+                .padding(.horizontal, 20)
+                .background(isDarkMode ? Color.black : Color.white)
+                .cornerRadius(20)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(isDarkMode ? Color.white.opacity(0.2) : Color.black.opacity(0.2), lineWidth: 1)
+                )
+            }
+            .frame(width: 300)
+            .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.2), radius: 10, x: 0, y: 10)
+        }
+    }
+}
+
+struct CustomAlert_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            CustomAlert(
+                icon: "location.fill",
+                iconColor: .blue,
+                title: "Enable Location",
+                subtitle: "Adventure mode requires location access to track your visited structures.",
+                primaryButton: CustomAlert.AlertButton(title: "Allow") {},
+                secondaryButton: CustomAlert.AlertButton(title: "Cancel") {},
+                isPresented: .constant(true),
+                isDarkMode: .constant(false)
+            )
+            .previewDisplayName("Light Mode - Location")
+
+            CustomAlert(
+                icon: "heart.fill",
+                iconColor: .red,
+                title: "Rate Structures",
+                subtitle: "Help us improve your experience by rating the structures you've seen.",
+                primaryButton: CustomAlert.AlertButton(title: "Start Rating") {},
+                secondaryButton: CustomAlert.AlertButton(title: "Maybe Later") {},
+                isPresented: .constant(true),
+                isDarkMode: .constant(true)
+            )
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Dark Mode - Rate")
+
+            CustomAlert(
+                icon: "arrow.counterclockwise",
+                iconColor: .orange,
+                title: "Reset Structures",
+                subtitle: "Are you sure you want to reset all visited structures? This action cannot be undone.",
+                primaryButton: CustomAlert.AlertButton(title: "Reset") {},
+                secondaryButton: CustomAlert.AlertButton(title: "Cancel") {},
+                isPresented: .constant(true),
+                isDarkMode: .constant(false)
+            )
+            .previewDisplayName("Light Mode - Reset")
+        }
+    }
+}
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {

@@ -148,12 +148,10 @@ struct StructureSwipingView: View {
             presentationMode.wrappedValue.dismiss()
         }) {
             Text("Exit")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 30)
-                .background(Color.red)
-                .cornerRadius(10)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.red)
+                .underline()
+                .padding(.vertical, 15)
         }
         .padding(.bottom, 30)
     }

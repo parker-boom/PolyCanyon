@@ -85,6 +85,7 @@ struct MapView: View {
     @AppStorage("hasShownRateStructuresPopup") private var hasShownRateStructuresPopup = false
     @AppStorage("virtualTourCurrentStructure") private var currentStructureIndex = 0
     @AppStorage("hasCompletedFirstVisit") private var hasCompletedFirstVisit = false
+    @AppStorage("hasShownAdventureModeAlert") private var hasShownAdventureModeAlert = false
     
     
     // MARK: - Body
@@ -252,53 +253,76 @@ struct MapView: View {
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
                 
-
+                
                 
             }
-            if showRateStructuresPopup {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
-
-                RateStructuresPopup(isPresented: $showRateStructuresPopup, showStructureSwipingView: $showStructureSwipingView)
-                    .frame(width: geometry.size.width * 0.8)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                    .transition(.opacity)
-                    .zIndex(1)
-            }
             
-
+            
         }
         .onAppear {
-            if !isAdventureModeEnabled && !hasShownRateStructuresPopup && !structureData.hasRatedStructures() {
+            if isAdventureModeEnabled && !hasShownAdventureModeAlert {
+                showAdventureModeAlert = true
+            } else if !isAdventureModeEnabled && !hasShownRateStructuresPopup {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    withAnimation {
-                        showRateStructuresPopup = true
-                    }
+                    showRateStructuresPopup = true
                 }
             }
+            subscribeToVisitedStructureNotification()
         }
         .sheet(isPresented: $showStructureSwipingView) {
             StructureSwipingView(structureData: structureData, isDarkMode: $isDarkMode)
         }
-        // Show the onboarding map if it hasn't ever been shown
-        .onAppear {
-            subscribeToVisitedStructureNotification()
-        }
-        
+    
         // Ask user to enable location always after adventure mode pop up is shown
-        .alert(isPresented: $showAdventureModeAlert) {
-            Alert(
-                title: Text("Allow Location Always"),
-                message: Text("Adventure mode can track the structures you've been to even when you close the app. Do you want to enable it?"),
-                primaryButton: .default(Text("Allow")) {
-                    isAdventureModeEnabled = true
-                    locationManager.requestAlwaysAuthorization()
-                    UserDefaults.standard.set(true, forKey: "adventureModeEnabled")
-                },
-                secondaryButton: .cancel()
+        .overlay(
+                Group {
+                    if showAdventureModeAlert {
+                        CustomAlert(
+                            icon: "figure.walk",
+                            iconColor: .green,
+                            title: "Enable Background Location",
+                            subtitle: "Background location tracks the structures you visit even when the app is closed.",
+                            primaryButton: .init(title: "Allow") {
+                                locationManager.requestAlwaysAuthorization()
+                                isAdventureModeEnabled = true
+                                UserDefaults.standard.set(true, forKey: "adventureModeEnabled")
+                                showAdventureModeAlert = false
+                                hasShownAdventureModeAlert = true
+                            },
+                            secondaryButton: .init(title: "Cancel") {
+                                showAdventureModeAlert = false
+                                hasShownAdventureModeAlert = true
+                            },
+                            isPresented: $showAdventureModeAlert,
+                            isDarkMode: $isDarkMode
+                        )
+                    }
+                    
+                    if showRateStructuresPopup {
+                        Color.black.opacity(0.4)
+                            .edgesIgnoringSafeArea(.all)
+                            .transition(.opacity)
+                        
+                        CustomAlert(
+                            icon: "heart.fill",
+                            iconColor: .red,
+                            title: "Rate Structures",
+                            subtitle: "Decide which structures you like the best!",
+                            primaryButton: .init(title: "Start Rating") {
+                                showRateStructuresPopup = false
+                                showStructureSwipingView = true
+                                hasShownRateStructuresPopup = true
+                            },
+                            secondaryButton: .init(title: "Maybe Later") {
+                                showRateStructuresPopup = false
+                                hasShownRateStructuresPopup = true
+                            },
+                            isPresented: $showRateStructuresPopup,
+                            isDarkMode: $isDarkMode
+                        )
+                    }
+                }
             )
-        }
         .onChange(of: locationManager.locationStatus) { newStatus in
             switch newStatus {
             case .authorizedAlways, .authorizedWhenInUse:
@@ -316,7 +340,7 @@ struct MapView: View {
             if allStructuresVisitedFlag {
                 // Show congrats popup after closing structure popup
                 showAllVisitedPopup = true
-                allStructuresVisitedFlag = false // Reset the flag
+                allStructuresVisitedFlag = false
             }
         }
         // For the geometry reader
@@ -359,6 +383,12 @@ struct MapView: View {
     private func moveToPreviousStructure() {
         currentStructureIndex = (currentStructureIndex - 1 + structureData.structures.count) % structureData.structures.count
         updateCurrentMapPoint()
+    }
+    
+    private func showAdventureModeAlertIfNeeded() {
+        if isAdventureModeEnabled && locationManager.locationStatus == .notDetermined {
+            showAdventureModeAlert = true
+        }
     }
 
     private var virtualWalkThroughBar: some View {
