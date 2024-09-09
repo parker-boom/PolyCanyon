@@ -46,7 +46,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var lastLocation: CLLocation?
     @Published var nearestMapPoint: MapPoint?
     @Published var isBackgroundTrackingActive = false
-
+    @Published var dayCount: Int = UserDefaults.standard.integer(forKey: "dayCount")
+    private var previousDayVisited: String? = UserDefaults.standard.string(forKey: "previousDayVisited")
+    
     @Published var isAdventureModeEnabled: Bool {
         didSet {
             updateLocationTracking()
@@ -59,12 +61,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     )
 
     init(mapPointManager: MapPointManager, structureData: StructureData, isAdventureModeEnabled: Bool) {
-        self.userID = UserDefaults.standard.string(forKey: "userID") ?? UUID().uuidString
-        UserDefaults.standard.set(self.userID, forKey: "userID")
-        
         self.mapPointManager = mapPointManager
         self.structureData = structureData
         self.isAdventureModeEnabled = isAdventureModeEnabled
+        
+        // Generate or retrieve the user ID
+        if let savedUserID = UserDefaults.standard.string(forKey: "localUserID") {
+            self.userID = savedUserID
+        } else {
+            self.userID = UUID().uuidString
+            UserDefaults.standard.set(self.userID, forKey: "localUserID")
+        }
         
         super.init()
         
@@ -75,30 +82,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.allowsBackgroundLocationUpdates = true
         
         firestoreRef = Firestore.firestore()
-        authenticateUser()
         
         setupGeofenceForSafeZone()
         updateLocationTracking()
     }
     
-    // Firebase Anonymous Authentication
-    private func authenticateUser() {
-        if Auth.auth().currentUser == nil {
-            Auth.auth().signInAnonymously { authResult, error in
-                if let error = error {
-                    print("Error signing in anonymously: \(error)")
-                    return
-                }
-                if let user = authResult?.user {
-                    self.userID = user.uid // Use Firebase Auth UID for logging
-                    print("User signed in with UID: \(user.uid)")
-                }
-            }
-        } else {
-            self.userID = Auth.auth().currentUser?.uid ?? UUID().uuidString
-            print("User already signed in with UID: \(self.userID)")
-        }
-    }
 
     private func updateLocationTracking() {
         if isAdventureModeEnabled {
@@ -355,6 +343,29 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func markStructureAsVisited(_ landmarkId: Int) {
         
         NotificationCenter.default.post(name: .structureVisited, object: landmarkId)
+        
+        // Update day count
+        let currentDate = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: currentDate)
+        
+        if let lastVisited = self.previousDayVisited {
+            if lastVisited != todayString {
+                self.dayCount += 1
+                self.previousDayVisited = todayString
+                UserDefaults.standard.set(self.dayCount, forKey: "dayCount")
+                UserDefaults.standard.set(todayString, forKey: "previousDayVisited")
+            }
+        } else {
+            self.dayCount += 1
+            self.previousDayVisited = todayString
+            UserDefaults.standard.set(self.dayCount, forKey: "dayCount")
+            UserDefaults.standard.set(todayString, forKey: "previousDayVisited")
+        }
+        
+        // Notify observers of the updated day count
+        objectWillChange.send()
     }
     
     // Checks if a coordinate is within the predefined safe zone.
