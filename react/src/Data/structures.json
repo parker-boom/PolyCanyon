@@ -3,7 +3,7 @@
         "number": 1,
         "title": "Entry Arch",
         "year": "1976",
-        "builders": "iii",
+        "builders": "Paul Miller, Lynn Noah, Greg Lomax, Andrew Low, Gwin Stumbaugh",
         "fun fact": "The faces of the students who built the Entry Arch are embedded in a nearby wall, watching over visitors as they enter the canyon.",
         "description": "This gateway to Poly Canyon features a steel frame with a serpentinite rock overlay. The structure serves as both a practical entrance and a symbolic transition into the experimental landscape. Its design showcases the use of local materials and innovative construction techniques, blending aesthetics with functionality. The arch stands as a testament to the hands-on learning approach embraced by Cal Poly students in their architectural endeavors."
     },
@@ -74,8 +74,8 @@
     {
         "number": 10,
         "title": "Underground House",
-        "year": "1982",
-        "builders": "iii",
+        "year": "1986",
+        "builders": "Carl C Barrett, Robert S Cocores, Allyn W Mcfarlin, John M Provato, Jesse P Wedemeyer, Wayne Christian, Pat Dennison, Fred Kozono, Mark McIntire, Chris Sterios, Craig Wilson, Mark V Zeolla",
         "fun fact": "The Underground House was once entirely buried beneath the earth, with only skylights visible from above.",
         "description": "Originally designed to be fully submerged, this structure now stands partially above ground due to unforeseen challenges. It features skylights that were once the only visible elements from the surface. The project demonstrates the complexities of underground construction and serves as a learning experience in adapting designs to environmental constraints."
     },
@@ -91,7 +91,7 @@
         "number": 12,
         "title": "Gunite Bridge",
         "year": "1965",
-        "builders": "iii",
+        "builders": "Gordon L. Boles, Roy Leland Bostrom, Kokpo Ng, Richard L. Saylor, John Ulloa",
         "fun fact": "You may recognize the material used in this bridge, it's commonly applied in swimming pool construction!",
         "description": "Inspired by the Shell House, this bridge showcases pretension and post-compression engineering. Its unique construction process involved creating a skeleton of reinforced steel and metal lath, which was then sprayed with concrete using a Gunite machine. Once cured, tension cables were cut to place the bridge in compression, demonstrating innovative techniques in concrete application and structural engineering."
     },
