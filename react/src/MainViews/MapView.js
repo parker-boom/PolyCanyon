@@ -23,7 +23,7 @@ import { useStructures } from '../Data/StructureData';
 import { useMapPoints } from '../Data/MapPoint';
 import { BlurView } from '@react-native-community/blur';
 import { useDarkMode } from '../States/DarkMode';
-import { useAdventureMode } from '../States/AdventureModeContext'; // Add this import
+import { useAdventureMode } from '../States/AdventureModeContext';
 import { useLocation } from '../Data/LocationManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RatingPopup from '../PopUps/RatingPopup';
@@ -126,7 +126,7 @@ const MapView = ({ route }) => {
     const { mapPoints } = useMapPoints();
     const { structures, setStructures } = useStructures();
     const { isDarkMode } = useDarkMode();
-    const { adventureMode } = useAdventureMode(); // Add this line to get the adventure mode state
+    const { adventureMode } = useAdventureMode();
     const [isSatelliteView, setIsSatelliteView] = useState(false);
     const [location, setLocation] = useState(null);
     const [nearestPoint, setNearestPoint] = useState(null);
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     },
     button: {
         position: 'absolute',
-        top: 40,
+        top: 20,
         right: 20, 
         width: 50,
         height: 50,
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
     },
     ratingReminderContainer: {
         backgroundColor: 'white',
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4.65,
         elevation: 8,
-        maxWidth: '80%', // Limit the width
+        maxWidth: '80%',
     },
     darkRatingReminderContainer: {
         backgroundColor: '#333',

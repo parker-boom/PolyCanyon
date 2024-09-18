@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
-import ContentView from './src/ContentView'; // ENTRY POINT 
+import ContentView from './src/ContentView';
 
 const App = () => {
   return (
