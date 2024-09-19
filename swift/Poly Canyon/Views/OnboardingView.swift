@@ -1,8 +1,18 @@
+// MARK: OnboardingView.swift
+
 import SwiftUI
 import CoreLocation
 import Shiny
 
-
+/**
+ * OnboardingView
+ *
+ * Guides new users through the onboarding process of the Poly Canyon app. It consists of three main slides:
+ * - Welcome Slide: Introduces the app and its purpose.
+ * - Location Request Slide: Requests location permissions to enhance user experience.
+ * - Mode Selection Slide: Allows users to choose between Adventure Mode and Virtual Tour Mode.
+ * Utilizes OnboardingLocationManager to handle location-related functionalities during onboarding.
+ */
 struct OnboardingView: View {
     @Binding var isNewOnboardingCompleted: Bool
     @Binding var isAdventureModeEnabled: Bool
@@ -34,19 +44,19 @@ struct OnboardingView: View {
         }
     }
 
+    /// The welcome slide introducing the app.
     var welcomeSlide: some View {
         VStack {
             Spacer()
             
-                Image("Icon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .cornerRadius(40)
-                    .padding(.bottom, 30)
-                    .shadow(color: .black.opacity(0.4), radius: 15)
-                    .shiny()
-
+            Image("Icon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 200, height: 200)
+                .cornerRadius(40)
+                .padding(.bottom, 30)
+                .shadow(color: .black.opacity(0.4), radius: 15)
+                .shiny()
 
             Text("Welcome to")
                 .font(.system(size: 36))
@@ -76,6 +86,7 @@ struct OnboardingView: View {
         }
     }
 
+    /// The slide requesting location permissions from the user.
     var locationRequestSlide: some View {
         VStack {
             Spacer()
@@ -120,6 +131,7 @@ struct OnboardingView: View {
         }
     }
 
+    /// The slide allowing users to select their preferred experience mode.
     var modeSelectionSlide: some View {
         VStack(spacing: 20) {
             Text("Choose Your Experience")
@@ -189,6 +201,12 @@ struct OnboardingView: View {
         }
     }
 }
+
+/**
+ * ModeIcon
+ *
+ * Displays an icon representing the selected experience mode with an animated background.
+ */
 struct ModeIcon: View {
     let imageName: String
     let color: Color
@@ -208,8 +226,6 @@ struct ModeIcon: View {
                 .fill(color)
                 .frame(width: 100, height: 100)
 
-
-
             Image(systemName: imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -219,6 +235,12 @@ struct ModeIcon: View {
     }
 }
 
+/**
+ * CustomModePicker
+ *
+ * Provides a toggle interface for users to switch between Adventure Mode and Virtual Tour Mode.
+ * The picker visually indicates the selected mode and updates the binding accordingly.
+ */
 struct CustomModePicker: View {
     @Binding var isAdventureModeEnabled: Bool
     let adventureModeColor: Color
@@ -257,6 +279,12 @@ struct CustomModePicker: View {
     }
 }
 
+/**
+ * ModeButton
+ *
+ * Represents an individual button within the CustomModePicker, allowing users to select a specific mode.
+ * Highlights the selected mode with a shadow and background.
+ */
 struct ModeButton: View {
     let title: String
     let isSelected: Bool
@@ -280,6 +308,11 @@ struct ModeButton: View {
     }
 }
 
+/**
+ * RecommendationLabel
+ *
+ * Displays a label indicating whether the selected mode is recommended based on the user's proximity to Cal Poly.
+ */
 struct RecommendationLabel: View {
     let isRecommended: Bool
 
@@ -297,6 +330,11 @@ struct RecommendationLabel: View {
     }
 }
 
+/**
+ * PulsingLocationDot
+ *
+ * Animates a pulsing dot to visually indicate active location tracking during the onboarding process.
+ */
 struct PulsingLocationDot: View {
     @State private var scale: CGFloat = 1
 
@@ -321,6 +359,11 @@ struct PulsingLocationDot: View {
     }
 }
 
+/**
+ * NavigationButton
+ *
+ * A styled button used within the onboarding slides for navigation purposes.
+ */
 struct NavigationButton: View {
     let text: String
     let action: () -> Void
@@ -343,11 +386,19 @@ struct NavigationButton: View {
 }
 
 extension View {
+    /**
+     * Applies a pulsing animation modifier to the view.
+     */
     func animate() -> some View {
         self.modifier(PulseAnimation())
     }
 }
 
+/**
+ * PulseAnimation
+ *
+ * A view modifier that applies a scaling pulsing animation to the content.
+ */
 struct PulseAnimation: ViewModifier {
     @State private var animationAmount: CGFloat = 1
 
