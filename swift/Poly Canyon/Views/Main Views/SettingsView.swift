@@ -1,48 +1,61 @@
-// MARK: - Overview
-/*
-    SettingsView.swift
+// MARK: SettingsView.swift
 
-    This file defines the SettingsView structure, which provides a settings interface for the app.
-
-    Key Components:
-    - Toggle switches for Dark Mode and Adventure Mode.
-    - Buttons to reset visited structures.
-    - Displays user statistics (visited structures, milestone visits, days visited).
-    - Provides links to additional information and credits.
-    - Alerts for confirming actions like resetting structures or disabling Adventure Mode.
-*/
-
-// MARK: - Body
 import SwiftUI
 
+/**
+ * SettingsView
+ *
+ * Provides a settings interface for the Poly Canyon app, allowing users to:
+ * - Toggle Dark Mode and Adventure Mode.
+ * - Reset visited structures or favorites.
+ * - View user statistics such as visited structures and days visited.
+ * - Access additional information and credits.
+ * - Receive confirmations for critical actions like resetting structures.
+ */
 struct SettingsView: View {
+    // MARK: - Observed Objects
     @ObservedObject var structureData: StructureData
     @ObservedObject var mapPointManager: MapPointManager
     @ObservedObject var locationManager: LocationManager
+    
+    // MARK: - Binding Properties
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
-
+    
+    // MARK: - State Properties
     @State private var showAlert = false
     @State private var alertType: AlertType?
-    @State private var pendingAdventureModeState: Bool = false
     @State private var showModePopUp = false
     @State private var showStructureSwipingView = false
     @State private var showHowToGetThereGuide = false
     @State private var showResetAlert = false
     @State private var resetAlertType: ResetAlertType?
     
-
+    // MARK: - App Storage
     @AppStorage("visitedCount") private var visitedCount: Int = 0
     
+    // MARK: - Enums
+    
+    /**
+     * AlertType
+     *
+     * Defines the type of alert to display based on user actions.
+     */
     enum AlertType {
         case resetVisited, resetFavorites, toggleAdventureModeOff
     }
     
+    /**
+     * ResetAlertType
+     *
+     * Specifies the type of reset action the user is attempting.
+     */
     enum ResetAlertType {
         case structures
         case favorites
     }
     
+    // MARK: - Body
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -58,6 +71,7 @@ struct SettingsView: View {
         .background(isDarkMode ? Color.black : Color.white)
         .overlay(
             Group {
+                // Mode Picker Popup
                 if showModePopUp {
                     Color.black.opacity(0.4)
                         .edgesIgnoringSafeArea(.all)
@@ -65,15 +79,19 @@ struct SettingsView: View {
                             showModePopUp = false
                         }
                     
-                    CustomModePopUp(isAdventureModeEnabled: $isAdventureModeEnabled,
-                                    isPresented: $showModePopUp,
-                                    isDarkMode: $isDarkMode,
-                                    structureData: structureData,
-                                    mapPointManager: mapPointManager,
-                                    locationManager: locationManager)
+                    CustomModePopUp(
+                        isAdventureModeEnabled: $isAdventureModeEnabled,
+                        isPresented: $showModePopUp,
+                        isDarkMode: $isDarkMode,
+                        structureData: structureData,
+                        mapPointManager: mapPointManager,
+                        locationManager: locationManager
+                    )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
                 }
+                
+                // How to Get There Guide
                 if showHowToGetThereGuide {
                     Color.black.opacity(0.5)
                         .edgesIgnoringSafeArea(.all)
@@ -81,11 +99,16 @@ struct SettingsView: View {
                             showHowToGetThereGuide = false
                         }
                     
-                    HowToGetThereGuide(isPresented: $showHowToGetThereGuide, isDarkMode: $isDarkMode)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.opacity)
-                        .zIndex(1)
+                    HowToGetThereGuide(
+                        isPresented: $showHowToGetThereGuide,
+                        isDarkMode: $isDarkMode
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
+                    .zIndex(1)
                 }
+                
+                // Reset Alerts
                 if showResetAlert {
                     resetAlertView
                 }
@@ -93,45 +116,14 @@ struct SettingsView: View {
         )
     }
     
-    private var resetAlertView: some View {
-            Group {
-                if let alertType = resetAlertType {
-                    CustomAlert(
-                        icon: alertType == .structures ? "arrow.counterclockwise" : "heart.slash.fill", iconColor: alertType == .structures ? .orange : .red,
-                        title: alertType == .structures ? "Reset Visited Structures" : "Reset Favorites",
-                        subtitle: alertType == .structures ?
-                            "Are you sure you want to reset all visited structures? This action cannot be undone." :
-                            "Are you sure you want to reset all favorite structures? This action cannot be undone.",
-                        primaryButton: .init(title: "Reset") {
-                            if alertType == .structures {
-                                structureData.resetVisitedStructures()
-                                mapPointManager.resetVisitedMapPoints()
-                            } else {
-                                structureData.resetFavorites()
-                            }
-                        },
-                        secondaryButton: .init(title: "Cancel") {
-                            // Handle cancellation
-                        },
-                        isPresented: $showResetAlert,
-                        isDarkMode: $isDarkMode
-                    )
-                }
-            }
-        }
-
-        // Update these functions to set the alert type and show the alert
-    private func showResetStructuresAlert() {
-        resetAlertType = .structures
-        showResetAlert = true
-    }
-
-    private func showResetFavoritesAlert() {
-        resetAlertType = .favorites
-        showResetAlert = true
-    }
+    // MARK: - Sections
     
-    var generalSettingsSection: some View {
+    /**
+     * generalSettingsSection
+     *
+     * Contains toggles for Dark Mode and Adventure Mode, as well as buttons to reset structures or favorites.
+     */
+    private var generalSettingsSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("General Settings")
                 .font(.system(size: 24, weight: .bold))
@@ -139,6 +131,7 @@ struct SettingsView: View {
                 .padding(.bottom, -5)
             
             VStack(spacing: 10) {
+                // Dark Mode Toggle
                 HStack {
                     Text("Dark Mode")
                         .font(.system(size: 18, weight: .semibold))
@@ -150,20 +143,25 @@ struct SettingsView: View {
                 .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
                 .cornerRadius(15)
                 
+                // Adventure Mode Toggle and Information
                 VStack(spacing: 10) {
+                    // Mode Icon
                     Image(systemName: isAdventureModeEnabled ? "figure.walk" : "binoculars")
                         .font(.system(size: 40))
                         .foregroundColor(isAdventureModeEnabled ? .green : Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0))
                     
+                    // Mode Title
                     Text(isAdventureModeEnabled ? "Adventure Mode" : "Virtual Tour Mode")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(isDarkMode ? .white : .black)
                     
+                    // Mode Description
                     Text(isAdventureModeEnabled ? "Explore structures in person" : "Browse structures remotely")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                     
+                    // Switch Button
                     Button(action: {
                         showModePopUp = true
                     }) {
@@ -180,7 +178,9 @@ struct SettingsView: View {
                 .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
                 .cornerRadius(15)
                 
+                // Reset and Location Settings Buttons
                 HStack(spacing: 10) {
+                    // Reset Button
                     SettingsButton(
                         action: {
                             if isAdventureModeEnabled {
@@ -195,6 +195,7 @@ struct SettingsView: View {
                         isDarkMode: isDarkMode
                     )
                     
+                    // Location Settings Button
                     SettingsButton(
                         action: {
                             openSettings()
@@ -209,7 +210,12 @@ struct SettingsView: View {
         }
     }
     
-    var statisticsSection: some View {
+    /**
+     * statisticsSection
+     *
+     * Displays user statistics such as the number of visited structures and days visited.
+     */
+    private var statisticsSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Statistics")
                 .font(.system(size: 24, weight: .bold))
@@ -218,13 +224,28 @@ struct SettingsView: View {
                 .padding(.bottom, -5)
             
             HStack(spacing: 10) {
-                StatBox(title: "Visited", value: visitedCount, iconName: "checkmark.circle.fill", isDarkMode: isDarkMode)
-                StatBox(title: "Days", value: locationManager.dayCount, iconName: "calendar", isDarkMode: isDarkMode)
+                StatBox(
+                    title: "Visited",
+                    value: visitedCount,
+                    iconName: "checkmark.circle.fill",
+                    isDarkMode: isDarkMode
+                )
+                StatBox(
+                    title: "Days",
+                    value: locationManager.dayCount,
+                    iconName: "calendar",
+                    isDarkMode: isDarkMode
+                )
             }
         }
     }
     
-    var informationSection: some View {
+    /**
+     * informationSection
+     *
+     * Provides additional information buttons such as "How to get there" or "Pick your favorites" based on Adventure Mode.
+     */
+    private var informationSection: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Information")
                 .font(.system(size: 24, weight: .bold))
@@ -232,6 +253,7 @@ struct SettingsView: View {
                 .padding(.bottom, -5)
 
             if isAdventureModeEnabled {
+                // How to Get There Button
                 InformationButton(
                     action: { showHowToGetThereGuide = true },
                     title: "How to get there",
@@ -249,6 +271,7 @@ struct SettingsView: View {
                     isDarkMode: isDarkMode
                 )
             } else {
+                // Pick Your Favorites Button
                 InformationButton(
                     action: { showStructureSwipingView = true },
                     title: "Pick your favorites",
@@ -258,8 +281,8 @@ struct SettingsView: View {
                             .foregroundColor(.white)
                     ),
                     gradientColors: isDarkMode
-                    ? [Color.red.opacity(0.9), Color.red.opacity(0.4)]
-                    : [Color.red.opacity(0.8), Color.red.opacity(0.3)],
+                        ? [Color.red.opacity(0.9), Color.red.opacity(0.4)]
+                        : [Color.red.opacity(0.8), Color.red.opacity(0.3)],
                     isDarkMode: isDarkMode
                 )
                 .sheet(isPresented: $showStructureSwipingView) {
@@ -269,51 +292,112 @@ struct SettingsView: View {
         }
     }
     
-    var creditsSection: some View {
-           VStack(alignment: .leading, spacing: 20) {
-               Text("Credits")
-                   .font(.system(size: 24, weight: .bold))
-                   .foregroundColor(isDarkMode ? .white : .black)
-               
-               VStack(spacing: 15) {
-                   CreditItem(title: "Developer", name: "Parker Jones")
-                       .foregroundColor(isDarkMode ? .white : .black)
-                   CreditItem(title: "Institution", name: "Cal Poly SLO")
-                       .foregroundColor(isDarkMode ? .white : .black)
-                   CreditItem(title: "Department", name: "CAED College")
-                       .foregroundColor(isDarkMode ? .white : .black)
-               }
-               
-               VStack(alignment: .leading, spacing: 10) {
-                   Text("Report Issues")
-                       .font(.system(size: 18, weight: .semibold))
-                       .foregroundColor(isDarkMode ? .white : .black)
-                   
-                   Button(action: {
-                       if let url = URL(string: "mailto:pjones15@calpoly.edu") {
-                           UIApplication.shared.open(url)
-                       }
-                   }) {
-                       HStack {
-                           Image(systemName: "envelope.fill")
-                           Text("pjones15@calpoly.edu")
-                       }
-                       .foregroundColor(.blue)
-                   }
-               }
-               .padding(.top, 10)
-               
-               Text("Thank you for using the Poly Canyon app!")
-                   .font(.system(size: 14))
-                   .foregroundColor(.gray)
-                   .padding(.top, 20)
-           }
-           .frame(maxWidth: .infinity)
-           .padding()
-           .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-           .cornerRadius(15)
-       }
+    /**
+     * creditsSection
+     *
+     * Displays credits information including developer name, institution, department, and contact information.
+     */
+    private var creditsSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Credits")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(isDarkMode ? .white : .black)
+            
+            VStack(spacing: 15) {
+                CreditItem(title: "Developer", name: "Parker Jones")
+                    .foregroundColor(isDarkMode ? .white : .black)
+                CreditItem(title: "Institution", name: "Cal Poly SLO")
+                    .foregroundColor(isDarkMode ? .white : .black)
+                CreditItem(title: "Department", name: "CAED College")
+                    .foregroundColor(isDarkMode ? .white : .black)
+            }
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Report Issues")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(isDarkMode ? .white : .black)
+                
+                Button(action: {
+                    if let url = URL(string: "mailto:pjones15@calpoly.edu") {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                        Text("pjones15@calpoly.edu")
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            .padding(.top, 10)
+            
+            Text("Thank you for using the Poly Canyon app!")
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+                .padding(.top, 20)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+        .cornerRadius(15)
+    }
     
+    // MARK: - Alert Views
+    
+    /**
+     * resetAlertView
+     *
+     * Displays a confirmation alert when the user attempts to reset structures or favorites.
+     */
+    private var resetAlertView: some View {
+        Group {
+            if let alertType = resetAlertType {
+                CustomAlert(
+                    icon: alertType == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
+                    iconColor: alertType == .structures ? .orange : .red,
+                    title: alertType == .structures ? "Reset Visited Structures" : "Reset Favorites",
+                    subtitle: alertType == .structures ?
+                        "Are you sure you want to reset all visited structures? This action cannot be undone." :
+                        "Are you sure you want to reset all favorite structures? This action cannot be undone.",
+                    primaryButton: .init(title: "Reset") {
+                        if alertType == .structures {
+                            structureData.resetVisitedStructures()
+                            mapPointManager.resetVisitedMapPoints()
+                        } else {
+                            structureData.resetFavorites()
+                        }
+                    },
+                    secondaryButton: .init(title: "Cancel") {
+                        // Handle cancellation if needed
+                    },
+                    isPresented: $showResetAlert,
+                    isDarkMode: $isDarkMode
+                )
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    /**
+     * Shows the alert for resetting visited structures.
+     */
+    private func showResetStructuresAlert() {
+        resetAlertType = .structures
+        showResetAlert = true
+    }
+
+    /**
+     * Shows the alert for resetting favorite structures.
+     */
+    private func showResetFavoritesAlert() {
+        resetAlertType = .favorites
+        showResetAlert = true
+    }
+    
+    /**
+     * Opens the app's settings page in the device settings.
+     */
     func openSettings() {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             if UIApplication.shared.canOpenURL(url) {
@@ -323,6 +407,13 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Subviews
+
+/**
+ * InformationButton
+ *
+ * A customizable button used in the information section to navigate to different guides or actions.
+ */
 struct InformationButton: View {
     let action: () -> Void
     let title: String
@@ -334,8 +425,7 @@ struct InformationButton: View {
         Button(action: action) {
             ZStack {
                 LinearGradient(gradient: Gradient(colors: gradientColors), startPoint: .leading, endPoint: .trailing)
-                    //.blur(radius: 10)
-
+                
                 HStack {
                     VStack(alignment: .leading, spacing: 10) {
                         icon
@@ -362,6 +452,11 @@ struct InformationButton: View {
     }
 }
 
+/**
+ * DarkModeToggle
+ *
+ * A custom toggle switch for enabling or disabling Dark Mode, accompanied by sun and moon icons.
+ */
 struct DarkModeToggle: View {
     @Binding var isOn: Bool
     
@@ -380,6 +475,11 @@ struct DarkModeToggle: View {
     }
 }
 
+/**
+ * CreditItem
+ *
+ * Displays a single credit item with a title and name.
+ */
 struct CreditItem: View {
     let title: String
     let name: String
@@ -393,7 +493,6 @@ struct CreditItem: View {
             
             Spacer()
             
-            
             Text(name)
                 .font(.system(size: 16, weight: .semibold))
                 .padding(.leading, 15)
@@ -403,6 +502,11 @@ struct CreditItem: View {
     }
 }
 
+/**
+ * SettingsButton
+ *
+ * A reusable button component for settings actions, displaying an icon and text.
+ */
 struct SettingsButton: View {
     let action: () -> Void
     let imageName: String
@@ -429,6 +533,11 @@ struct SettingsButton: View {
     }
 }
 
+/**
+ * StatBox
+ *
+ * Displays a statistical metric with a title, value, and accompanying icon.
+ */
 struct StatBox: View {
     let title: String
     let value: Int
@@ -458,6 +567,11 @@ struct StatBox: View {
     }
 }
 
+/**
+ * CustomModePopUp
+ *
+ * A popup view allowing users to switch between Adventure Mode and Virtual Tour Mode, displaying relevant information.
+ */
 struct CustomModePopUp: View {
     @Binding var isAdventureModeEnabled: Bool
     @Binding var isPresented: Bool
@@ -471,6 +585,7 @@ struct CustomModePopUp: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            // Mode Picker
             CustomModePicker(
                 isAdventureModeEnabled: $isAdventureModeEnabled,
                 adventureModeColor: adventureModeColor,
@@ -479,6 +594,7 @@ struct CustomModePopUp: View {
             .padding(.horizontal)
             .padding(.bottom, 15)
             
+            // Mode Icon
             ModeIcon(
                 imageName: isAdventureModeEnabled ? "figure.walk" : "binoculars",
                 color: isAdventureModeEnabled ? adventureModeColor : virtualTourColor,
@@ -487,6 +603,7 @@ struct CustomModePopUp: View {
             .frame(width: 60, height: 60)
             .padding(.vertical, 10)
             
+            // Mode Features
             VStack(alignment: .leading, spacing: 10) {
                 if isAdventureModeEnabled {
                     BulletPoint(text: "Explore structures in person", isDarkMode: isDarkMode)
@@ -500,12 +617,14 @@ struct CustomModePopUp: View {
             }
             .padding(.vertical)
             
+            // Recommended Usage
             Text("Better for: \(isAdventureModeEnabled ? "In-person visits" : "Remote exploration")")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(isDarkMode ? .white.opacity(0.7) : .gray)
                 .padding(.top, 15)
                 .padding(.bottom, -10)
             
+            // Confirm Button
             Button("Confirm Choice") {
                 locationManager.isAdventureModeEnabled = isAdventureModeEnabled
                 isPresented = false
@@ -520,14 +639,16 @@ struct CustomModePopUp: View {
         }
         .padding()
         .background(isDarkMode ? Color.black : Color.white)
-        
         .cornerRadius(20)
         .shadow(radius: 10)
     }
 }
 
-
-
+/**
+ * BulletPoint
+ *
+ * Represents a single bullet point in a list, used for displaying features or information.
+ */
 struct BulletPoint: View {
     let text: String
     let isDarkMode: Bool
@@ -543,9 +664,11 @@ struct BulletPoint: View {
     }
 }
 
-
-
-
+/**
+ * HowToGetThereGuide
+ *
+ * A multi-page guide providing users with instructions on how to reach Poly Canyon.
+ */
 struct HowToGetThereGuide: View {
     @Binding var isPresented: Bool
     @Binding var isDarkMode: Bool
@@ -559,7 +682,9 @@ struct HowToGetThereGuide: View {
             description: "Park at the H-1 or H-4 parking lot with a valid Cal Poly parking pass.",
             buttonText: "Maps",
             buttonIcon: "map",
-            buttonAction: { UIApplication.shared.open(URL(string: "https://maps.apple.com/?address=San%20Luis%20Obispo,%20CA%2093405,%20United%20States&auid=11145378343369333363&ll=35.303104,-120.659140&lsp=9902&q=Poly%20Canyon%20Trail&t=h")!) },
+            buttonAction: {
+                UIApplication.shared.open(URL(string: "https://maps.apple.com/?address=San%20Luis%20Obispo,%20CA%2093405,%20United%20States&auid=11145378343369333363&ll=35.303104,-120.659140&lsp=9902&q=Poly%20Canyon%20Trail&t=h")!)
+            },
             color: .blue
         ),
         GuidePage(
@@ -568,7 +693,9 @@ struct HowToGetThereGuide: View {
             description: "Use AllTrails for the best navigation to Poly Canyon.",
             buttonText: "AllTrails",
             buttonIcon: "map.fill",
-            buttonAction: { UIApplication.shared.open(URL(string: "https://www.alltrails.com/trail/us/california/architecture-graveyard-hike-private-property?sh=rvw6ps")!) },
+            buttonAction: {
+                UIApplication.shared.open(URL(string: "https://www.alltrails.com/trail/us/california/architecture-graveyard-hike-private-property?sh=rvw6ps")!)
+            },
             color: .green
         ),
         GuidePage(
@@ -584,7 +711,7 @@ struct HowToGetThereGuide: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress indicator
+            // Progress Indicator
             HStack {
                 ForEach(0..<3) { index in
                     Rectangle()
@@ -596,7 +723,7 @@ struct HowToGetThereGuide: View {
             .padding(.horizontal)
             .padding(.top, 10)
 
-            // Close button
+            // Close Button
             HStack {
                 Spacer()
                 Button(action: {
@@ -611,7 +738,7 @@ struct HowToGetThereGuide: View {
             .padding(.trailing)
             .padding(.top, 5)
 
-            // Main content
+            // Main Content - TabView
             TabView(selection: $currentPage) {
                 ForEach(0..<3) { index in
                     pageView(for: pages[index])
@@ -622,7 +749,7 @@ struct HowToGetThereGuide: View {
             .animation(.easeInOut, value: currentPage)
             .transition(.slide)
 
-            // Next/Done button
+            // Next/Done Button
             HStack {
                 Button(action: {
                     if currentPage < 2 {
@@ -640,8 +767,6 @@ struct HowToGetThereGuide: View {
                         .background(pages[currentPage].color)
                         .cornerRadius(10)
                 }
-                
-
             }
             .padding()
         }
@@ -653,7 +778,15 @@ struct HowToGetThereGuide: View {
             currentPage = savedIndex
         }
     }
-
+    
+    /**
+     * pageView
+     *
+     * Generates a single page view for the HowToGetThereGuide based on the provided GuidePage.
+     *
+     * - Parameter page: The GuidePage object containing content for the page.
+     * - Returns: A View representing the content of the page.
+     */
     func pageView(for page: GuidePage) -> some View {
         VStack(spacing: 20) {
             Text(page.emoji)
@@ -662,7 +795,7 @@ struct HowToGetThereGuide: View {
                 .font(.title2)
                 .fontWeight(.bold)
             Text(page.description)
-                .font(.body)
+                .font(.system(size: 16))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             if let action = page.buttonAction, let icon = page.buttonIcon {
@@ -684,6 +817,11 @@ struct HowToGetThereGuide: View {
     }
 }
 
+/**
+ * GuidePage
+ *
+ * Represents a single page in the HowToGetThereGuide with an emoji, title, description, and optional button.
+ */
 struct GuidePage {
     let emoji: String
     let title: String
@@ -694,10 +832,11 @@ struct GuidePage {
     let color: Color
 }
 
-
-
-
-
+/**
+ * CustomAlert
+ *
+ * A customizable alert view that displays an icon, title, subtitle, and two action buttons.
+ */
 struct CustomAlert: View {
     let icon: String
     let iconColor: Color
@@ -708,6 +847,11 @@ struct CustomAlert: View {
     let isPresented: Binding<Bool>
     @Binding var isDarkMode: Bool
 
+    /**
+     * AlertButton
+     *
+     * Represents a button within the CustomAlert with a title and action.
+     */
     struct AlertButton {
         let title: String
         let action: () -> Void
@@ -715,13 +859,16 @@ struct CustomAlert: View {
 
     var body: some View {
         ZStack {
+            // Semi-transparent Background
             Color.black.opacity(0.4)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
                     isPresented.wrappedValue = false
                 }
 
+            // Alert Content
             VStack(spacing: 0) {
+                // Icon with Circle Background
                 Circle()
                     .fill(isDarkMode ? Color.black : Color.white)
                     .frame(width: 120, height: 120)
@@ -733,6 +880,7 @@ struct CustomAlert: View {
                     .offset(y: 60)
                     .zIndex(1)
 
+                // Alert Details
                 VStack(spacing: 15) {
                     Text(title)
                         .font(.system(size: 22, weight: .bold))
@@ -747,6 +895,7 @@ struct CustomAlert: View {
                         .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
 
                     VStack(spacing: 15) {
+                        // Primary Button
                         Button(action: {
                             isPresented.wrappedValue = false
                             primaryButton.action()
@@ -760,6 +909,7 @@ struct CustomAlert: View {
                                 .cornerRadius(10)
                         }
 
+                        // Secondary Button
                         Button(action: {
                             isPresented.wrappedValue = false
                             secondaryButton.action()
@@ -787,75 +937,38 @@ struct CustomAlert: View {
     }
 }
 
-struct CustomAlert_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            CustomAlert(
-                icon: "location.fill",
-                iconColor: .blue,
-                title: "Enable Location",
-                subtitle: "Adventure mode requires location access to track your visited structures.",
-                primaryButton: CustomAlert.AlertButton(title: "Allow") {},
-                secondaryButton: CustomAlert.AlertButton(title: "Cancel") {},
-                isPresented: .constant(true),
-                isDarkMode: .constant(false)
-            )
-            .previewDisplayName("Light Mode - Location")
-
-            CustomAlert(
-                icon: "heart.fill",
-                iconColor: .red,
-                title: "Rate Structures",
-                subtitle: "Help us improve your experience by rating the structures you've seen.",
-                primaryButton: CustomAlert.AlertButton(title: "Start Rating") {},
-                secondaryButton: CustomAlert.AlertButton(title: "Maybe Later") {},
-                isPresented: .constant(true),
-                isDarkMode: .constant(true)
-            )
-            .preferredColorScheme(.dark)
-            .previewDisplayName("Dark Mode - Rate")
-
-            CustomAlert(
-                icon: "arrow.counterclockwise",
-                iconColor: .orange,
-                title: "Reset Structures",
-                subtitle: "Are you sure you want to reset all visited structures? This action cannot be undone.",
-                primaryButton: CustomAlert.AlertButton(title: "Reset") {},
-                secondaryButton: CustomAlert.AlertButton(title: "Cancel") {},
-                isPresented: .constant(true),
-                isDarkMode: .constant(false)
-            )
-            .previewDisplayName("Light Mode - Reset")
-        }
-    }
-}
+// MARK: - Preview
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(
-            structureData: StructureData(),
-            mapPointManager: MapPointManager(), 
-            locationManager: LocationManager(
-                mapPointManager: MapPointManager(),
+        Group {
+            // Light Mode Preview
+            SettingsView(
                 structureData: StructureData(),
-                isAdventureModeEnabled: true
-            ),
-            isDarkMode: .constant(false),
-            isAdventureModeEnabled: .constant(true)
-        )
-        .previewDisplayName("Light Mode")
-        
-        SettingsView(
-            structureData: StructureData(),
-            mapPointManager: MapPointManager(), 
-            locationManager: LocationManager(
-                mapPointManager: MapPointManager(),
+                mapPointManager: MapPointManager(), 
+                locationManager: LocationManager(
+                    mapPointManager: MapPointManager(),
+                    structureData: StructureData(),
+                    isAdventureModeEnabled: true
+                ),
+                isDarkMode: .constant(false),
+                isAdventureModeEnabled: .constant(true)
+            )
+            .previewDisplayName("Light Mode")
+            
+            // Dark Mode Preview
+            SettingsView(
                 structureData: StructureData(),
-                isAdventureModeEnabled: true
-            ),
-            isDarkMode: .constant(true),
-            isAdventureModeEnabled: .constant(false)
-        )
-        .previewDisplayName("Dark Mode")
+                mapPointManager: MapPointManager(), 
+                locationManager: LocationManager(
+                    mapPointManager: MapPointManager(),
+                    structureData: StructureData(),
+                    isAdventureModeEnabled: true
+                ),
+                isDarkMode: .constant(true),
+                isAdventureModeEnabled: .constant(false)
+            )
+            .previewDisplayName("Dark Mode")
+        }
     }
 }
