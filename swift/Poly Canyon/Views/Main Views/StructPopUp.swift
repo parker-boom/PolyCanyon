@@ -203,6 +203,7 @@ struct StructPopUp: View {
             VStack {
                 Text(structure.title)
                     .font(.system(size: 24, weight: .bold))
+                    .multilineTextAlignment(.center)
                 if structure.year != "xxxx" {
                     Text(structure.year)
                         .font(.system(size: 20, weight: .semibold))

@@ -1,38 +1,10 @@
 // MARK: LocationManager.swift
-/*
-    LocationManager.swift
 
-    This file defines the LocationManager class, which manages location services and tracks user location relative to predefined landmarks.
-
-    Key Components:
-    - CLLocationManager for handling location updates and permissions.
-    - MapPointManager and StructureData for managing map points and structure data.
-    - Publishes location status and the last known location.
-
-    Functionality:
-    - Requests location authorization and starts location updates.
-    - Checks if the user is within a predefined safe zone and adjusts location update frequency.
-    - Monitors significant location changes and sets up a geofence for the safe zone.
-    - Marks landmarks as visited based on user location and proximity.
-    - Handles entering and exiting the safe zone region with appropriate location update adjustments.
-
-    Additional Functions:
-    - `requestAlwaysAuthorization()`: Requests "Always" location authorization.
-    - `markStructureAsVisited(landmarkId: Int)`: Posts a notification when a structure is visited.
-    - `isWithinSafeZone(coordinate: CLLocationCoordinate2D)`: Checks if a coordinate is within the safe zone.
-*/
-
-
-
-
-// MARK: Code
 import Foundation
 import CoreLocation
 import Combine
 import FirebaseFirestore
 import FirebaseAuth
-
-
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
@@ -48,7 +20,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var isBackgroundTrackingActive = false
     @Published var dayCount: Int = UserDefaults.standard.integer(forKey: "dayCount")
     private var previousDayVisited: String? = UserDefaults.standard.string(forKey: "previousDayVisited")
-    
+
     @Published var isAdventureModeEnabled: Bool {
         didSet {
             updateLocationTracking()
@@ -64,7 +36,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.mapPointManager = mapPointManager
         self.structureData = structureData
         self.isAdventureModeEnabled = isAdventureModeEnabled
-        
+
         // Generate or retrieve the user ID
         if let savedUserID = UserDefaults.standard.string(forKey: "localUserID") {
             self.userID = savedUserID
@@ -72,30 +44,30 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             self.userID = UUID().uuidString
             UserDefaults.standard.set(self.userID, forKey: "localUserID")
         }
-        
+
         super.init()
-        
+
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.pausesLocationUpdatesAutomatically = false
-        locationManager.allowsBackgroundLocationUpdates = true
-        
+        locationManager.allowsBackgroundLocationUpdates = false // Initially disable background updates
+
         firestoreRef = Firestore.firestore()
-        
-        setupGeofenceForSafeZone()
+
         updateLocationTracking()
     }
-    
 
     private func updateLocationTracking() {
+        print("Updating location tracking. Adventure Mode: \(isAdventureModeEnabled)")
+
         if isAdventureModeEnabled {
-            startLocationUpdates()
+            startUpdatingLocation()
         } else {
             stopAllTracking()
         }
     }
-    
+
     func requestAlwaysAuthorization() {
         locationManager.requestAlwaysAuthorization()
         logLocationChange(message: "Requested Always Authorization")
@@ -111,100 +83,76 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         logLocationChange(message: "Started updating location")
     }
 
-    private func startLocationUpdates() {
-        if isAdventureModeEnabled {
-            startUpdatingLocation()
-            if let location = lastLocation, isWithinSafeZone(coordinate: location.coordinate) {
-                startBackgroundTracking()
-            }
-        }
-    }
-
     private func stopAllTracking() {
         locationManager.stopUpdatingLocation()
-        locationManager.allowsBackgroundLocationUpdates = false
-        isBackgroundTrackingActive = false
+        stopBackgroundTracking()
         logLocationChange(message: "All location tracking stopped")
     }
 
     private func startBackgroundTracking() {
-        guard !isBackgroundTrackingActive else { return }
+        guard !isBackgroundTrackingActive else {
+            print("Background tracking is already active.")
+            return
+        }
         locationManager.allowsBackgroundLocationUpdates = true
         isBackgroundTrackingActive = true
         logLocationChange(message: "Background location tracking started")
     }
 
     private func stopBackgroundTracking() {
-        guard isBackgroundTrackingActive else { return }
+        guard isBackgroundTrackingActive else {
+            print("Background tracking is already inactive.")
+            return
+        }
         locationManager.allowsBackgroundLocationUpdates = false
         isBackgroundTrackingActive = false
         logLocationChange(message: "Background location tracking stopped")
     }
 
     private func logLocationChange(message: String) {
-        print(message)
+        print("[LocationManager] \(message)")
     }
-    
+
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
-        
+
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            startLocationUpdates()
+            logLocationChange(message: "Location access granted: \(manager.authorizationStatus.rawValue)")
+            updateLocationTracking()
         case .denied, .restricted:
-            logLocationChange(message: "Location access denied or restricted")
+            logLocationChange(message: "Location access denied or restricted.")
+            stopAllTracking()
         case .notDetermined:
-            logLocationChange(message: "Location status not determined")
+            logLocationChange(message: "Location status not determined.")
         @unknown default:
-            logLocationChange(message: "Unknown location authorization status")
+            logLocationChange(message: "Unknown location authorization status.")
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        
+
         lastLocation = location
         logLocationChange(message: "Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
         logLocationToFirebaseIfNeeded(location: location)
         updateNearestMapPoint(for: location)
 
+        let withinSafeZone = isWithinSafeZone(coordinate: location.coordinate)
+        print("User is within safe zone: \(withinSafeZone)")
+
         if isAdventureModeEnabled {
-            if isWithinSafeZone(coordinate: location.coordinate) {
+            if withinSafeZone {
                 if !isBackgroundTrackingActive {
                     startBackgroundTracking()
                 }
                 checkVisitedLandmarks()
-            } else if isBackgroundTrackingActive {
-                stopBackgroundTracking()
+            } else {
+                if isBackgroundTrackingActive {
+                    stopBackgroundTracking()
+                }
             }
         }
-    }
-
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        if region.identifier == "SafeZone" && isAdventureModeEnabled {
-            startBackgroundTracking()
-        }
-    }
-
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        if region.identifier == "SafeZone" {
-            stopBackgroundTracking()
-        }
-    }
-
-    private func setupGeofenceForSafeZone() {
-        let regionCenter = CLLocationCoordinate2D(
-            latitude: (safeZoneCorners.bottomLeft.latitude + safeZoneCorners.topRight.latitude) / 2,
-            longitude: (safeZoneCorners.bottomLeft.longitude + safeZoneCorners.topRight.longitude) / 2
-        )
-        let latDelta = safeZoneCorners.topRight.latitude - safeZoneCorners.bottomLeft.latitude
-        let lonDelta = safeZoneCorners.topRight.longitude - safeZoneCorners.bottomLeft.longitude
-        let radius = max(latDelta, lonDelta) * 111000 / 2 // Convert to meters (approx)
-
-        let region = CLCircularRegion(center: regionCenter, radius: radius, identifier: "SafeZone")
-        region.notifyOnEntry = true
-        region.notifyOnExit = true
-        locationManager.startMonitoring(for: region)
     }
 
     private func logLocationToFirebaseIfNeeded(location: CLLocation) {
@@ -213,13 +161,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             print("Adventure mode is disabled, not logging location.")
             return
         }
-        
+
         // Check if the user is within the safe zone
         guard isWithinSafeZone(coordinate: location.coordinate) else {
             print("User is not within the safe zone, not logging location.")
             return
         }
-        
+
         // Find the nearest map point
         guard let newMapPoint = findNearestMapPoint(to: location.coordinate),
               newMapPoint != lastLoggedMapPoint else {
@@ -234,7 +182,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             "timestamp": Timestamp(date: Date()),
             "userId": userID
         ]
-        
+
         firestoreRef.collection("user_locations").addDocument(data: locationData) { err in
             if let err = err {
                 print("Error adding document: \(err)")
@@ -242,12 +190,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 print("Location logged to Firebase for map point: \(newMapPoint)")
             }
         }
-        
+
         // Update the last logged map point
         lastLoggedMapPoint = newMapPoint
     }
-
-
 
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
@@ -268,16 +214,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func updateNearestMapPoint(for location: CLLocation) {
         nearestMapPoint = findNearestMapPoint(to: location.coordinate)
     }
-    
-    
+
     // MARK: Landmark Functions
     // Checks proximity to landmarks and marks the nearest one visited.
     private func checkVisitedLandmarks() {
         guard let userLocation = lastLocation else { return }
-        
+
+        print("DEBUG: Checking visited landmarks")
+
         var nearestMapPoint: MapPoint?
         var minDistance = Double.infinity
-        
+
         for mapPoint in mapPointManager.mapPoints {
             let distance = userLocation.distance(from: CLLocation(latitude: mapPoint.coordinate.latitude, longitude: mapPoint.coordinate.longitude))
             if distance < minDistance {
@@ -285,45 +232,53 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 nearestMapPoint = mapPoint
             }
         }
-        
+
         if let nearestPoint = nearestMapPoint {
-            
-            if nearestPoint.landmark != -1 && !nearestPoint.isVisited {
-                nearestPoint.isVisited = true
-                mapPointManager.saveVisitedStatus()
-                markStructureAsVisited(nearestPoint.landmark)
-                
-                // Check based on the landmark number and mark additional points as visited
-                switch nearestPoint.landmark {
-                case 7:
-                    markPointAsVisitedByIndex(54)
-                    markPointAsVisitedByIndex(196)
-                case 12:
-                    markPointAsVisitedByIndex(19)
-                    markPointAsVisitedByIndex(108)
-                case 13:
-                    markPointAsVisitedByIndex(59)
-                    markPointAsVisitedByIndex(80)
-                case 14:
-                    markPointAsVisitedByIndex(21)
-                    markPointAsVisitedByIndex(130)
-                case 16:
-                    markPointAsVisitedByIndex(24)
-                    markPointAsVisitedByIndex(132)
-                case 18:
-                    markPointAsVisitedByIndex(26)
-                    markPointAsVisitedByIndex(91)
-                case 20:
-                    markPointAsVisitedByIndex(36)
-                    markPointAsVisitedByIndex(113)
-                case 28:
-                    markPointAsVisitedByIndex(49)
-                    markPointAsVisitedByIndex(60)
-                case 29:
-                    markPointAsVisitedByIndex(23)
-                    markPointAsVisitedByIndex(50)
-                default:
-                    break
+            print("DEBUG: Nearest point - Landmark: \(nearestPoint.landmark), Distance: \(minDistance)")
+
+            if nearestPoint.landmark != -1 {
+                print("DEBUG: Checking visited status for structure \(nearestPoint.landmark)")
+                let isVisited = structureData.checkVisitedStatus(index: nearestPoint.landmark - 1)  // Adjust index
+                print("DEBUG: Structure \(nearestPoint.landmark) visited status: \(isVisited)")
+
+                if !isVisited {
+                    print("DEBUG: Marking structure \(nearestPoint.landmark) as visited")
+                    nearestPoint.isVisited = true
+                    mapPointManager.saveVisitedStatus()
+                    markStructureAsVisited(nearestPoint.landmark)
+
+                    // Check based on the landmark number and mark additional points as visited
+                    switch nearestPoint.landmark {
+                    case 7:
+                        markPointAsVisitedByIndex(54)
+                        markPointAsVisitedByIndex(196)
+                    case 12:
+                        markPointAsVisitedByIndex(19)
+                        markPointAsVisitedByIndex(108)
+                    case 13:
+                        markPointAsVisitedByIndex(59)
+                        markPointAsVisitedByIndex(80)
+                    case 14:
+                        markPointAsVisitedByIndex(21)
+                        markPointAsVisitedByIndex(130)
+                    case 16:
+                        markPointAsVisitedByIndex(24)
+                        markPointAsVisitedByIndex(132)
+                    case 18:
+                        markPointAsVisitedByIndex(26)
+                        markPointAsVisitedByIndex(91)
+                    case 20:
+                        markPointAsVisitedByIndex(36)
+                        markPointAsVisitedByIndex(113)
+                    case 28:
+                        markPointAsVisitedByIndex(49)
+                        markPointAsVisitedByIndex(60)
+                    case 29:
+                        markPointAsVisitedByIndex(23)
+                        markPointAsVisitedByIndex(50)
+                    default:
+                        break
+                    }
                 }
             }
         }
@@ -331,25 +286,28 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     // Mark a structure visited (map point)
     private func markPointAsVisitedByIndex(_ index: Int) {
+        print("DEBUG: Marking additional point at index \(index) as visited")
         let mapPoints = mapPointManager.mapPoints
-        if index >= 0 && index < mapPoints.count {
-            let newIndex = index - 1;
+        if index >= 1 && index <= mapPoints.count { // Adjusted to 1-based index
+            let newIndex = index - 1
             mapPoints[newIndex].isVisited = true
             markStructureAsVisited(mapPoints[newIndex].landmark)
+            print("DEBUG: Additional point marked as visited - Landmark: \(mapPoints[newIndex].landmark)")
+        } else {
+            print("DEBUG: Invalid index for additional point: \(index)")
         }
     }
-    
+
     // Marks a landmark as visited in the system notifications.
     private func markStructureAsVisited(_ landmarkId: Int) {
-        
         NotificationCenter.default.post(name: .structureVisited, object: landmarkId)
-        
+
         // Update day count
         let currentDate = Date()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let todayString = dateFormatter.string(from: currentDate)
-        
+
         if let lastVisited = self.previousDayVisited {
             if lastVisited != todayString {
                 self.dayCount += 1
@@ -363,26 +321,26 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             UserDefaults.standard.set(self.dayCount, forKey: "dayCount")
             UserDefaults.standard.set(todayString, forKey: "previousDayVisited")
         }
-        
+
         // Notify observers of the updated day count
         objectWillChange.send()
     }
-    
+
     // Checks if a coordinate is within the predefined safe zone.
     public func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
         let minLat = safeZoneCorners.bottomLeft.latitude
         let maxLat = safeZoneCorners.topRight.latitude
         let minLon = safeZoneCorners.bottomLeft.longitude
         let maxLon = safeZoneCorners.topRight.longitude
-        
-        return coordinate.latitude >= minLat && coordinate.latitude <= maxLat &&
-               coordinate.longitude >= minLon && coordinate.longitude <= maxLon
-    }
-    
 
+        let within = coordinate.latitude >= minLat && coordinate.latitude <= maxLat &&
+                      coordinate.longitude >= minLon && coordinate.longitude <= maxLon
+
+        print("Checking if coordinate (\(coordinate.latitude), \(coordinate.longitude)) is within safe zone: \(within)")
+        return within
+    }
 }
 
 extension Notification.Name {
     static let allStructuresVisited = Notification.Name("allStructuresVisited")
 }
-

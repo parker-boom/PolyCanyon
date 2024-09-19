@@ -127,9 +127,7 @@ class MapPointManager: ObservableObject {
 
     func resetVisitedMapPoints() {
         for mapPoint in mapPoints {
-            if mapPoint.landmark != -1 {
                 mapPoint.isVisited = false
-            }
         }
         saveVisitedStatus()
         objectWillChange.send()

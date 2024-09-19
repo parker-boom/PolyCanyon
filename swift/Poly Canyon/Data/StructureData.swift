@@ -51,6 +51,16 @@ class StructureData: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: structuresKey)
         }
     }
+    
+    func checkVisitedStatus(index: Int) -> Bool {
+        guard index >= 0 && index < structures.count else {
+            print("DEBUG: Invalid index for checkVisitedStatus: \(index)")
+            return false
+        }
+        let isVisited = structures[index].isVisited
+        print("DEBUG: Checking visited status for structure \(structures[index].number): \(isVisited)")
+        return isVisited
+    }
 
     func loadStructuresFromCSV() {
         guard let url = Bundle.main.url(forResource: "structures", withExtension: "csv") else {
@@ -179,13 +189,17 @@ class StructureData: ObservableObject {
     }
     
     func markStructureAsVisited(_ number: Int, recentlyVisitedCount: Int) {
+        print("DEBUG: Attempting to mark structure \(number) as visited")
         if let index = structures.firstIndex(where: { $0.number == number }) {
             structures[index].isVisited = true
             if structures[index].recentlyVisited == -1 {
                 structures[index].recentlyVisited = recentlyVisitedCount
             }
+            print("DEBUG: Structure \(number) marked as visited. Recently visited count: \(recentlyVisitedCount)")
             saveToUserDefaults()
             objectWillChange.send()
+        } else {
+            print("DEBUG: Failed to find structure with number \(number)")
         }
     }
     

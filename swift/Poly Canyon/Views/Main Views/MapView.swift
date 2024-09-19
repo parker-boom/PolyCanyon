@@ -528,15 +528,22 @@ struct MapView: View {
     // Get notifications when a user visits a structure
     private func subscribeToVisitedStructureNotification() {
         NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
+            print("DEBUG: Received structure visited notification")
             if let landmarkId = notification.object as? Int,
                let structure = structureData.structures.first(where: { $0.number == landmarkId }) {
+                
+                print("DEBUG: Structure visited - ID: \(landmarkId), Title: \(structure.title)")
                 
                 if !hasCompletedFirstVisit {
                     firstVisitedStructure = landmarkId
                     hasCompletedFirstVisit = true
+                    print("DEBUG: First visit completed - Structure: \(landmarkId)")
                     showVisitedStructurePopup(for: structure)
                 } else if structure.number != firstVisitedStructure {
+                    print("DEBUG: Showing popup for non-first visit - Structure: \(landmarkId)")
                     showVisitedStructurePopup(for: structure)
+                } else {
+                    print("DEBUG: Skipping popup for first structure revisit")
                 }
                 
                 // Check and update day count
@@ -549,21 +556,27 @@ struct MapView: View {
                     if lastVisited != todayString {
                         self.dayCount += 1
                         self.previousDayVisited = todayString
+                        print("DEBUG: Updated day count: \(self.dayCount)")
                     }
                 } else {
                     self.dayCount += 1
                     self.previousDayVisited = todayString
+                    print("DEBUG: First day visit recorded")
                 }
                 
                 // Check if all structures are visited
                 if self.structureData.structures.allSatisfy({ $0.isVisited }) {
+                    print("DEBUG: All structures have been visited")
                     self.allStructuresVisitedFlag = true
                 }
+            } else {
+                print("DEBUG: Failed to process structure visited notification")
             }
         }
     }
 
     private func showVisitedStructurePopup(for structure: Structure) {
+        print("DEBUG: Showing visited structure popup for: \(structure.title)")
         self.visitedStructure = structure
         self.showVisitedStructurePopup = true
     }
