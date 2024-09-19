@@ -6,6 +6,14 @@ import Combine
 import FirebaseFirestore
 import FirebaseAuth
 
+/**
+ * LocationManager
+ *
+ * Manages location services for the Poly Canyon app, including tracking user location,
+ * handling authorization status, logging locations to Firebase, and managing user interactions
+ * with map points and structures. It supports both foreground and background location updates
+ * based on the Adventure Mode status.
+ */
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var mapPointManager: MapPointManager
@@ -32,6 +40,15 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
     )
 
+    /**
+     * Initializes the LocationManager with necessary managers and Adventure Mode status.
+     * Sets up location manager configurations and Firebase references.
+     *
+     * - Parameters:
+     *   - mapPointManager: Manages map points within the app.
+     *   - structureData: Handles data related to structures in Poly Canyon.
+     *   - isAdventureModeEnabled: Indicates if Adventure Mode is active.
+     */
     init(mapPointManager: MapPointManager, structureData: StructureData, isAdventureModeEnabled: Bool) {
         self.mapPointManager = mapPointManager
         self.structureData = structureData
@@ -58,6 +75,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         updateLocationTracking()
     }
 
+    /**
+     * Updates location tracking based on the Adventure Mode status.
+     * Starts or stops location updates and background tracking accordingly.
+     */
     private func updateLocationTracking() {
         print("Updating location tracking. Adventure Mode: \(isAdventureModeEnabled)")
 
@@ -68,27 +89,42 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Requests always authorization for location services.
+     */
     func requestAlwaysAuthorization() {
         locationManager.requestAlwaysAuthorization()
         logLocationChange(message: "Requested Always Authorization")
     }
 
+    /**
+     * Requests when-in-use authorization for location services.
+     */
     func requestWhenInUseAuthorization() {
         locationManager.requestWhenInUseAuthorization()
         logLocationChange(message: "Requested When In Use Authorization")
     }
 
+    /**
+     * Starts updating the user's location.
+     */
     func startUpdatingLocation() {
         locationManager.startUpdatingLocation()
         logLocationChange(message: "Started updating location")
     }
 
+    /**
+     * Stops all location tracking activities, including background tracking.
+     */
     private func stopAllTracking() {
         locationManager.stopUpdatingLocation()
         stopBackgroundTracking()
         logLocationChange(message: "All location tracking stopped")
     }
 
+    /**
+     * Starts background location tracking if not already active.
+     */
     private func startBackgroundTracking() {
         guard !isBackgroundTrackingActive else {
             print("Background tracking is already active.")
@@ -99,6 +135,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         logLocationChange(message: "Background location tracking started")
     }
 
+    /**
+     * Stops background location tracking if it is active.
+     */
     private func stopBackgroundTracking() {
         guard isBackgroundTrackingActive else {
             print("Background tracking is already inactive.")
@@ -109,10 +148,22 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         logLocationChange(message: "Background location tracking stopped")
     }
 
+    /**
+     * Logs location-related messages for debugging purposes.
+     *
+     * - Parameter message: The message to log.
+     */
     private func logLocationChange(message: String) {
         print("[LocationManager] \(message)")
     }
 
+    // MARK: CLLocationManagerDelegate Methods
+
+    /**
+     * Handles changes in location authorization status.
+     *
+     * - Parameter manager: The CLLocationManager instance.
+     */
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
 
@@ -130,6 +181,13 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Receives updated location data and handles logging and map point updates.
+     *
+     * - Parameters:
+     *   - manager: The CLLocationManager instance.
+     *   - locations: An array of CLLocation objects representing updated locations.
+     */
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
 
@@ -155,6 +213,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Logs the user's location to Firebase if Adventure Mode is enabled and within the safe zone.
+     *
+     * - Parameter location: The CLLocation object representing the user's current location.
+     */
     private func logLocationToFirebaseIfNeeded(location: CLLocation) {
         // Check if Adventure Mode is enabled
         guard isAdventureModeEnabled else {
@@ -195,6 +258,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         lastLoggedMapPoint = newMapPoint
     }
 
+    /**
+     * Finds the nearest map point to the given coordinate.
+     *
+     * - Parameter coordinate: The CLLocationCoordinate2D to find the nearest map point to.
+     * - Returns: The nearest MapPoint object, if any.
+     */
     private func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
         var minDistance = Double.infinity
@@ -211,12 +280,20 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         return nearestPoint
     }
 
+    /**
+     * Updates the nearest map point based on the user's current location.
+     *
+     * - Parameter location: The CLLocation object representing the user's current location.
+     */
     private func updateNearestMapPoint(for location: CLLocation) {
         nearestMapPoint = findNearestMapPoint(to: location.coordinate)
     }
 
     // MARK: Landmark Functions
-    // Checks proximity to landmarks and marks the nearest one visited.
+
+    /**
+     * Checks proximity to landmarks and marks the nearest one as visited if applicable.
+     */
     private func checkVisitedLandmarks() {
         guard let userLocation = lastLocation else { return }
 
@@ -284,7 +361,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    // Mark a structure visited (map point)
+    /**
+     * Marks a specific map point as visited based on its index.
+     *
+     * - Parameter index: The index of the map point to mark as visited.
+     */
     private func markPointAsVisitedByIndex(_ index: Int) {
         print("DEBUG: Marking additional point at index \(index) as visited")
         let mapPoints = mapPointManager.mapPoints
@@ -298,7 +379,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    // Marks a landmark as visited in the system notifications.
+    /**
+     * Marks a structure as visited and updates related counts and notifications.
+     *
+     * - Parameter landmarkId: The ID of the landmark to mark as visited.
+     */
     private func markStructureAsVisited(_ landmarkId: Int) {
         NotificationCenter.default.post(name: .structureVisited, object: landmarkId)
 
@@ -326,7 +411,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         objectWillChange.send()
     }
 
-    // Checks if a coordinate is within the predefined safe zone.
+    /**
+     * Checks if a given coordinate is within the predefined safe zone.
+     *
+     * - Parameter coordinate: The CLLocationCoordinate2D to check.
+     * - Returns: A Boolean indicating whether the coordinate is within the safe zone.
+     */
     public func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
         let minLat = safeZoneCorners.bottomLeft.latitude
         let maxLat = safeZoneCorners.topRight.latitude
