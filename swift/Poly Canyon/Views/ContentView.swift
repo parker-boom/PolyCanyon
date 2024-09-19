@@ -1,29 +1,23 @@
-// MARK: Overview
-/*
-    ContentView.swift
+// MARK: ContentView.swift
 
-    This file defines the ContentView structure, managing the initial view of the app.
-
-    ContentView:
-    - Uses @AppStorage to persist user preferences and settings.
-    - Displays OnboardingView if onboarding is not completed.
-    - Switches to MainView after onboarding is finished.
-
-    Constants:
-    - Contains the key for tracking the onboarding version.
-*/
-
-
-
-// MARK: Code
 import SwiftUI
 
+/**
+ * ContentView
+ *
+ * Serves as the entry point of the Poly Canyon app, managing the initial user interface based on onboarding status.
+ * Utilizes @AppStorage to persist user preferences such as onboarding completion, dark mode, and adventure mode.
+ * Switches between OnboardingView and MainView depending on whether the user has completed the onboarding process.
+ */
 struct ContentView: View {
     @AppStorage("onboardingProcess") private var isNewOnboardingCompleted = false
     @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("adventureMode") private var isAdventureModeEnabled = true
     @StateObject private var structureData = StructureData()
 
+    /**
+     * Initializes the ContentView and sets the dark mode based on the system's current interface style.
+     */
     init() {
         // Initialize isDarkMode based on the system setting
         let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
@@ -37,7 +31,11 @@ struct ContentView: View {
                 isAdventureModeEnabled: $isAdventureModeEnabled
             )
         } else {
-            MainView(isDarkMode: $isDarkMode, isAdventureModeEnabled: $isAdventureModeEnabled, structureData: structureData)
+            MainView(
+                isDarkMode: $isDarkMode,
+                isAdventureModeEnabled: $isAdventureModeEnabled,
+                structureData: structureData
+            )
         }
     }
 }
