@@ -1,4 +1,5 @@
-// MARK: - Overview
+// MARK: - StructPopUp.swift
+
 /*
     StructPopUp.swift
 
@@ -7,6 +8,7 @@
     Key Components:
     - Swipeable main and close-up images with indicator dots
     - Animated information panel
+    - Like button
     - Custom tab selector for stats and description
     - Dark mode support
     - Dismiss button and structure title/number overlay
@@ -18,18 +20,24 @@ import SwiftUI
 import Zoomable
 import Shimmer
 
-
+// MARK: - StructPopUp
 
 struct StructPopUp: View {
+    // MARK: - Observed Objects
     @ObservedObject var structureData: StructureData
+    
+    // MARK: - Properties
     let structure: Structure
     @Binding var isDarkMode: Bool
     @Binding var isPresented: Bool
+    
+    // MARK: - State Properties
     @State private var dragOffset: CGSize = .zero
     @State private var isShowingInfo: Bool = false
     @State private var currentImageIndex: Int = 0
     @State private var isLiked: Bool
-
+    
+    // MARK: - Initializer
     init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, isPresented: Binding<Bool>) {
         self._structureData = ObservedObject(wrappedValue: structureData)
         self.structure = structure
@@ -38,6 +46,7 @@ struct StructPopUp: View {
         self._isLiked = State(initialValue: structure.isLiked)
     }
 
+    // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 15) {
@@ -58,7 +67,6 @@ struct StructPopUp: View {
                         structureData.markStructureAsOpened(structure.number)
                     }
                 }
-                
                 
                 informationButton(geometry: geometry)
             }
@@ -83,7 +91,14 @@ struct StructPopUp: View {
         }
         .edgesIgnoringSafeArea(.all)
     }
-
+    
+    // MARK: - Sections
+    
+    /**
+     * imageSection
+     *
+     * Displays the image carousel along with dismiss button, structure info, and image indicator dots.
+     */
     private func imageSection(geometry: GeometryProxy) -> some View {
         ZStack(alignment: .topLeading) {
             imageCarousel(geometry: geometry)
@@ -94,11 +109,26 @@ struct StructPopUp: View {
         .frame(height: geometry.size.height * 0.75)
         .shadow(color: Color.black.opacity(0.4), radius: 10, x: 0, y: 5)
     }
-
+    
+    /**
+     * imageCarousel
+     *
+     * Renders the image carousel using ImprovedImageCarousel.
+     */
     private func imageCarousel(geometry: GeometryProxy) -> some View {
-        ImprovedImageCarousel(mainPhoto: structure.mainPhoto, closeUp: structure.closeUp, currentImageIndex: $currentImageIndex, geometry: geometry)
+        ImprovedImageCarousel(
+            mainPhoto: structure.mainPhoto,
+            closeUp: structure.closeUp,
+            currentImageIndex: $currentImageIndex,
+            geometry: geometry
+        )
     }
-
+    
+    /**
+     * dismissButton
+     *
+     * A button to dismiss the StructPopUp view.
+     */
     private var dismissButton: some View {
         Button(action: {
             isPresented = false
@@ -111,7 +141,12 @@ struct StructPopUp: View {
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     }
-
+    
+    /**
+     * structureInfo
+     *
+     * Displays the structure number and title at the bottom-left corner of the image carousel.
+     */
     private var structureInfo: some View {
         VStack(alignment: .leading) {
             Spacer()
@@ -125,11 +160,16 @@ struct StructPopUp: View {
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
     }
-
+    
+    /**
+     * imageDots
+     *
+     * Displays indicator dots below the image carousel to represent the current image.
+     */
     private var imageDots: some View {
         VStack {
             LikeButton(structureData: structureData, structure: structure, isLiked: $isLiked)
-
+            
             HStack(spacing: 8) {
                 Circle()
                     .fill(Color.white)
@@ -147,7 +187,12 @@ struct StructPopUp: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
     }
-
+    
+    /**
+     * informationButton
+     *
+     * A button to toggle between image carousel and information panel.
+     */
     private func informationButton(geometry: GeometryProxy) -> some View {
         Button(action: {
             withAnimation(.easeInOut(duration: 0.5)) {
@@ -167,7 +212,12 @@ struct StructPopUp: View {
             .cornerRadius(15)
         }
     }
-
+    
+    /**
+     * informationPanel
+     *
+     * Displays detailed information about the structure when toggled.
+     */
     private func informationPanel(geometry: GeometryProxy) -> some View {
         VStack(spacing: 0) {
             headerView
@@ -178,8 +228,8 @@ struct StructPopUp: View {
                         InfoPill(icon: "👷", title: "Builders", value: structure.builders, isDarkMode: isDarkMode)
                     }
                     
-                    if structure.funFact != "iii" {
-                        FunFactPill(icon: "✨", fact: structure.funFact ?? "No fun fact available", isDarkMode: $isDarkMode)
+                    if let funFact = structure.funFact, funFact != "iii" {
+                        FunFactPill(icon: "✨", fact: funFact, isDarkMode: $isDarkMode)
                     }
                     
                     InfoPill(icon: "📝", title: "Description", value: structure.description, isDarkMode: isDarkMode)
@@ -194,7 +244,12 @@ struct StructPopUp: View {
         .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
         .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
     }
-
+    
+    /**
+     * headerView
+     *
+     * The header for the information panel, displaying structure number, title, year, and a dismiss button.
+     */
     private var headerView: some View {
         HStack {
             Text("\(structure.number)")
@@ -224,8 +279,13 @@ struct StructPopUp: View {
     }
 }
 
-
 // MARK: - Supporting Views
+
+/**
+ * LikeButton
+ *
+ * A button that allows users to like or unlike the structure.
+ */
 struct LikeButton: View {
     @ObservedObject var structureData: StructureData
     let structure: Structure
@@ -243,29 +303,11 @@ struct LikeButton: View {
     }
 }
 
-
-struct TabButton: View {
-    let icon: String
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                Text(title)
-            }
-            .font(.system(size: 16, weight: .semibold))
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
-            .background(isSelected ? Color.blue : Color.clear)
-            .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(15)
-        }
-    }
-}
-
+/**
+ * InfoPill
+ *
+ * Displays an information pill with an icon, title, and value.
+ */
 struct InfoPill: View {
     let icon: String
     let title: String
@@ -294,7 +336,11 @@ struct InfoPill: View {
     }
 }
 
-
+/**
+ * FunFactPill
+ *
+ * Displays a fun fact pill with an icon and fact text.
+ */
 struct FunFactPill: View {
     let icon: String
     let fact: String
@@ -341,7 +387,11 @@ struct FunFactPill: View {
     }
 }
 
-
+/**
+ * ImprovedImageCarousel
+ *
+ * A carousel view that displays main and close-up photos with zoomable capabilities.
+ */
 struct ImprovedImageCarousel: View {
     let mainPhoto: String
     let closeUp: String
@@ -361,6 +411,11 @@ struct ImprovedImageCarousel: View {
     }
 }
 
+/**
+ * ZoomableImageView
+ *
+ * An image view that supports zooming and panning.
+ */
 struct ZoomableImageView: View {
     let imageName: String
     @State private var scale: CGFloat = 1.0
@@ -387,7 +442,7 @@ struct ZoomableImageView: View {
                     .zoomable(
                         minZoomScale: 1.0,
                         doubleTapZoomScale: 2.0
-                        )
+                    )
             }
             .clipped()
         }
@@ -395,6 +450,7 @@ struct ZoomableImageView: View {
 }
 
 // MARK: - Preview
+
 struct StructPopUp_Previews: PreviewProvider {
     static var previews: some View {
         let mockStructureData = StructureData()
@@ -421,7 +477,7 @@ struct StructPopUp_Previews: PreviewProvider {
                 isPresented: .constant(true)
             )
             .previewDisplayName("Light Mode")
-
+            
             StructPopUp(
                 structureData: mockStructureData,
                 structure: mockStructure,
