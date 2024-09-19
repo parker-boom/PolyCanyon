@@ -1,86 +1,71 @@
+// MARK: DetailView.swift
 
-// MARK: Overview
-/*
-    DetailView.swift
-
-    This file defines the DetailView structure, which displays detailed information about structures in a grid or list view.
-
-    Key Components:
-    - Binding properties for dark mode and adventure mode.
-    - ObservedObject properties for data management (structureData, locationManager, mapPointManager).
-    - State properties to manage UI interactions and filters.
-
-    Functionality:
-    - Toggles between grid and list views.
-    - Displays recently visited, unopened, and nearby unvisited structures.
-    - Handles search functionality and filters using the eye icon.
-    - Shows structure details in a popup when selected.
-*/
-
-
-
-// MARK: Code
 import SwiftUI
 import Combine
 import CoreLocation
-import Glur  //package for gradient blur [need to add as package dependency to use]
+import Glur // Package for gradient blur
 
-
+/**
+ * DetailView
+ *
+ * Displays detailed information about structures in the Poly Canyon app. Users can view structures
+ * in either grid or list formats, search for specific structures, and filter them based on various criteria
+ * such as favorites, visited, unopened, and unvisited. The view also handles displaying popups with
+ * detailed information about selected structures.
+ */
 struct DetailView: View {
+    // MARK: - Observed Objects and Bindings
     @ObservedObject var structureData: StructureData
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var mapPointManager: MapPointManager
     @Binding var isDarkMode: Bool
     @Binding var isAdventureModeEnabled: Bool
+    
+    // MARK: - State Variables
     @State private var selectedStructure: Structure?
     @State private var showStructPopup = false
-    
     @State private var searchText = ""
     @State private var isGridView = true
     @State private var showPopup = false
     @State private var showOnboardingImage = false
     @AppStorage("visitedCount") private var visitedCount: Int = 0
-
     @State private var showEyePopup = false
     @State private var sortState: SortState = .all
-
+    
+    // MARK: - Sorting States
     enum SortState {
         case all, favorites, visited, unopened, unvisited
     }
-
+    
     // MARK: - Computed Properties for Sorting Options
-
     private var hasVisitedStructures: Bool {
         structureData.structures.contains { $0.isVisited }
     }
-
+    
     private var hasUnopenedStructures: Bool {
         structureData.structures.contains { $0.isVisited && !$0.isOpened }
     }
-
+    
     private var hasUnvisitedStructures: Bool {
         structureData.structures.contains { !$0.isVisited }
     }
-
+    
     private var hasLikedStructures: Bool {
         structureData.structures.contains { $0.isLiked }
     }
     
-    
     // MARK: - Body
-    
     var body: some View {
         ZStack {
+            // Background Color
             (isDarkMode ? Color.black : Color.white)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                
-                // Header view for switching filters and views
+                // Header with Sort Button, Search Bar, and View Toggle
                 headerView
                 
-                
-                // Scroll view that displays either grid or list view
+                // Scrollable Content: Grid or List View
                 ScrollView {
                     if isGridView {
                         if shouldShowRecentlyVisited {
@@ -98,15 +83,11 @@ struct DetailView: View {
                                 .padding(.top, 10)
                         }
                         
-                        // Show grid view
                         gridView
                     } else {
-                        // Show list view
                         listView
                     }
                 }
-                
-                
             }
             .background(isDarkMode ? Color.black : Color.white)
             .onAppear {
@@ -115,10 +96,8 @@ struct DetailView: View {
                     structureData.ensureStructureVisited(firstVisit)
                 }
             }
-            
-            // MARK: - On Appear
             .onAppear {
-                // Accept notifications to mark as visited if adventure mode enabled
+                // Observe structureVisited notifications to update visited structures
                 if isAdventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
                         if let landmarkId = notification.object as? Int {
@@ -128,6 +107,8 @@ struct DetailView: View {
                     }
                 }
             }
+            
+            // Structure Popup Overlay
             if showStructPopup {
                 Color.black.opacity(0.5)
                     .edgesIgnoringSafeArea(.all)
@@ -149,6 +130,7 @@ struct DetailView: View {
             }
         }
         .overlay(
+            // Eye Icon Popup Overlay
             Group {
                 if showEyePopup {
                     VStack {
@@ -163,54 +145,45 @@ struct DetailView: View {
         .background(isDarkMode ? Color.black : Color.white)
     }
     
-    private func showStructurePopup(_ structure: Structure) {
-        selectedStructure = structure
-        if let index = structureData.structures.firstIndex(where: { $0.id == structure.id }) {
-            structureData.objectWillChange.send()
-            if structureData.structures[index].isVisited {
-                structureData.structures[index].isOpened = true
+    // MARK: - Header View
+    /**
+     * Header View containing the Sort Button, Search Bar, and View Toggle.
+     */
+    var headerView: some View {
+        HStack {
+            sortButton
+            
+            SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+                .frame(maxWidth: .infinity)
+            
+            if searchText != "" {
+                Button(action: {
+                    searchText = ""
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .font(.system(size: 20, weight: .semibold))
+                        .padding(.trailing, 5)
+                }
             }
+            
+            Toggle(isOn: $isGridView) {
+                Text("View Mode")
+            }
+            .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
         }
-        showPopup = true
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        
-        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-        impactMed.impactOccurred()
+        .background(isDarkMode ? Color.black : Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .padding(.horizontal, 10)
+        .padding(.bottom, -5)
     }
     
-    
-    // MARK: - Views and Helpers
-    var headerView: some View {
-           HStack {
-               sortButton
-
-               SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
-                   .frame(maxWidth: .infinity)
-
-               if searchText != "" {
-                   Button(action: {
-                       searchText = ""
-                       UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                   }) {
-                       Image(systemName: "xmark.circle.fill")
-                           .foregroundColor(isDarkMode ? .white : .black)
-                           .font(.system(size: 20, weight: .semibold))
-                           .padding(.trailing, 5)
-                   }
-               }
-
-               Toggle(isOn: $isGridView) {
-                   Text("View Mode")
-               }
-               .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
-           }
-           .background(isDarkMode ? Color.black : Color.white)
-           .clipShape(RoundedRectangle(cornerRadius: 10))
-           .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
-           .padding(.horizontal, 10)
-           .padding(.bottom, -5)
-       }
-
+    // MARK: - Sort Button
+    /**
+     * Sort Button that presents a menu for filtering structures.
+     */
     var sortButton: some View {
         Menu {
             Button(action: { sortState = .all }) {
@@ -247,7 +220,12 @@ struct DetailView: View {
         }
         .padding(.leading, 5)
     }
-
+    
+    /**
+     * Determines the appropriate sort button image based on the current sort state.
+     *
+     * - Returns: A string representing the system image name.
+     */
     func getSortButtonImageName() -> String {
         switch sortState {
         case .all:
@@ -262,7 +240,12 @@ struct DetailView: View {
             return "xmark.circle"
         }
     }
-
+    
+    /**
+     * Determines the appropriate sort button color based on the current sort state.
+     *
+     * - Returns: A Color representing the sort button's color.
+     */
     func getSortButtonColor() -> Color {
         switch sortState {
         case .all:
@@ -277,7 +260,13 @@ struct DetailView: View {
             return .red
         }
     }
-
+    
+    // MARK: - Filtered Structures
+    /**
+     * Filters the structures based on search text and sort state.
+     *
+     * - Returns: An array of Structure objects that match the search and filter criteria.
+     */
     var filteredStructures: [Structure] {
         let searchFiltered = structureData.structures.filter { structure in
             searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
@@ -296,24 +285,18 @@ struct DetailView: View {
             return searchFiltered.filter { !$0.isVisited }
         }
     }
-
-    // MARK: GridView
-    // Grid view that shows all structures in a grid, with images
+    
+    // MARK: - Grid View
+    /**
+     * Displays structures in a grid format.
+     */
     var gridView: some View {
         VStack {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 2), spacing: 15) {
                 ForEach(filteredStructures, id: \.id) { structure in
                     StructureGridItem(structure: structure, isDarkMode: isDarkMode, isAdventureModeEnabled: isAdventureModeEnabled)
                         .onTapGesture {
-                            selectedStructure = structure
-                            if structure.isVisited {
-                                structureData.markStructureAsOpened(structure.number)
-                            }
-                            showStructPopup = true
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            
-                            let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                            impactMed.impactOccurred()
+                            showStructurePopup(structure)
                         }
                 }
                 .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
@@ -323,10 +306,11 @@ struct DetailView: View {
             .padding(.bottom, 30)
         }
     }
-
-
-    // MARK: ListView
-    // Show all structures in a smaller more concise list
+    
+    // MARK: - List View
+    /**
+     * Displays structures in a list format.
+     */
     var listView: some View {
         VStack(spacing: 0) {
             ForEach(filteredStructures, id: \.id) { structure in
@@ -337,12 +321,10 @@ struct DetailView: View {
                     Text("\(structure.number)")
                         .foregroundColor(isDarkMode ? .white : .black)
                         .font(.system(size: 18, weight: .thin))
-                        .foregroundColor(isDarkMode ? .white : Color.black.opacity(0.7))
                     
                     Text(structure.title)
                         .foregroundColor(isDarkMode ? .white : .black)
                         .font(.system(size: 23, weight: .semibold))
-                        .foregroundColor(isDarkMode ? .white : .black)
                         .padding(.leading, 10)
                     
                     Spacer()
@@ -373,26 +355,19 @@ struct DetailView: View {
                 .padding(.vertical, 10)
                 .padding(.horizontal, 16)
                 .background(isDarkMode ? Color.black : Color.white)
-                
                 .onTapGesture {
-                    selectedStructure = structure
-                    if structure.isVisited {
-                        structureData.markStructureAsOpened(structure.number)
-                    }
-                    showStructPopup = true
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                    let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                    impactMed.impactOccurred()
+                    showStructurePopup(structure)
                 }
             }
             Divider()
         }
         .padding(.top, 5)
     }
-
-    // MARK: PopUpViews
-    // Show recently visited structures in order
+    
+    // MARK: - Popup Views
+    /**
+     * Displays recently visited structures in a horizontal layout.
+     */
     var recentlyVisitedView: some View {
         let recentlyVisitedStructures = structureData.structures
             .filter { $0.recentlyVisited != -1 }
@@ -402,8 +377,7 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-
-                // Show image and number of each
+                
                 ForEach(recentlyVisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.mainPhoto)
@@ -425,17 +399,8 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
-                    // Open if clicked on
                     .onTapGesture {
-                        selectedStructure = structure
-                        if structure.isVisited {
-                            structureData.markStructureAsOpened(structure.number)
-                        }
-                        showStructPopup = true
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                        impactMed.impactOccurred()
+                        showStructurePopup(structure)
                     }
                     
                     Spacer()
@@ -457,7 +422,9 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
     
-    // Shows recently unopened views
+    /**
+     * Displays recently unopened structures in a horizontal layout.
+     */
     var recentlyUnopenedView: some View {
         let recentlyUnopenedStructures = structureData.structures
             .filter { !$0.isOpened && $0.isVisited }
@@ -467,7 +434,7 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-                // Show images and number for each
+                
                 ForEach(recentlyUnopenedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.mainPhoto)
@@ -489,17 +456,8 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
-                    // Open if tap
                     .onTapGesture {
-                        selectedStructure = structure
-                        if structure.isVisited {
-                            structureData.markStructureAsOpened(structure.number)
-                        }
-                        showStructPopup = true
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                        impactMed.impactOccurred()
+                        showStructurePopup(structure)
                     }
                     
                     Spacer()
@@ -520,10 +478,11 @@ struct DetailView: View {
         .padding(.horizontal, 15)
         .padding(.bottom, 10)
     }
-
-    // Show nearby structures if they aren't visited
+    
+    /**
+     * Displays nearby unvisited structures in a horizontal layout.
+     */
     var nearbyUnvisitedView: some View {
-        let userLocation = locationManager.lastLocation
         let nearbyUnvisitedStructures = structureData.structures
             .filter { !$0.isVisited }
             .sorted { getDistance(to: $0) < getDistance(to: $1) }
@@ -532,8 +491,7 @@ struct DetailView: View {
         return VStack {
             HStack {
                 Spacer()
-
-                // Show each image and number
+                
                 ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
                     ZStack(alignment: .bottomTrailing) {
                         Image(structure.mainPhoto)
@@ -555,17 +513,8 @@ struct DetailView: View {
                     }
                     .frame(width: 80, height: 80)
                     .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
-                    // Open if selected
                     .onTapGesture {
-                        selectedStructure = structure
-                        if structure.isVisited {
-                            structureData.markStructureAsOpened(structure.number)
-                        }
-                        showStructPopup = true
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-                        impactMed.impactOccurred()
+                        showStructurePopup(structure)
                     }
                     
                     Spacer()
@@ -587,31 +536,53 @@ struct DetailView: View {
         .padding(.bottom, 10)
     }
     
-    private var shouldShowRecentlyVisited: Bool {
-        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && sortState == .visited && isAdventureModeEnabled
-    }
-
-    private var shouldShowRecentlyUnopened: Bool {
-        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && sortState == .unopened && isAdventureModeEnabled
-    }
-
-    private var shouldShowNearbyUnvisited: Bool {
-        structureData.structures.contains(where: { !$0.isVisited }) && sortState == .unvisited && isAdventureModeEnabled
-    }
-
+    // MARK: - Helper Functions
     
-
-    // Get distance to nearby structures for unvisited
+    /**
+     * Calculates the distance from the user's location to a given structure.
+     *
+     * - Parameter structure: The Structure object to calculate distance to.
+     * - Returns: A CLLocationDistance representing the distance in meters.
+     */
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = locationManager.lastLocation else { return .infinity }
         let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
         let structureCLLocation = CLLocation(latitude: structureLocation?.latitude ?? 0, longitude: structureLocation?.longitude ?? 0)
         return userLocation.distance(from: structureCLLocation)
     }
-
-
-
-    // Change eye popup message based on which filter
+    
+    /**
+     * Determines if certain filtered views should be displayed based on sort state and adventure mode.
+     *
+     * - Returns: A Boolean indicating whether recently visited structures should be shown.
+     */
+    private var shouldShowRecentlyVisited: Bool {
+        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && sortState == .visited && isAdventureModeEnabled
+    }
+    
+    /**
+     * Determines if certain filtered views should be displayed based on sort state and adventure mode.
+     *
+     * - Returns: A Boolean indicating whether recently unopened structures should be shown.
+     */
+    private var shouldShowRecentlyUnopened: Bool {
+        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && sortState == .unopened && isAdventureModeEnabled
+    }
+    
+    /**
+     * Determines if certain filtered views should be displayed based on sort state and adventure mode.
+     *
+     * - Returns: A Boolean indicating whether nearby unvisited structures should be shown.
+     */
+    private var shouldShowNearbyUnvisited: Bool {
+        structureData.structures.contains(where: { !$0.isVisited }) && sortState == .unvisited && isAdventureModeEnabled
+    }
+    
+    /**
+     * Generates the appropriate message for the popup based on the current sort state.
+     *
+     * - Returns: A String message representing the current filter.
+     */
     func getPopupMessage() -> String {
         switch sortState {
         case .all:
@@ -626,7 +597,12 @@ struct DetailView: View {
             return "Unvisited"
         }
     }
-
+    
+    /**
+     * Displays a temporary popup message for the current sort state.
+     *
+     * - Parameter state: The current SortState.
+     */
     func showPopup(for state: SortState) {
         withAnimation {
             showEyePopup = true
@@ -638,19 +614,53 @@ struct DetailView: View {
             }
         }
     }
-}
-
-
-// MARK: - View Extension & Structs
-
-// Cut off rounded corner shape
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCornerShape(radius: radius, corners: corners))
+    
+    /**
+     * Handles displaying the structure popup when a structure is selected.
+     *
+     * - Parameter structure: The Structure object that was selected.
+     */
+    private func showStructurePopup(_ structure: Structure) {
+        selectedStructure = structure
+        if structure.isVisited {
+            structureData.markStructureAsOpened(structure.number)
+        }
+        showStructPopup = true
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
+        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
+        impactMed.impactOccurred()
     }
 }
 
-// View that comes up when filter is changed
+// MARK: - View Extensions and Helper Structs
+
+/**
+ * RoundedCornerShape
+ *
+ * A custom Shape that allows for specifying which corners to round.
+ */
+struct RoundedCornerShape: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    /**
+     * Creates the path for the rounded corner shape.
+     *
+     * - Parameter rect: The CGRect in which to draw the shape.
+     * - Returns: A Path representing the rounded corners.
+     */
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
+}
+
+/**
+ * PopupView
+ *
+ * Displays a transient popup message, typically used for showing filter selections.
+ */
 struct PopupView: View {
     let message: String
     let isDarkMode: Bool
@@ -667,29 +677,28 @@ struct PopupView: View {
             .transition(.move(edge: .bottom))
     }
     
+    /// Determines the background color based on dark mode.
     var popupBackground: Color {
         isDarkMode ? Color.black : Color.white
     }
 }
 
-// Used above
-struct RoundedCornerShape: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-    
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
-    }
-}
-
-
-// Search bar custom implementation
+/**
+ * SearchBar
+ *
+ * A custom search bar component that integrates with UIKit's UISearchBar for advanced customization.
+ */
 struct SearchBar: UIViewRepresentable {
     @Binding var text: String
     var placeholder: String
     var isDarkMode: Bool
 
+    /**
+     * Creates the UISearchBar view.
+     *
+     * - Parameter context: The context in which the view is created.
+     * - Returns: A customized UISearchBar instance.
+     */
     func makeUIView(context: Context) -> UISearchBar {
         let searchBar = CustomUISearchBar(frame: .zero)
         searchBar.delegate = context.coordinator
@@ -719,28 +728,59 @@ struct SearchBar: UIViewRepresentable {
         return searchBar
     }
 
+    /**
+     * Updates the UISearchBar with new data.
+     *
+     * - Parameters:
+     *   - uiView: The UISearchBar instance to update.
+     *   - context: The current context.
+     */
     func updateUIView(_ uiView: UISearchBar, context: Context) {
         uiView.text = text
     }
 
+    /**
+     * Creates the coordinator for handling UISearchBarDelegate methods.
+     *
+     * - Returns: An instance of Coordinator.
+     */
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
+    /**
+     * Coordinator class to handle UISearchBarDelegate methods.
+     */
     class Coordinator: NSObject, UISearchBarDelegate {
         var parent: SearchBar
 
+        /**
+         * Initializes the Coordinator with a reference to the parent SearchBar.
+         *
+         * - Parameter parent: The parent SearchBar instance.
+         */
         init(_ parent: SearchBar) {
             self.parent = parent
         }
 
+        /**
+         * Updates the search text as the user types.
+         *
+         * - Parameters:
+         *   - searchBar: The UISearchBar instance.
+         *   - searchText: The current text in the search bar.
+         */
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             parent.text = searchText
         }
     }
 }
 
-// Custom UISearchBar to hide the "X" clear button
+/**
+ * CustomUISearchBar
+ *
+ * A subclass of UISearchBar that removes the clear ("X") button from the search text field.
+ */
 class CustomUISearchBar: UISearchBar {
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -753,8 +793,11 @@ class CustomUISearchBar: UISearchBar {
     }
 }
 
-
-// Custom toggle between grid and list view
+/**
+ * CustomToggleStyle
+ *
+ * A custom toggle style for switching between grid and list views.
+ */
 struct CustomToggleStyle: ToggleStyle {
     var isDarkMode: Bool
 
@@ -779,6 +822,12 @@ struct CustomToggleStyle: ToggleStyle {
     }
 }
 
+/**
+ * StructureGridItem
+ *
+ * Represents an individual structure item within the grid view. Displays the structure's image and number,
+ * and handles tap gestures to show detailed information.
+ */
 struct StructureGridItem: View {
     let structure: Structure
     let isDarkMode: Bool
@@ -836,7 +885,7 @@ struct StructureGridItem: View {
                 }
             }
             
-            // Text overlay
+            // Text overlay for structure number and title
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text("\(structure.number)")
@@ -867,12 +916,22 @@ struct StructureGridItem: View {
     }
 }
 
+/**
+ * ImageLoader
+ *
+ * Handles asynchronous loading of images for structures, providing a published Image object and loading state.
+ */
 class ImageLoader: ObservableObject {
     @Published var image: Image?
     @Published var isLoading = false
     
     private var cancellable: AnyCancellable?
     
+    /**
+     * Initiates the loading of an image by name.
+     *
+     * - Parameter imageName: The name of the image to load.
+     */
     func load(imageName: String) {
         guard image == nil else { return }
         
@@ -889,10 +948,19 @@ class ImageLoader: ObservableObject {
             }
     }
     
+    /**
+     * Cancels any ongoing image loading tasks.
+     */
     func cancel() {
         cancellable?.cancel()
     }
     
+    /**
+     * Loads an image asynchronously from the app bundle.
+     *
+     * - Parameter imageName: The name of the image to load.
+     * - Returns: A publisher that emits a UIImage or an Error.
+     */
     private func loadImage(named imageName: String) -> AnyPublisher<UIImage, Error> {
         return Future<UIImage, Error> { promise in
             if let image = UIImage(named: imageName) {
@@ -905,8 +973,7 @@ class ImageLoader: ObservableObject {
     }
 }
 
-
-// allow notification from MapView to update a structure via adventure mode
+// MARK: - Notifications
 extension Notification.Name {
     static let structureVisited = Notification.Name("StructureVisited")
 }
