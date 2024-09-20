@@ -17,10 +17,11 @@ Poly Canyon is designed to enhance your experience while exploring Cal Poly's Po
 - **Detailed Information:** Learn about each structure with detailed descriptions.
 - **High-Quality Photos:** View high-resolution images of the structures.
 - **Adventure Mode:** Track which structures you've visited.
+- **Virtual Tour Mode:** Journey through the canyon from a distance
 
-![Promotional Graphic](promotional/graphics/jpg/1920x1080.jpg)
+![Promotional Graphic](promotional/graphics/web/standard1920.jpg)
 
-For more details about the app, visit the [App Store page](https://apps.apple.com/in/app/poly-canyon/id6499063781).
+For more details about the app, visit the [download page](https://polycanyon.com/download).
 
 ## Repository Structure
 
@@ -36,7 +37,7 @@ poly-canyon/
 
 ## Current Progress
 
-Currently working on: Android development in full 
+Currently working on: Full Launch! 
 
 
 ## License
@@ -45,7 +46,7 @@ This project is licensed under the Creative Commons Attribution-NonCommercial 4.
 
 ## Contributing
 
-Contributions are welcome, please create a new well-named branch, and have a detailed commit message 
+Contributions are welcome, please create a new well-named branch, and have a detailed commit message or ideally get in contact before development!
 
 
 ## Contact 
