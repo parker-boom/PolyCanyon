@@ -50,7 +50,7 @@ The `Data` directory is responsible for all data management within the Poly Cany
   - **StructureData.swift:** Manages the collection of structures, including loading data from CSV files and persisting user interactions like visits and likes.
   - **MapPointManager.swift:** Manages map points, including loading from CSV, persisting visited statuses, and providing functionalities to reset or update visit statuses.
 
-For more comprehensive details on data management and functionalities, refer to the [Data README](./PolyCanyon/Data/README.md).
+For more comprehensive details on data management and functionalities, refer to the [Data README](./Poly_Canyon/Data/README.md).
 
 ## Summary
 
