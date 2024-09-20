@@ -38,7 +38,7 @@ The `Views` directory encompasses all user interface components and view managem
   - **Main Views/**: Contains core views such as DetailView, MapView, SettingsView, StructPopUp, and StructureSwipingView.
   - **Components/**: Includes reusable UI components like CustomTabBar and KeyboardManager.
 
-For detailed information about each component and view, refer to the [Views README](./PolyCanyon/Views/README.md).
+For detailed information about each component and view, refer to the [Views README]([./PolyCanyon/Views/README.md](https://github.com/parker-boom/PolyCanyon/tree/bcce66e80fe46d582df30a0b2c48ba68475aa212/swift/Poly%20Canyon/Data)).
 
 ### Data
 
