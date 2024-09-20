@@ -38,7 +38,7 @@ The `Views` directory encompasses all user interface components and view managem
   - **Main Views/**: Contains core views such as DetailView, MapView, SettingsView, StructPopUp, and StructureSwipingView.
   - **Components/**: Includes reusable UI components like CustomTabBar and KeyboardManager.
 
-For detailed information about each component and view, refer to the [Views README]([./PolyCanyon/Views/README.md](https://github.com/parker-boom/PolyCanyon/tree/bcce66e80fe46d582df30a0b2c48ba68475aa212/swift/Poly%20Canyon/Data)).
+For detailed information about each component and view, refer to the [Views README](./Poly%20Canyon/Views/README.md).
 
 ### Data
 
@@ -50,7 +50,7 @@ The `Data` directory is responsible for all data management within the Poly Cany
   - **StructureData.swift:** Manages the collection of structures, including loading data from CSV files and persisting user interactions like visits and likes.
   - **MapPointManager.swift:** Manages map points, including loading from CSV, persisting visited statuses, and providing functionalities to reset or update visit statuses.
 
-For more comprehensive details on data management and functionalities, refer to the [Data README](./Poly_Canyon/Data/README.md).
+For more comprehensive details on data management and functionalities, refer to the [Data README](./Poly%20Canyon/Data/README.md).
 
 ## Summary
 
