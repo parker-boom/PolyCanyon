@@ -19,7 +19,7 @@ Poly Canyon is designed to enhance your experience while exploring Cal Poly's Po
 - **Adventure Mode:** Track which structures you've visited.
 - **Virtual Tour Mode:** Journey through the canyon from a distance
 
-![Promotional Graphic](promotional/graphics/web/standard1920.jpg)
+![Promotional Graphic](promotional/graphics/web/standard1920.png)
 
 For more details about the app, visit the [download page](https://polycanyon.com/download).
 
