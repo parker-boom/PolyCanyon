@@ -12,12 +12,11 @@ import Combine
  * Supports dark mode and adventure mode settings, and dynamically hides the tab bar when the keyboard is visible.
  */
 struct MainView: View {
-    @State private var selection = 1
-    @EnvironmentObject var locationManager: LocationManager
-    @EnvironmentObject var mapPointManager: MapPointManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
     @StateObject private var keyboardManager = KeyboardManager()
-    @ObservedObject var structureData: StructureData
+    @State private var selection = 1
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,27 +24,24 @@ struct MainView: View {
                 MapView(
                     isDarkMode: $appState.isDarkMode,
                     isAdventureModeEnabled: $appState.adventureModeEnabled,
-                    structureData: structureData,
-                    mapPointManager: mapPointManager,
-                    locationManager: locationManager
+                    structures: dataStore.structures,
+                    mapPoints: dataStore.mapPoints
                 )
                 .tag(0)
                 
                 DetailView(
-                    structureData: structureData,
-                    locationManager: locationManager,
-                    mapPointManager: mapPointManager,
                     isDarkMode: $appState.isDarkMode,
-                    isAdventureModeEnabled: $appState.adventureModeEnabled
+                    isAdventureModeEnabled: $appState.adventureModeEnabled,
+                    structures: dataStore.structures,
+                    mapPoints: dataStore.mapPoints
                 )
                 .tag(1)
                 
                 SettingsView(
-                    structureData: structureData,
-                    mapPointManager: mapPointManager,
-                    locationManager: locationManager,
                     isDarkMode: $appState.isDarkMode,
-                    isAdventureModeEnabled: $appState.adventureModeEnabled
+                    isAdventureModeEnabled: $appState.adventureModeEnabled,
+                    structures: dataStore.structures,
+                    mapPoints: dataStore.mapPoints
                 )
                 .tag(2)
             }

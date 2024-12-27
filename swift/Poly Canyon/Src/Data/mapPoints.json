@@ -1,1578 +1,1578 @@
 [
-    {
-        "#":1,
-        "Latitude":35.31349,
-        "Longitude":-120.65192,
-        "Pixel X":"1018.433 px",
-        "Pixel Y":"4046.083 px",
-        "Landmark":1
-    },
-    {
-        "#":2,
-        "Latitude":35.31361,
-        "Longitude":-120.65201,
-        "Pixel X":"1016.897 px",
-        "Pixel Y":"3910.138 px",
-        "Landmark":-1
-    },
-    {
-        "#":3,
-        "Latitude":35.31385,
-        "Longitude":-120.65222,
-        "Pixel X":"976.19 px",
-        "Pixel Y":"3642.857 px",
-        "Landmark":2
-    },
-    {
-        "#":4,
-        "Latitude":35.31405,
-        "Longitude":-120.6523,
-        "Pixel X":"1016.897 px",
-        "Pixel Y":"3497.696 px",
-        "Landmark":-1
-    },
-    {
-        "#":5,
-        "Latitude":35.31435,
-        "Longitude":-120.65245,
-        "Pixel X":"1051.459 px",
-        "Pixel Y":"3210.445 px",
-        "Landmark":-1
-    },
-    {
-        "#":6,
-        "Latitude":35.31462,
-        "Longitude":-120.65247,
-        "Pixel X":"1116.743 px",
-        "Pixel Y":"3053.763 px",
-        "Landmark":-1
-    },
-    {
-        "#":7,
-        "Latitude":35.31475,
-        "Longitude":-120.65242,
-        "Pixel X":"1223.502 px",
-        "Pixel Y":"2889.401 px",
-        "Landmark":-1
-    },
-    {
-        "#":8,
-        "Latitude":35.31467,
-        "Longitude":-120.65221,
-        "Pixel X":"1287.25 px",
-        "Pixel Y":"2976.959 px",
-        "Landmark":-1
-    },
-    {
-        "#":9,
-        "Latitude":35.3146,
-        "Longitude":-120.65197,
-        "Pixel X":"1453.149 px",
-        "Pixel Y":"3198.925 px",
-        "Landmark":-1
-    },
-    {
-        "#":10,
-        "Latitude":35.31502,
-        "Longitude":-120.65234,
-        "Pixel X":"1394.009 px",
-        "Pixel Y":"2750.384 px",
-        "Landmark":5
-    },
-    {
-        "#":11,
-        "Latitude":35.31523,
-        "Longitude":-120.6524,
-        "Pixel X":"1432.412 px",
-        "Pixel Y":"2560.676 px",
-        "Landmark":6
-    },
-    {
-        "#":12,
-        "Latitude":35.31544,
-        "Longitude":-120.65247,
-        "Pixel X":"1472.35 px",
-        "Pixel Y":"2359.447 px",
-        "Landmark":-1
-    },
-    {
-        "#":13,
-        "Latitude":35.31566,
-        "Longitude":-120.6525,
-        "Pixel X":"1554.531 px",
-        "Pixel Y":"2188.172 px",
-        "Landmark":8
-    },
-    {
-        "#":14,
-        "Latitude":35.31576,
-        "Longitude":-120.65285,
-        "Pixel X":"1373.272 px",
-        "Pixel Y":"1953.917 px",
-        "Landmark":-1
-    },
-    {
-        "#":15,
-        "Latitude":35.3159,
-        "Longitude":-120.6529,
-        "Pixel X":"1389.143 px",
-        "Pixel Y":"1856.596 px",
-        "Landmark":-1
-    },
-    {
-        "#":16,
-        "Latitude":35.31626,
-        "Longitude":-120.65302,
-        "Pixel X":"1483.103 px",
-        "Pixel Y":"1481.567 px",
-        "Landmark":10
-    },
-    {
-        "#":17,
-        "Latitude":35.31627,
-        "Longitude":-120.65332,
-        "Pixel X":"1265.745 px",
-        "Pixel Y":"1380.952 px",
-        "Landmark":-1
-    },
-    {
-        "#":18,
-        "Latitude":35.31644,
-        "Longitude":-120.65363,
-        "Pixel X":"1145.161 px",
-        "Pixel Y":"1124.424 px",
-        "Landmark":-1
-    },
-    {
-        "#":19,
-        "Latitude":35.31619,
-        "Longitude":-120.65376,
-        "Pixel X":"976.19 px",
-        "Pixel Y":"1274.194 px",
-        "Landmark":12
-    },
-    {
-        "#":20,
-        "Latitude":35.31587,
-        "Longitude":-120.65383,
-        "Pixel X":"770.353 px",
-        "Pixel Y":"1537.634 px",
-        "Landmark":23
-    },
-    {
-        "#":21,
-        "Latitude":35.31663,
-        "Longitude":-120.65382,
-        "Pixel X":"1092.934 px",
-        "Pixel Y":"857.911 px",
-        "Landmark":14
-    },
-    {
-        "#":22,
-        "Latitude":35.31678,
-        "Longitude":-120.65396,
-        "Pixel X":"1056.836 px",
-        "Pixel Y":"665.899 px",
-        "Landmark":-1
-    },
-    {
-        "#":23,
-        "Latitude":35.31473,
-        "Longitude":-120.65281,
-        "Pixel X":"965.438 px",
-        "Pixel Y":"2858.679 px",
-        "Landmark":29
-    },
-    {
-        "#":24,
-        "Latitude":35.31695,
-        "Longitude":-120.65449,
-        "Pixel X":"764.977 px",
-        "Pixel Y":"306.452 px",
-        "Landmark":16
-    },
-    {
-        "#":25,
-        "Latitude":35.31686,
-        "Longitude":-120.65477,
-        "Pixel X":"517.665 px",
-        "Pixel Y":"236.559 px",
-        "Landmark":-1
-    },
-    {
-        "#":26,
-        "Latitude":35.31675,
-        "Longitude":-120.65457,
-        "Pixel X":"629.032 px",
-        "Pixel Y":"424.731 px",
-        "Landmark":18
-    },
-    {
-        "#":27,
-        "Latitude":35.31658,
-        "Longitude":-120.65447,
-        "Pixel X":"617.512 px",
-        "Pixel Y":"629.8 px",
-        "Landmark":-1
-    },
-    {
-        "#":28,
-        "Latitude":35.31624,
-        "Longitude":-120.65463,
-        "Pixel X":"418.587 px",
-        "Pixel Y":"835.637 px",
-        "Landmark":-1
-    },
-    {
-        "#":29,
-        "Latitude":35.31602,
-        "Longitude":-120.65473,
-        "Pixel X":"218.894 px",
-        "Pixel Y":"1016.129 px",
-        "Landmark":-1
-    },
-    {
-        "#":30,
-        "Latitude":35.31578,
-        "Longitude":-120.65465,
-        "Pixel X":"151.306 px",
-        "Pixel Y":"1276.498 px",
-        "Landmark":-1
-    },
-    {
-        "#":31,
-        "Latitude":35.31571,
-        "Longitude":-120.65442,
-        "Pixel X":"277.266 px",
-        "Pixel Y":"1426.267 px",
-        "Landmark":-1
-    },
-    {
-        "#":32,
-        "Latitude":35.31582,
-        "Longitude":-120.65424,
-        "Pixel X":"492.32 px",
-        "Pixel Y":"1420.123 px",
-        "Landmark":22
-    },
-    {
-        "#":33,
-        "Latitude":35.31598,
-        "Longitude":-120.65413,
-        "Pixel X":"622.888 px",
-        "Pixel Y":"1307.22 px",
-        "Landmark":-1
-    },
-    {
-        "#":34,
-        "Latitude":35.31617,
-        "Longitude":-120.65428,
-        "Pixel X":"586.79 px",
-        "Pixel Y":"1122.888 px",
-        "Landmark":-1
-    },
-    {
-        "#":35,
-        "Latitude":35.31639,
-        "Longitude":-120.65437,
-        "Pixel X":"636.713 px",
-        "Pixel Y":"850.998 px",
-        "Landmark":19
-    },
-    {
-        "#":36,
-        "Latitude":35.31631,
-        "Longitude":-120.65407,
-        "Pixel X":"794.163 px",
-        "Pixel Y":"1036.098 px",
-        "Landmark":20
-    },
-    {
-        "#":37,
-        "Latitude":35.31611,
-        "Longitude":-120.65408,
-        "Pixel X":"704.301 px",
-        "Pixel Y":"1218.894 px",
-        "Landmark":21
-    },
-    {
-        "#":38,
-        "Latitude":35.31585,
-        "Longitude":-120.65401,
-        "Pixel X":"641.321 px",
-        "Pixel Y":"1481.567 px",
-        "Landmark":-1
-    },
-    {
-        "#":39,
-        "Latitude":35.31567,
-        "Longitude":-120.65414,
-        "Pixel X":"470.814 px",
-        "Pixel Y":"1598.31 px",
-        "Landmark":-1
-    },
-    {
-        "#":40,
-        "Latitude":35.31565,
-        "Longitude":-120.65391,
-        "Pixel X":"623.656 px",
-        "Pixel Y":"1719.662 px",
-        "Landmark":-1
-    },
-    {
-        "#":41,
-        "Latitude":35.3156,
-        "Longitude":-120.65357,
-        "Pixel X":"830.261 px",
-        "Pixel Y":"1857.911 px",
-        "Landmark":-1
-    },
-    {
-        "#":42,
-        "Latitude":35.31566,
-        "Longitude":-120.65323,
-        "Pixel X":"1061.444 px",
-        "Pixel Y":"1931.644 px",
-        "Landmark":-1
-    },
-    {
-        "#":43,
-        "Latitude":35.31542,
-        "Longitude":-120.65335,
-        "Pixel X":"903.994 px",
-        "Pixel Y":"2082.949 px",
-        "Landmark":-1
-    },
-    {
-        "#":44,
-        "Latitude":35.31514,
-        "Longitude":-120.65373,
-        "Pixel X":"540.707 px",
-        "Pixel Y":"2189.708 px",
-        "Landmark":-1
-    },
-    {
-        "#":45,
-        "Latitude":35.31538,
-        "Longitude":-120.65372,
-        "Pixel X":"634.409 px",
-        "Pixel Y":"1974.654 px",
-        "Landmark":-1
-    },
-    {
-        "#":46,
-        "Latitude":35.31516,
-        "Longitude":-120.65325,
-        "Pixel X":"841.782 px",
-        "Pixel Y":"2335.637 px",
-        "Landmark":-1
-    },
-    {
-        "#":47,
-        "Latitude":35.31528,
-        "Longitude":-120.65293,
-        "Pixel X":"1117.512 px",
-        "Pixel Y":"2318.74 px",
-        "Landmark":-1
-    },
-    {
-        "#":48,
-        "Latitude":35.3155,
-        "Longitude":-120.65297,
-        "Pixel X":"1179.724 px",
-        "Pixel Y":"2188.172 px",
-        "Landmark":-1
-    },
-    {
-        "#":49,
-        "Latitude":35.31505,
-        "Longitude":-120.65283,
-        "Pixel X":"1096.006 px",
-        "Pixel Y":"2565.284 px",
-        "Landmark":28
-    },
-    {
-        "#":50,
-        "Latitude":35.31475,
-        "Longitude":-120.65275,
-        "Pixel X":"1070.661 px",
-        "Pixel Y":"2812.596 px",
-        "Landmark":29
-    },
-    {
-        "#":51,
-        "Latitude":35.3149,
-        "Longitude":-120.65262,
-        "Pixel X":"1152.842 px",
-        "Pixel Y":"2701.997 px",
-        "Landmark":-1
-    },
-    {
-        "#":52,
-        "Latitude":35.31426,
-        "Longitude":-120.65221,
-        "Pixel X":"1172.811 px",
-        "Pixel Y":"3365.591 px",
-        "Landmark":3
-    },
-    {
-        "#":53,
-        "Latitude":35.31452,
-        "Longitude":-120.65202,
-        "Pixel X":"1387.865 px",
-        "Pixel Y":"3236.559 px",
-        "Landmark":4
-    },
-    {
-        "#":54,
-        "Latitude":35.31534,
-        "Longitude":-120.65278,
-        "Pixel X":"1266 px",
-        "Pixel Y":"2352 px",
-        "Landmark":7
-    },
-    {
-        "#":55,
-        "Latitude":35.3152,
-        "Longitude":-120.65308,
-        "Pixel X":"1002.304 px",
-        "Pixel Y":"2331.029 px",
-        "Landmark":27
-    },
-    {
-        "#":56,
-        "Latitude":35.31552,
-        "Longitude":-120.65366,
-        "Pixel X":"727.343 px",
-        "Pixel Y":"1933.18 px",
-        "Landmark":25
-    },
-    {
-        "#":57,
-        "Latitude":35.31547,
-        "Longitude":-120.65388,
-        "Pixel X":"526.882 px",
-        "Pixel Y":"1811.06 px",
-        "Landmark":24
-    },
-    {
-        "#":58,
-        "Latitude":35.31631,
-        "Longitude":-120.65362,
-        "Pixel X":"1097.542 px",
-        "Pixel Y":"1246.544 px",
-        "Landmark":11
-    },
-    {
-        "#":59,
-        "Latitude":35.31658,
-        "Longitude":-120.65397,
-        "Pixel X":"997.696 px",
-        "Pixel Y":"876.344 px",
-        "Landmark":13
-    },
-    {
-        "#":60,
-        "Latitude":35.31495,
-        "Longitude":-120.6529,
-        "Pixel X":"947.773 px",
-        "Pixel Y":"2617.512 px",
-        "Landmark":28
-    },
-    {
-        "#":61,
-        "Latitude":35.31415,
-        "Longitude":-120.65236,
-        "Pixel X":"1016.897 px",
-        "Pixel Y":"3402.458 px",
-        "Landmark":-1
-    },
-    {
-        "#":62,
-        "Latitude":35.31424,
-        "Longitude":-120.6524,
-        "Pixel X":"1026.882 px",
-        "Pixel Y":"3296.467 px",
-        "Landmark":-1
-    },
-    {
-        "#":63,
-        "Latitude":35.31445,
-        "Longitude":-120.65245,
-        "Pixel X":"1082.949 px",
-        "Pixel Y":"3129.032 px",
-        "Landmark":-1
-    },
-    {
-        "#":64,
-        "Latitude":35.31472,
-        "Longitude":-120.65231,
-        "Pixel X":"1258.065 px",
-        "Pixel Y":"2964.67 px",
-        "Landmark":-1
-    },
-    {
-        "#":65,
-        "Latitude":35.31487,
-        "Longitude":-120.65255,
-        "Pixel X":"1185.1 px",
-        "Pixel Y":"2858.679 px",
-        "Landmark":-1
-    },
-    {
-        "#":66,
-        "Latitude":35.31462,
-        "Longitude":-120.65249,
-        "Pixel X":"1146.697 px",
-        "Pixel Y":"2984.639 px",
-        "Landmark":-1
-    },
-    {
-        "#":67,
-        "Latitude":35.31483,
-        "Longitude":-120.65262,
-        "Pixel X":"1125.192 px",
-        "Pixel Y":"2864.055 px",
-        "Landmark":-1
-    },
-    {
-        "#":68,
-        "Latitude":35.31488,
-        "Longitude":-120.65274,
-        "Pixel X":"1082.949 px",
-        "Pixel Y":"2732.719 px",
-        "Landmark":-1
-    },
-    {
-        "#":69,
-        "Latitude":35.31491,
-        "Longitude":-120.65233,
-        "Pixel X":"1352 px",
-        "Pixel Y":"2839 px",
-        "Landmark":-1
-    },
-    {
-        "#":70,
-        "Latitude":35.31372,
-        "Longitude":-120.65168,
-        "Pixel X":"1266.513 px",
-        "Pixel Y":"3947.773 px",
-        "Landmark":-1
-    },
-    {
-        "#":71,
-        "Latitude":35.31391,
-        "Longitude":-120.65157,
-        "Pixel X":"1403.226 px",
-        "Pixel Y":"3839.478 px",
-        "Landmark":-1
-    },
-    {
-        "#":72,
-        "Latitude":35.31409,
-        "Longitude":-120.6515,
-        "Pixel X":"1538.402 px",
-        "Pixel Y":"3737.327 px",
-        "Landmark":-1
-    },
-    {
-        "#":73,
-        "Latitude":35.31425,
-        "Longitude":-120.6515,
-        "Pixel X":"1613.671 px",
-        "Pixel Y":"3627.496 px",
-        "Landmark":-1
-    },
-    {
-        "#":74,
-        "Latitude":35.31444,
-        "Longitude":-120.65163,
-        "Pixel X":"1620.584 px",
-        "Pixel Y":"3460.061 px",
-        "Landmark":-1
-    },
-    {
-        "#":75,
-        "Latitude":35.31455,
-        "Longitude":-120.65176,
-        "Pixel X":"1583.717 px",
-        "Pixel Y":"3303.379 px",
-        "Landmark":-1
-    },
-    {
-        "#":76,
-        "Latitude":35.31562,
-        "Longitude":-120.653,
-        "Pixel X":"1221.198 px",
-        "Pixel Y":"1983.871 px",
-        "Landmark":9
-    },
-    {
-        "#":77,
-        "Latitude":35.31513,
-        "Longitude":-120.65337,
-        "Pixel X":"738.095 px",
-        "Pixel Y":"2298.003 px",
-        "Landmark":-1
-    },
-    {
-        "#":78,
-        "Latitude":35.3153,
-        "Longitude":-120.65353,
-        "Pixel X":"751.152 px",
-        "Pixel Y":"2135.177 px",
-        "Landmark":-1
-    },
-    {
-        "#":79,
-        "Latitude":35.31604,
-        "Longitude":-120.65379,
-        "Pixel X":"879.416 px",
-        "Pixel Y":"1420.123 px",
-        "Landmark":-1
-    },
-    {
-        "#":80,
-        "Latitude":35.31647,
-        "Longitude":-120.65408,
-        "Pixel X":"854.071 px",
-        "Pixel Y":"857.911 px",
-        "Landmark":13
-    },
-    {
-        "#":81,
-        "Latitude":35.3137,
-        "Longitude":-120.65217,
-        "Pixel X":"972.35 px",
-        "Pixel Y":"3812.596 px",
-        "Landmark":-1
-    },
-    {
-        "#":82,
-        "Latitude":35.31692,
-        "Longitude":-120.65414,
-        "Pixel X":"1022.273 px",
-        "Pixel Y":"480.799 px",
-        "Landmark":15
-    },
-    {
-        "#":83,
-        "Latitude":35.317,
-        "Longitude":-120.6543,
-        "Pixel X":"951.613 px",
-        "Pixel Y":"354.839 px",
-        "Landmark":-1
-    },
-    {
-        "#":84,
-        "Latitude":35.31706,
-        "Longitude":-120.65446,
-        "Pixel X":"917.819 px",
-        "Pixel Y":"212.75 px",
-        "Landmark":-1
-    },
-    {
-        "#":85,
-        "Latitude":35.31715,
-        "Longitude":-120.65467,
-        "Pixel X":"927.803 px",
-        "Pixel Y":"109.831 px",
-        "Landmark":-1
-    },
-    {
-        "#":86,
-        "Latitude":35.31712,
-        "Longitude":-120.65475,
-        "Pixel X":"826.421 px",
-        "Pixel Y":"72.965 px",
-        "Landmark":-1
-    },
-    {
-        "#":87,
-        "Latitude":35.31702,
-        "Longitude":-120.65479,
-        "Pixel X":"692.78 px",
-        "Pixel Y":"97.542 px",
-        "Landmark":-1
-    },
-    {
-        "#":88,
-        "Latitude":35.31695,
-        "Longitude":-120.65524,
-        "Pixel X":"417.819 px",
-        "Pixel Y":"22.273 px",
-        "Landmark":17
-    },
-    {
-        "#":89,
-        "Latitude":35.31697,
-        "Longitude":-120.65482,
-        "Pixel X":"578.341 px",
-        "Pixel Y":"125.192 px",
-        "Landmark":-1
-    },
-    {
-        "#":90,
-        "Latitude":35.3165,
-        "Longitude":-120.65371,
-        "Pixel X":"1098.31 px",
-        "Pixel Y":"1023.81 px",
-        "Landmark":-1
-    },
-    {
-        "#":91,
-        "Latitude":35.31667,
-        "Longitude":-120.65463,
-        "Pixel X":"542.243 px",
-        "Pixel Y":"480.799 px",
-        "Landmark":18
-    },
-    {
-        "#":92,
-        "Latitude":35.31645,
-        "Longitude":-120.65453,
-        "Pixel X":"526.882 px",
-        "Pixel Y":"737.327 px",
-        "Landmark":-1
-    },
-    {
-        "#":93,
-        "Latitude":35.31621,
-        "Longitude":-120.65466,
-        "Pixel X":"314.9 px",
-        "Pixel Y":"919.355 px",
-        "Landmark":-1
-    },
-    {
-        "#":94,
-        "Latitude":35.31624,
-        "Longitude":-120.65431,
-        "Pixel X":"596.774 px",
-        "Pixel Y":"1024.578 px",
-        "Landmark":-1
-    },
-    {
-        "#":95,
-        "Latitude":35.31567,
-        "Longitude":-120.65431,
-        "Pixel X":"359.447 px",
-        "Pixel Y":"1523.81 px",
-        "Landmark":-1
-    },
-    {
-        "#":96,
-        "Latitude":35.31566,
-        "Longitude":-120.65339,
-        "Pixel X":"969.278 px",
-        "Pixel Y":"1849.462 px",
-        "Landmark":-1
-    },
-    {
-        "#":97,
-        "Latitude":35.31537,
-        "Longitude":-120.65305,
-        "Pixel X":"1052.227 px",
-        "Pixel Y":"2178.955 px",
-        "Landmark":-1
-    },
-    {
-        "#":98,
-        "Latitude":35.31548,
-        "Longitude":-120.65348,
-        "Pixel X":"845.622 px",
-        "Pixel Y":"1983.871 px",
-        "Landmark":-1
-    },
-    {
-        "#":99,
-        "Latitude":35.31625,
-        "Longitude":-120.65321,
-        "Pixel X":"1361.751 px",
-        "Pixel Y":"1472.35 px",
-        "Landmark":-1
-    },
-    {
-        "#":100,
-        "Latitude":35.31608,
-        "Longitude":-120.65303,
-        "Pixel X":"1390.169 px",
-        "Pixel Y":"1669.739 px",
-        "Landmark":-1
-    },
-    {
-        "#":101,
-        "Latitude":35.31683,
-        "Longitude":-120.65471,
-        "Pixel X":"589.862 px",
-        "Pixel Y":"333.333 px",
-        "Landmark":-1
-    },
-    {
-        "#":102,
-        "Latitude":35.31512,
-        "Longitude":-120.653,
-        "Pixel X":"993.088 px",
-        "Pixel Y":"2451.613 px",
-        "Landmark":-1
-    },
-    {
-        "#":103,
-        "Latitude":35.31514,
-        "Longitude":-120.65289,
-        "Pixel X":"1102.919 px",
-        "Pixel Y":"2451.613 px",
-        "Landmark":-1
-    },
-    {
-        "#":104,
-        "Latitude":35.31561,
-        "Longitude":-120.65291,
-        "Pixel X":"1264.209 px",
-        "Pixel Y":"2082.949 px",
-        "Landmark":-1
-    },
-    {
-        "#":105,
-        "Latitude":35.31559,
-        "Longitude":-120.65309,
-        "Pixel X":"1113.671 px",
-        "Pixel Y":"1990.015 px",
-        "Landmark":-1
-    },
-    {
-        "#":106,
-        "Latitude":35.31595,
-        "Longitude":-120.65474,
-        "Pixel X":"158.218 px",
-        "Pixel Y":"1111.367 px",
-        "Landmark":-1
-    },
-    {
-        "#":107,
-        "Latitude":35.31573,
-        "Longitude":-120.65392,
-        "Pixel X":"652.842 px",
-        "Pixel Y":"1652.074 px",
-        "Landmark":-1
-    },
-    {
-        "#":108,
-        "Latitude":35.31612,
-        "Longitude":-120.65382,
-        "Pixel X":"903.226 px",
-        "Pixel Y":"1330.261 px",
-        "Landmark":12
-    },
-    {
-        "#":109,
-        "Latitude":-35.31635,
-        "Longitude":-120.65371,
-        "Pixel X":"1068.356 px",
-        "Pixel Y":"1160.522 px",
-        "Landmark":-1
-    },
-    {
-        "#":110,
-        "Latitude":35.31596,
-        "Longitude":-120.6538,
-        "Pixel X":"840.246 px",
-        "Pixel Y":"1487.711 px",
-        "Landmark":-1
-    },
-    {
-        "#":111,
-        "Latitude":35.3158,
-        "Longitude":-120.65387,
-        "Pixel X":"711.982 px",
-        "Pixel Y":"1577.573 px",
-        "Landmark":-1
-    },
-    {
-        "#":112,
-        "Latitude":35.31623,
-        "Longitude":-120.65407,
-        "Pixel X":"770.353 px",
-        "Pixel Y":"1129.8 px",
-        "Landmark":-1
-    },
-    {
-        "#":113,
-        "Latitude":35.3164,
-        "Longitude":-120.65414,
-        "Pixel X":"780.338 px",
-        "Pixel Y":"947.005 px",
-        "Landmark":20
-    },
-    {
-        "#":114,
-        "Latitude":35.31629,
-        "Longitude":-120.65343,
-        "Pixel X":"1182.028 px",
-        "Pixel Y":"1305.684 px",
-        "Landmark":-1
-    },
-    {
-        "#":115,
-        "Latitude":35.31537,
-        "Longitude":-120.6536,
-        "Pixel X":"730.415 px",
-        "Pixel Y":"2046.083 px",
-        "Landmark":-1
-    },
-    {
-        "#":116,
-        "Latitude":35.31536,
-        "Longitude":-120.65341,
-        "Pixel X":"845.622 px",
-        "Pixel Y":"2120.584 px",
-        "Landmark":-1
-    },
-    {
-        "#":117,
-        "Latitude":35.31562,
-        "Longitude":-120.65374,
-        "Pixel X":"742.704 px",
-        "Pixel Y":"1797.235 px",
-        "Landmark":-1
-    },
-    {
-        "#":118,
-        "Latitude":35.3155,
-        "Longitude":-120.65381,
-        "Pixel X":"641.321 px",
-        "Pixel Y":"1856.375 px",
-        "Landmark":-1
-    },
-    {
-        "#":119,
-        "Latitude":35.31534,
-        "Longitude":-120.65364,
-        "Pixel X":"669.739 px",
-        "Pixel Y":"2070.661 px",
-        "Landmark":-1
-    },
-    {
-        "#":120,
-        "Latitude":35.31692,
-        "Longitude":-120.65492,
-        "Pixel X":"452.381 px",
-        "Pixel Y":"125.192 px",
-        "Landmark":-1
-    },
-    {
-        "#":121,
-        "Latitude":35.31526,
-        "Longitude":-120.65364,
-        "Pixel X":"674.347 px",
-        "Pixel Y":"2158.218 px",
-        "Landmark":-1
-    },
-    {
-        "#":122,
-        "Latitude":35.31486,
-        "Longitude":-120.65255,
-        "Pixel X":"1194.316 px",
-        "Pixel Y":"2784.178 px",
-        "Landmark":-1
-    },
-    {
-        "#":123,
-        "Latitude":35.31471,
-        "Longitude":-120.65268,
-        "Pixel X":"1054.531 px",
-        "Pixel Y":"2903.994 px",
-        "Landmark":-1
-    },
-    {
-        "#":124,
-        "Latitude":35.31294,
-        "Longitude":-120.65207,
-        "Pixel X":"-499.232 px",
-        "Pixel Y":"-499.232 px",
-        "Landmark":-1
-    },
-    {
-        "#":125,
-        "Latitude":35.31313,
-        "Longitude":-120.65196,
-        "Pixel X":"-499.232 px",
-        "Pixel Y":"-499.232 px",
-        "Landmark":-1
-    },
-    {
-        "#":126,
-        "Latitude":35.31326,
-        "Longitude":-120.6519,
-        "Pixel X":"-499.232 px",
-        "Pixel Y":"-499.232 px",
-        "Landmark":-1
-    },
-    {
-        "#":127,
-        "Latitude":35.3126,
-        "Longitude":-120.6519,
-        "Pixel X":"-499.232 px",
-        "Pixel Y":"-499.232 px",
-        "Landmark":-1
-    },
-    {
-        "#":128,
-        "Latitude":35.31522,
-        "Longitude":-120.65375,
-        "Pixel X":"618.28 px",
-        "Pixel Y":"2188.172 px",
-        "Landmark":26
-    },
-    {
-        "#":129,
-        "Latitude":35.3152,
-        "Longitude":-120.65362,
-        "Pixel X":"634.409 px",
-        "Pixel Y":"2264.209 px",
-        "Landmark":-1
-    },
-    {
-        "#":130,
-        "Latitude":35.31673,
-        "Longitude":-120.65391,
-        "Pixel X":"1082.181 px",
-        "Pixel Y":"762.673 px",
-        "Landmark":14
-    },
-    {
-        "#":131,
-        "Latitude":35.31664,
-        "Longitude":-120.6545,
-        "Pixel X":"652.842 px",
-        "Pixel Y":"552.995 px",
-        "Landmark":-1
-    },
-    {
-        "#":132,
-        "Latitude":35.31699,
-        "Longitude":-120.65443,
-        "Pixel X":"858.679 px",
-        "Pixel Y":"333.333 px",
-        "Landmark":16
-    },
-    {
-        "#":133,
-        "Latitude":35.31628,
-        "Longitude":-120.65376,
-        "Pixel X":"1035.33 px",
-        "Pixel Y":"1231.183 px",
-        "Landmark":-1
-    },
-    {
-        "#":134,
-        "Latitude":35.31614,
-        "Longitude":-120.65309,
-        "Pixel X":"1390.169 px",
-        "Pixel Y":"1585.253 px",
-        "Landmark":-1
-    },
-    {
-        "#":135,
-        "Latitude":35.316,
-        "Longitude":-120.65298,
-        "Pixel X":"1394.777 px",
-        "Pixel Y":"1758.065 px",
-        "Landmark":-1
-    },
-    {
-        "#":136,
-        "Latitude":35.3157,
-        "Longitude":-120.6529,
-        "Pixel X":"1321.813 px",
-        "Pixel Y":"2010.753 px",
-        "Landmark":-1
-    },
-    {
-        "#":137,
-        "Latitude":35.31578,
-        "Longitude":-120.65266,
-        "Pixel X":"1500.0 px",
-        "Pixel Y":"2033.794 px",
-        "Landmark":-1
-    },
-    {
-        "#":138,
-        "Latitude":35.31563,
-        "Longitude":-120.65381,
-        "Pixel X":"707.373 px",
-        "Pixel Y":"1768.817 px",
-        "Landmark":-1
-    },
-    {
-        "#":139,
-        "Latitude":35.31594,
-        "Longitude":-120.65408,
-        "Pixel X":"644.393 px",
-        "Pixel Y":"1403.226 px",
-        "Landmark":-1
-    },
-    {
-        "#":140,
-        "Latitude":35.31579,
-        "Longitude":-120.65397,
-        "Pixel X":"644.393 px",
-        "Pixel Y":"1562.98 px",
-        "Landmark":-1
-    },
-    {
-        "#":141,
-        "Latitude":35.31575,
-        "Longitude":-120.65435,
-        "Pixel X":"359.447 px",
-        "Pixel Y":"1448.541 px",
-        "Landmark":-1
-    },
-    {
-        "#":142,
-        "Latitude":35.31592,
-        "Longitude":-120.65418,
-        "Pixel X":"578.341 px",
-        "Pixel Y":"1350.23 px",
-        "Landmark":-1
-    },
-    {
-        "#":143,
-        "Latitude":35.31582,
-        "Longitude":-120.65413,
-        "Pixel X":"583.717 px",
-        "Pixel Y":"1470.814 px",
-        "Landmark":-1
-    },
-    {
-        "#":144,
-        "Latitude":35.31608,
-        "Longitude":-120.65423,
-        "Pixel X":"595.238 px",
-        "Pixel Y":"1216.59 px",
-        "Landmark":-1
-    },
-    {
-        "#":145,
-        "Latitude":35.31637,
-        "Longitude":-120.65356,
-        "Pixel X":"1179.724 px",
-        "Pixel Y":"1247.312 px",
-        "Landmark":-1
-    },
-    {
-        "#":146,
-        "Latitude":35.31587,
-        "Longitude":-120.65471,
-        "Pixel X":"142.089 px",
-        "Pixel Y":"1209.677 px",
-        "Landmark":-1
-    },
-    {
-        "#":147,
-        "Latitude":35.31574,
-        "Longitude":-120.65459,
-        "Pixel X":"192.78 px",
-        "Pixel Y":"1382.488 px",
-        "Landmark":-1
-    },
-    {
-        "#":148,
-        "Latitude":35.31656,
-        "Longitude":-120.65383,
-        "Pixel X":"1089.862 px",
-        "Pixel Y":"953.149 px",
-        "Landmark":-1
-    },
-    {
-        "#":149,
-        "Latitude":35.31646,
-        "Longitude":-120.65411,
-        "Pixel X":"817.972 px",
-        "Pixel Y":"897.081 px",
-        "Landmark":-1
-    },
-    {
-        "#":150,
-        "Latitude":35.31598,
-        "Longitude":-120.65473,
-        "Pixel X":"192.78 px",
-        "Pixel Y":"1062.98 px",
-        "Landmark":-1
-    },
-    {
-        "#":151,
-        "Latitude":35.31614,
-        "Longitude":-120.65469,
-        "Pixel X":"269.585 px",
-        "Pixel Y":"960.061 px",
-        "Landmark":-1
-    },
-    {
-        "#":152,
-        "Latitude":35.31626,
-        "Longitude":-120.65463,
-        "Pixel X":"371.736 px",
-        "Pixel Y":"876.344 px",
-        "Landmark":-1
-    },
-    {
-        "#":153,
-        "Latitude":35.31639,
-        "Longitude":-120.65456,
-        "Pixel X":"479.263 px",
-        "Pixel Y":"782.642 px",
-        "Landmark":-1
-    },
-    {
-        "#":154,
-        "Latitude":35.31652,
-        "Longitude":-120.65451,
-        "Pixel X":"578.341 px",
-        "Pixel Y":"688.94 px",
-        "Landmark":-1
-    },
-    {
-        "#":155,
-        "Latitude":35.31651,
-        "Longitude":-120.65443,
-        "Pixel X":"636.713 px",
-        "Pixel Y":"743.472 px",
-        "Landmark":-1
-    },
-    {
-        "#":156,
-        "Latitude":35.31705,
-        "Longitude":-120.65443,
-        "Pixel X":"888.633 px",
-        "Pixel Y":"279.57 px",
-        "Landmark":-1
-    },
-    {
-        "#":157,
-        "Latitude":35.31559,
-        "Longitude":-120.65408,
-        "Pixel X":"479.263 px",
-        "Pixel Y":"1688.172 px",
-        "Landmark":-1
-    },
-    {
-        "#":158,
-        "Latitude":35.31553,
-        "Longitude":-120.65354,
-        "Pixel X":"827.189 px",
-        "Pixel Y":"1927.803 px",
-        "Landmark":-1
-    },
-    {
-        "#":159,
-        "Latitude":35.3164,
-        "Longitude":-120.6542,
-        "Pixel X":"726.575 px",
-        "Pixel Y":"922.427 px",
-        "Landmark":-1
-    },
-    {
-        "#":160,
-        "Latitude":35.31564,
-        "Longitude":-120.65398,
-        "Pixel X":"569.124 px",
-        "Pixel Y":"1687.404 px",
-        "Landmark":-1
-    },
-    {
-        "#":161,
-        "Latitude":35.31483,
-        "Longitude":-120.6528,
-        "Pixel X":"1019.201 px",
-        "Pixel Y":"2728.111 px",
-        "Landmark":-1
-    },
-    {
-        "#":162,
-        "Latitude":35.3155,
-        "Longitude":-120.65292,
-        "Pixel X":"1223.502 px",
-        "Pixel Y":"2136.713 px",
-        "Landmark":-1
-    },
-    {
-        "#":163,
-        "Latitude":35.31522,
-        "Longitude":-120.65291,
-        "Pixel X":"1109.063 px",
-        "Pixel Y":"2390.937 px",
-        "Landmark":-1
-    },
-    {
-        "#":164,
-        "Latitude":35.31509,
-        "Longitude":-120.65293,
-        "Pixel X":"1048.387 px",
-        "Pixel Y":"2506.912 px",
-        "Landmark":-1
-    },
-    {
-        "#":165,
-        "Latitude":35.31497,
-        "Longitude":-120.65273,
-        "Pixel X":"1127.496 px",
-        "Pixel Y":"2652.842 px",
-        "Landmark":-1
-    },
-    {
-        "#":166,
-        "Latitude":35.31493,
-        "Longitude":-120.65283,
-        "Pixel X":"1056.068 px",
-        "Pixel Y":"2650.538 px",
-        "Landmark":-1
-    },
-    {
-        "#":167,
-        "Latitude":35.31378,
-        "Longitude":-120.65222,
-        "Pixel X":"961.598 px",
-        "Pixel Y":"3731.951 px",
-        "Landmark":-1
-    },
-    {
-        "#":168,
-        "Latitude":35.31399,
-        "Longitude":-120.65226,
-        "Pixel X":"1009.985 px",
-        "Pixel Y":"3575.269 px",
-        "Landmark":-1
-    },
-    {
-        "#":169,
-        "Latitude":35.31457,
-        "Longitude":-120.65183,
-        "Pixel X":"1548.387 px",
-        "Pixel Y":"3266.513 px",
-        "Landmark":-1
-    },
-    {
-        "#":170,
-        "Latitude":35.31396,
-        "Longitude":-120.65156,
-        "Pixel X":"1479.263 px",
-        "Pixel Y":"3797.235 px",
-        "Landmark":-1
-    },
-    {
-        "#":171,
-        "Latitude":35.31355,
-        "Longitude":-120.65179,
-        "Pixel X":"1159.754 px",
-        "Pixel Y":"4056.068 px",
-        "Landmark":-1
-    },
-    {
-        "#":172,
-        "Latitude":35.31363,
-        "Longitude":-120.65172,
-        "Pixel X":"1219.662 px",
-        "Pixel Y":"4003.072 px",
-        "Landmark":-1
-    },
-    {
-        "#":173,
-        "Latitude":35.31381,
-        "Longitude":-120.65165,
-        "Pixel X":"1338.71 px",
-        "Pixel Y":"3885.561 px",
-        "Landmark":-1
-    },
-    {
-        "#":174,
-        "Latitude":35.31414,
-        "Longitude":-120.65149,
-        "Pixel X":"1586.79 px",
-        "Pixel Y":"3694.316 px",
-        "Landmark":-1
-    },
-    {
-        "#":175,
-        "Latitude":35.31462,
-        "Longitude":-120.65212,
-        "Pixel X":"1377.112 px",
-        "Pixel Y":"3122.888 px",
-        "Landmark":-1
-    },
-    {
-        "#":176,
-        "Latitude":35.3146,
-        "Longitude":-120.65203,
-        "Pixel X":"1415.515 px",
-        "Pixel Y":"3160.522 px",
-        "Landmark":-1
-    },
-    {
-        "#":177,
-        "Latitude":35.31467,
-        "Longitude":-120.65273,
-        "Pixel X":"1003.84 px",
-        "Pixel Y":"2956.989 px",
-        "Landmark":-1
-    },
-    {
-        "#":178,
-        "Latitude":35.31462,
-        "Longitude":-120.65271,
-        "Pixel X":"977.727 px",
-        "Pixel Y":"3022.273 px",
-        "Landmark":-1
-    },
-    {
-        "#":179,
-        "Latitude":35.31437,
-        "Longitude":-120.65233,
-        "Pixel X":"1130.568 px",
-        "Pixel Y":"3237.327 px",
-        "Landmark":-1
-    },
-    {
-        "#":180,
-        "Latitude":35.3142,
-        "Longitude":-120.6523,
-        "Pixel X":"1093.702 px",
-        "Pixel Y":"3390.169 px",
-        "Landmark":-1
-    },
-    {
-        "#":181,
-        "Latitude":35.31439,
-        "Longitude":-120.65211,
-        "Pixel X":"1288.018 px",
-        "Pixel Y":"3323.349 px",
-        "Landmark":-1
-    },
-    {
-        "#":182,
-        "Latitude":35.31452,
-        "Longitude":-120.65271,
-        "Pixel X":"943.932 px",
-        "Pixel Y":"3085.253 px",
-        "Landmark":-1
-    },
-    {
-        "#":183,
-        "Latitude":35.31446,
-        "Longitude":-120.65165,
-        "Pixel X":"1613.671 px",
-        "Pixel Y":"3400.922 px",
-        "Landmark":-1
-    },
-    {
-        "#":184,
-        "Latitude":35.31433,
-        "Longitude":-120.65156,
-        "Pixel X":"1620.584 px",
-        "Pixel Y":"3552.995 px",
-        "Landmark":-1
-    },
-    {
-        "#":185,
-        "Latitude":35.31552,
-        "Longitude":-120.65303,
-        "Pixel X":"1158.218 px",
-        "Pixel Y":"2118.28 px",
-        "Landmark":-1
-    },
-    {
-        "#":186,
-        "Latitude":35.31563,
-        "Longitude":-120.65352,
-        "Pixel X":"913.21 px",
-        "Pixel Y":"1874.04 px",
-        "Landmark":-1
-    },
-    {
-        "#":187,
-        "Latitude":35.31542,
-        "Longitude":-120.65322,
-        "Pixel X":"988.479 px",
-        "Pixel Y":"2132.873 px",
-        "Landmark":-1
-    },
-    {
-        "#":188,
-        "Latitude":35.31357,
-        "Longitude":-120.65197,
-        "Pixel X":"1031.49 px",
-        "Pixel Y":"3990.783 px",
-        "Landmark":-1
-    },
-    {
-        "#":189,
-        "Latitude":35.31514,
-        "Longitude":-120.65313,
-        "Pixel X":"942.396 px",
-        "Pixel Y":"2394.777 px",
-        "Landmark":-1
-    },
-    {
-        "#":190,
-        "Latitude":35.3154,
-        "Longitude":-120.65295,
-        "Pixel X":"1155.146 px",
-        "Pixel Y":"2249.616 px",
-        "Landmark":-1
-    },
-    {
-        "#":191,
-        "Latitude":35.31482,
-        "Longitude":-120.65232,
-        "Pixel X":"1311.06 px",
-        "Pixel Y":"2888.633 px",
-        "Landmark":-1
-    },
-    {
-        "#":192,
-        "Latitude":35.3151,
-        "Longitude":-120.65237,
-        "Pixel X":"1415.515 px",
-        "Pixel Y":"2686.636 px",
-        "Landmark":-1
-    },
-    {
-        "#":193,
-        "Latitude":35.31533,
-        "Longitude":-120.65246,
-        "Pixel X":"1437.02 px",
-        "Pixel Y":"2451.613 px",
-        "Landmark":-1
-    },
-    {
-        "#":194,
-        "Latitude":35.31522,
-        "Longitude":-120.65249,
-        "Pixel X":"1509.985 px",
-        "Pixel Y":"2299.539 px",
-        "Landmark":-1
-    },
-    {
-        "#":195,
-        "Latitude":35.31685,
-        "Longitude":-120.65405,
-        "Pixel X":"1056.068 px",
-        "Pixel Y":"572.197 px",
-        "Landmark":-1
-    },
-    {
-        "#":196,
-        "Latitude":35.31541,
-        "Longitude":-120.65263,
-        "Pixel X":"1354 px",
-        "Pixel Y":"2349 px",
-        "Landmark":7
-    },
-    {
-        "#":197,
-        "Latitude":35.31451,
-        "Longitude":-120.65167,
-        "Pixel X":"1607 px",
-        "Pixel Y":"3361 px",
-        "Landmark":30
-    }
+  {
+    "number": 1,
+    "latitude": 35.31349,
+    "longitude": -120.65192,
+    "pixelX": "1018.433 px",
+    "pixelY": "4046.083 px",
+    "landmark": 1
+  },
+  {
+    "number": 2,
+    "latitude": 35.31361,
+    "longitude": -120.65201,
+    "pixelX": "1016.897 px",
+    "pixelY": "3910.138 px",
+    "landmark": -1
+  },
+  {
+    "number": 3,
+    "latitude": 35.31385,
+    "longitude": -120.65222,
+    "pixelX": "976.19 px",
+    "pixelY": "3642.857 px",
+    "landmark": 2
+  },
+  {
+    "number": 4,
+    "latitude": 35.31405,
+    "longitude": -120.6523,
+    "pixelX": "1016.897 px",
+    "pixelY": "3497.696 px",
+    "landmark": -1
+  },
+  {
+    "number": 5,
+    "latitude": 35.31435,
+    "longitude": -120.65245,
+    "pixelX": "1051.459 px",
+    "pixelY": "3210.445 px",
+    "landmark": -1
+  },
+  {
+    "number": 6,
+    "latitude": 35.31462,
+    "longitude": -120.65247,
+    "pixelX": "1116.743 px",
+    "pixelY": "3053.763 px",
+    "landmark": -1
+  },
+  {
+    "number": 7,
+    "latitude": 35.31475,
+    "longitude": -120.65242,
+    "pixelX": "1223.502 px",
+    "pixelY": "2889.401 px",
+    "landmark": -1
+  },
+  {
+    "number": 8,
+    "latitude": 35.31467,
+    "longitude": -120.65221,
+    "pixelX": "1287.25 px",
+    "pixelY": "2976.959 px",
+    "landmark": -1
+  },
+  {
+    "number": 9,
+    "latitude": 35.3146,
+    "longitude": -120.65197,
+    "pixelX": "1453.149 px",
+    "pixelY": "3198.925 px",
+    "landmark": -1
+  },
+  {
+    "number": 10,
+    "latitude": 35.31502,
+    "longitude": -120.65234,
+    "pixelX": "1394.009 px",
+    "pixelY": "2750.384 px",
+    "landmark": 5
+  },
+  {
+    "number": 11,
+    "latitude": 35.31523,
+    "longitude": -120.6524,
+    "pixelX": "1432.412 px",
+    "pixelY": "2560.676 px",
+    "landmark": 6
+  },
+  {
+    "number": 12,
+    "latitude": 35.31544,
+    "longitude": -120.65247,
+    "pixelX": "1472.35 px",
+    "pixelY": "2359.447 px",
+    "landmark": -1
+  },
+  {
+    "number": 13,
+    "latitude": 35.31566,
+    "longitude": -120.6525,
+    "pixelX": "1554.531 px",
+    "pixelY": "2188.172 px",
+    "landmark": 8
+  },
+  {
+    "number": 14,
+    "latitude": 35.31576,
+    "longitude": -120.65285,
+    "pixelX": "1373.272 px",
+    "pixelY": "1953.917 px",
+    "landmark": -1
+  },
+  {
+    "number": 15,
+    "latitude": 35.3159,
+    "longitude": -120.6529,
+    "pixelX": "1389.143 px",
+    "pixelY": "1856.596 px",
+    "landmark": -1
+  },
+  {
+    "number": 16,
+    "latitude": 35.31626,
+    "longitude": -120.65302,
+    "pixelX": "1483.103 px",
+    "pixelY": "1481.567 px",
+    "landmark": 10
+  },
+  {
+    "number": 17,
+    "latitude": 35.31627,
+    "longitude": -120.65332,
+    "pixelX": "1265.745 px",
+    "pixelY": "1380.952 px",
+    "landmark": -1
+  },
+  {
+    "number": 18,
+    "latitude": 35.31644,
+    "longitude": -120.65363,
+    "pixelX": "1145.161 px",
+    "pixelY": "1124.424 px",
+    "landmark": -1
+  },
+  {
+    "number": 19,
+    "latitude": 35.31619,
+    "longitude": -120.65376,
+    "pixelX": "976.19 px",
+    "pixelY": "1274.194 px",
+    "landmark": 12
+  },
+  {
+    "number": 20,
+    "latitude": 35.31587,
+    "longitude": -120.65383,
+    "pixelX": "770.353 px",
+    "pixelY": "1537.634 px",
+    "landmark": 23
+  },
+  {
+    "number": 21,
+    "latitude": 35.31663,
+    "longitude": -120.65382,
+    "pixelX": "1092.934 px",
+    "pixelY": "857.911 px",
+    "landmark": 14
+  },
+  {
+    "number": 22,
+    "latitude": 35.31678,
+    "longitude": -120.65396,
+    "pixelX": "1056.836 px",
+    "pixelY": "665.899 px",
+    "landmark": -1
+  },
+  {
+    "number": 23,
+    "latitude": 35.31473,
+    "longitude": -120.65281,
+    "pixelX": "965.438 px",
+    "pixelY": "2858.679 px",
+    "landmark": 29
+  },
+  {
+    "number": 24,
+    "latitude": 35.31695,
+    "longitude": -120.65449,
+    "pixelX": "764.977 px",
+    "pixelY": "306.452 px",
+    "landmark": 16
+  },
+  {
+    "number": 25,
+    "latitude": 35.31686,
+    "longitude": -120.65477,
+    "pixelX": "517.665 px",
+    "pixelY": "236.559 px",
+    "landmark": -1
+  },
+  {
+    "number": 26,
+    "latitude": 35.31675,
+    "longitude": -120.65457,
+    "pixelX": "629.032 px",
+    "pixelY": "424.731 px",
+    "landmark": 18
+  },
+  {
+    "number": 27,
+    "latitude": 35.31658,
+    "longitude": -120.65447,
+    "pixelX": "617.512 px",
+    "pixelY": "629.8 px",
+    "landmark": -1
+  },
+  {
+    "number": 28,
+    "latitude": 35.31624,
+    "longitude": -120.65463,
+    "pixelX": "418.587 px",
+    "pixelY": "835.637 px",
+    "landmark": -1
+  },
+  {
+    "number": 29,
+    "latitude": 35.31602,
+    "longitude": -120.65473,
+    "pixelX": "218.894 px",
+    "pixelY": "1016.129 px",
+    "landmark": -1
+  },
+  {
+    "number": 30,
+    "latitude": 35.31578,
+    "longitude": -120.65465,
+    "pixelX": "151.306 px",
+    "pixelY": "1276.498 px",
+    "landmark": -1
+  },
+  {
+    "number": 31,
+    "latitude": 35.31571,
+    "longitude": -120.65442,
+    "pixelX": "277.266 px",
+    "pixelY": "1426.267 px",
+    "landmark": -1
+  },
+  {
+    "number": 32,
+    "latitude": 35.31582,
+    "longitude": -120.65424,
+    "pixelX": "492.32 px",
+    "pixelY": "1420.123 px",
+    "landmark": 22
+  },
+  {
+    "number": 33,
+    "latitude": 35.31598,
+    "longitude": -120.65413,
+    "pixelX": "622.888 px",
+    "pixelY": "1307.22 px",
+    "landmark": -1
+  },
+  {
+    "number": 34,
+    "latitude": 35.31617,
+    "longitude": -120.65428,
+    "pixelX": "586.79 px",
+    "pixelY": "1122.888 px",
+    "landmark": -1
+  },
+  {
+    "number": 35,
+    "latitude": 35.31639,
+    "longitude": -120.65437,
+    "pixelX": "636.713 px",
+    "pixelY": "850.998 px",
+    "landmark": 19
+  },
+  {
+    "number": 36,
+    "latitude": 35.31631,
+    "longitude": -120.65407,
+    "pixelX": "794.163 px",
+    "pixelY": "1036.098 px",
+    "landmark": 20
+  },
+  {
+    "number": 37,
+    "latitude": 35.31611,
+    "longitude": -120.65408,
+    "pixelX": "704.301 px",
+    "pixelY": "1218.894 px",
+    "landmark": 21
+  },
+  {
+    "number": 38,
+    "latitude": 35.31585,
+    "longitude": -120.65401,
+    "pixelX": "641.321 px",
+    "pixelY": "1481.567 px",
+    "landmark": -1
+  },
+  {
+    "number": 39,
+    "latitude": 35.31567,
+    "longitude": -120.65414,
+    "pixelX": "470.814 px",
+    "pixelY": "1598.31 px",
+    "landmark": -1
+  },
+  {
+    "number": 40,
+    "latitude": 35.31565,
+    "longitude": -120.65391,
+    "pixelX": "623.656 px",
+    "pixelY": "1719.662 px",
+    "landmark": -1
+  },
+  {
+    "number": 41,
+    "latitude": 35.3156,
+    "longitude": -120.65357,
+    "pixelX": "830.261 px",
+    "pixelY": "1857.911 px",
+    "landmark": -1
+  },
+  {
+    "number": 42,
+    "latitude": 35.31566,
+    "longitude": -120.65323,
+    "pixelX": "1061.444 px",
+    "pixelY": "1931.644 px",
+    "landmark": -1
+  },
+  {
+    "number": 43,
+    "latitude": 35.31542,
+    "longitude": -120.65335,
+    "pixelX": "903.994 px",
+    "pixelY": "2082.949 px",
+    "landmark": -1
+  },
+  {
+    "number": 44,
+    "latitude": 35.31514,
+    "longitude": -120.65373,
+    "pixelX": "540.707 px",
+    "pixelY": "2189.708 px",
+    "landmark": -1
+  },
+  {
+    "number": 45,
+    "latitude": 35.31538,
+    "longitude": -120.65372,
+    "pixelX": "634.409 px",
+    "pixelY": "1974.654 px",
+    "landmark": -1
+  },
+  {
+    "number": 46,
+    "latitude": 35.31516,
+    "longitude": -120.65325,
+    "pixelX": "841.782 px",
+    "pixelY": "2335.637 px",
+    "landmark": -1
+  },
+  {
+    "number": 47,
+    "latitude": 35.31528,
+    "longitude": -120.65293,
+    "pixelX": "1117.512 px",
+    "pixelY": "2318.74 px",
+    "landmark": -1
+  },
+  {
+    "number": 48,
+    "latitude": 35.3155,
+    "longitude": -120.65297,
+    "pixelX": "1179.724 px",
+    "pixelY": "2188.172 px",
+    "landmark": -1
+  },
+  {
+    "number": 49,
+    "latitude": 35.31505,
+    "longitude": -120.65283,
+    "pixelX": "1096.006 px",
+    "pixelY": "2565.284 px",
+    "landmark": 28
+  },
+  {
+    "number": 50,
+    "latitude": 35.31475,
+    "longitude": -120.65275,
+    "pixelX": "1070.661 px",
+    "pixelY": "2812.596 px",
+    "landmark": 29
+  },
+  {
+    "number": 51,
+    "latitude": 35.3149,
+    "longitude": -120.65262,
+    "pixelX": "1152.842 px",
+    "pixelY": "2701.997 px",
+    "landmark": -1
+  },
+  {
+    "number": 52,
+    "latitude": 35.31426,
+    "longitude": -120.65221,
+    "pixelX": "1172.811 px",
+    "pixelY": "3365.591 px",
+    "landmark": 3
+  },
+  {
+    "number": 53,
+    "latitude": 35.31452,
+    "longitude": -120.65202,
+    "pixelX": "1387.865 px",
+    "pixelY": "3236.559 px",
+    "landmark": 4
+  },
+  {
+    "number": 54,
+    "latitude": 35.31534,
+    "longitude": -120.65278,
+    "pixelX": "1266 px",
+    "pixelY": "2352 px",
+    "landmark": 7
+  },
+  {
+    "number": 55,
+    "latitude": 35.3152,
+    "longitude": -120.65308,
+    "pixelX": "1002.304 px",
+    "pixelY": "2331.029 px",
+    "landmark": 27
+  },
+  {
+    "number": 56,
+    "latitude": 35.31552,
+    "longitude": -120.65366,
+    "pixelX": "727.343 px",
+    "pixelY": "1933.18 px",
+    "landmark": 25
+  },
+  {
+    "number": 57,
+    "latitude": 35.31547,
+    "longitude": -120.65388,
+    "pixelX": "526.882 px",
+    "pixelY": "1811.06 px",
+    "landmark": 24
+  },
+  {
+    "number": 58,
+    "latitude": 35.31631,
+    "longitude": -120.65362,
+    "pixelX": "1097.542 px",
+    "pixelY": "1246.544 px",
+    "landmark": 11
+  },
+  {
+    "number": 59,
+    "latitude": 35.31658,
+    "longitude": -120.65397,
+    "pixelX": "997.696 px",
+    "pixelY": "876.344 px",
+    "landmark": 13
+  },
+  {
+    "number": 60,
+    "latitude": 35.31495,
+    "longitude": -120.6529,
+    "pixelX": "947.773 px",
+    "pixelY": "2617.512 px",
+    "landmark": 28
+  },
+  {
+    "number": 61,
+    "latitude": 35.31415,
+    "longitude": -120.65236,
+    "pixelX": "1016.897 px",
+    "pixelY": "3402.458 px",
+    "landmark": -1
+  },
+  {
+    "number": 62,
+    "latitude": 35.31424,
+    "longitude": -120.6524,
+    "pixelX": "1026.882 px",
+    "pixelY": "3296.467 px",
+    "landmark": -1
+  },
+  {
+    "number": 63,
+    "latitude": 35.31445,
+    "longitude": -120.65245,
+    "pixelX": "1082.949 px",
+    "pixelY": "3129.032 px",
+    "landmark": -1
+  },
+  {
+    "number": 64,
+    "latitude": 35.31472,
+    "longitude": -120.65231,
+    "pixelX": "1258.065 px",
+    "pixelY": "2964.67 px",
+    "landmark": -1
+  },
+  {
+    "number": 65,
+    "latitude": 35.31487,
+    "longitude": -120.65255,
+    "pixelX": "1185.1 px",
+    "pixelY": "2858.679 px",
+    "landmark": -1
+  },
+  {
+    "number": 66,
+    "latitude": 35.31462,
+    "longitude": -120.65249,
+    "pixelX": "1146.697 px",
+    "pixelY": "2984.639 px",
+    "landmark": -1
+  },
+  {
+    "number": 67,
+    "latitude": 35.31483,
+    "longitude": -120.65262,
+    "pixelX": "1125.192 px",
+    "pixelY": "2864.055 px",
+    "landmark": -1
+  },
+  {
+    "number": 68,
+    "latitude": 35.31488,
+    "longitude": -120.65274,
+    "pixelX": "1082.949 px",
+    "pixelY": "2732.719 px",
+    "landmark": -1
+  },
+  {
+    "number": 69,
+    "latitude": 35.31491,
+    "longitude": -120.65233,
+    "pixelX": "1352 px",
+    "pixelY": "2839 px",
+    "landmark": -1
+  },
+  {
+    "number": 70,
+    "latitude": 35.31372,
+    "longitude": -120.65168,
+    "pixelX": "1266.513 px",
+    "pixelY": "3947.773 px",
+    "landmark": -1
+  },
+  {
+    "number": 71,
+    "latitude": 35.31391,
+    "longitude": -120.65157,
+    "pixelX": "1403.226 px",
+    "pixelY": "3839.478 px",
+    "landmark": -1
+  },
+  {
+    "number": 72,
+    "latitude": 35.31409,
+    "longitude": -120.6515,
+    "pixelX": "1538.402 px",
+    "pixelY": "3737.327 px",
+    "landmark": -1
+  },
+  {
+    "number": 73,
+    "latitude": 35.31425,
+    "longitude": -120.6515,
+    "pixelX": "1613.671 px",
+    "pixelY": "3627.496 px",
+    "landmark": -1
+  },
+  {
+    "number": 74,
+    "latitude": 35.31444,
+    "longitude": -120.65163,
+    "pixelX": "1620.584 px",
+    "pixelY": "3460.061 px",
+    "landmark": -1
+  },
+  {
+    "number": 75,
+    "latitude": 35.31455,
+    "longitude": -120.65176,
+    "pixelX": "1583.717 px",
+    "pixelY": "3303.379 px",
+    "landmark": -1
+  },
+  {
+    "number": 76,
+    "latitude": 35.31562,
+    "longitude": -120.653,
+    "pixelX": "1221.198 px",
+    "pixelY": "1983.871 px",
+    "landmark": 9
+  },
+  {
+    "number": 77,
+    "latitude": 35.31513,
+    "longitude": -120.65337,
+    "pixelX": "738.095 px",
+    "pixelY": "2298.003 px",
+    "landmark": -1
+  },
+  {
+    "number": 78,
+    "latitude": 35.3153,
+    "longitude": -120.65353,
+    "pixelX": "751.152 px",
+    "pixelY": "2135.177 px",
+    "landmark": -1
+  },
+  {
+    "number": 79,
+    "latitude": 35.31604,
+    "longitude": -120.65379,
+    "pixelX": "879.416 px",
+    "pixelY": "1420.123 px",
+    "landmark": -1
+  },
+  {
+    "number": 80,
+    "latitude": 35.31647,
+    "longitude": -120.65408,
+    "pixelX": "854.071 px",
+    "pixelY": "857.911 px",
+    "landmark": 13
+  },
+  {
+    "number": 81,
+    "latitude": 35.3137,
+    "longitude": -120.65217,
+    "pixelX": "972.35 px",
+    "pixelY": "3812.596 px",
+    "landmark": -1
+  },
+  {
+    "number": 82,
+    "latitude": 35.31692,
+    "longitude": -120.65414,
+    "pixelX": "1022.273 px",
+    "pixelY": "480.799 px",
+    "landmark": 15
+  },
+  {
+    "number": 83,
+    "latitude": 35.317,
+    "longitude": -120.6543,
+    "pixelX": "951.613 px",
+    "pixelY": "354.839 px",
+    "landmark": -1
+  },
+  {
+    "number": 84,
+    "latitude": 35.31706,
+    "longitude": -120.65446,
+    "pixelX": "917.819 px",
+    "pixelY": "212.75 px",
+    "landmark": -1
+  },
+  {
+    "number": 85,
+    "latitude": 35.31715,
+    "longitude": -120.65467,
+    "pixelX": "927.803 px",
+    "pixelY": "109.831 px",
+    "landmark": -1
+  },
+  {
+    "number": 86,
+    "latitude": 35.31712,
+    "longitude": -120.65475,
+    "pixelX": "826.421 px",
+    "pixelY": "72.965 px",
+    "landmark": -1
+  },
+  {
+    "number": 87,
+    "latitude": 35.31702,
+    "longitude": -120.65479,
+    "pixelX": "692.78 px",
+    "pixelY": "97.542 px",
+    "landmark": -1
+  },
+  {
+    "number": 88,
+    "latitude": 35.31695,
+    "longitude": -120.65524,
+    "pixelX": "417.819 px",
+    "pixelY": "22.273 px",
+    "landmark": 17
+  },
+  {
+    "number": 89,
+    "latitude": 35.31697,
+    "longitude": -120.65482,
+    "pixelX": "578.341 px",
+    "pixelY": "125.192 px",
+    "landmark": -1
+  },
+  {
+    "number": 90,
+    "latitude": 35.3165,
+    "longitude": -120.65371,
+    "pixelX": "1098.31 px",
+    "pixelY": "1023.81 px",
+    "landmark": -1
+  },
+  {
+    "number": 91,
+    "latitude": 35.31667,
+    "longitude": -120.65463,
+    "pixelX": "542.243 px",
+    "pixelY": "480.799 px",
+    "landmark": 18
+  },
+  {
+    "number": 92,
+    "latitude": 35.31645,
+    "longitude": -120.65453,
+    "pixelX": "526.882 px",
+    "pixelY": "737.327 px",
+    "landmark": -1
+  },
+  {
+    "number": 93,
+    "latitude": 35.31621,
+    "longitude": -120.65466,
+    "pixelX": "314.9 px",
+    "pixelY": "919.355 px",
+    "landmark": -1
+  },
+  {
+    "number": 94,
+    "latitude": 35.31624,
+    "longitude": -120.65431,
+    "pixelX": "596.774 px",
+    "pixelY": "1024.578 px",
+    "landmark": -1
+  },
+  {
+    "number": 95,
+    "latitude": 35.31567,
+    "longitude": -120.65431,
+    "pixelX": "359.447 px",
+    "pixelY": "1523.81 px",
+    "landmark": -1
+  },
+  {
+    "number": 96,
+    "latitude": 35.31566,
+    "longitude": -120.65339,
+    "pixelX": "969.278 px",
+    "pixelY": "1849.462 px",
+    "landmark": -1
+  },
+  {
+    "number": 97,
+    "latitude": 35.31537,
+    "longitude": -120.65305,
+    "pixelX": "1052.227 px",
+    "pixelY": "2178.955 px",
+    "landmark": -1
+  },
+  {
+    "number": 98,
+    "latitude": 35.31548,
+    "longitude": -120.65348,
+    "pixelX": "845.622 px",
+    "pixelY": "1983.871 px",
+    "landmark": -1
+  },
+  {
+    "number": 99,
+    "latitude": 35.31625,
+    "longitude": -120.65321,
+    "pixelX": "1361.751 px",
+    "pixelY": "1472.35 px",
+    "landmark": -1
+  },
+  {
+    "number": 100,
+    "latitude": 35.31608,
+    "longitude": -120.65303,
+    "pixelX": "1390.169 px",
+    "pixelY": "1669.739 px",
+    "landmark": -1
+  },
+  {
+    "number": 101,
+    "latitude": 35.31683,
+    "longitude": -120.65471,
+    "pixelX": "589.862 px",
+    "pixelY": "333.333 px",
+    "landmark": -1
+  },
+  {
+    "number": 102,
+    "latitude": 35.31512,
+    "longitude": -120.653,
+    "pixelX": "993.088 px",
+    "pixelY": "2451.613 px",
+    "landmark": -1
+  },
+  {
+    "number": 103,
+    "latitude": 35.31514,
+    "longitude": -120.65289,
+    "pixelX": "1102.919 px",
+    "pixelY": "2451.613 px",
+    "landmark": -1
+  },
+  {
+    "number": 104,
+    "latitude": 35.31561,
+    "longitude": -120.65291,
+    "pixelX": "1264.209 px",
+    "pixelY": "2082.949 px",
+    "landmark": -1
+  },
+  {
+    "number": 105,
+    "latitude": 35.31559,
+    "longitude": -120.65309,
+    "pixelX": "1113.671 px",
+    "pixelY": "1990.015 px",
+    "landmark": -1
+  },
+  {
+    "number": 106,
+    "latitude": 35.31595,
+    "longitude": -120.65474,
+    "pixelX": "158.218 px",
+    "pixelY": "1111.367 px",
+    "landmark": -1
+  },
+  {
+    "number": 107,
+    "latitude": 35.31573,
+    "longitude": -120.65392,
+    "pixelX": "652.842 px",
+    "pixelY": "1652.074 px",
+    "landmark": -1
+  },
+  {
+    "number": 108,
+    "latitude": 35.31612,
+    "longitude": -120.65382,
+    "pixelX": "903.226 px",
+    "pixelY": "1330.261 px",
+    "landmark": 12
+  },
+  {
+    "number": 109,
+    "latitude": -35.31635,
+    "longitude": -120.65371,
+    "pixelX": "1068.356 px",
+    "pixelY": "1160.522 px",
+    "landmark": -1
+  },
+  {
+    "number": 110,
+    "latitude": 35.31596,
+    "longitude": -120.6538,
+    "pixelX": "840.246 px",
+    "pixelY": "1487.711 px",
+    "landmark": -1
+  },
+  {
+    "number": 111,
+    "latitude": 35.3158,
+    "longitude": -120.65387,
+    "pixelX": "711.982 px",
+    "pixelY": "1577.573 px",
+    "landmark": -1
+  },
+  {
+    "number": 112,
+    "latitude": 35.31623,
+    "longitude": -120.65407,
+    "pixelX": "770.353 px",
+    "pixelY": "1129.8 px",
+    "landmark": -1
+  },
+  {
+    "number": 113,
+    "latitude": 35.3164,
+    "longitude": -120.65414,
+    "pixelX": "780.338 px",
+    "pixelY": "947.005 px",
+    "landmark": 20
+  },
+  {
+    "number": 114,
+    "latitude": 35.31629,
+    "longitude": -120.65343,
+    "pixelX": "1182.028 px",
+    "pixelY": "1305.684 px",
+    "landmark": -1
+  },
+  {
+    "number": 115,
+    "latitude": 35.31537,
+    "longitude": -120.6536,
+    "pixelX": "730.415 px",
+    "pixelY": "2046.083 px",
+    "landmark": -1
+  },
+  {
+    "number": 116,
+    "latitude": 35.31536,
+    "longitude": -120.65341,
+    "pixelX": "845.622 px",
+    "pixelY": "2120.584 px",
+    "landmark": -1
+  },
+  {
+    "number": 117,
+    "latitude": 35.31562,
+    "longitude": -120.65374,
+    "pixelX": "742.704 px",
+    "pixelY": "1797.235 px",
+    "landmark": -1
+  },
+  {
+    "number": 118,
+    "latitude": 35.3155,
+    "longitude": -120.65381,
+    "pixelX": "641.321 px",
+    "pixelY": "1856.375 px",
+    "landmark": -1
+  },
+  {
+    "number": 119,
+    "latitude": 35.31534,
+    "longitude": -120.65364,
+    "pixelX": "669.739 px",
+    "pixelY": "2070.661 px",
+    "landmark": -1
+  },
+  {
+    "number": 120,
+    "latitude": 35.31692,
+    "longitude": -120.65492,
+    "pixelX": "452.381 px",
+    "pixelY": "125.192 px",
+    "landmark": -1
+  },
+  {
+    "number": 121,
+    "latitude": 35.31526,
+    "longitude": -120.65364,
+    "pixelX": "674.347 px",
+    "pixelY": "2158.218 px",
+    "landmark": -1
+  },
+  {
+    "number": 122,
+    "latitude": 35.31486,
+    "longitude": -120.65255,
+    "pixelX": "1194.316 px",
+    "pixelY": "2784.178 px",
+    "landmark": -1
+  },
+  {
+    "number": 123,
+    "latitude": 35.31471,
+    "longitude": -120.65268,
+    "pixelX": "1054.531 px",
+    "pixelY": "2903.994 px",
+    "landmark": -1
+  },
+  {
+    "number": 124,
+    "latitude": 35.31294,
+    "longitude": -120.65207,
+    "pixelX": "-499.232 px",
+    "pixelY": "-499.232 px",
+    "landmark": -1
+  },
+  {
+    "number": 125,
+    "latitude": 35.31313,
+    "longitude": -120.65196,
+    "pixelX": "-499.232 px",
+    "pixelY": "-499.232 px",
+    "landmark": -1
+  },
+  {
+    "number": 126,
+    "latitude": 35.31326,
+    "longitude": -120.6519,
+    "pixelX": "-499.232 px",
+    "pixelY": "-499.232 px",
+    "landmark": -1
+  },
+  {
+    "number": 127,
+    "latitude": 35.3126,
+    "longitude": -120.6519,
+    "pixelX": "-499.232 px",
+    "pixelY": "-499.232 px",
+    "landmark": -1
+  },
+  {
+    "number": 128,
+    "latitude": 35.31522,
+    "longitude": -120.65375,
+    "pixelX": "618.28 px",
+    "pixelY": "2188.172 px",
+    "landmark": 26
+  },
+  {
+    "number": 129,
+    "latitude": 35.3152,
+    "longitude": -120.65362,
+    "pixelX": "634.409 px",
+    "pixelY": "2264.209 px",
+    "landmark": -1
+  },
+  {
+    "number": 130,
+    "latitude": 35.31673,
+    "longitude": -120.65391,
+    "pixelX": "1082.181 px",
+    "pixelY": "762.673 px",
+    "landmark": 14
+  },
+  {
+    "number": 131,
+    "latitude": 35.31664,
+    "longitude": -120.6545,
+    "pixelX": "652.842 px",
+    "pixelY": "552.995 px",
+    "landmark": -1
+  },
+  {
+    "number": 132,
+    "latitude": 35.31699,
+    "longitude": -120.65443,
+    "pixelX": "858.679 px",
+    "pixelY": "333.333 px",
+    "landmark": 16
+  },
+  {
+    "number": 133,
+    "latitude": 35.31628,
+    "longitude": -120.65376,
+    "pixelX": "1035.33 px",
+    "pixelY": "1231.183 px",
+    "landmark": -1
+  },
+  {
+    "number": 134,
+    "latitude": 35.31614,
+    "longitude": -120.65309,
+    "pixelX": "1390.169 px",
+    "pixelY": "1585.253 px",
+    "landmark": -1
+  },
+  {
+    "number": 135,
+    "latitude": 35.316,
+    "longitude": -120.65298,
+    "pixelX": "1394.777 px",
+    "pixelY": "1758.065 px",
+    "landmark": -1
+  },
+  {
+    "number": 136,
+    "latitude": 35.3157,
+    "longitude": -120.6529,
+    "pixelX": "1321.813 px",
+    "pixelY": "2010.753 px",
+    "landmark": -1
+  },
+  {
+    "number": 137,
+    "latitude": 35.31578,
+    "longitude": -120.65266,
+    "pixelX": "1500.0 px",
+    "pixelY": "2033.794 px",
+    "landmark": -1
+  },
+  {
+    "number": 138,
+    "latitude": 35.31563,
+    "longitude": -120.65381,
+    "pixelX": "707.373 px",
+    "pixelY": "1768.817 px",
+    "landmark": -1
+  },
+  {
+    "number": 139,
+    "latitude": 35.31594,
+    "longitude": -120.65408,
+    "pixelX": "644.393 px",
+    "pixelY": "1403.226 px",
+    "landmark": -1
+  },
+  {
+    "number": 140,
+    "latitude": 35.31579,
+    "longitude": -120.65397,
+    "pixelX": "644.393 px",
+    "pixelY": "1562.98 px",
+    "landmark": -1
+  },
+  {
+    "number": 141,
+    "latitude": 35.31575,
+    "longitude": -120.65435,
+    "pixelX": "359.447 px",
+    "pixelY": "1448.541 px",
+    "landmark": -1
+  },
+  {
+    "number": 142,
+    "latitude": 35.31592,
+    "longitude": -120.65418,
+    "pixelX": "578.341 px",
+    "pixelY": "1350.23 px",
+    "landmark": -1
+  },
+  {
+    "number": 143,
+    "latitude": 35.31582,
+    "longitude": -120.65413,
+    "pixelX": "583.717 px",
+    "pixelY": "1470.814 px",
+    "landmark": -1
+  },
+  {
+    "number": 144,
+    "latitude": 35.31608,
+    "longitude": -120.65423,
+    "pixelX": "595.238 px",
+    "pixelY": "1216.59 px",
+    "landmark": -1
+  },
+  {
+    "number": 145,
+    "latitude": 35.31637,
+    "longitude": -120.65356,
+    "pixelX": "1179.724 px",
+    "pixelY": "1247.312 px",
+    "landmark": -1
+  },
+  {
+    "number": 146,
+    "latitude": 35.31587,
+    "longitude": -120.65471,
+    "pixelX": "142.089 px",
+    "pixelY": "1209.677 px",
+    "landmark": -1
+  },
+  {
+    "number": 147,
+    "latitude": 35.31574,
+    "longitude": -120.65459,
+    "pixelX": "192.78 px",
+    "pixelY": "1382.488 px",
+    "landmark": -1
+  },
+  {
+    "number": 148,
+    "latitude": 35.31656,
+    "longitude": -120.65383,
+    "pixelX": "1089.862 px",
+    "pixelY": "953.149 px",
+    "landmark": -1
+  },
+  {
+    "number": 149,
+    "latitude": 35.31646,
+    "longitude": -120.65411,
+    "pixelX": "817.972 px",
+    "pixelY": "897.081 px",
+    "landmark": -1
+  },
+  {
+    "number": 150,
+    "latitude": 35.31598,
+    "longitude": -120.65473,
+    "pixelX": "192.78 px",
+    "pixelY": "1062.98 px",
+    "landmark": -1
+  },
+  {
+    "number": 151,
+    "latitude": 35.31614,
+    "longitude": -120.65469,
+    "pixelX": "269.585 px",
+    "pixelY": "960.061 px",
+    "landmark": -1
+  },
+  {
+    "number": 152,
+    "latitude": 35.31626,
+    "longitude": -120.65463,
+    "pixelX": "371.736 px",
+    "pixelY": "876.344 px",
+    "landmark": -1
+  },
+  {
+    "number": 153,
+    "latitude": 35.31639,
+    "longitude": -120.65456,
+    "pixelX": "479.263 px",
+    "pixelY": "782.642 px",
+    "landmark": -1
+  },
+  {
+    "number": 154,
+    "latitude": 35.31652,
+    "longitude": -120.65451,
+    "pixelX": "578.341 px",
+    "pixelY": "688.94 px",
+    "landmark": -1
+  },
+  {
+    "number": 155,
+    "latitude": 35.31651,
+    "longitude": -120.65443,
+    "pixelX": "636.713 px",
+    "pixelY": "743.472 px",
+    "landmark": -1
+  },
+  {
+    "number": 156,
+    "latitude": 35.31705,
+    "longitude": -120.65443,
+    "pixelX": "888.633 px",
+    "pixelY": "279.57 px",
+    "landmark": -1
+  },
+  {
+    "number": 157,
+    "latitude": 35.31559,
+    "longitude": -120.65408,
+    "pixelX": "479.263 px",
+    "pixelY": "1688.172 px",
+    "landmark": -1
+  },
+  {
+    "number": 158,
+    "latitude": 35.31553,
+    "longitude": -120.65354,
+    "pixelX": "827.189 px",
+    "pixelY": "1927.803 px",
+    "landmark": -1
+  },
+  {
+    "number": 159,
+    "latitude": 35.3164,
+    "longitude": -120.6542,
+    "pixelX": "726.575 px",
+    "pixelY": "922.427 px",
+    "landmark": -1
+  },
+  {
+    "number": 160,
+    "latitude": 35.31564,
+    "longitude": -120.65398,
+    "pixelX": "569.124 px",
+    "pixelY": "1687.404 px",
+    "landmark": -1
+  },
+  {
+    "number": 161,
+    "latitude": 35.31483,
+    "longitude": -120.6528,
+    "pixelX": "1019.201 px",
+    "pixelY": "2728.111 px",
+    "landmark": -1
+  },
+  {
+    "number": 162,
+    "latitude": 35.3155,
+    "longitude": -120.65292,
+    "pixelX": "1223.502 px",
+    "pixelY": "2136.713 px",
+    "landmark": -1
+  },
+  {
+    "number": 163,
+    "latitude": 35.31522,
+    "longitude": -120.65291,
+    "pixelX": "1109.063 px",
+    "pixelY": "2390.937 px",
+    "landmark": -1
+  },
+  {
+    "number": 164,
+    "latitude": 35.31509,
+    "longitude": -120.65293,
+    "pixelX": "1048.387 px",
+    "pixelY": "2506.912 px",
+    "landmark": -1
+  },
+  {
+    "number": 165,
+    "latitude": 35.31497,
+    "longitude": -120.65273,
+    "pixelX": "1127.496 px",
+    "pixelY": "2652.842 px",
+    "landmark": -1
+  },
+  {
+    "number": 166,
+    "latitude": 35.31493,
+    "longitude": -120.65283,
+    "pixelX": "1056.068 px",
+    "pixelY": "2650.538 px",
+    "landmark": -1
+  },
+  {
+    "number": 167,
+    "latitude": 35.31378,
+    "longitude": -120.65222,
+    "pixelX": "961.598 px",
+    "pixelY": "3731.951 px",
+    "landmark": -1
+  },
+  {
+    "number": 168,
+    "latitude": 35.31399,
+    "longitude": -120.65226,
+    "pixelX": "1009.985 px",
+    "pixelY": "3575.269 px",
+    "landmark": -1
+  },
+  {
+    "number": 169,
+    "latitude": 35.31457,
+    "longitude": -120.65183,
+    "pixelX": "1548.387 px",
+    "pixelY": "3266.513 px",
+    "landmark": -1
+  },
+  {
+    "number": 170,
+    "latitude": 35.31396,
+    "longitude": -120.65156,
+    "pixelX": "1479.263 px",
+    "pixelY": "3797.235 px",
+    "landmark": -1
+  },
+  {
+    "number": 171,
+    "latitude": 35.31355,
+    "longitude": -120.65179,
+    "pixelX": "1159.754 px",
+    "pixelY": "4056.068 px",
+    "landmark": -1
+  },
+  {
+    "number": 172,
+    "latitude": 35.31363,
+    "longitude": -120.65172,
+    "pixelX": "1219.662 px",
+    "pixelY": "4003.072 px",
+    "landmark": -1
+  },
+  {
+    "number": 173,
+    "latitude": 35.31381,
+    "longitude": -120.65165,
+    "pixelX": "1338.71 px",
+    "pixelY": "3885.561 px",
+    "landmark": -1
+  },
+  {
+    "number": 174,
+    "latitude": 35.31414,
+    "longitude": -120.65149,
+    "pixelX": "1586.79 px",
+    "pixelY": "3694.316 px",
+    "landmark": -1
+  },
+  {
+    "number": 175,
+    "latitude": 35.31462,
+    "longitude": -120.65212,
+    "pixelX": "1377.112 px",
+    "pixelY": "3122.888 px",
+    "landmark": -1
+  },
+  {
+    "number": 176,
+    "latitude": 35.3146,
+    "longitude": -120.65203,
+    "pixelX": "1415.515 px",
+    "pixelY": "3160.522 px",
+    "landmark": -1
+  },
+  {
+    "number": 177,
+    "latitude": 35.31467,
+    "longitude": -120.65273,
+    "pixelX": "1003.84 px",
+    "pixelY": "2956.989 px",
+    "landmark": -1
+  },
+  {
+    "number": 178,
+    "latitude": 35.31462,
+    "longitude": -120.65271,
+    "pixelX": "977.727 px",
+    "pixelY": "3022.273 px",
+    "landmark": -1
+  },
+  {
+    "number": 179,
+    "latitude": 35.31437,
+    "longitude": -120.65233,
+    "pixelX": "1130.568 px",
+    "pixelY": "3237.327 px",
+    "landmark": -1
+  },
+  {
+    "number": 180,
+    "latitude": 35.3142,
+    "longitude": -120.6523,
+    "pixelX": "1093.702 px",
+    "pixelY": "3390.169 px",
+    "landmark": -1
+  },
+  {
+    "number": 181,
+    "latitude": 35.31439,
+    "longitude": -120.65211,
+    "pixelX": "1288.018 px",
+    "pixelY": "3323.349 px",
+    "landmark": -1
+  },
+  {
+    "number": 182,
+    "latitude": 35.31452,
+    "longitude": -120.65271,
+    "pixelX": "943.932 px",
+    "pixelY": "3085.253 px",
+    "landmark": -1
+  },
+  {
+    "number": 183,
+    "latitude": 35.31446,
+    "longitude": -120.65165,
+    "pixelX": "1613.671 px",
+    "pixelY": "3400.922 px",
+    "landmark": -1
+  },
+  {
+    "number": 184,
+    "latitude": 35.31433,
+    "longitude": -120.65156,
+    "pixelX": "1620.584 px",
+    "pixelY": "3552.995 px",
+    "landmark": -1
+  },
+  {
+    "number": 185,
+    "latitude": 35.31552,
+    "longitude": -120.65303,
+    "pixelX": "1158.218 px",
+    "pixelY": "2118.28 px",
+    "landmark": -1
+  },
+  {
+    "number": 186,
+    "latitude": 35.31563,
+    "longitude": -120.65352,
+    "pixelX": "913.21 px",
+    "pixelY": "1874.04 px",
+    "landmark": -1
+  },
+  {
+    "number": 187,
+    "latitude": 35.31542,
+    "longitude": -120.65322,
+    "pixelX": "988.479 px",
+    "pixelY": "2132.873 px",
+    "landmark": -1
+  },
+  {
+    "number": 188,
+    "latitude": 35.31357,
+    "longitude": -120.65197,
+    "pixelX": "1031.49 px",
+    "pixelY": "3990.783 px",
+    "landmark": -1
+  },
+  {
+    "number": 189,
+    "latitude": 35.31514,
+    "longitude": -120.65313,
+    "pixelX": "942.396 px",
+    "pixelY": "2394.777 px",
+    "landmark": -1
+  },
+  {
+    "number": 190,
+    "latitude": 35.3154,
+    "longitude": -120.65295,
+    "pixelX": "1155.146 px",
+    "pixelY": "2249.616 px",
+    "landmark": -1
+  },
+  {
+    "number": 191,
+    "latitude": 35.31482,
+    "longitude": -120.65232,
+    "pixelX": "1311.06 px",
+    "pixelY": "2888.633 px",
+    "landmark": -1
+  },
+  {
+    "number": 192,
+    "latitude": 35.3151,
+    "longitude": -120.65237,
+    "pixelX": "1415.515 px",
+    "pixelY": "2686.636 px",
+    "landmark": -1
+  },
+  {
+    "number": 193,
+    "latitude": 35.31533,
+    "longitude": -120.65246,
+    "pixelX": "1437.02 px",
+    "pixelY": "2451.613 px",
+    "landmark": -1
+  },
+  {
+    "number": 194,
+    "latitude": 35.31522,
+    "longitude": -120.65249,
+    "pixelX": "1509.985 px",
+    "pixelY": "2299.539 px",
+    "landmark": -1
+  },
+  {
+    "number": 195,
+    "latitude": 35.31685,
+    "longitude": -120.65405,
+    "pixelX": "1056.068 px",
+    "pixelY": "572.197 px",
+    "landmark": -1
+  },
+  {
+    "number": 196,
+    "latitude": 35.31541,
+    "longitude": -120.65263,
+    "pixelX": "1354 px",
+    "pixelY": "2349 px",
+    "landmark": 7
+  },
+  {
+    "number": 197,
+    "latitude": 35.31451,
+    "longitude": -120.65167,
+    "pixelX": "1607 px",
+    "pixelY": "3361 px",
+    "landmark": 30
+  }
 ]

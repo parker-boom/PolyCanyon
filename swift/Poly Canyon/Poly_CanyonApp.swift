@@ -22,30 +22,15 @@ struct Poly_CanyonApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
   @StateObject private var appState = AppState()
-  @StateObject private var structureData = StructureData()
-  @StateObject private var mapPointManager = MapPointManager()
-  @StateObject private var locationManager: LocationManager
-
-  init() {
-    let mapPointManager = MapPointManager()
-    let structureData = StructureData()
-
-    _structureData = StateObject(wrappedValue: structureData)
-    _mapPointManager = StateObject(wrappedValue: mapPointManager)
-    _locationManager = StateObject(wrappedValue: LocationManager(
-      mapPointManager: mapPointManager,
-      structureData: structureData,
-      isAdventureModeEnabled: UserDefaults.standard.bool(forKey: "adventureMode")
-    ))
-  }
+  @StateObject private var dataStore = DataStore.shared
+  @StateObject private var locationService = LocationService.shared
 
   var body: some Scene {
     WindowGroup {
       AppView()
         .environmentObject(appState)
-        .environmentObject(structureData)
-        .environmentObject(locationManager)
-        .environmentObject(mapPointManager)
+        .environmentObject(dataStore)
+        .environmentObject(locationService)
     }
   }
 }

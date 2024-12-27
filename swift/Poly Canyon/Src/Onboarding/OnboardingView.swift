@@ -16,7 +16,7 @@ import Shiny
 struct OnboardingView: View {
     @Binding var isNewOnboardingCompleted: Bool
     @Binding var isAdventureModeEnabled: Bool
-    @StateObject private var locationManager = OnboardingLocationManager()
+    @StateObject private var locationService = LocationService.shared
     @State private var currentPage = 0
 
     private let totalPages = 3
@@ -35,13 +35,6 @@ struct OnboardingView: View {
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .animation(.easeInOut, value: currentPage)
         .preferredColorScheme(.light)
-        .onChange(of: locationManager.isLocationDetermined) { newValue in
-            print("DEBUG: Location determined changed to \(newValue)")
-            if newValue {
-                isAdventureModeEnabled = locationManager.isNearCalPoly
-                print("DEBUG: Setting isAdventureModeEnabled to \(isAdventureModeEnabled)")
-            }
-        }
     }
 
     /// The welcome slide introducing the app.
@@ -108,20 +101,19 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Spacer()
-            if !locationManager.hasRequestedPermission {
-                NavigationButton(text: "Allow Location Access", action: {
-                    print("DEBUG: Requesting location permission")
-                    locationManager.requestPermission()
-                })
+            if locationService.locationStatus == .notDetermined {
+                NavigationButton(text: "Allow Location Access") {
+                    Task {
+                        _ = await locationService.requestInitialPermission()
+                    }
+                }
                 .padding(.bottom, 40)
             } else {
-                NavigationButton(text: "Next", action: {
-                    print("DEBUG: Moving to mode selection slide and fetching location")
-                    locationManager.fetchLocation()
+                NavigationButton(text: "Next") {
                     withAnimation {
                         currentPage = 2
                     }
-                })
+                }
                 .padding(.bottom, 40)
             }
         }
@@ -152,9 +144,13 @@ struct OnboardingView: View {
                 adventureModeColor: adventureModeColor,
                 virtualTourColor: virtualTourColor
             )
-            .padding(.horizontal)
+            .onChange(of: isAdventureModeEnabled) { newValue in
+                locationService.handleModeChange(newValue)
+            }
 
-            RecommendationLabel(isRecommended: isAdventureModeEnabled == locationManager.isNearCalPoly)
+            RecommendationLabel(
+                isRecommended: isAdventureModeEnabled == locationService.recommendedMode
+            )
 
             VStack(alignment: .leading, spacing: 10) {
                 if isAdventureModeEnabled {
@@ -194,10 +190,10 @@ struct OnboardingView: View {
         .padding()
         .background(Color.white)
         .onAppear {
-            isAdventureModeEnabled = locationManager.isNearCalPoly
+            isAdventureModeEnabled = locationService.isNearCalPoly
             print("DEBUG: Mode selection slide appeared")
             print("DEBUG: isAdventureModeEnabled: \(isAdventureModeEnabled)")
-            print("DEBUG: locationManager.isNearCalPoly: \(locationManager.isNearCalPoly)")
+            print("DEBUG: locationManager.isNearCalPoly: \(locationService.isNearCalPoly)")
         }
     }
 }
