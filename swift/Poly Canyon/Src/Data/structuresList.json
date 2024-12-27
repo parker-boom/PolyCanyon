@@ -1,0 +1,242 @@
+[
+    {
+        "number":1,
+        "title":"Entry Arch",
+        "year":"1976",
+        "builders":"Paul Miller, Lynn Noah, Greg Lomax, Andrew Low, Gwin Stumbaugh",
+        "fun fact":"The faces of the students who built the Entry Arch are embedded in a nearby wall, watching over visitors as they enter the canyon.",
+        "description":"This gateway to Poly Canyon features a steel frame with a serpentinite rock overlay. The structure serves as both a practical entrance and a symbolic transition into the experimental landscape. Its design showcases the use of local materials and innovative construction techniques, blending aesthetics with functionality. The arch stands as a testament to the hands-on learning approach embraced by Cal Poly students in their architectural endeavors."
+    },
+    {
+        "number":2,
+        "title":"Techite Bridge",
+        "year":"1973",
+        "builders":"Robert Purdy, Robert Mac Luan, Merilee Amy",
+        "fun fact":"Techite is a material known for its strength-to-weight ratio, making it an ideal choice for innovative construction projects like this bridge.",
+        "description":"This bridge demonstrates the use of Techite, a fiber-reinforced plastic mortar, in construction. The structure spans a small canyon, showcasing the potential of lightweight, high-strength materials in bridge design. Its minimalist form belies the complex engineering principles at work, making it an excellent example of how innovative materials can revolutionize traditional construction methods while reducing weight and cost."
+    },
+    {
+        "number":3,
+        "title":"Blade",
+        "year":"1963 \/ 2003",
+        "builders":"Steve Gilmore, Mark Haselton, Dan McMann, Ken Minor",
+        "fun fact":"The Blade Structure was one of the first projects on campus to experiment with advanced concrete techniques, influencing future architectural designs.",
+        "description":"This distinctive structure, often referred to as 'the concrete flower,' explores the capabilities of post-tensioned concrete. Its elegant, petal-like forms push the boundaries of concrete's flexibility and strength. By utilizing post-tensioning, the structure maintains its shape and integrity under various loads, serving as both a technical achievement and an artistic expression of mid-century concrete engineering."
+    },
+    {
+        "number":4,
+        "title":"Spire Array",
+        "year":"2020",
+        "builders":"Professor Dale Clifford, Design Build Team",
+        "fun fact":"Wild horses are often spotted near this structure did you see any today?",
+        "description":"This striking wooden structure explores minimalist construction methods using simple materials. Its geometric, teepee-like form was created to investigate efficient building techniques. The open framework allows natural light to filter through, offering a dynamic play of shadow and space. This project exemplifies how basic materials can be transformed into complex, visually intriguing structures through innovative design."
+    },
+    {
+        "number":5,
+        "title":"Palm Tree",
+        "year":"xxxx",
+        "builders":"iii",
+        "fun fact":"The Palm Tree was originally designed to rotate with changing temperatures due to the differing expansion rates of its metals.",
+        "description":"This unique structure features a tall central pole crowned by an assembly of dissimilar metals. The innovative design aimed to exploit the differing thermal expansion and contraction rates of the metals to generate rotation. Standing isolated against the rugged landscape, the structure's minimalist appearance contrasts with the complexity of its engineering intent."
+    },
+    {
+        "number":6,
+        "title":"Tensile",
+        "year":"2002",
+        "builders":"Kiren Kelly-Sneed, Theresa Zaro, Royce Chow, Abe Lynn, Michael Lucas, Walt Tryon, Richard Zweifel",
+        "fun fact":"The Tensile Structure's design is primarily focused on providing shade, making it a functional piece of architectural fabric.",
+        "description":"This canopy-like design showcases the use of tension-based systems in creating lightweight, yet sturdy, architectural forms. The structure is held up by twelve footings that connect underground, giving it both stability and flexibility. Its primary function is to provide shade, demonstrating how functional architecture can also be visually striking and structurally innovative."
+    },
+    {
+        "number":7,
+        "title":"Geodesic Dome",
+        "year":"1957",
+        "builders":"Richard Neill, William Roth, Donald Mills, Samuel Peterson, Don Trunklage",
+        "fun fact":"At the time of its construction, the Geodesic Dome was the largest of its kind west of the Mississippi River.",
+        "description":"This landmark of mid-century architectural ingenuity spans 50 feet in diameter and rises 25 feet tall. Constructed using over 19,000 individual components, including surplus war materials, it exemplifies the geodesic design principles which emphasize maximum strength and minimal material use. The structure's interlocking triangles create a self-supporting, lightweight framework that has inspired countless other designs."
+    },
+    {
+        "number":8,
+        "title":"Cantilever Deck",
+        "year":"1990",
+        "builders":"Rowan Hernandez, Kim Throndson, John Morrena, Lee Benson",
+        "fun fact":"The Cantilever Deck was part of a student project designed to test the limits of structural balance, making it a real-world application of principles often confined to the classroom.",
+        "description":"This striking example of engineering precision and architectural innovation appears to float effortlessly in space. Suspended above the ground by a series of tensioned cables and slender rods, the deck demonstrates the principles of cantilever construction. The design's success lies in the perfect balance of forces, showcasing the potential of cantilever systems in modern architecture."
+    },
+    {
+        "number":9,
+        "title":"Earth-Formed Restrooms",
+        "year":"1972",
+        "builders":"Glen Jackson, Robert Del Bianco, Ralph Nafzgar",
+        "fun fact":"The construction process involved using the earth as a temporary mold, which was then removed to reveal the final structure.",
+        "description":"These innovative structures showcase a unique approach to using natural materials as molds, resulting in an organic, fluid design that blends seamlessly with the surroundings. Although not built into the ground, these restrooms demonstrate how the earth itself can be used during the construction process to shape forms, creating a harmonious relationship between architecture and landscape."
+    },
+    {
+        "number":10,
+        "title":"Underground House",
+        "year":"1982",
+        "builders":"Carl C Barrett, Robert S Cocores, Allyn W Mcfarlin, John M Provato, Jesse P Wedemeyer, Wayne Christian, Pat Dennison, Fred Kozono, Mark McIntire, Chris Sterios, Craig Wilson, Mark V Zeolla",
+        "fun fact":"The Underground House was once entirely buried beneath the earth, with only skylights visible from above.",
+        "description":"Originally designed to be fully submerged, this structure now stands partially above ground due to unforeseen challenges. It features skylights that were once the only visible elements from the surface. The project demonstrates the complexities of underground construction and serves as a learning experience in adapting designs to environmental constraints."
+    },
+    {
+        "number":11,
+        "title":"Sun Dial",
+        "year":"1971",
+        "builders":"John Stuart",
+        "fun fact":"The Sun Dials design is based on ancient principles, making it one of the most timeless structures in Poly Canyon.",
+        "description":"This functional piece of art tells time using the sun's position, blending ancient principles with modern design. Its clean, minimalist form casts shadows that mark the passing hours. The structure exemplifies how architectural elements can serve both practical and aesthetic purposes, inviting visitors to contemplate the intersection of time, light, and space in the canyon's natural setting."
+    },
+    {
+        "number":12,
+        "title":"Gunite Bridge",
+        "year":"1965",
+        "builders":"Gordon L. Boles, Roy Leland Bostrom, Kokpo Ng, Richard L. Saylor, John Ulloa",
+        "fun fact":"You may recognize the material used in this bridge its commonly applied in swimming pool construction!",
+        "description":"Inspired by the Shell House, this bridge showcases pretension and post-compression engineering. Its unique construction process involved creating a skeleton of reinforced steel and metal lath, which was then sprayed with concrete using a Gunite machine. Once cured, tension cables were cut to place the bridge in compression, demonstrating innovative techniques in concrete application and structural engineering."
+    },
+    {
+        "number":13,
+        "title":"Timber Truss",
+        "year":"1994",
+        "builders":"Derek Bonsper, Josh Randall, Fred Sobottka, Mike Willis",
+        "fun fact":"This bridge stands as a tribute to Keigen Langholff, a passionate student whose contributions to Poly Canyon were cut tragically short.",
+        "description":"This bridge stands as a testament to collaborative learning and engineering innovation. Its design incorporates complex truss systems, showcasing the strength and versatility of timber in bridge construction. Recently retrofitted, the structure continues to serve as a hands-on learning tool for students, allowing them to study and experience firsthand the principles of structural engineering in a real-world application."
+    },
+    {
+        "number":14,
+        "title":"Stick Structure",
+        "year":"1976 \/ 2009",
+        "builders":"William F Martin, Brian Gottlieb, Dan Morita, Michelle M. Pettit, Jake Feldman",
+        "fun fact":"The Stick Structure was meant to be reconfigured regularly, but it stood unchanged for decades before its recent reconstruction.",
+        "description":"Originally designed as a life-size structural stability model, this project allows students to explore load flow and stiffness in different configurations. Despite its initial purpose of regular reconfiguration, it stood unchanged for decades before being rebuilt with low-maintenance materials. The structure continues to serve as an interactive educational tool, demonstrating the principles of structural design in a tangible, full-scale format."
+    },
+    {
+        "number":15,
+        "title":"Pyramid",
+        "year":"????",
+        "builders":"Unknown.",
+        "fun fact":"The Pyramid's unknown origins invite endless speculation was it an early experiment, an artistic statement, or something else entirely?",
+        "description":"This enigmatic structure, noted only on the original Poly Canyon map, stands as a testament to the experimental nature of the site. Its mysterious origins invite speculation about its purpose and creators, embodying the spirit of architectural exploration that defines Poly Canyon. The pyramid's presence adds an element of intrigue to the landscape, encouraging visitors to ponder the diverse forms architecture can take."
+    },
+    {
+        "number":16,
+        "title":"Bridge House",
+        "year":"1968",
+        "builders":"Ronald Davena, Joel Dean, Robert Garlow, Raymond Hilken, Lui Horstmeyer, James January, Lloyd Suehiro, Thomas Wiggin, Kurt Holder, Bruce Campe",
+        "fun fact":"The Bridge House was one of the first large-scale applications of Cor-ten steel, a material designed to rust intentionally, creating a protective layer that prevents further corrosion.",
+        "description":"This versatile structure exemplifies adaptability in design. Initially conceived as lodging for guest lecturers, it has served various functions over the years, including a caretaker's residence and an architecture studio. Today, it operates as a seismic testing facility, featuring removable braces that allow students to study different seismic load configurations. The Bridge House showcases how a single structure can evolve to meet changing needs while continuing to serve educational purposes."
+    },
+    {
+        "number":17,
+        "title":"Water Tanks",
+        "year":"1969 \/ 1998",
+        "builders":"Mathew Bittleston",
+        "fun fact":"The water from these tanks plays a role in the same water system that once supported the early settlers of San Luis Obispo.",
+        "description":"These tanks, built near a hilltop spring, play a crucial role in the local water system. They increased the water-carrying capacity of an original concrete tank, demonstrating practical solutions to water management challenges. The project connects modern engineering with the area's historical water usage, highlighting the importance of sustainable resource management in architectural planning."
+    },
+    {
+        "number":18,
+        "title":"Observation Deck",
+        "year":"2019",
+        "builders":"Tony Pellegrini, Harrison Woods, Sitora Vaxidova",
+        "fun fact":"The observation deck was completed just one day before the teams graduation, making it their final achievement as Cal Poly students.",
+        "description":"This redwood structure offers panoramic views of the surrounding hills, serving as both a rest stop for hikers and a symbol of Poly Canyon's rejuvenation. Its construction represents a renewed push for student-led projects in the area. The deck's design balances functionality with aesthetic appeal, providing a peaceful vantage point that encourages appreciation of the canyon's natural beauty and architectural diversity."
+    },
+    {
+        "number":19,
+        "title":"Poly Pavilion",
+        "year":"1985",
+        "builders":"Alfredo Alcaraz, Armando Paez, Blanca Guerra, Bob Green, Brad Bishop, Brett Beeman, Chi Pham, Cindy Smith, Dave Hernandez, Frank Maskiewicz, Jim Low, Joe Michale, John Smith, Ken Brehmer, Ken Schumann, Ku Divita, Pete Chavez, Randal Brunson, Ricardo Arevalo, Stan Smith",
+        "fun fact":"The Poly Pavilions precast segments were assembled on campus and transported to the canyon, showcasing the hands-on approach of Cal Poly students.",
+        "description":"Constructed by an Architectural Engineering class, this structure showcases the potential of precast concrete in architecture. The segments were crafted on campus and transported to the canyon, demonstrating the logistical challenges of on-site assembly. Supported by arching action between its foundations, the pavilion illustrates how prefabrication techniques can be combined with innovative structural principles to create striking architectural forms."
+    },
+    {
+        "number":20,
+        "title":"Serenity Wall",
+        "year":"xxxx",
+        "builders":"Brian Milton",
+        "fun fact":"The student who built this wall also constructed two other unlisted structures: the Meditation Bench and Cardinal Direction.",
+        "description":"Designed to blend seamlessly with its surroundings, this structure embodies the principle of 'out of sight, out of mind.' Constructed with weather-resistant redwood planks, it requires minimal maintenance while complementing the natural environment. The wall serves as a subtle gateway to other canyon features, demonstrating how architecture can enhance rather than dominate a landscape."
+    },
+    {
+        "number":21,
+        "title":"Hay Bale Arch",
+        "year":"2004",
+        "builders":"iii",
+        "fun fact":"This arch is likely the only double-barrel design of its kind, showcasing the creativity and resourcefulness of the students who built it.",
+        "description":"This innovative structure utilizes straw for its surprisingly effective insulation properties. The unique 'window of truth' offers a glimpse into the straw core, educating visitors about alternative building materials. Its double-barrel design is likely one-of-a-kind, showcasing the creative potential of combining traditional materials with modern architectural concepts."
+    },
+    {
+        "number":22,
+        "title":"Fratessa Tower",
+        "year":"2004",
+        "builders":"Rachel Martin, Justin Wei, Michael Braund, Eric Mcdonnell, Tanya Worotko, Adam Stagnaro",
+        "fun fact":"This structure is dedicated to the late ARCE department head, Paul Fratessa, honoring his legacy with a structure that offers breathtaking views of Poly Canyon.",
+        "description":"Replacing an earlier hydraulic tower, this structure honors the late ARCE department head, Paul Fratessa. Its design enhances natural air circulation while offering elevated views of Poly Canyon. Built on the original foundations, the tower demonstrates how new designs can respect and build upon previous architectural endeavors, creating a dialogue between past and present engineering practices."
+    },
+    {
+        "number":23,
+        "title":"Tensegrity",
+        "year":"2022",
+        "builders":"Will Adam, Ivan Cruz, Jos Hernandez, Kasey Tatis, Truman Waller",
+        "fun fact":"The team met entirely over Zoom when planning, making it the only structure shaped by remote collaboration during the pandemic.",
+        "description":"This striking pavilion showcases the principle of tensile integrity, pioneered by Buckminster Fuller. Featuring wooden pyramids and steel cables, it creates a captivating floating effect with a suspended seating area. The structure's complex design and remote collaboration during its creation highlight the challenges and innovations in modern architectural practices."
+    },
+    {
+        "number":24,
+        "title":"Shell House",
+        "year":"1975",
+        "builders":"Larry Gangwisch, Ronald James, Raymond Ketzel, Roger Marshall, David Wright, James Zimmerman, George Hasslein, Wesley Ward, Harvey Koehen",
+        "fun fact":"The Shell House was the first structure in Poly Canyon to use shotcrete, and the students were shocked literally when they learned the importance of grounding during the process.",
+        "description":"As the oldest standing structure in Poly Canyon, the Shell House pioneered the use of shotcrete in student projects. Its distinctive roof was created using a center pole, cables, and wire mesh before being sprayed with shotcrete. The interior features an innovative fireplace system for efficient heating. Supported at just three ground points, it demonstrates remarkable structural efficiency and creativity in form-making."
+    },
+    {
+        "number":25,
+        "title":"Green House",
+        "year":"1989",
+        "builders":"Mark Jenefsky",
+        "fun fact":"The Greenhouse was meant to be a self-sustaining structure with solar-heated water storage, an advanced concept for the 1980s.",
+        "description":"Although unfinished, this ambitious project was designed to integrate advanced environmental control systems. Planned features included automatic watering and ventilation systems, along with solar-heated water storage. The structure's innovative design aimed to enhance the efficiency of traditional greenhouse models, showcasing early attempts at sustainable architectural practices."
+    },
+    {
+        "number":26,
+        "title":"Modular House",
+        "year":"1973",
+        "builders":"Paul Thoryk, John Edmiston, Glen Jackson, Tom Bylund, James Jones, Richard Pata, Lorin Smith, Jerry Tucker, Dennis Turner, John Edmisten, Don Koberg",
+        "fun fact":"The Modular House was originally fully enclosed, but today it stands hollow so be cautious when exploring!",
+        "description":"This experimental dwelling features a steel frame with wood infill, designed on an eight-by-eight module to minimize lumber cutting. Its modular approach demonstrates efficient use of materials and space. The structure's challenges with waterproofing due to differing material expansion rates provide valuable lessons in the practicalities of experimental design and material compatibility."
+    },
+    {
+        "number":27,
+        "title":"Centering Center",
+        "year":"2022",
+        "builders":"Marcos Lutyens, Cynthia Brophy",
+        "fun fact":"Before being moved to Poly Canyon, the Centering Dome was featured at Descanso Gardens, connecting art with architectural education.",
+        "description":"Originally featured at Descanso Gardens, this structure now connects art with architectural education in Poly Canyon. Its relocation demonstrates the adaptability of architectural installations and their potential to serve multiple purposes in different contexts. The dome's design focuses on the 'social' quadrant of the Centering concept, blending artistic expression with functional space."
+    },
+    {
+        "number":28,
+        "title":"Pole Building",
+        "year":"1989",
+        "builders":"EDES Class Project, Randy Detmer",
+        "fun fact":"Keep an eye out near this structure, you might spot the test footing for the Tensile Structure.",
+        "description":"Elevated on caissons to accommodate the sloping site, this structure demonstrates innovative foundation techniques. By transferring the load directly into bedrock, it showcases how challenging terrains can be utilized without compromising structural integrity. The building's design illustrates the importance of site-specific solutions in architecture."
+    },
+    {
+        "number":29,
+        "title":"BBQ Pit",
+        "year":"1975",
+        "builders":"iii",
+        "fun fact":"The BBQ Pit once had a corten steel hood, but it was removed because the differing materials didn't age well together.",
+        "description":"This communal space has evolved over time, adapting to material challenges and changing needs. Originally featuring a corten steel hood, its current form demonstrates the importance of material compatibility in long-lasting structures. The pit and nearby seating areas continue to serve as gathering spaces, highlighting the social aspects of architectural design."
+    },
+    {
+        "number":30,
+        "title":"Moment Monument",
+        "year":"2024",
+        "builders":"Carsten Huber, Gaspar Solorio, Jared Schieferle, Brayden Martinez",
+        "fun fact":"Each beam of the Moment Monument is connected differently, making it a unique educational tool for students studying earthquake-resistant design.",
+        "description":"As the newest addition to Poly Canyon, this structure serves as an educational tool for earthquake-resistant design. Each beam is connected differently, allowing students to study various pre-qualified moment connections in steel frames. The monument exemplifies how full-scale models can enhance understanding of complex engineering principles, bridging the gap between theory and practice."
+    }
+]

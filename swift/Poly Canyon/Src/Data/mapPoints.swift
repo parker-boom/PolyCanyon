@@ -99,6 +99,24 @@ class MapPointLoader {
     }
 }
 
+struct MapPointData: Codable {
+    let number: Int
+    let latitude: Double
+    let longitude: Double
+    let pixelX: String
+    let pixelY: String
+    let landmark: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case number = "#"
+        case latitude = "Latitude"
+        case longitude = "Longitude"
+        case pixelX = "Pixel X"
+        case pixelY = "Pixel Y"
+        case landmark = "Landmark"
+    }
+}
+
 /**
  * MapPointManager
  *
@@ -108,13 +126,18 @@ class MapPointLoader {
  */
 class MapPointManager: ObservableObject {
     @Published var mapPoints: [MapPoint] = []
-
-    /**
-     * Initializes the MapPointManager and loads map points and their visited statuses.
-     */
+    
     init() {
         loadMapPoints()
-        loadVisitedStatus()  // Ensure this is called after loading map points
+    }
+    
+    private func loadMapPoints() {
+        mapPoints = DataStore.shared.loadMapPoints()
+    }
+    
+    // Keep existing methods but update save to use DataStore
+    private func saveMapPoints() {
+        DataStore.shared.saveMapPoints(mapPoints)
     }
 
     /**
@@ -123,7 +146,6 @@ class MapPointManager: ObservableObject {
     func saveVisitedStatus() {
         let visitedStatuses = mapPoints.map { $0.isVisited }
         UserDefaults.standard.set(visitedStatuses, forKey: "mapPointsVisitedStatuses")
-        UserDefaults.standard.synchronize()  // Force UserDefaults to save immediately
     }
 
     /**
@@ -133,24 +155,10 @@ class MapPointManager: ObservableObject {
         guard let visitedStatuses = UserDefaults.standard.array(forKey: "mapPointsVisitedStatuses") as? [Bool] else {
             return
         }
-
-        for (index, isVisited) in visitedStatuses.enumerated() {
-            if index < mapPoints.count {
-                mapPoints[index].isVisited = isVisited
-            }
+        
+        for (index, isVisited) in visitedStatuses.enumerated() where index < mapPoints.count {
+            mapPoints[index].isVisited = isVisited
         }
-    }
-
-    /**
-     * Loads map points from the CSV file and initializes the mapPoints array.
-     */
-    private func loadMapPoints() {
-        guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "csv") else {
-            print("Failed to find mapPoints CSV file.")
-            return
-        }
-        mapPoints = MapPointLoader.loadMapPoints(from: url)
-        loadVisitedStatus()
     }
 
     /**

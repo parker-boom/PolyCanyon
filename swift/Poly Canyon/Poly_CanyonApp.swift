@@ -21,11 +21,31 @@ struct Poly_CanyonApp: App {
   // Register app delegate for Firebase setup
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
+  @StateObject private var appState = AppState()
+  @StateObject private var structureData = StructureData()
+  @StateObject private var mapPointManager = MapPointManager()
+  @StateObject private var locationManager: LocationManager
+
+  init() {
+    let mapPointManager = MapPointManager()
+    let structureData = StructureData()
+
+    _structureData = StateObject(wrappedValue: structureData)
+    _mapPointManager = StateObject(wrappedValue: mapPointManager)
+    _locationManager = StateObject(wrappedValue: LocationManager(
+      mapPointManager: mapPointManager,
+      structureData: structureData,
+      isAdventureModeEnabled: UserDefaults.standard.bool(forKey: "adventureMode")
+    ))
+  }
+
   var body: some Scene {
     WindowGroup {
-      NavigationView {
-        ContentView()
-      }
+      AppView()
+        .environmentObject(appState)
+        .environmentObject(structureData)
+        .environmentObject(locationManager)
+        .environmentObject(mapPointManager)
     }
   }
 }

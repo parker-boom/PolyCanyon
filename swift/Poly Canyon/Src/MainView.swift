@@ -13,66 +13,44 @@ import Combine
  */
 struct MainView: View {
     @State private var selection = 1
-    @StateObject private var locationManager: LocationManager
-    
-    @StateObject private var mapPointManager = MapPointManager()
-    @Binding var isDarkMode: Bool
-    @Binding var isAdventureModeEnabled: Bool
-    @ObservedObject var structureData: StructureData
-
+    @EnvironmentObject var locationManager: LocationManager
+    @EnvironmentObject var mapPointManager: MapPointManager
+    @EnvironmentObject var appState: AppState
     @StateObject private var keyboardManager = KeyboardManager()
-
-    /**
-     * Initializes the MainView with bindings for dark mode and adventure mode, and sets up the LocationManager.
-     *
-     * - Parameters:
-     *   - isDarkMode: Binding to control the app's dark mode setting.
-     *   - isAdventureModeEnabled: Binding to control the adventure mode feature.
-     *   - structureData: Observed object managing the structure data.
-     */
-    init(isDarkMode: Binding<Bool>, isAdventureModeEnabled: Binding<Bool>, structureData: StructureData) {
-        self._isDarkMode = isDarkMode
-        self._isAdventureModeEnabled = isAdventureModeEnabled
-        self._structureData = ObservedObject(wrappedValue: structureData)
-        
-        // Initialize LocationManager with MapPointManager and StructureData
-        let mapPointManager = MapPointManager()
-        self._locationManager = StateObject(wrappedValue: LocationManager(
-            mapPointManager: mapPointManager,
-            structureData: structureData,
-            isAdventureModeEnabled: isAdventureModeEnabled.wrappedValue
-        ))
-    }
-
+    @ObservedObject var structureData: StructureData
+    
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-                if selection == 0 {
-                    MapView(
-                        isDarkMode: $isDarkMode,
-                        isAdventureModeEnabled: $isAdventureModeEnabled,
-                        structureData: structureData,
-                        mapPointManager: mapPointManager,
-                        locationManager: locationManager
-                    )
-                } else if selection == 1 {
-                    DetailView(
-                        structureData: structureData,
-                        locationManager: locationManager,
-                        mapPointManager: mapPointManager,
-                        isDarkMode: $isDarkMode,
-                        isAdventureModeEnabled: $isAdventureModeEnabled
-                    )
-                } else if selection == 2 {
-                    SettingsView(
-                        structureData: structureData,
-                        mapPointManager: mapPointManager,
-                        locationManager: locationManager,
-                        isDarkMode: $isDarkMode,
-                        isAdventureModeEnabled: $isAdventureModeEnabled
-                    )
-                }
+            TabView(selection: $selection) {
+                MapView(
+                    isDarkMode: $appState.isDarkMode,
+                    isAdventureModeEnabled: $appState.adventureModeEnabled,
+                    structureData: structureData,
+                    mapPointManager: mapPointManager,
+                    locationManager: locationManager
+                )
+                .tag(0)
+                
+                DetailView(
+                    structureData: structureData,
+                    locationManager: locationManager,
+                    mapPointManager: mapPointManager,
+                    isDarkMode: $appState.isDarkMode,
+                    isAdventureModeEnabled: $appState.adventureModeEnabled
+                )
+                .tag(1)
+                
+                SettingsView(
+                    structureData: structureData,
+                    mapPointManager: mapPointManager,
+                    locationManager: locationManager,
+                    isDarkMode: $appState.isDarkMode,
+                    isAdventureModeEnabled: $appState.adventureModeEnabled
+                )
+                .tag(2)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .animation(.easeInOut, value: selection)
 
             if !keyboardManager.isKeyboardVisible {
                 CustomTabBar(
@@ -82,13 +60,13 @@ struct MainView: View {
                         }
                     },
                     selection: $selection,
-                    isDarkMode: isDarkMode
+                    isDarkMode: appState.isDarkMode
                 )
                 .edgesIgnoringSafeArea(.all)
             }
         }
-        .background(isDarkMode ? Color.black : Color.white)
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .background(appState.isDarkMode ? Color.black : Color.white)
+        .preferredColorScheme(appState.isDarkMode ? .dark : .light)
     }
 }
 

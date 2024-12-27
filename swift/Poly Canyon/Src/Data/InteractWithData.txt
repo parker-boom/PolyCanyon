@@ -1,0 +1,74 @@
+
+
+Here's a quick reference guide for updating data using the Environment Object pattern:
+
+```swift
+// 1. Create StructureManager
+class StructureManager: ObservableObject {
+    @Published private(set) var structures: [Structure] = []
+    
+    // MARK: - Structure Updates
+    func markAsOpened(_ number: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isOpened = true
+            DataStore.shared.saveStructures(structures)
+            objectWillChange.send()
+        }
+    }
+    
+    func markAsVisited(_ number: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isVisited = true
+            DataStore.shared.saveStructures(structures)
+            objectWillChange.send()
+        }
+    }
+    
+    func toggleLike(_ number: Int) {
+        if let index = structures.firstIndex(where: { $0.number == number }) {
+            structures[index].isLiked.toggle()
+            DataStore.shared.saveStructures(structures)
+            objectWillChange.send()
+        }
+    }
+}
+
+// 2. Add to App environment
+@main
+struct Poly_CanyonApp: App {
+    @StateObject private var structureManager = StructureManager()
+    
+    var body: some Scene {
+        WindowGroup {
+            AppView()
+                .environmentObject(structureManager)
+        }
+    }
+}
+
+// 3. Use in Views
+struct DetailView: View {
+    @EnvironmentObject var structureManager: StructureManager
+    
+    var body: some View {
+        Button("Open") {
+            structureManager.markAsOpened(structure.number)
+        }
+    }
+}
+
+struct MapView: View {
+    @EnvironmentObject var structureManager: StructureManager
+    
+    func onLocationUpdate() {
+        structureManager.markAsVisited(nearbyStructure.number)
+    }
+}
+```
+
+Key points:
+- Manager holds the source of truth
+- Views only call methods, never modify data directly
+- DataStore handles persistence
+- Changes automatically trigger view updates via @Published
+- All views share same instance via environment

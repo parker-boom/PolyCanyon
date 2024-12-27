@@ -1,0 +1,150 @@
+Development Guide for the Poly Canyon App
+
+Context of Poly Canyon
+
+Poly Canyon is a one-of-a-kind outdoor architectural area blending natural landscapes with experimental student-built structures. Since its inception in the 1960s, it has evolved as a space for creativity and exploration. Though its prominence has faded over the years, Poly Canyon remains significant as an academic, cultural, and historical site. The app is part of ongoing efforts to revive interest in the area and provide an engaging way for people to experience its uniqueness.
+
+App Purpose:
+
+Facilitate navigation and exploration of Poly Canyon.
+
+Provide detailed, engaging information about its structures.
+
+Offer a virtual experience for remote users.
+
+Primary Audience:
+
+Visitors physically in the canyon (Adventure Mode).
+
+Virtual explorers interested in learning remotely (Virtual Tour Mode).
+
+Current Framework
+
+Main Features
+
+Onboarding:
+
+Location-based recommendations: Suggest Adventure Mode for nearby users and Virtual Tour Mode for remote users.
+
+Modes:
+
+Adventure Mode:
+
+Real-time location tracking.
+
+Notifications when structures are visited.
+
+Map shows unvisited structures.
+
+Virtual Tour Mode:
+
+Guided exploration via popups and navigation arrows.
+
+Green pulsing dot indicates current structure on the map.
+
+App Views:
+
+Map View: Displays a zoomable map (dark/light or satellite).
+
+Detail View: Provides information on structures, with list/grid toggles.
+
+Settings View: Includes mode toggles, dark mode settings, location settings, and credit info.
+
+Development Goals
+
+Goal 1: Streamline Navigation
+
+Objective: Reduce complexity and enhance ease of use for visitors.
+
+Planned Improvements:
+
+Simplify Nearby Structures:
+
+Display the closest three structures to the user, regardless of visit status.
+
+Dedicated Window for Closest Structures:
+
+Add a persistent, simple interface to highlight the nearest structure(s) for quick access.
+
+Sort Structures by Distance:
+
+Automatically sort the structure list by proximity to the user in Adventure Mode.
+
+Future Consideration:
+
+Implement clickable structures on the map (long-term).
+
+Rationale:
+Users should easily find the most relevant information without needing to decipher complex systems. The focus is on lowering the barrier to accessing details about nearby structures.
+
+Goal 2: Enhance Structure Information UI
+
+Objective: Improve the interface to accommodate richer information and better visuals.
+
+Planned Improvements:
+
+Full-Screen UI for Structure Information:
+
+Expand the detail view to full screen for better readability.
+
+Incorporate More Visuals:
+
+Add multiple images (historical and current) for each structure.
+
+Handle Builder Information:
+
+Include a summarized view with a pop-up for extended builder details.
+
+Streamlined Metadata:
+
+Prominently display structure title and year of creation.
+
+Easier Navigation Between Structures:
+
+Maintain seamless movement to other structures from the detail view.
+
+Future Additions:
+
+Ghost Structures and Accessory Structures:
+
+Create dedicated sections for these categories, each represented with unique icons and interfaces.
+
+Rationale:
+Users should have a visually appealing and information-rich experience that doesn’t feel cluttered or overwhelming.
+
+Development Phases
+
+Phase 1: Streamlining Navigation
+
+Update nearby structure functionality.
+
+Add the closest structures window.
+
+Implement sorting by proximity in Adventure Mode.
+
+Address user feedback on popups and map usability.
+
+Phase 2: Enhancing Structure Information UI
+
+Redesign detail view for full-screen presentation.
+
+Integrate additional visuals and builder summaries.
+
+Simplify metadata presentation for clarity.
+
+Ensure easy transitions between structures.
+
+Phase 3: Long-Term Enhancements
+
+Introduce ghost and accessory structure sections.
+
+Explore interactive map features (e.g., clickable elements).
+
+Expand support for additional multimedia, such as audio tours.
+
+Final Notes
+
+The app’s success lies in balancing simplicity and depth. Navigation should be intuitive, requiring minimal effort from users to engage fully with Poly Canyon. Simultaneously, structure information should captivate users by blending historical context, fun facts, and rich visuals.
+
+With these updates, the app will move from "good" to "great," providing an unparalleled way to experience Poly Canyon both physically and virtually.
+

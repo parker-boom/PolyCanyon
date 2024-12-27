@@ -26,7 +26,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var lastLocation: CLLocation?
     @Published var nearestMapPoint: MapPoint?
     @Published var isBackgroundTrackingActive = false
-    @Published var dayCount: Int = UserDefaults.standard.integer(forKey: "dayCount")
     private var previousDayVisited: String? = UserDefaults.standard.string(forKey: "previousDayVisited")
 
     @Published var isAdventureModeEnabled: Bool {

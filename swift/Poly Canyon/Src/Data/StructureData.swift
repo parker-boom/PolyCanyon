@@ -37,49 +37,18 @@ class StructureData: ObservableObject {
     @Published var structures: [Structure] = []
     @Published var isLoading: Bool = true
     
-    private let structuresKey = "persistedStructures"
-
-    /**
-     * Initializes the StructureData manager and loads structure data.
-     */
     init() {
         loadData()
     }
-
-    /**
-     * Loads structure data either from persisted storage or from a CSV file.
-     */
+    
     private func loadData() {
         self.isLoading = true
-        
-        if let savedStructures = loadFromUserDefaults() {
-            self.structures = savedStructures
-            self.isLoading = false
-        } else {
-            loadStructuresFromCSV()
-        }
+        self.structures = DataStore.shared.loadStructures()
+        self.isLoading = false
     }
-
-    /**
-     * Loads structure data from UserDefaults if available.
-     *
-     * - Returns: An array of Structure objects if available, otherwise nil.
-     */
-    private func loadFromUserDefaults() -> [Structure]? {
-        if let structuresData = UserDefaults.standard.data(forKey: structuresKey),
-           let decodedStructures = try? JSONDecoder().decode([Structure].self, from: structuresData) {
-            return decodedStructures
-        }
-        return nil
-    }
-
-    /**
-     * Saves the current structures to UserDefaults for persistence.
-     */
-    private func saveToUserDefaults() {
-        if let encoded = try? JSONEncoder().encode(structures) {
-            UserDefaults.standard.set(encoded, forKey: structuresKey)
-        }
+    
+    private func saveStructures() {
+        DataStore.shared.saveStructures(structures)
     }
     
     /**
@@ -147,7 +116,7 @@ class StructureData: ObservableObject {
             
             DispatchQueue.main.async {
                 self.structures = loadedStructures
-                self.saveToUserDefaults()
+                self.saveStructures()
                 self.isLoading = false
             }
         } catch {
@@ -197,7 +166,7 @@ class StructureData: ObservableObject {
             structures[index].isOpened = false
             structures[index].recentlyVisited = -1
         }
-        saveToUserDefaults()
+        saveStructures()
         objectWillChange.send()
     }
 
@@ -217,7 +186,7 @@ class StructureData: ObservableObject {
         for index in structures.indices {
             structures[index].isVisited = true
         }
-        saveToUserDefaults()
+        saveStructures()
         objectWillChange.send()
     }
     
@@ -239,7 +208,7 @@ class StructureData: ObservableObject {
         for index in structures.indices {
             structures[index].isLiked = false
         }
-        saveToUserDefaults()
+        saveStructures()
         objectWillChange.send()
     }
 
@@ -251,7 +220,7 @@ class StructureData: ObservableObject {
     func toggleLike(for structureId: Int) {
         if let index = structures.firstIndex(where: { $0.id == structureId }) {
             structures[index].isLiked.toggle()
-            saveToUserDefaults()
+            saveStructures()
         }
     }
 
@@ -279,7 +248,7 @@ class StructureData: ObservableObject {
                 structures[index].recentlyVisited = recentlyVisitedCount
             }
             print("DEBUG: Structure \(number) marked as visited. Recently visited count: \(recentlyVisitedCount)")
-            saveToUserDefaults()
+            saveStructures()
             objectWillChange.send()
         } else {
             print("DEBUG: Failed to find structure with number \(number)")
@@ -294,7 +263,7 @@ class StructureData: ObservableObject {
     func markStructureAsOpened(_ number: Int) {
         if let index = structures.firstIndex(where: { $0.number == number }) {
             structures[index].isOpened = true
-            saveToUserDefaults()
+            saveStructures()
             objectWillChange.send()
         }
     }
