@@ -1,0 +1,23 @@
+# Disable rules you don’t care about
+disabled_rules:
+  - trailing_whitespace # Allows trailing spaces
+  - identifier_name # Ignores variable/type naming conventions
+  - force_unwrapping # Disables force unwrapping rule for now
+
+# Enable specific analyzer rules
+analyzer_rules:
+  - unused_import # Flags unused imports
+
+# Line length configuration
+line_length:
+  warning: 100 # Warning for medium-wide screens
+  error: 120 # Hard limit
+  ignores_comments: true # Ignores line length in comments
+
+# Indentation configuration
+indentation:
+  preferred_style: spaces # Enforces spaces for indentation
+  width: 4 # Standard width
+
+# Reporter configuration
+reporter: "xcode" # Output format for Xcode/terminal

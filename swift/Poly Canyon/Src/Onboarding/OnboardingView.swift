@@ -13,10 +13,17 @@ import Shiny
  * - Mode Selection Slide: Allows users to choose between Adventure Mode and Virtual Tour Mode.
  * Utilizes OnboardingLocationManager to handle location-related functionalities during onboarding.
  */
+
+ /*
+
+
+// NEED DARK MODE
+
+
+ */
 struct OnboardingView: View {
-    @Binding var isNewOnboardingCompleted: Bool
-    @Binding var isAdventureModeEnabled: Bool
-    @StateObject private var locationService = LocationService.shared
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
     @State private var currentPage = 0
 
     private let totalPages = 3
@@ -133,27 +140,27 @@ struct OnboardingView: View {
                 .padding(.top, 40)
 
             ModeIcon(
-                imageName: isAdventureModeEnabled ? "figure.walk" : "binoculars",
-                color: isAdventureModeEnabled ? adventureModeColor : virtualTourColor,
+                imageName: appState.adventureModeEnabled ? "figure.walk" : "binoculars",
+                color: appState.adventureModeEnabled ? adventureModeColor : virtualTourColor,
                 isSelected: true
             )
             .padding(.vertical, 30)
 
             CustomModePicker(
-                isAdventureModeEnabled: $isAdventureModeEnabled,
+                isAdventureModeEnabled: $appState.adventureModeEnabled,
                 adventureModeColor: adventureModeColor,
                 virtualTourColor: virtualTourColor
             )
-            .onChange(of: isAdventureModeEnabled) { newValue in
+            .onChange(of: appState.adventureModeEnabled) { newValue in
                 locationService.handleModeChange(newValue)
             }
 
             RecommendationLabel(
-                isRecommended: isAdventureModeEnabled == locationService.recommendedMode
+                isRecommended: appState.adventureModeEnabled == locationService.recommendedMode
             )
 
             VStack(alignment: .leading, spacing: 10) {
-                if isAdventureModeEnabled {
+                if appState.adventureModeEnabled {
                     Text("• Explore structures in person")
                         .font(.system(size: 24, weight: .semibold))
                     Text("• Track your progress")
@@ -176,23 +183,23 @@ struct OnboardingView: View {
             Spacer()
 
             Button("Let's Go!") {
-                isNewOnboardingCompleted = true
+                appState.isOnboardingCompleted = true
             }
             .font(.system(size: 18, weight: .bold))
             .foregroundColor(.white)
             .frame(minWidth: 150)
             .padding(.vertical, 12)
             .padding(.horizontal, 30)
-            .background(isAdventureModeEnabled ? adventureModeColor : virtualTourColor)
+            .background(appState.adventureModeEnabled ? adventureModeColor : virtualTourColor)
             .cornerRadius(25)
             .padding(.bottom, 40)
         }
         .padding()
         .background(Color.white)
         .onAppear {
-            isAdventureModeEnabled = locationService.isNearCalPoly
+            appState.adventureModeEnabled = locationService.isNearCalPoly
             print("DEBUG: Mode selection slide appeared")
-            print("DEBUG: isAdventureModeEnabled: \(isAdventureModeEnabled)")
+            print("DEBUG: isAdventureModeEnabled: \(appState.adventureModeEnabled)")
             print("DEBUG: locationManager.isNearCalPoly: \(locationService.isNearCalPoly)")
         }
     }
@@ -411,12 +418,22 @@ struct PulseAnimation: ViewModifier {
             }
     }
 }
-
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
-        OnboardingView(
-            isNewOnboardingCompleted: .constant(false),
-            isAdventureModeEnabled: .constant(false)
-        )
+        Group {
+            OnboardingView()
+                .environmentObject(AppState())
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+            
+            OnboardingView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }

@@ -20,11 +20,9 @@ import SwiftUI
 // MARK: - StructureSwipingView
 
 struct StructureSwipingView: View {
-    // MARK: - Observed Objects
-    @ObservedObject var structureData: StructureData
-    
-    // MARK: - Binding Properties
-    @Binding var isDarkMode: Bool
+    // MARK: - Environment Objects
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
     
     // MARK: - Environment
     @Environment(\.presentationMode) var presentationMode
@@ -40,9 +38,7 @@ struct StructureSwipingView: View {
     private let swipeThreshold: CGFloat = 50.0
     
     // MARK: - Initializer
-    init(structureData: StructureData, isDarkMode: Binding<Bool>) {
-        self.structureData = structureData
-        self._isDarkMode = isDarkMode
+    init() {
         let savedIndex = UserDefaults.standard.integer(forKey: "ratingProgress")
         let isCompleted = UserDefaults.standard.bool(forKey: "ratingCompleted")
         self._currentIndex = State(initialValue: savedIndex)
@@ -76,7 +72,7 @@ struct StructureSwipingView: View {
      * Determines the background color based on dark mode.
      */
     private var backgroundColor: Color {
-        isDarkMode ? .black : .white
+        appState.isDarkMode ? .black : .white
     }
     
     /**
@@ -88,18 +84,18 @@ struct StructureSwipingView: View {
         VStack {
             Text("Rate Structures")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.top, 20)
             
-            Text("\(currentIndex + 1)/\(structureData.structures.count)")
+            Text("\(currentIndex + 1)/\(dataStore.structures.count)")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, 5)
             
             ZStack {
-                ForEach(structureData.structures.indices, id: \.self) { index in
+                ForEach(dataStore.structures.indices, id: \.self) { index in
                     if index >= currentIndex && index <= currentIndex + 2 {
-                        cardView(for: structureData.structures[index])
+                        cardView(for: dataStore.structures[index])
                             .offset(index == currentIndex ? offset : .zero)
                             .rotationEffect(.degrees(Double(index == currentIndex ? offset.width / 10 : 0)))
                             .gesture(
@@ -121,7 +117,7 @@ struct StructureSwipingView: View {
                                         }
                                     }
                             )
-                            .zIndex(Double(structureData.structures.count - index))
+                            .zIndex(Double(dataStore.structures.count - index))
                     }
                 }
             }
@@ -162,11 +158,11 @@ struct StructureSwipingView: View {
             
             Text("Rating Complete!")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, 10)
-            Text("\(likedCount)/\(structureData.structures.count) structures liked")
+            Text("\(likedCount)/\(dataStore.structures.count) structures liked")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, 15)
             
             HStack(spacing: 15) {
@@ -254,11 +250,11 @@ struct StructureSwipingView: View {
             
             Text("Rating Complete!")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, 10)
-            Text("\(likedCount)/\(structureData.structures.count) structures liked")
+            Text("\(likedCount)/\(dataStore.structures.count) structures liked")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, 15)
             
             HStack(spacing: 15) {
@@ -309,7 +305,7 @@ struct StructureSwipingView: View {
      * Advances to the next card or marks rating as finished if all cards are swiped.
      */
     private func moveToNextCard() {
-        if currentIndex < structureData.structures.count - 1 {
+        if currentIndex < dataStore.structures.count - 1 {
             currentIndex += 1
             saveProgress()
         } else {
@@ -324,7 +320,7 @@ struct StructureSwipingView: View {
      * Toggles the like status of the current structure and updates the liked count.
      */
     private func likeStructure() {
-        structureData.toggleLike(for: structureData.structures[currentIndex].id)
+        dataStore.toggleLike(for: dataStore.structures[currentIndex].id)
         updateLikedCount()
     }
     
@@ -334,8 +330,8 @@ struct StructureSwipingView: View {
      * Removes the like status if the structure is currently liked.
      */
     private func dislikeStructure() {
-        if structureData.structures[currentIndex].isLiked {
-            structureData.toggleLike(for: structureData.structures[currentIndex].id)
+        if dataStore.structures[currentIndex].isLiked {
+            dataStore.toggleLike(for: dataStore.structures[currentIndex].id)
             updateLikedCount()
         }
     }
@@ -346,7 +342,7 @@ struct StructureSwipingView: View {
      * Updates the count of liked structures.
      */
     private func updateLikedCount() {
-        likedCount = structureData.structures.filter { $0.isLiked }.count
+        likedCount = dataStore.structures.filter { $0.isLiked }.count
     }
     
     /**
@@ -610,52 +606,20 @@ struct PulsingHeart: View {
 
 struct StructureSwipingView_Previews: PreviewProvider {
     static var previews: some View {
-        let mockStructureData = StructureData()
-        let mockStructures = [
-            Structure(
-                number: 1,
-                title: "Golden Arch",
-                description: "A stunning arch made of gold.",
-                year: "1990",
-                builders: "Jane Doe, John Smith",
-                funFact: "Inspired by the Golden Gate Bridge.",
-                mainPhoto: "goldenArchMain",
-                closeUp: "goldenArchCloseUp",
-                isVisited: true,
-                isOpened: true,
-                recentlyVisited: 5,
-                isLiked: true
-            ),
-            Structure(
-                number: 2,
-                title: "Silver Dome",
-                description: "A majestic silver dome structure.",
-                year: "1985",
-                builders: "Alice Brown, Bob Johnson",
-                funFact: "Reflects sunlight beautifully during dawn.",
-                mainPhoto: "silverDomeMain",
-                closeUp: "silverDomeCloseUp",
-                isVisited: true,
-                isOpened: true,
-                recentlyVisited: 3,
-                isLiked: false
-            )
-        ]
-        mockStructureData.structures = mockStructures
-        
         Group {
-            StructureSwipingView(
-                structureData: mockStructureData,
-                isDarkMode: .constant(false)
-            )
-            .previewDisplayName("Light Mode")
+            StructureSwipingView()
+                .environmentObject(AppState())
+                .environmentObject(DataStore.shared)
+                .previewDisplayName("Light Mode")
             
-            StructureSwipingView(
-                structureData: mockStructureData,
-                isDarkMode: .constant(true)
-            )
-            .preferredColorScheme(.dark)
-            .previewDisplayName("Dark Mode")
+            StructureSwipingView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .previewDisplayName("Dark Mode")
         }
     }
 }

@@ -7,13 +7,17 @@ class LocationService: NSObject, ObservableObject {
     
     // MARK: - Properties
     private let locationManager = CLLocationManager()
-    private let dataStore = DataStore.shared
     private var firestoreRef: Firestore!
+    private var cancellables = Set<AnyCancellable>()
+    
+    // Dependencies
+    private weak var appState: AppState?
+    private weak var dataStore: DataStore?
     
     // Core location states
     @Published private(set) var locationStatus: CLAuthorizationStatus?
     @Published private(set) var lastLocation: CLLocation?
-    @Published private(set) var recommendedMode: Bool = false  // true = adventure
+    @Published private(set) var recommendedMode: Bool = false
     @Published private(set) var trackingState: TrackingState = .inactive
     
     // Boundary definitions
@@ -37,6 +41,18 @@ class LocationService: NSObject, ObservableObject {
         setupFirestore()
     }
     
+    func configure(appState: AppState, dataStore: DataStore) {
+        self.appState = appState
+        self.dataStore = dataStore
+        
+        // Observe adventure mode changes
+        appState.$adventureModeEnabled
+            .sink { [weak self] isEnabled in
+                self?.handleModeChange(isEnabled)
+            }
+            .store(in: &cancellables)
+    }
+    
     // MARK: - Setup
     private func setupLocationManager() {
         locationManager.delegate = self
@@ -50,12 +66,8 @@ class LocationService: NSObject, ObservableObject {
     }
     
     // MARK: - Public Permission Interface
-    
-    /// Request initial "when in use" permission and determine recommended mode
     func requestInitialPermission() async -> Bool {
-        // Set up a continuation to wait for authorization response
         return await withCheckedContinuation { continuation in
-            // Store the continuation to resolve it when we get authorization callback
             self.permissionContinuation = continuation
             locationManager.requestWhenInUseAuthorization()
         }
@@ -80,7 +92,6 @@ class LocationService: NSObject, ObservableObject {
     }
     
     // MARK: - Location Updates Control
-    
     private func startLocationUpdates() {
         locationManager.startUpdatingLocation()
         updateTrackingState()
@@ -93,8 +104,7 @@ class LocationService: NSObject, ObservableObject {
     }
     
     private func updateTrackingState() {
-        let isAdventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
-        guard isAdventureModeEnabled,
+        guard appState?.adventureModeEnabled == true,
               let location = lastLocation else {
             trackingState = .inactive
             return
@@ -107,9 +117,8 @@ class LocationService: NSObject, ObservableObject {
         }
     }
     
-    // New method to handle mode changes
-    func handleModeChange(_ isAdventureModeEnabled: Bool) {
-        if isAdventureModeEnabled {
+    func handleModeChange(_ isEnabled: Bool) {
+        if isEnabled {
             locationManager.requestAlwaysAuthorization()
             startLocationUpdates()
         } else {
@@ -159,12 +168,10 @@ extension LocationService: CLLocationManagerDelegate {
         
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            // Resolve pending permission request if exists
             permissionContinuation?.resume(returning: true)
             permissionContinuation = nil
             
-            // Start updates if in adventure mode
-            if locationMode == .adventure {
+            if appState?.adventureModeEnabled == true {
                 startLocationUpdates()
             }
             
@@ -186,24 +193,27 @@ extension LocationService: CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         lastLocation = location
         
-        // Update recommended mode based on location
         recommendedMode = isWithinRecommendationRange(location)
         
-        // Only process location if in adventure mode
-        let isAdventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
-        guard isAdventureModeEnabled else { return }
+        guard appState?.adventureModeEnabled == true else { return }
         
         updateTrackingState()
         
         if isWithinSafeZone(coordinate: location.coordinate) {
             logLocationToFirebase(location: location)
+            checkForNearbyStructures(at: location)
+        }
+    }
+    
+    private func checkForNearbyStructures(at location: CLLocation) {
+        if let nearestPoint = findNearestMapPoint(to: location.coordinate) {
+            dataStore?.markStructureAsVisited(nearestPoint.landmark)
         }
     }
 }
 
 // MARK: - Private Helpers
 private extension LocationService {
-
     func enableBackgroundTracking() {
         locationManager.allowsBackgroundLocationUpdates = true
         trackingState = .background
@@ -215,7 +225,6 @@ private extension LocationService {
     }
     
     func logLocationToFirebase(location: CLLocation) {
-        // Keeping existing Firebase logging logic
         guard let nearestPoint = findNearestMapPoint(to: location.coordinate) else { return }
         
         let locationData: [String: Any] = [
@@ -233,7 +242,8 @@ private extension LocationService {
         var minDistance = Double.infinity
         
         let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        let mapPoints = dataStore.loadMapPoints()
+        
+        guard let mapPoints = dataStore?.mapPoints else { return nil }
         
         for point in mapPoints {
             let pointLocation = CLLocation(

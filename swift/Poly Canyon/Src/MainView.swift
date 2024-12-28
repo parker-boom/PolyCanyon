@@ -29,20 +29,10 @@ struct MainView: View {
                 )
                 .tag(0)
                 
-                DetailView(
-                    isDarkMode: $appState.isDarkMode,
-                    isAdventureModeEnabled: $appState.adventureModeEnabled,
-                    structures: dataStore.structures,
-                    mapPoints: dataStore.mapPoints
-                )
+                DetailView()
                 .tag(1)
                 
-                SettingsView(
-                    isDarkMode: $appState.isDarkMode,
-                    isAdventureModeEnabled: $appState.adventureModeEnabled,
-                    structures: dataStore.structures,
-                    mapPoints: dataStore.mapPoints
-                )
+                SettingsView()
                 .tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))

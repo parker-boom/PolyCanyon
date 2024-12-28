@@ -23,12 +23,12 @@ import Shimmer
 // MARK: - StructPopUp
 
 struct StructPopUp: View {
-    // MARK: - Observed Objects
-    @ObservedObject var structureData: StructureData
+    // MARK: - Environment Objects
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
     
     // MARK: - Properties
     let structure: Structure
-    @Binding var isDarkMode: Bool
     @Binding var isPresented: Bool
     
     // MARK: - State Properties
@@ -38,10 +38,8 @@ struct StructPopUp: View {
     @State private var isLiked: Bool
     
     // MARK: - Initializer
-    init(structureData: StructureData, structure: Structure, isDarkMode: Binding<Bool>, isPresented: Binding<Bool>) {
-        self._structureData = ObservedObject(wrappedValue: structureData)
+    init(structure: Structure, isPresented: Binding<Bool>) {
         self.structure = structure
-        self._isDarkMode = isDarkMode
         self._isPresented = isPresented
         self._isLiked = State(initialValue: structure.isLiked)
     }
@@ -71,9 +69,9 @@ struct StructPopUp: View {
                 informationButton(geometry: geometry)
             }
             .padding(15)
-            .background(isDarkMode ? Color.black : Color.white)
+            .background(appState.isDarkMode ? Color.black : Color.white)
             .cornerRadius(20)
-            .shadow(color: isDarkMode ? .white.opacity(0.3) : .black.opacity(0.5), radius: 7, x: 0, y: 3)
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.3) : .black.opacity(0.5), radius: 7, x: 0, y: 3)
             .gesture(
                 DragGesture()
                     .onChanged { value in
@@ -205,7 +203,7 @@ struct StructPopUp: View {
                 Image(systemName: isShowingInfo ? "photo" : "info.circle")
                     .font(.system(size: 18, weight: .bold))
             }
-            .foregroundColor(isDarkMode ? .white : .black)
+            .foregroundColor(appState.isDarkMode ? .white : .black)
             .padding()
             .frame(width: geometry.size.width - 30)
             .background(Color.gray.opacity(0.2))
@@ -225,21 +223,21 @@ struct StructPopUp: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
                     if structure.builders != "iii" {
-                        InfoPill(icon: "👷", title: "Builders", value: structure.builders, isDarkMode: isDarkMode)
+                        InfoPill(icon: "👷", title: "Builders", value: structure.builders, isDarkMode: appState.isDarkMode)
                     }
                     
                     if let funFact = structure.funFact, funFact != "iii" {
-                        FunFactPill(icon: "✨", fact: funFact, isDarkMode: $isDarkMode)
+                        FunFactPill(icon: "✨", fact: funFact, isDarkMode: $appState.isDarkMode)
                     }
                     
-                    InfoPill(icon: "📝", title: "Description", value: structure.description, isDarkMode: isDarkMode)
+                    InfoPill(icon: "📝", title: "Description", value: structure.description, isDarkMode: appState.isDarkMode)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 5)
             }
         }
         .frame(height: geometry.size.height * 0.75)
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
         .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
@@ -262,7 +260,7 @@ struct StructPopUp: View {
                 if structure.year != "xxxx" {
                     Text(structure.year)
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
                 }
             }
             Spacer()
@@ -271,11 +269,11 @@ struct StructPopUp: View {
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 24))
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
             }
         }
         .padding()
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
     }
 }
 
@@ -287,14 +285,14 @@ struct StructPopUp: View {
  * A button that allows users to like or unlike the structure.
  */
 struct LikeButton: View {
-    @ObservedObject var structureData: StructureData
+    @EnvironmentObject var dataStore: DataStore
     let structure: Structure
     @Binding var isLiked: Bool
 
     var body: some View {
         Button(action: {
             isLiked.toggle()
-            structureData.toggleLike(for: structure.id)
+            dataStore.toggleLike(for: structure.id)
         }) {
             Image(systemName: isLiked ? "heart.fill" : "heart")
                 .foregroundColor(isLiked ? .red : .white)
@@ -309,11 +307,11 @@ struct LikeButton: View {
  * Displays an information pill with an icon, title, and value.
  */
 struct InfoPill: View {
+    @EnvironmentObject var appState: AppState
     let icon: String
     let title: String
     let value: String
-    let isDarkMode: Bool
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -321,18 +319,18 @@ struct InfoPill: View {
                     .font(.system(size: 18, weight: .bold))
                 Text(title)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
             }
             Text(value)
                 .font(.system(size: 18, weight: .regular))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.1))
+        .background(appState.isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.1))
         .cornerRadius(20)
-        .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .shadow(color: appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
 
@@ -342,9 +340,9 @@ struct InfoPill: View {
  * Displays a fun fact pill with an icon and fact text.
  */
 struct FunFactPill: View {
+    @EnvironmentObject var appState: AppState
     let icon: String
     let fact: String
-    @Binding var isDarkMode: Bool
     @State private var isGlowing = false
 
     var body: some View {
@@ -354,27 +352,27 @@ struct FunFactPill: View {
                     .font(.system(size: 18, weight: .bold))
                 Text("Fun Fact")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
             }
             Text(fact)
                 .font(.system(size: 18, weight: .medium))
-                .foregroundColor(isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(isDarkMode ? Color.blue.opacity(0.2) : Color.blue.opacity(0.1))
+        .background(appState.isDarkMode ? Color.blue.opacity(0.2) : Color.blue.opacity(0.1))
         .cornerRadius(20)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(isDarkMode ? Color.blue.opacity(0.6) : Color.blue.opacity(0.8), lineWidth: 2)
+                .stroke(appState.isDarkMode ? Color.blue.opacity(0.6) : Color.blue.opacity(0.8), lineWidth: 2)
                 .shimmering(
                     animation: .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
                     bandSize: 0.3
                 )
         )
         .shadow(
-            color: isGlowing ? (isDarkMode ? .blue.opacity(0.4) : .blue.opacity(0.2)) : .clear,
+            color: isGlowing ? (appState.isDarkMode ? .blue.opacity(0.4) : .blue.opacity(0.2)) : .clear,
             radius: 10,
             x: 0,
             y: 0
@@ -453,38 +451,28 @@ struct ZoomableImageView: View {
 
 struct StructPopUp_Previews: PreviewProvider {
     static var previews: some View {
-        let mockStructureData = StructureData()
-        let mockStructure = Structure(
-            number: 8,
-            title: "Geodesic Dome",
-            description: "The Geodesic Dome, an iconic structure in Poly Canyon, stands as a testament to innovative architectural design and engineering principles. Constructed in 1957, it showcases the visionary concepts of Buckminster Fuller, who popularized this efficient structural form. The dome's lattice-shell structure is composed of interconnected triangles, creating a self-supporting framework that distributes stress evenly across its surface. This design not only provides exceptional strength-to-weight ratio but also maximizes interior space with minimal material usage. The Geodesic Dome serves as an enduring example of sustainable architecture and continues to inspire students and visitors alike with its futuristic appearance and practical applications in modern construction techniques.",
-            year: "1957",
-            builders: "John Warren, Myles Murphey, Don Mills, Jack Stammer, Neil Moir, Don Tanklage, Bill Kohr",
-            funFact: "The Geodesic Dome can withstand extreme weather conditions and has inspired similar structures worldwide, including the famous Spaceship Earth at Walt Disney World's Epcot Center.",
-            mainPhoto: "8M",
-            closeUp: "8C",
-            isVisited: true,
-            isOpened: true,
-            recentlyVisited: 2,
-            isLiked: true
-        )
+        // Get random structure from DataStore
+        let previewStructure = DataStore.shared.structures.randomElement()!
         
         Group {
             StructPopUp(
-                structureData: mockStructureData,
-                structure: mockStructure,
-                isDarkMode: .constant(false),
+                structure: previewStructure,
                 isPresented: .constant(true)
             )
+            .environmentObject(AppState())
+            .environmentObject(DataStore.shared)
             .previewDisplayName("Light Mode")
             
             StructPopUp(
-                structureData: mockStructureData,
-                structure: mockStructure,
-                isDarkMode: .constant(true),
+                structure: previewStructure,
                 isPresented: .constant(true)
             )
-            .preferredColorScheme(.dark)
+            .environmentObject({
+                let state = AppState()
+                state.isDarkMode = true
+                return state
+            }())
+            .environmentObject(DataStore.shared)
             .previewDisplayName("Dark Mode")
         }
     }

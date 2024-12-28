@@ -13,15 +13,11 @@ import SwiftUI
  * - Receive confirmations for critical actions like resetting structures.
  */
 struct SettingsView: View {
-    // MARK: - Observed Objects
-    @ObservedObject var structureData: StructureData
-    @ObservedObject var mapPointManager: MapPointManager
-    @ObservedObject var locationManager: LocationManager
-    
-    // MARK: - Binding Properties
-    @Binding var isDarkMode: Bool
-    @Binding var isAdventureModeEnabled: Bool
-    
+    // MARK: - Environment Objects
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
+
     // MARK: - State Properties
     @State private var showAlert = false
     @State private var alertType: AlertType?
@@ -30,9 +26,6 @@ struct SettingsView: View {
     @State private var showHowToGetThereGuide = false
     @State private var showResetAlert = false
     @State private var resetAlertType: ResetAlertType?
-    
-    // MARK: - App Storage
-    @AppStorage("visitedCount") private var visitedCount: Int = 0
     
     // MARK: - Enums
     
@@ -61,14 +54,14 @@ struct SettingsView: View {
             VStack(spacing: 20) {
                 generalSettingsSection
                 informationSection
-                if isAdventureModeEnabled {
+                if appState.adventureModeEnabled {
                     statisticsSection
                 }
                 creditsSection
             }
             .padding()
         }
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .overlay(
             Group {
                 // Mode Picker Popup
@@ -80,12 +73,7 @@ struct SettingsView: View {
                         }
                     
                     CustomModePopUp(
-                        isAdventureModeEnabled: $isAdventureModeEnabled,
-                        isPresented: $showModePopUp,
-                        isDarkMode: $isDarkMode,
-                        structureData: structureData,
-                        mapPointManager: mapPointManager,
-                        locationManager: locationManager
+                        isPresented: $showModePopUp
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
@@ -101,7 +89,7 @@ struct SettingsView: View {
                     
                     HowToGetThereGuide(
                         isPresented: $showHowToGetThereGuide,
-                        isDarkMode: $isDarkMode
+                        isDarkMode: $appState.isDarkMode
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .transition(.opacity)
@@ -127,7 +115,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("General Settings")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, -5)
             
             VStack(spacing: 10) {
@@ -135,28 +123,28 @@ struct SettingsView: View {
                 HStack {
                     Text("Dark Mode")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                     Spacer()
-                    DarkModeToggle(isOn: $isDarkMode)
+                    DarkModeToggle()
                 }
                 .padding()
-                .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+                .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
                 .cornerRadius(15)
                 
                 // Adventure Mode Toggle and Information
                 VStack(spacing: 10) {
                     // Mode Icon
-                    Image(systemName: isAdventureModeEnabled ? "figure.walk" : "binoculars")
+                    Image(systemName: appState.adventureModeEnabled ? "figure.walk" : "binoculars")
                         .font(.system(size: 40))
-                        .foregroundColor(isAdventureModeEnabled ? .green : Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0))
+                        .foregroundColor(appState.adventureModeEnabled ? .green : Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0))
                     
                     // Mode Title
-                    Text(isAdventureModeEnabled ? "Adventure Mode" : "Virtual Tour Mode")
+                    Text(appState.adventureModeEnabled ? "Adventure Mode" : "Virtual Tour Mode")
                         .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                     
                     // Mode Description
-                    Text(isAdventureModeEnabled ? "Explore structures in person" : "Browse structures remotely")
+                    Text(appState.adventureModeEnabled ? "Explore structures in person" : "Browse structures remotely")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
@@ -175,7 +163,7 @@ struct SettingsView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+                .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
                 .cornerRadius(15)
                 
                 // Reset and Location Settings Buttons
@@ -183,16 +171,16 @@ struct SettingsView: View {
                     // Reset Button
                     SettingsButton(
                         action: {
-                            if isAdventureModeEnabled {
+                            if appState.adventureModeEnabled {
                                 showResetStructuresAlert()
                             } else {
                                 showResetFavoritesAlert()
                             }
                         },
-                        imageName: isAdventureModeEnabled ? "arrow.clockwise" : "heart.slash.fill",
-                        text: isAdventureModeEnabled ? "Reset Structures" : "Reset Favorites",
+                        imageName: appState.adventureModeEnabled ? "arrow.clockwise" : "heart.slash.fill",
+                        text: appState.adventureModeEnabled ? "Reset Structures" : "Reset Favorites",
                         imgColor: .red,
-                        isDarkMode: isDarkMode
+                        isDarkMode: appState.isDarkMode
                     )
                     
                     // Location Settings Button
@@ -203,7 +191,7 @@ struct SettingsView: View {
                         imageName: "location.fill",
                         text: "Location Settings",
                         imgColor: .green,
-                        isDarkMode: isDarkMode
+                        isDarkMode: appState.isDarkMode
                     )
                 }
             }
@@ -219,22 +207,20 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Statistics")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.top, 10)
                 .padding(.bottom, -5)
             
             HStack(spacing: 10) {
                 StatBox(
                     title: "Visited",
-                    value: visitedCount,
-                    iconName: "checkmark.circle.fill",
-                    isDarkMode: isDarkMode
+                    value: dataStore.visitedCount,
+                    iconName: "checkmark.circle.fill"
                 )
                 StatBox(
                     title: "Days",
-                    value: locationManager.dayCount,
-                    iconName: "calendar",
-                    isDarkMode: isDarkMode
+                    value: locationService.dayCount,
+                    iconName: "calendar"
                 )
             }
         }
@@ -249,10 +235,10 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Information")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.bottom, -5)
 
-            if isAdventureModeEnabled {
+            if appState.adventureModeEnabled {
                 // How to Get There Button
                 InformationButton(
                     action: { showHowToGetThereGuide = true },
@@ -267,8 +253,7 @@ struct SettingsView: View {
                                 .font(.system(size: 28))
                         }
                     ),
-                    gradientColors: [Color.blue.opacity(0.7), Color.blue.opacity(0.3)],
-                    isDarkMode: isDarkMode
+                    gradientColors: [Color.blue.opacity(0.7), Color.blue.opacity(0.3)]
                 )
             } else {
                 // Pick Your Favorites Button
@@ -280,13 +265,13 @@ struct SettingsView: View {
                             .font(.system(size: 54))
                             .foregroundColor(.white)
                     ),
-                    gradientColors: isDarkMode
+                    gradientColors: appState.isDarkMode
                         ? [Color.red.opacity(0.9), Color.red.opacity(0.4)]
                         : [Color.red.opacity(0.8), Color.red.opacity(0.3)],
-                    isDarkMode: isDarkMode
+                    isDarkMode: appState.isDarkMode
                 )
                 .sheet(isPresented: $showStructureSwipingView) {
-                    StructureSwipingView(structureData: structureData, isDarkMode: $isDarkMode)
+                    StructureSwipingView(structureData: dataStore, isDarkMode: $appState.isDarkMode)
                 }
             }
         }
@@ -301,22 +286,21 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Credits")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
             
             VStack(spacing: 15) {
                 CreditItem(title: "Developer", name: "Parker Jones")
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
                 CreditItem(title: "Institution", name: "Cal Poly SLO")
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
                 CreditItem(title: "Department", name: "CAED College")
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
             }
             
             VStack(alignment: .leading, spacing: 10) {
                 Text("Report Issues")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                
+                    .foregroundColor(appState.isDarkMode ? .white : .black)   
                 Button(action: {
                     if let url = URL(string: "mailto:pjones15@calpoly.edu") {
                         UIApplication.shared.open(url)
@@ -330,7 +314,7 @@ struct SettingsView: View {
                 }
             }
             .padding(.top, 10)
-            
+
             Text("Thank you for using the Poly Canyon app!")
                 .font(.system(size: 14))
                 .foregroundColor(.gray)
@@ -338,7 +322,7 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
         .cornerRadius(15)
     }
     
@@ -361,17 +345,16 @@ struct SettingsView: View {
                         "Are you sure you want to reset all favorite structures? This action cannot be undone.",
                     primaryButton: .init(title: "Reset") {
                         if alertType == .structures {
-                            structureData.resetVisitedStructures()
-                            mapPointManager.resetVisitedMapPoints()
+                            dataStore.resetVisitedStructures()
+                            dataStore.resetVisitedMapPoints()
                         } else {
-                            structureData.resetFavorites()
+                            dataStore.resetFavorites()
                         }
                     },
                     secondaryButton: .init(title: "Cancel") {
                         // Handle cancellation if needed
                     },
-                    isPresented: $showResetAlert,
-                    isDarkMode: $isDarkMode
+                    isPresented: $showResetAlert
                 )
             }
         }
@@ -415,11 +398,11 @@ struct SettingsView: View {
  * A customizable button used in the information section to navigate to different guides or actions.
  */
 struct InformationButton: View {
+    @EnvironmentObject var appState: AppState
     let action: () -> Void
     let title: String
     let icon: AnyView
     let gradientColors: [Color]
-    let isDarkMode: Bool
 
     var body: some View {
         Button(action: action) {
@@ -458,19 +441,19 @@ struct InformationButton: View {
  * A custom toggle switch for enabling or disabling Dark Mode, accompanied by sun and moon icons.
  */
 struct DarkModeToggle: View {
-    @Binding var isOn: Bool
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
         HStack {
             Image(systemName: "sun.max.fill")
-                .foregroundColor(isOn ? .gray : .yellow)
+                .foregroundColor(appState.isDarkMode ? .gray : .yellow)
             
-            Toggle("", isOn: $isOn)
+            Toggle("", isOn: $appState.isDarkMode)
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .blue))
             
             Image(systemName: "moon.fill")
-                .foregroundColor(isOn ? .blue : .gray)
+                .foregroundColor(appState.isDarkMode ? .blue : .gray)
         }
     }
 }
@@ -508,11 +491,11 @@ struct CreditItem: View {
  * A reusable button component for settings actions, displaying an icon and text.
  */
 struct SettingsButton: View {
+    @EnvironmentObject var appState: AppState
     let action: () -> Void
     let imageName: String
     let text: String
     let imgColor: Color
-    let isDarkMode: Bool
     
     var body: some View {
         Button(action: action) {
@@ -523,11 +506,11 @@ struct SettingsButton: View {
                     .padding(.bottom, 5)
                 Text(text)
                     .font(.system(size: 12))
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+            .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
             .cornerRadius(10)
         }
     }
@@ -539,10 +522,10 @@ struct SettingsButton: View {
  * Displays a statistical metric with a title, value, and accompanying icon.
  */
 struct StatBox: View {
+    @EnvironmentObject var appState: AppState
     let title: String
     let value: Int
     let iconName: String
-    let isDarkMode: Bool
     
     var body: some View {
         VStack(spacing: 5) {
@@ -550,19 +533,19 @@ struct StatBox: View {
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
             
             Text(title)
                 .font(.system(size: 16))
-                .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
             
             Image(systemName: iconName)
                 .font(.system(size: 24))
-                .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical)
-        .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
         .cornerRadius(15)
     }
 }
@@ -573,12 +556,10 @@ struct StatBox: View {
  * A popup view allowing users to switch between Adventure Mode and Virtual Tour Mode, displaying relevant information.
  */
 struct CustomModePopUp: View {
-    @Binding var isAdventureModeEnabled: Bool
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
     @Binding var isPresented: Bool
-    @Binding var isDarkMode: Bool
-    @ObservedObject var structureData: StructureData
-    @ObservedObject var mapPointManager: MapPointManager
-    @ObservedObject var locationManager: LocationManager
     
     let adventureModeColor = Color.green
     let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
@@ -587,7 +568,7 @@ struct CustomModePopUp: View {
         VStack(spacing: 20) {
             // Mode Picker
             CustomModePicker(
-                isAdventureModeEnabled: $isAdventureModeEnabled,
+                isAdventureModeEnabled: $appState.adventureModeEnabled,
                 adventureModeColor: adventureModeColor,
                 virtualTourColor: virtualTourColor
             )
@@ -596,8 +577,8 @@ struct CustomModePopUp: View {
             
             // Mode Icon
             ModeIcon(
-                imageName: isAdventureModeEnabled ? "figure.walk" : "binoculars",
-                color: isAdventureModeEnabled ? adventureModeColor : virtualTourColor,
+                imageName: appState.adventureModeEnabled ? "figure.walk" : "binoculars",
+                color: appState.adventureModeEnabled ? adventureModeColor : virtualTourColor,
                 isSelected: true
             )
             .frame(width: 60, height: 60)
@@ -605,28 +586,28 @@ struct CustomModePopUp: View {
             
             // Mode Features
             VStack(alignment: .leading, spacing: 10) {
-                if isAdventureModeEnabled {
-                    BulletPoint(text: "Explore structures in person", isDarkMode: isDarkMode)
-                    BulletPoint(text: "Track your progress", isDarkMode: isDarkMode)
-                    BulletPoint(text: "Use live location", isDarkMode: isDarkMode)
+                if appState.adventureModeEnabled {
+                    BulletPoint(text: "Explore structures in person")
+                    BulletPoint(text: "Track your progress")
+                    BulletPoint(text: "Use live location")
                 } else {
-                    BulletPoint(text: "Browse remotely", isDarkMode: isDarkMode)
-                    BulletPoint(text: "Learn about all structures", isDarkMode: isDarkMode)
-                    BulletPoint(text: "No location needed", isDarkMode: isDarkMode)
+                    BulletPoint(text: "Browse remotely")
+                    BulletPoint(text: "Learn about all structures")
+                    BulletPoint(text: "No location needed")
                 }
             }
             .padding(.vertical)
             
             // Recommended Usage
-            Text("Better for: \(isAdventureModeEnabled ? "In-person visits" : "Remote exploration")")
+            Text("Better for: \(appState.adventureModeEnabled ? "In-person visits" : "Remote exploration")")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(isDarkMode ? .white.opacity(0.7) : .gray)
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .gray)
                 .padding(.top, 15)
                 .padding(.bottom, -10)
             
             // Confirm Button
             Button("Confirm Choice") {
-                locationManager.isAdventureModeEnabled = isAdventureModeEnabled
+                locationService.handleModeChange(appState.adventureModeEnabled)
                 isPresented = false
             }
             .font(.system(size: 18, weight: .bold))
@@ -634,11 +615,11 @@ struct CustomModePopUp: View {
             .frame(minWidth: 150)
             .padding(.vertical, 12)
             .padding(.horizontal, 30)
-            .background(isAdventureModeEnabled ? adventureModeColor : virtualTourColor)
+            .background(appState.adventureModeEnabled ? adventureModeColor : virtualTourColor)
             .cornerRadius(25)
         }
         .padding()
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(20)
         .shadow(radius: 10)
     }
@@ -650,8 +631,8 @@ struct CustomModePopUp: View {
  * Represents a single bullet point in a list, used for displaying features or information.
  */
 struct BulletPoint: View {
+    @EnvironmentObject var appState: AppState
     let text: String
-    let isDarkMode: Bool
     
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -660,7 +641,7 @@ struct BulletPoint: View {
             Text(text)
                 .font(.system(size: 18))
         }
-        .foregroundColor(isDarkMode ? .white : .black)
+        .foregroundColor(appState.isDarkMode ? .white : .black)
     }
 }
 
@@ -670,8 +651,8 @@ struct BulletPoint: View {
  * A multi-page guide providing users with instructions on how to reach Poly Canyon.
  */
 struct HowToGetThereGuide: View {
+    @EnvironmentObject var appState: AppState
     @Binding var isPresented: Bool
-    @Binding var isDarkMode: Bool
     @State private var currentPage = 0
     @AppStorage("howToGetThereGuideIndex") private var savedIndex = 0
 
@@ -731,7 +712,7 @@ struct HowToGetThereGuide: View {
                     savedIndex = currentPage
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                         .font(.system(size: 24))
                 }
             }
@@ -771,7 +752,7 @@ struct HowToGetThereGuide: View {
             .padding()
         }
         .frame(width: 300, height: 450)
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(20)
         .shadow(radius: 10)
         .onAppear {
@@ -813,7 +794,7 @@ struct HowToGetThereGuide: View {
             }
             Spacer()
         }
-        .foregroundColor(isDarkMode ? .white : .black)
+        .foregroundColor(appState.isDarkMode ? .white : .black)
     }
 }
 
@@ -838,6 +819,7 @@ struct GuidePage {
  * A customizable alert view that displays an icon, title, subtitle, and two action buttons.
  */
 struct CustomAlert: View {
+    @EnvironmentObject var appState: AppState
     let icon: String
     let iconColor: Color
     let title: String
@@ -845,13 +827,7 @@ struct CustomAlert: View {
     let primaryButton: AlertButton
     let secondaryButton: AlertButton
     let isPresented: Binding<Bool>
-    @Binding var isDarkMode: Bool
 
-    /**
-     * AlertButton
-     *
-     * Represents a button within the CustomAlert with a title and action.
-     */
     struct AlertButton {
         let title: String
         let action: () -> Void
@@ -859,18 +835,15 @@ struct CustomAlert: View {
 
     var body: some View {
         ZStack {
-            // Semi-transparent Background
             Color.black.opacity(0.4)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
                     isPresented.wrappedValue = false
                 }
 
-            // Alert Content
             VStack(spacing: 0) {
-                // Icon with Circle Background
                 Circle()
-                    .fill(isDarkMode ? Color.black : Color.white)
+                    .fill(appState.isDarkMode ? Color.black : Color.white)
                     .frame(width: 120, height: 120)
                     .overlay(
                         Image(systemName: icon)
@@ -880,22 +853,20 @@ struct CustomAlert: View {
                     .offset(y: 60)
                     .zIndex(1)
 
-                // Alert Details
                 VStack(spacing: 15) {
                     Text(title)
                         .font(.system(size: 22, weight: .bold))
                         .multilineTextAlignment(.center)
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                         .padding(.top, 70)
 
                     Text(subtitle)
                         .font(.system(size: 16))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                        .foregroundColor(isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
 
                     VStack(spacing: 15) {
-                        // Primary Button
                         Button(action: {
                             isPresented.wrappedValue = false
                             primaryButton.action()
@@ -909,14 +880,13 @@ struct CustomAlert: View {
                                 .cornerRadius(10)
                         }
 
-                        // Secondary Button
                         Button(action: {
                             isPresented.wrappedValue = false
                             secondaryButton.action()
                         }) {
                             Text(secondaryButton.title)
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                                .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
                                 .underline()
                         }
                     }
@@ -924,51 +894,40 @@ struct CustomAlert: View {
                     .padding(.bottom, 20)
                 }
                 .padding(.horizontal, 20)
-                .background(isDarkMode ? Color.black : Color.white)
+                .background(appState.isDarkMode ? Color.black : Color.white)
                 .cornerRadius(20)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(isDarkMode ? Color.white.opacity(0.2) : Color.black.opacity(0.2), lineWidth: 1)
+                        .stroke(appState.isDarkMode ? Color.white.opacity(0.2) : Color.black.opacity(0.2), lineWidth: 1)
                 )
             }
             .frame(width: 300)
-            .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.2), radius: 10, x: 0, y: 10)
+            .shadow(color: appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.2), radius: 10, x: 0, y: 10)
         }
     }
 }
 
 // MARK: - Preview
-
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Light Mode Preview
-            SettingsView(
-                structureData: StructureData(),
-                mapPointManager: MapPointManager(), 
-                locationManager: LocationManager(
-                    mapPointManager: MapPointManager(),
-                    structureData: StructureData(),
-                    isAdventureModeEnabled: true
-                ),
-                isDarkMode: .constant(false),
-                isAdventureModeEnabled: .constant(true)
-            )
-            .previewDisplayName("Light Mode")
+            SettingsView()
+                .environmentObject(AppState())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
             
             // Dark Mode Preview
-            SettingsView(
-                structureData: StructureData(),
-                mapPointManager: MapPointManager(), 
-                locationManager: LocationManager(
-                    mapPointManager: MapPointManager(),
-                    structureData: StructureData(),
-                    isAdventureModeEnabled: true
-                ),
-                isDarkMode: .constant(true),
-                isAdventureModeEnabled: .constant(false)
-            )
-            .previewDisplayName("Dark Mode")
+            SettingsView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
         }
     }
 }

@@ -14,51 +14,22 @@ import Glur // Package for gradient blur
  * detailed information about selected structures.
  */
 struct DetailView: View {
-    // MARK: - Observed Objects and Bindings
-    @ObservedObject var structureData: StructureData
-    @ObservedObject var locationManager: LocationManager
-    @ObservedObject var mapPointManager: MapPointManager
-    @Binding var isDarkMode: Bool
-    @Binding var isAdventureModeEnabled: Bool
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
     
-    // MARK: - State Variables
+    // Local state
     @State private var selectedStructure: Structure?
     @State private var showStructPopup = false
     @State private var searchText = ""
     @State private var isGridView = true
     @State private var showPopup = false
-    @State private var showOnboardingImage = false
-    @AppStorage("visitedCount") private var visitedCount: Int = 0
     @State private var showEyePopup = false
     @State private var sortState: SortState = .all
     
-    // MARK: - Sorting States
-    enum SortState {
-        case all, favorites, visited, unopened, unvisited
-    }
-    
-    // MARK: - Computed Properties for Sorting Options
-    private var hasVisitedStructures: Bool {
-        structureData.structures.contains { $0.isVisited }
-    }
-    
-    private var hasUnopenedStructures: Bool {
-        structureData.structures.contains { $0.isVisited && !$0.isOpened }
-    }
-    
-    private var hasUnvisitedStructures: Bool {
-        structureData.structures.contains { !$0.isVisited }
-    }
-    
-    private var hasLikedStructures: Bool {
-        structureData.structures.contains { $0.isLiked }
-    }
-    
-    // MARK: - Body
     var body: some View {
         ZStack {
-            // Background Color
-            (isDarkMode ? Color.black : Color.white)
+            (appState.isDarkMode ? Color.black : Color.white)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
@@ -89,20 +60,20 @@ struct DetailView: View {
                     }
                 }
             }
-            .background(isDarkMode ? Color.black : Color.white)
+            .background(appState.isDarkMode ? Color.black : Color.white)
             .onAppear {
                 let firstVisit = UserDefaults.standard.integer(forKey: "firstVisitedStructure")
                 if firstVisit != 0 {
-                    structureData.ensureStructureVisited(firstVisit)
+                    dataStore.ensureStructureVisited(firstVisit)
                 }
             }
             .onAppear {
                 // Observe structureVisited notifications to update visited structures
-                if isAdventureModeEnabled {
+                if appState.adventureModeEnabled {
                     NotificationCenter.default.addObserver(forName: .structureVisited, object: nil, queue: .main) { [self] notification in
                         if let landmarkId = notification.object as? Int {
-                            structureData.markStructureAsVisited(landmarkId, recentlyVisitedCount: visitedCount)
-                            visitedCount += 1
+                            dataStore.markStructureAsVisited(landmarkId, recentlyVisitedCount: appState.visitedCount)
+                            appState.visitedCount += 1
                         }
                     }
                 }
@@ -118,9 +89,8 @@ struct DetailView: View {
                 
                 if let selectedStructure = selectedStructure {
                     StructPopUp(
-                        structureData: structureData,
+                        structureData: dataStore,
                         structure: selectedStructure,
-                        isDarkMode: $isDarkMode,
                         isPresented: $showStructPopup
                     )
                     .padding(15)
@@ -135,14 +105,14 @@ struct DetailView: View {
                 if showEyePopup {
                     VStack {
                         Spacer()
-                        PopupView(message: getPopupMessage(), isDarkMode: isDarkMode)
+                        PopupView(message: getPopupMessage(), isDarkMode: appState.isDarkMode)
                             .padding(.bottom, 15)
                             .transition(.move(edge: .bottom))
                     }
                 }
             }
         )
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
     }
     
     // MARK: - Header View
@@ -153,7 +123,7 @@ struct DetailView: View {
         HStack {
             sortButton
             
-            SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: isDarkMode)
+            SearchBar(text: $searchText, placeholder: "Search structures...", isDarkMode: appState.isDarkMode)
                 .frame(maxWidth: .infinity)
             
             if searchText != "" {
@@ -162,7 +132,7 @@ struct DetailView: View {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                         .font(.system(size: 20, weight: .semibold))
                         .padding(.trailing, 5)
                 }
@@ -171,11 +141,11 @@ struct DetailView: View {
             Toggle(isOn: $isGridView) {
                 Text("View Mode")
             }
-            .toggleStyle(CustomToggleStyle(isDarkMode: isDarkMode))
+            .toggleStyle(CustomToggleStyle(isDarkMode: appState.isDarkMode))
         }
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .padding(.horizontal, 10)
         .padding(.bottom, -5)
     }
@@ -194,7 +164,7 @@ struct DetailView: View {
                     Label("Favorites", systemImage: "heart.fill")
                 }
             }
-            if isAdventureModeEnabled {
+            if appState.adventureModeEnabled {
                 if hasVisitedStructures {
                     Button(action: { sortState = .visited }) {
                         Label("Visited", systemImage: "checkmark.circle")
@@ -249,7 +219,7 @@ struct DetailView: View {
     func getSortButtonColor() -> Color {
         switch sortState {
         case .all:
-            return isDarkMode ? .white : .black
+            return appState.isDarkMode ? .white : .black
         case .favorites:
             return .red
         case .visited:
@@ -268,7 +238,7 @@ struct DetailView: View {
      * - Returns: An array of Structure objects that match the search and filter criteria.
      */
     var filteredStructures: [Structure] {
-        let searchFiltered = structureData.structures.filter { structure in
+        let searchFiltered = dataStore.structures.filter { structure in
             searchText.isEmpty || structure.title.localizedCaseInsensitiveContains(searchText) || String(structure.number).contains(searchText)
         }
         
@@ -294,12 +264,12 @@ struct DetailView: View {
         VStack {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 2), spacing: 15) {
                 ForEach(filteredStructures, id: \.id) { structure in
-                    StructureGridItem(structure: structure, isDarkMode: isDarkMode, isAdventureModeEnabled: isAdventureModeEnabled)
+                    StructureGridItem(structure: structure, isDarkMode: appState.isDarkMode, isAdventureModeEnabled: appState.adventureModeEnabled)
                         .onTapGesture {
                             showStructurePopup(structure)
                         }
                 }
-                .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+                .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
             }
             .padding(.horizontal, 20)
             .padding(.top, 10)
@@ -315,21 +285,21 @@ struct DetailView: View {
         VStack(spacing: 0) {
             ForEach(filteredStructures, id: \.id) { structure in
                 Divider()
-                    .background(isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.4))
+                    .background(appState.isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.4))
                 
                 HStack {
                     Text("\(structure.number)")
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                         .font(.system(size: 18, weight: .thin))
                     
                     Text(structure.title)
-                        .foregroundColor(isDarkMode ? .white : .black)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
                         .font(.system(size: 23, weight: .semibold))
                         .padding(.leading, 10)
                     
                     Spacer()
                     
-                    if isAdventureModeEnabled {
+                    if appState.adventureModeEnabled {
                         if structure.isVisited && !structure.isOpened {
                             Circle()
                                 .fill(Color.blue.opacity(0.7))
@@ -343,7 +313,7 @@ struct DetailView: View {
                             .padding(.trailing, 10)
                     } else {
                         Button(action: {
-                            structureData.toggleLike(for: structure.id)
+                            dataStore.toggleLike(for: structure.id)
                         }) {
                             Image(systemName: structure.isLiked ? "heart.fill" : "heart")
                                 .foregroundColor(structure.isLiked ? .red : .white)
@@ -354,7 +324,7 @@ struct DetailView: View {
                 }
                 .padding(.vertical, 10)
                 .padding(.horizontal, 16)
-                .background(isDarkMode ? Color.black : Color.white)
+                .background(appState.isDarkMode ? Color.black : Color.white)
                 .onTapGesture {
                     showStructurePopup(structure)
                 }
@@ -369,7 +339,7 @@ struct DetailView: View {
      * Displays recently visited structures in a horizontal layout.
      */
     var recentlyVisitedView: some View {
-        let recentlyVisitedStructures = structureData.structures
+        let recentlyVisitedStructures = dataStore.structures
             .filter { $0.recentlyVisited != -1 }
             .sorted { $0.recentlyVisited > $1.recentlyVisited }
             .prefix(3)
@@ -398,7 +368,7 @@ struct DetailView: View {
                             .offset(x: -5, y: -5)
                     }
                     .frame(width: 80, height: 80)
-                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .shadow(color: appState.isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
                     .onTapGesture {
                         showStructurePopup(structure)
                     }
@@ -409,14 +379,14 @@ struct DetailView: View {
             
             Text("Recently Visited")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.top, 5)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(10)
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(15)
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
         .padding(.horizontal, 15)
         .padding(.bottom, 10)
@@ -426,7 +396,7 @@ struct DetailView: View {
      * Displays recently unopened structures in a horizontal layout.
      */
     var recentlyUnopenedView: some View {
-        let recentlyUnopenedStructures = structureData.structures
+        let recentlyUnopenedStructures = dataStore.structures
             .filter { !$0.isOpened && $0.isVisited }
             .sorted { $0.recentlyVisited > $1.recentlyVisited }
             .prefix(3)
@@ -455,7 +425,7 @@ struct DetailView: View {
                             .offset(x: -5, y: -5)
                     }
                     .frame(width: 80, height: 80)
-                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .shadow(color: appState.isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
                     .onTapGesture {
                         showStructurePopup(structure)
                     }
@@ -466,14 +436,14 @@ struct DetailView: View {
             
             Text("Recently Unopened")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.top, 5)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(10)
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(15)
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
         .padding(.horizontal, 15)
         .padding(.bottom, 10)
@@ -483,7 +453,7 @@ struct DetailView: View {
      * Displays nearby unvisited structures in a horizontal layout.
      */
     var nearbyUnvisitedView: some View {
-        let nearbyUnvisitedStructures = structureData.structures
+        let nearbyUnvisitedStructures = dataStore.structures
             .filter { !$0.isVisited }
             .sorted { getDistance(to: $0) < getDistance(to: $1) }
             .prefix(3)
@@ -512,7 +482,7 @@ struct DetailView: View {
                             .offset(x: -5, y: -5)
                     }
                     .frame(width: 80, height: 80)
-                    .shadow(color: isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
+                    .shadow(color: appState.isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2), radius: 4, x: 0, y: 0)
                     .onTapGesture {
                         showStructurePopup(structure)
                     }
@@ -523,14 +493,14 @@ struct DetailView: View {
             
             Text("Nearby Unvisited")
                 .font(.headline)
-                .foregroundColor(isDarkMode ? .white : .black)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
                 .padding(.top, 5)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(10)
-        .background(isDarkMode ? Color.black : Color.white)
+        .background(appState.isDarkMode ? Color.black : Color.white)
         .cornerRadius(15)
-        .shadow(color: isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
+        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4), radius: 5, x: 0, y: 3)
         .frame(maxWidth: UIScreen.main.bounds.width - 20)
         .padding(.horizontal, 15)
         .padding(.bottom, 10)
@@ -545,8 +515,8 @@ struct DetailView: View {
      * - Returns: A CLLocationDistance representing the distance in meters.
      */
     func getDistance(to structure: Structure) -> CLLocationDistance {
-        guard let userLocation = locationManager.lastLocation else { return .infinity }
-        let structureLocation = mapPointManager.mapPoints.first { $0.landmark == structure.number }?.coordinate
+        guard let userLocation = locationService.lastLocation else { return .infinity }
+        let structureLocation = dataStore.mapPoints.first { $0.landmark == structure.number }?.coordinate
         let structureCLLocation = CLLocation(latitude: structureLocation?.latitude ?? 0, longitude: structureLocation?.longitude ?? 0)
         return userLocation.distance(from: structureCLLocation)
     }
@@ -557,7 +527,7 @@ struct DetailView: View {
      * - Returns: A Boolean indicating whether recently visited structures should be shown.
      */
     private var shouldShowRecentlyVisited: Bool {
-        structureData.structures.contains(where: { $0.recentlyVisited != -1 }) && sortState == .visited && isAdventureModeEnabled
+        dataStore.structures.contains(where: { $0.recentlyVisited != -1 }) && sortState == .visited && appState.adventureModeEnabled
     }
     
     /**
@@ -566,7 +536,7 @@ struct DetailView: View {
      * - Returns: A Boolean indicating whether recently unopened structures should be shown.
      */
     private var shouldShowRecentlyUnopened: Bool {
-        structureData.structures.contains(where: { !$0.isOpened && $0.isVisited }) && sortState == .unopened && isAdventureModeEnabled
+        dataStore.structures.contains(where: { !$0.isOpened && $0.isVisited }) && sortState == .unopened && appState.adventureModeEnabled
     }
     
     /**
@@ -575,7 +545,7 @@ struct DetailView: View {
      * - Returns: A Boolean indicating whether nearby unvisited structures should be shown.
      */
     private var shouldShowNearbyUnvisited: Bool {
-        structureData.structures.contains(where: { !$0.isVisited }) && sortState == .unvisited && isAdventureModeEnabled
+        dataStore.structures.contains(where: { !$0.isVisited }) && sortState == .unvisited && appState.adventureModeEnabled
     }
     
     /**
@@ -623,7 +593,7 @@ struct DetailView: View {
     private func showStructurePopup(_ structure: Structure) {
         selectedStructure = structure
         if structure.isVisited {
-            structureData.markStructureAsOpened(structure.number)
+            dataStore.markStructureAsOpened(structure.number)
         }
         showStructPopup = true
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -662,24 +632,24 @@ struct RoundedCornerShape: Shape {
  * Displays a transient popup message, typically used for showing filter selections.
  */
 struct PopupView: View {
+    @EnvironmentObject var appState: AppState
     let message: String
-    let isDarkMode: Bool
     
     var body: some View {
         Text(message)
             .padding()
             .font(.system(size: 23, weight: .semibold))
             .background(popupBackground)
-            .foregroundColor(isDarkMode ? .white : .black)
+            .foregroundColor(appState.isDarkMode ? .white : .black)
             .cornerRadius(10)
-            .shadow(color: isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7), radius: 6, x: 0, y: 0)
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7), radius: 6, x: 0, y: 0)
             .frame(width: UIScreen.main.bounds.width * 0.6)
             .transition(.move(edge: .bottom))
     }
     
     /// Determines the background color based on dark mode.
     var popupBackground: Color {
-        isDarkMode ? Color.black : Color.white
+        appState.isDarkMode ? Color.black : Color.white
     }
 }
 
@@ -689,9 +659,9 @@ struct PopupView: View {
  * A custom search bar component that integrates with UIKit's UISearchBar for advanced customization.
  */
 struct SearchBar: UIViewRepresentable {
+    @EnvironmentObject var appState: AppState
     @Binding var text: String
     var placeholder: String
-    var isDarkMode: Bool
 
     /**
      * Creates the UISearchBar view.
@@ -714,7 +684,7 @@ struct SearchBar: UIViewRepresentable {
         let textField = searchBar.searchTextField
         textField.backgroundColor = .clear // Removes background
         textField.borderStyle = .none
-        textField.textColor = isDarkMode ? .white : .black // Set text color
+        textField.textColor = appState.isDarkMode ? .white : .black // Set text color
 
         let placeholderAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.gray // Set placeholder color to gray
@@ -799,7 +769,7 @@ class CustomUISearchBar: UISearchBar {
  * A custom toggle style for switching between grid and list views.
  */
 struct CustomToggleStyle: ToggleStyle {
-    var isDarkMode: Bool
+    @EnvironmentObject var appState: AppState
 
     func makeBody(configuration: Configuration) -> some View {
         Button(action: {
@@ -807,16 +777,16 @@ struct CustomToggleStyle: ToggleStyle {
         }) {
             HStack {
                 Image(systemName: configuration.isOn ? "square.grid.2x2" : "list.bullet")
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
                     .font(.system(size: 28, weight: .bold))
                     .frame(width: 44, height: 44)
-                    .background(isDarkMode ? Color.black : Color.white)  // Set background based on dark mode
+                    .background(appState.isDarkMode ? Color.black : Color.white)  // Set background based on dark mode
                     .cornerRadius(8)
             }
         }
         .buttonStyle(PlainButtonStyle())  // Removes default button styling
         .frame(height: 44)
-        .background(isDarkMode ? Color.black.opacity(0.1) : Color.white.opacity(0.9))
+        .background(appState.isDarkMode ? Color.black.opacity(0.1) : Color.white.opacity(0.9))
         .cornerRadius(10)
         .padding(.trailing, 5)
     }
@@ -829,17 +799,14 @@ struct CustomToggleStyle: ToggleStyle {
  * and handles tap gestures to show detailed information.
  */
 struct StructureGridItem: View {
+    @EnvironmentObject var appState: AppState
     let structure: Structure
-    let isDarkMode: Bool
-    let isAdventureModeEnabled: Bool
-    
-    @StateObject private var imageLoader = ImageLoader()
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             ZStack(alignment: .topTrailing) {
-                if (structure.isVisited && isAdventureModeEnabled) || (!isAdventureModeEnabled) {
-                    imageLoader.image?
+                if (structure.isVisited && appState.adventureModeEnabled) || (!appState.adventureModeEnabled) {
+                    Image(structure.mainPhoto)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: (UIScreen.main.bounds.width - 45) / 2, height: (UIScreen.main.bounds.width - 60) / 2)
@@ -863,7 +830,7 @@ struct StructureGridItem: View {
                             .frame(width: 13, height: 13)
                             .padding(12)
                     } else {
-                        if isAdventureModeEnabled {
+                        if appState.adventureModeEnabled {
                             // Blue circle if visited but not opened & adventure mode
                             Circle()
                                 .fill(Color.blue.opacity(0.7))
@@ -981,16 +948,24 @@ extension Notification.Name {
 // MARK: - Preview
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(
-            structureData: StructureData(),
-            locationManager: LocationManager(
-                mapPointManager: MapPointManager(),
-                structureData: StructureData(),
-                isAdventureModeEnabled: true
-            ),
-            mapPointManager: MapPointManager(),
-            isDarkMode: .constant(false),
-            isAdventureModeEnabled: .constant(true)
-        )
+        Group {
+            // Light Mode Preview
+            DetailView()
+                .environmentObject(AppState())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+            
+            // Dark Mode Preview
+            DetailView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }
