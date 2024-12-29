@@ -3,14 +3,13 @@
 import SwiftUI
 import Combine
 
-/**
- * MainView
- *
- * Acts as the primary interface of the Poly Canyon app, facilitating navigation between different sections
- * such as MapView, DetailView, and SettingsView. It integrates various managers including LocationManager,
- * MapPointManager, and StructureData to handle app data and user interactions.
- * Supports dark mode and adventure mode settings, and dynamically hides the tab bar when the keyboard is visible.
- */
+/*
+ MainView implements the core navigation structure of the application using a custom tab-based interface. It 
+ manages navigation between Map, Detail, and Settings views while handling keyboard presence and theme changes. 
+ The view provides smooth transitions between sections and adapts to system appearance changes. It also 
+ coordinates with location services for adventure mode functionality.
+*/
+
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
@@ -21,23 +20,18 @@ struct MainView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selection) {
-                MapView(
-                    isDarkMode: $appState.isDarkMode,
-                    isAdventureModeEnabled: $appState.adventureModeEnabled,
-                    structures: dataStore.structures,
-                    mapPoints: dataStore.mapPoints
-                )
-                .tag(0)
+                MapView()
+                    .tag(0)
                 
                 DetailView()
-                .tag(1)
+                    .tag(1)
                 
                 SettingsView()
-                .tag(2)
+                    .tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut, value: selection)
-
+            
             if !keyboardManager.isKeyboardVisible {
                 CustomTabBar(
                     onTabSelected: { tabIndex in
@@ -53,6 +47,13 @@ struct MainView: View {
         }
         .background(appState.isDarkMode ? Color.black : Color.white)
         .preferredColorScheme(appState.isDarkMode ? .dark : .light)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if appState.adventureModeEnabled {
+                    locationService.handleModeChange(true)
+                }
+            }
+        }
     }
 }
 
@@ -136,13 +137,13 @@ class KeyboardManager: ObservableObject {
      * Initializes the KeyboardManager and sets up observers for keyboard show and hide notifications.
      */
     init() {
-        addKeyboardObservers()
+        setupKeyboardObservers()
     }
     
     /**
      * Adds observers for keyboard show and hide notifications to update the isKeyboardVisible state.
      */
-    private func addKeyboardObservers() {
+    private func setupKeyboardObservers() {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
             .sink { [weak self] _ in
                 self?.isKeyboardVisible = true

@@ -1,0 +1,282 @@
+/*
+ MapComponents provides the supporting UI elements for the map interface. It includes the virtual tour 
+ navigation bar, structure visit notifications, nearby structure overlays, and achievement popups. These 
+ components adapt to the current theme and provide consistent interaction patterns across the map experience.
+*/
+
+import SwiftUI
+
+// MARK: - Virtual Tour Navigation
+struct VirtualWalkThroughBar: View {
+    @EnvironmentObject var appState: AppState
+    
+    let structure: Structure
+    let onNext: () -> Void
+    let onPrevious: () -> Void
+    let onTap: () -> Void
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Background container
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(appState.isDarkMode ? Color.black : Color.white)
+                    .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 5)
+                
+                // Navigation controls
+                HStack(spacing: 0) {
+                    arrowButton(direction: .previous)
+                    
+                    Spacer()
+                    
+                    structureInfo
+                    
+                    Spacer()
+                    
+                    arrowButton(direction: .next)
+                }
+                .padding(.horizontal, 15)
+            }
+            .frame(width: geometry.size.width, height: 120)
+        }
+        .frame(height: 120)
+        .padding(.bottom, 10)
+    }
+    
+    // Structure preview with title
+    private var structureInfo: some View {
+        Button(action: onTap) {
+            HStack(spacing: 15) {
+                // Structure thumbnail
+                Image(structure.mainPhoto)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                
+                // Structure details
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("#\(structure.number)")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                    
+                    Text(structure.title)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(10)
+            .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+            .cornerRadius(20)
+        }
+    }
+    
+    // Navigation arrow button
+    private func arrowButton(direction: ArrowDirection) -> some View {
+        Button(action: direction == .next ? onNext : onPrevious) {
+            Image(systemName: direction == .next ? "chevron.right" : "chevron.left")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+                .frame(width: 40, height: 40)
+                .background(appState.isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
+                .clipShape(Circle())
+        }
+    }
+    
+    private enum ArrowDirection {
+        case next, previous
+    }
+}
+
+// MARK: - Visit Notification
+struct VisitedStructurePopup: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    
+    let structure: Structure
+    @Binding var isPresented: Bool
+    @Binding var showStructPopup: Bool
+    @Binding var selectedStructure: Structure?
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        GeometryReader { geometry in
+            HStack(alignment: .center, spacing: 10) {
+                // Dismiss button
+                Button(action: {
+                    withAnimation {
+                        onDismiss()
+                    }
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 28))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                }
+                .padding(.leading, 15)
+                
+                // Structure preview with details
+                Button(action: {
+                    selectedStructure = structure
+                    showStructPopup = true
+                    dataStore.markStructureAsOpened(structure.number)
+                    onDismiss()
+                }) {
+                    HStack {
+                        // Structure thumbnail
+                        Image(structure.mainPhoto)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .cornerRadius(10)
+                        
+                        // Visit notification
+                        VStack(alignment: .leading) {
+                            Text("Just Visited!")
+                                .font(.system(size: 14))
+                                .foregroundColor(appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8))
+                            
+                            Text(structure.title)
+                                .font(.system(size: 24))
+                                .fontWeight(.semibold)
+                                .foregroundColor(appState.isDarkMode ? .white : .black)
+                                .lineLimit(2)
+                        }
+                        .frame(maxWidth: geometry.size.width - 250, alignment: .leading)
+                        .padding(.leading, 10)
+                        
+                        // Structure number
+                        Text(String(structure.number))
+                            .font(.system(size: 28))
+                            .fontWeight(.bold)
+                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                            .padding(.leading, 5)
+                        
+                        Spacer()
+                        
+                        // Navigation indicator
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 20))
+                            .foregroundColor(appState.isDarkMode ? .white : .black)
+                    }
+                }
+            }
+            .frame(width: geometry.size.width - 30)
+            .background(appState.isDarkMode ? Color.black : Color.white)
+            .cornerRadius(15)
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
+                    radius: 5, x: 0, y: 3)
+            .padding(.horizontal, 15)
+            .padding(.bottom, 15)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        }
+        .frame(height: 120)
+    }
+}
+
+// MARK: - Nearby Structures
+struct NearbyUnvisitedView: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
+    
+    @Binding var selectedStructure: Structure?
+    @Binding var showStructPopup: Bool
+    let nearbyUnvisitedStructures: [Structure]
+    
+    var body: some View {
+        VStack {
+            // Structure thumbnails row
+            HStack {
+                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
+                    Spacer()
+                    
+                    // Structure preview with number
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(structure.mainPhoto)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipped()
+                            .cornerRadius(15)
+                        
+                        // Structure number overlay
+                        Text("\(structure.number)")
+                            .font(.system(size: 16))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black, radius: 2, x: 0, y: 0)
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(5)
+                            .offset(x: -5, y: -5)
+                    }
+                    .frame(width: 80, height: 80)
+                    .shadow(color: appState.isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2),
+                            radius: 4, x: 0, y: 0)
+                    .onTapGesture {
+                        selectedStructure = structure
+                        showStructPopup = true
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            // Section title
+            Text("Nearby Unvisited")
+                .font(.headline)
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+                .padding(.top, 5)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(10)
+        .background(appState.isDarkMode ? Color.black : Color.white)
+        .cornerRadius(15)
+        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
+                radius: 5, x: 0, y: 3)
+        .frame(maxWidth: UIScreen.main.bounds.width - 20)
+        .padding(.horizontal, 15)
+        .padding(.bottom, 10)
+    }
+}
+
+// MARK: - Achievement Popup
+struct AllStructuresVisitedPopup: View {
+    @EnvironmentObject var appState: AppState
+    @Binding var isPresented: Bool
+    
+    var body: some View {
+        ZStack {
+            if isPresented {
+                VStack {
+                    // Achievement message
+                    Text("Congratulations!")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                    
+                    Text("You have visited all structures!")
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                    
+                    // Celebration icon
+                    Image("partyHat")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                }
+                .frame(width: 300, height: 200)
+                .background(appState.isDarkMode ? Color.black : Color.white)
+                .cornerRadius(20)
+                .shadow(color: appState.isDarkMode ? Color.white : Color.black, radius: 10)
+                .onTapGesture {
+                    isPresented = false
+                }
+            }
+        }
+    }
+}

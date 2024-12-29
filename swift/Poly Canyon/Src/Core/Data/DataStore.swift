@@ -1,12 +1,45 @@
+/*
+ DataStore manages the app's core data structures and persistence layer. It handles loading and saving of 
+ structure data, map points, and user statistics. The store is accessible app-wide as a shared singleton
+ through environment objects (@EnvironmentObject). It provides a comprehensive API for querying and 
+ updating structure data, managing visit states, and tracking user progress statistics.
+*/
+
 import Foundation
 import CoreLocation
 
 class DataStore: ObservableObject {
     static let shared = DataStore()
     
-    // MARK: - Published Data
+    // MARK: - Core Data Properties
     @Published private(set) var structures: [Structure] = []
     @Published private(set) var mapPoints: [MapPoint] = []
+    @Published private(set) var lastVisitedStructure: Structure? = nil
+    
+    // MARK: - Statistics Properties
+    @Published private(set) var visitedCount: Int {
+        didSet {
+            UserDefaults.standard.set(visitedCount, forKey: "visitedCount")
+        }
+    }
+    
+    @Published private(set) var dayCount: Int {
+        didSet {
+            UserDefaults.standard.set(dayCount, forKey: "dayCount")
+        }
+    }
+    
+    @Published private(set) var visitedAllCount: Int {
+        didSet {
+            UserDefaults.standard.set(visitedAllCount, forKey: "visitedAllCount")
+        }
+    }
+    
+    private var previousDayVisited: String? {
+        didSet {
+            UserDefaults.standard.set(previousDayVisited, forKey: "previousDayVisited")
+        }
+    }
     
     // MARK: - File Management
     private let fileManager = FileManager.default
@@ -20,23 +53,33 @@ class DataStore: ObservableObject {
     
     // MARK: - Initialization
     private init() {
+        // Load persisted stats
+        self.visitedCount = UserDefaults.standard.integer(forKey: "visitedCount")
+        self.dayCount = UserDefaults.standard.integer(forKey: "dayCount")
+        self.visitedAllCount = UserDefaults.standard.integer(forKey: "visitedAllCount")
+        self.previousDayVisited = UserDefaults.standard.string(forKey: "previousDayVisited")
+        
         loadInitialData()
     }
     
-    // MARK: - Shared Data Management
+    /*
+    *
+    *
+    SHARED DATA MANAGEMENT - Loading & Saving
+    *
+    *
+    */
     
+    // Decides whether to load in new data (data changed on update)
     private func loadInitialData() {
-        if needsDataRefresh() {
+        if storedVersion != currentBundleVersion {
             loadAndSaveInitialData()
         } else {
             loadPersistedData()
         }
     }
     
-    private func needsDataRefresh() -> Bool {
-        return storedVersion != currentBundleVersion
-    }
-    
+    // Loads in new data from bundle and saves it to documents
     private func loadAndSaveInitialData() {
         if let structures = loadStructuresFromBundle() {
             self.structures = structures
@@ -51,6 +94,7 @@ class DataStore: ObservableObject {
         storedVersion = currentBundleVersion
     }
     
+    // Loads in persisted data from documents (no change)
     private func loadPersistedData() {
         if let structures = loadStructuresFromDocuments() {
             self.structures = structures
@@ -61,8 +105,15 @@ class DataStore: ObservableObject {
         }
     }
     
-    // MARK: - Structure Data Management
+    /*
+    *
+    *
+    STRUCTURES
+    *
+    *
+    */
     
+    // Loads in new data from bundle
     private func loadStructuresFromBundle() -> [Structure]? {
         guard let url = Bundle.main.url(forResource: "structuresList", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
@@ -85,6 +136,7 @@ class DataStore: ObservableObject {
         }
     }
     
+    // Saves structures to documents
     private func saveStructures() {
         let url = documentsPath.appendingPathComponent("structures.json")
         if let data = try? JSONEncoder().encode(structures) {
@@ -92,6 +144,7 @@ class DataStore: ObservableObject {
         }
     }
     
+    // Loads persisted structures from documents
     private func loadStructuresFromDocuments() -> [Structure]? {
         let url = documentsPath.appendingPathComponent("structures.json")
         guard let data = try? Data(contentsOf: url) else { return nil }
@@ -100,17 +153,40 @@ class DataStore: ObservableObject {
     
     // MARK: - Structure Public Functions
     
-    func markStructureAsVisited(_ number: Int, recentlyVisitedCount: Int) {
-        if let index = structures.firstIndex(where: { $0.number == number }) {
-            structures[index].isVisited = true
-            if structures[index].recentlyVisited == -1 {
-                structures[index].recentlyVisited = recentlyVisitedCount
+    // Sets a structure as visited (UI reacts), updates stats, and saves
+    func markStructureAsVisited(_ number: Int) {
+        guard let index = structures.firstIndex(where: { $0.number == number }),
+              !structures[index].isVisited else { return }
+        
+        structures[index].isVisited = true
+        structures[index].recentlyVisited = visitedCount
+        visitedCount += 1
+        lastVisitedStructure = structures[index]
+        
+        // Update day count
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: Date())
+        
+        if let lastVisited = previousDayVisited {
+            if lastVisited != todayString {
+                dayCount += 1
+                previousDayVisited = todayString
             }
-            saveStructures()
-            objectWillChange.send()
+        } else {
+            dayCount += 1
+            previousDayVisited = todayString
         }
+        
+        // Check for all structures visited
+        if structures.allSatisfy({ $0.isVisited }) {
+            visitedAllCount += 1
+        }
+        
+        saveStructures()
     }
     
+    // Sets a structure as opened (UI reacts), and saves
     func markStructureAsOpened(_ number: Int) {
         if let index = structures.firstIndex(where: { $0.number == number }) {
             structures[index].isOpened = true
@@ -119,6 +195,7 @@ class DataStore: ObservableObject {
         }
     }
     
+    // Toggles a structure as liked (UI reacts), and saves
     func toggleLike(for structureId: Int) {
         if let index = structures.firstIndex(where: { $0.id == structureId }) {
             structures[index].isLiked.toggle()
@@ -127,10 +204,7 @@ class DataStore: ObservableObject {
         }
     }
     
-    func getLikedStructures() -> [Structure] {
-        return structures.filter { $0.isLiked }
-    }
-    
+    // Resets all structures to default state
     func resetStructures() {
         for index in structures.indices {
             structures[index].isVisited = false
@@ -142,8 +216,15 @@ class DataStore: ObservableObject {
         objectWillChange.send()
     }
     
-    // MARK: - MapPoint Data Management
+    /*
+    *
+    *
+    MAP POINTS
+    *
+    *
+    */
     
+    // Loads in new data from bundle
     private func loadMapPointsFromBundle() -> [MapPoint]? {
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
@@ -173,6 +254,7 @@ class DataStore: ObservableObject {
         }
     }
     
+    // Saves map points to documents
     private func saveMapPoints() {
         let url = documentsPath.appendingPathComponent("mapPoints.json")
         if let data = try? JSONEncoder().encode(mapPoints) {
@@ -180,6 +262,7 @@ class DataStore: ObservableObject {
         }
     }
     
+    // Loads persisted map points from documents
     private func loadMapPointsFromDocuments() -> [MapPoint]? {
         let url = documentsPath.appendingPathComponent("mapPoints.json")
         guard let data = try? Data(contentsOf: url) else { return nil }
@@ -188,22 +271,7 @@ class DataStore: ObservableObject {
     
     // MARK: - MapPoint Public Functions
     
-    func markPointAsVisited(_ point: MapPoint) {
-        if let index = mapPoints.firstIndex(where: { $0.id == point.id }) {
-            mapPoints[index].isVisited = true
-            saveMapPoints()
-            objectWillChange.send()
-        }
-    }
-    
-    func resetMapPoints() {
-        for index in mapPoints.indices {
-            mapPoints[index].isVisited = false
-        }
-        saveMapPoints()
-        objectWillChange.send()
-    }
-    
+    // Finds the nearest map point to a given coordinate
     func findNearestPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
         var minDistance = Double.infinity
@@ -223,6 +291,77 @@ class DataStore: ObservableObject {
         }
         
         return nearestPoint
+    }
+    
+    /* Basic Filters: 
+    * Liked
+    * Visited
+    * Unvisited
+    * Unopened
+    */
+    func getFilteredStructures(searchText: String = "", sortState: SortState) -> [Structure] {
+        let searchFiltered = structures.filter { structure in
+            searchText.isEmpty || 
+            structure.title.localizedCaseInsensitiveContains(searchText) || 
+            String(structure.number).contains(searchText)
+        }
+        
+        switch sortState {
+        case .all:
+            return searchFiltered
+        case .favorites:
+            return searchFiltered.filter { $0.isLiked }
+        case .visited:
+            return searchFiltered.filter { $0.isVisited }
+        case .unopened:
+            return searchFiltered.filter { $0.isVisited && !$0.isOpened }
+        case .unvisited:
+            return searchFiltered.filter { !$0.isVisited }
+        }
+    }
+    
+    // 3 most recently visited structures
+    func getRecentlyVisitedStructures(limit: Int = 3) -> [Structure] {
+        return structures
+            .filter { $0.recentlyVisited != -1 }
+            .sorted { $0.recentlyVisited > $1.recentlyVisited }
+            .prefix(limit)
+            .map { $0 }
+    }
+    
+    // 3 most recently unopened (visited) structures
+    func getRecentlyUnopenedStructures(limit: Int = 3) -> [Structure] {
+        return structures
+            .filter { !$0.isOpened && $0.isVisited }
+            .sorted { $0.recentlyVisited > $1.recentlyVisited }
+            .prefix(limit)
+            .map { $0 }
+    }
+    
+    // 3 closest unvisited structures
+    func getNearbyUnvisitedStructures(limit: Int = 3) -> [Structure] {
+        return structures
+            .filter { !$0.isVisited }
+            .sorted { LocationService.shared.getDistance(to: $0) < LocationService.shared.getDistance(to: $1) }
+            .prefix(limit)
+            .map { $0 }
+    }
+    
+    // Helper Checks
+    var hasUnvisitedStructures: Bool {
+        return structures.contains { !$0.isVisited }
+    }
+    
+    var hasVisitedStructures: Bool {
+        return structures.contains { $0.isVisited }
+    }
+    
+    var hasUnopenedStructures: Bool {
+        return structures.contains { $0.isVisited && !$0.isOpened }
+    }
+    
+    var hasLikedStructures: Bool {
+        return structures.contains { $0.isLiked }
     }
 }
 

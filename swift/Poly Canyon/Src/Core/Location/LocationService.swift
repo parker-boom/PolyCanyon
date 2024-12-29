@@ -1,3 +1,10 @@
+/*
+ LocationService handles all location-related functionality including permissions, tracking, and geofencing.
+ It manages location updates in both foreground and background modes, coordinates with Firebase for location
+ logging, and provides location-based structure discovery. The service is available app-wide as a shared 
+ singleton through environment objects (@EnvironmentObject) and closely coordinates with AppState and DataStore.
+*/
+
 import CoreLocation
 import FirebaseFirestore
 import Combine
@@ -5,22 +12,20 @@ import Combine
 class LocationService: NSObject, ObservableObject {
     static let shared = LocationService()
     
-    // MARK: - Properties
+    // MARK: - Dependencies
     private let locationManager = CLLocationManager()
     private var firestoreRef: Firestore!
     private var cancellables = Set<AnyCancellable>()
-    
-    // Dependencies
     private weak var appState: AppState?
     private weak var dataStore: DataStore?
     
-    // Core location states
+    // MARK: - Published States
     @Published private(set) var locationStatus: CLAuthorizationStatus?
     @Published private(set) var lastLocation: CLLocation?
     @Published private(set) var recommendedMode: Bool = false
     @Published private(set) var trackingState: TrackingState = .inactive
     
-    // Boundary definitions
+    // MARK: - Location Boundaries
     private let centerPoint = CLLocationCoordinate2D(
         latitude: 35.31461,
         longitude: -120.65238
@@ -31,8 +36,8 @@ class LocationService: NSObject, ObservableObject {
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
     )
     
-    private let recommendationRadius: CLLocationDistance = 48280  // 30 miles
-    private let backgroundRadius: CLLocationDistance = 1609.34   // 1 mile
+    private let recommendationRadius: CLLocationDistance = 48280  // 30 miles for mode recommendation
+    private let backgroundRadius: CLLocationDistance = 1609.34   // 1 mile for background tracking
     
     // MARK: - Initialization
     private override init() {
@@ -41,6 +46,7 @@ class LocationService: NSObject, ObservableObject {
         setupFirestore()
     }
     
+    // Pull in app state and data store, to use them in the service
     func configure(appState: AppState, dataStore: DataStore) {
         self.appState = appState
         self.dataStore = dataStore
@@ -61,11 +67,13 @@ class LocationService: NSObject, ObservableObject {
         locationManager.pausesLocationUpdatesAutomatically = false
     }
     
+    // Setup Firebase
     private func setupFirestore() {
         firestoreRef = Firestore.firestore()
     }
     
     // MARK: - Public Permission Interface
+    // Done in onboarding first time
     func requestInitialPermission() async -> Bool {
         return await withCheckedContinuation { continuation in
             self.permissionContinuation = continuation
@@ -79,7 +87,7 @@ class LocationService: NSObject, ObservableObject {
         
         switch mode {
         case .adventure:
-            locationManager.requestAlwaysAuthorization()
+            requestLocationPermission(for: .adventure)
             startLocationUpdates()
         case .virtualTour:
             stopLocationUpdates()
@@ -89,6 +97,18 @@ class LocationService: NSObject, ObservableObject {
         
         // Persist mode selection
         UserDefaults.standard.set(mode == .adventure, forKey: "adventureMode")
+    }
+    
+    // Make this private since setMode handles the public interface
+    private func requestLocationPermission(for mode: LocationMode) {
+        switch mode {
+        case .adventure:
+            locationManager.requestAlwaysAuthorization()
+        case .virtualTour:
+            locationManager.requestWhenInUseAuthorization()
+        case .initial:
+            break
+        }
     }
     
     // MARK: - Location Updates Control
@@ -103,6 +123,7 @@ class LocationService: NSObject, ObservableObject {
         trackingState = .inactive
     }
     
+    // Update tracking if within background range
     private func updateTrackingState() {
         guard appState?.adventureModeEnabled == true,
               let location = lastLocation else {
@@ -110,13 +131,17 @@ class LocationService: NSObject, ObservableObject {
             return
         }
         
+        // If within 1 mile, enable background tracking
         if isWithinBackgroundRange(location) {
             enableBackgroundTracking()
+
+        // If not, disable background tracking
         } else {
             disableBackgroundTracking()
         }
     }
     
+    // If authorization changes, update the mode
     func handleModeChange(_ isEnabled: Bool) {
         if isEnabled {
             locationManager.requestAlwaysAuthorization()
@@ -130,10 +155,37 @@ class LocationService: NSObject, ObservableObject {
     func getRecommendedMode(_ location: CLLocation) -> Bool {
         return isWithinRecommendationRange(location)
     }
+    
+    // Distance between point & structures
+    func getDistance(to structure: Structure) -> CLLocationDistance {
+        guard let userLocation = lastLocation else { return .infinity }
+        guard let structureLocation = dataStore?.mapPoints.first(where: { $0.landmark == structure.number })?.coordinate else {
+            return .infinity
+        }
+        let structureCLLocation = CLLocation(
+            latitude: structureLocation.latitude, 
+            longitude: structureLocation.longitude
+        )
+        return userLocation.distance(from: structureCLLocation)
+    }
+    
+    var isLocationPermissionDenied: Bool {
+        return locationStatus == .denied || locationStatus == .restricted
+    }
+    
+    var hasLocationPermission: Bool {
+        return locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
+    }
+    
+    var canUseLocation: Bool {
+        guard let location = lastLocation else { return false }
+        return hasLocationPermission && isWithinSafeZone(coordinate: location.coordinate)
+    }
 }
 
 // MARK: - Location Checks
 extension LocationService {
+    // Check if within 30 miles of center point
     func isWithinRecommendationRange(_ location: CLLocation) -> Bool {
         let centerLocation = CLLocation(
             latitude: centerPoint.latitude,
@@ -141,7 +193,8 @@ extension LocationService {
         )
         return location.distance(from: centerLocation) <= recommendationRadius
     }
-    
+
+    // Check if within 1 mile of center point
     func isWithinBackgroundRange(_ location: CLLocation) -> Bool {
         let centerLocation = CLLocation(
             latitude: centerPoint.latitude,
@@ -150,6 +203,7 @@ extension LocationService {
         return location.distance(from: centerLocation) <= backgroundRadius
     }
     
+    // Check if within safe zone (in map area)
     func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
         let isWithinLatitude = coordinate.latitude >= safeZoneCorners.bottomLeft.latitude &&
                               coordinate.latitude <= safeZoneCorners.topRight.latitude
@@ -163,6 +217,7 @@ extension LocationService {
 
 // MARK: - CLLocationManagerDelegate
 extension LocationService: CLLocationManagerDelegate {
+    // If authorization changes, update the mode
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
         
@@ -189,6 +244,7 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     
+    // If location updates, update the last location
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         lastLocation = location
@@ -205,6 +261,7 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     
+    // If within safe zone, log location to firebase and check for nearby structures
     private func checkForNearbyStructures(at location: CLLocation) {
         if let nearestPoint = findNearestMapPoint(to: location.coordinate) {
             dataStore?.markStructureAsVisited(nearestPoint.landmark)
@@ -214,16 +271,19 @@ extension LocationService: CLLocationManagerDelegate {
 
 // MARK: - Private Helpers
 private extension LocationService {
+    // Enable background tracking
     func enableBackgroundTracking() {
         locationManager.allowsBackgroundLocationUpdates = true
         trackingState = .background
     }
     
+    // Disable background tracking
     func disableBackgroundTracking() {
         locationManager.allowsBackgroundLocationUpdates = false
         trackingState = .inAppOnly
     }
     
+    // Log location to firebase
     func logLocationToFirebase(location: CLLocation) {
         guard let nearestPoint = findNearestMapPoint(to: location.coordinate) else { return }
         
@@ -237,6 +297,7 @@ private extension LocationService {
         firestoreRef.collection("user_locations").addDocument(data: locationData)
     }
     
+    // Find nearest map point to user
     func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         var nearestPoint: MapPoint?
         var minDistance = Double.infinity

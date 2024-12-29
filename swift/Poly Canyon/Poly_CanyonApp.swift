@@ -1,9 +1,9 @@
-//
-//  Arch_GraveyardApp.swift
-//  Arch Graveyard
-//
-//  Created by Parker Jones on 4/3/24.
-//
+/*
+ PolyCanyonApp serves as the main entry point for the Poly Canyon application. It initializes core services 
+ including Firebase, AppState, DataStore, and LocationService. The app handles global state management and 
+ dependency injection through environment objects. It follows a standard SwiftUI app structure with a 
+ WindowGroup scene containing the root AppView.
+*/
 
 import SwiftUI
 import FirebaseCore
@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 }
 
 @main
-struct Poly_CanyonApp: App {
+struct PolyCanyonApp: App {
   // Register app delegate for Firebase setup
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
