@@ -484,22 +484,15 @@ private struct ZoomableImageView: View {
 // MARK: - Preview
 struct StructInfo_Previews: PreviewProvider {
     static var previews: some View {
-        let exampleStructure = DataStore.shared.structures.randomElement() ?? Structure(
-            id: 999,
-            title: "Preview Structure",
-            number: 99,
-            description: "Preview of a structure.",
-            mainPhoto: "PlaceholderMain",
-            closeUp: "PlaceholderCloseUp"
-        )
+        let exampleStructure = DataStore.shared.structures.randomElement()
         
         Group {
-            StructInfo(structure: exampleStructure, isPresented: .constant(true))
+            StructInfo(structure: exampleStructure!, isPresented: .constant(true))
                 .environmentObject(AppState())
                 .environmentObject(DataStore.shared)
                 .previewDisplayName("Light Mode")
             
-            StructInfo(structure: exampleStructure, isPresented: .constant(true))
+            StructInfo(structure: exampleStructure!, isPresented: .constant(true))
                 .environmentObject({
                     let state = AppState()
                     state.isDarkMode = true

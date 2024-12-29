@@ -280,3 +280,293 @@ struct AllStructuresVisitedPopup: View {
         }
     }
 }
+
+struct MapBackgroundLayer: View {
+    let isDarkMode: Bool
+    let isSatelliteView: Bool
+    
+    var body: some View {
+        ZStack {
+            Color(isDarkMode ? .black : .white)
+                .edgesIgnoringSafeArea(.all)
+            
+            if isSatelliteView {
+                Image("BlurredBG")
+                    .resizable()
+                    .edgesIgnoringSafeArea(.all)
+            }
+        }
+    }
+}
+
+struct MapControlButtons: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    
+    @Binding var isSatelliteView: Bool
+    @Binding var isVirtualWalkthroughActive: Bool
+    @Binding var showNearbyUnvisitedView: Bool
+    
+    let onUpdateMapPoint: () -> Void
+    let onUpdateNearbyPoints: () -> Void
+    
+    var body: some View {
+        ZStack {
+            // Adventure mode controls
+            if locationService.canUseLocation {
+                Button(action: {
+                    withAnimation {
+                        showNearbyUnvisitedView.toggle()
+                        if showNearbyUnvisitedView {
+                            onUpdateNearbyPoints()
+                        }
+                    }
+                }) {
+                    MapControlButton(
+                        systemName: showNearbyUnvisitedView ? "xmark.circle.fill" : "mappin.circle.fill"
+                    )
+                }
+                .padding(.top, -10)
+            }
+            
+            // Virtual tour controls
+            if !appState.adventureModeEnabled {
+                Button(action: {
+                    withAnimation {
+                        isVirtualWalkthroughActive.toggle()
+                        if isVirtualWalkthroughActive {
+                            onUpdateMapPoint()
+                        }
+                    }
+                }) {
+                    MapControlButton(
+                        systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill"
+                    )
+                }
+                .padding(.leading, 15)
+            }
+            
+            // Map type toggle
+            Button(action: { isSatelliteView.toggle() }) {
+                MapControlButton(
+                    systemName: isSatelliteView ? "map.fill" : "globe.americas.fill"
+                )
+            }
+            .padding(.top, -10)
+            .frame(maxWidth: .infinity, alignment: .topTrailing)
+        }
+    }
+}
+
+struct MapStatusOverlay: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    let geometry: GeometryProxy
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            if locationService.isLocationPermissionDenied {
+                BottomMessage(text: "Enable location services", geometry: geometry)
+            } else if !locationService.canUseLocation {
+                BottomMessage(text: "Enter the area of Poly Canyon", geometry: geometry)
+            }
+        }
+    }
+}
+
+struct MapStructureOverlays: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    
+    @Binding var selectedStructure: Structure?
+    @Binding var showStructPopup: Bool
+    let showNearbyUnvisitedView: Bool
+    let nearbyUnvisitedMapPoints: [MapPoint]
+    let isVirtualWalkthroughActive: Bool
+    let currentStructureIndex: Int
+    let onNext: () -> Void
+    let onPrevious: () -> Void
+    
+    var body: some View {
+        ZStack {
+            // Nearby structures overlay
+            if showNearbyUnvisitedView, !nearbyUnvisitedMapPoints.isEmpty {
+                NearbyUnvisitedView(
+                    selectedStructure: $selectedStructure,
+                    showStructPopup: $showStructPopup,
+                    nearbyUnvisitedStructures: mapPointsToStructures(nearbyUnvisitedMapPoints)
+                )
+                .padding(.top, 75)
+                .transition(.move(edge: .top))
+            }
+            
+            // Virtual walkthrough interface
+            if isVirtualWalkthroughActive {
+                VStack {
+                    Spacer()
+                    VirtualWalkThroughBar(
+                        structure: dataStore.structures[currentStructureIndex],
+                        onNext: onNext,
+                        onPrevious: onPrevious,
+                        onTap: {
+                            selectedStructure = dataStore.structures[currentStructureIndex]
+                            showStructPopup = true
+                        }
+                    )
+                    .transition(.move(edge: .bottom))
+                }
+            }
+        }
+    }
+    
+    private func mapPointsToStructures(_ mapPoints: [MapPoint]) -> [Structure] {
+        mapPoints.compactMap { mp in
+            dataStore.structures.first { $0.number == mp.landmark }
+        }
+    }
+}
+
+struct MapControlButton: View {
+    @EnvironmentObject var appState: AppState
+    let systemName: String
+    
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 24))
+            .frame(width: 50, height: 50)
+            .foregroundColor(appState.isDarkMode ? .white : .black)
+            .background(appState.isDarkMode ? Color.black : Color.white)
+            .cornerRadius(15)
+            .padding()
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
+                    radius: 5, x: 0, y: 0)
+    }
+}
+
+struct StatusMessage: View {
+    @EnvironmentObject var appState: AppState
+    let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    var body: some View {
+        Text(text)
+            .fontWeight(.semibold)
+            .padding()
+            .background(appState.isDarkMode ? Color.black : Color.white)
+            .foregroundColor(appState.isDarkMode ? .white : .black)
+            .cornerRadius(10)
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
+                    radius: 5, x: 0, y: 0)
+    }
+}
+
+struct BottomMessage: View {
+    @EnvironmentObject var appState: AppState
+    let text: String
+    let geometry: GeometryProxy
+    
+    var body: some View {
+        Text(text)
+            .fontWeight(.semibold)
+            .padding()
+            .background(appState.isDarkMode ? Color.black : Color.white)
+            .foregroundColor(appState.isDarkMode ? .white : .black)
+            .cornerRadius(10)
+            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
+                    radius: 5, x: 0, y: 0)
+            .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
+    }
+}
+
+// MARK: - Example of an Overlay Using Shared Alerts
+struct MapAlertsOverlay: View {
+    @Binding var showAdventureModeAlert: Bool
+    @Binding var showRateStructuresPopup: Bool
+    @Binding var showVirtualWalkthroughPopup: Bool
+    
+    @Binding var hasShownAdventureModeAlert: Bool
+    @Binding var hasShownVirtualWalkthroughPopup: Bool
+    
+    @Binding var isVirtualWalkthroughActive: Bool
+    @Binding var showStructureSwipingView: Bool
+    
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
+    
+    var body: some View {
+        Group {
+            if showAdventureModeAlert {
+                // Reusing global CustomAlert from SharedAlerts
+                CustomAlert(
+                    icon: "figure.walk",
+                    iconColor: .green,
+                    title: "Enable Background Location",
+                    subtitle: "Tracks the structures you visit even when the app is closed.",
+                    primaryButton: .init(title: "Allow") {
+                        locationService.requestAlwaysAuthorization()
+                        appState.adventureModeEnabled = true
+                        UserDefaults.standard.set(true, forKey: "adventureModeEnabled")
+                        showAdventureModeAlert = false
+                        hasShownAdventureModeAlert = true
+                    },
+                    secondaryButton: .init(title: "Cancel") {
+                        showAdventureModeAlert = false
+                        hasShownAdventureModeAlert = true
+                    },
+                    isPresented: $showAdventureModeAlert
+                )
+            }
+            
+            if showRateStructuresPopup {
+                Color.black.opacity(0.4)
+                    .edgesIgnoringSafeArea(.all)
+                    .transition(.opacity)
+                
+                CustomAlert(
+                    icon: "heart.fill",
+                    iconColor: .red,
+                    title: "Rate Structures",
+                    subtitle: "Swipe through and rate the structures to customize your experience!",
+                    primaryButton: .init(title: "Start Rating") {
+                        showStructureSwipingView = true
+                        showRateStructuresPopup = false
+                        appState.hasShownRateStructuresPopup = true
+                    },
+                    secondaryButton: .init(title: "Maybe Later") {
+                        showRateStructuresPopup = false
+                        appState.hasShownRateStructuresPopup = true
+                    },
+                    isPresented: $showRateStructuresPopup
+                )
+            }
+            
+            if showVirtualWalkthroughPopup {
+                Color.black.opacity(0.4)
+                    .edgesIgnoringSafeArea(.all)
+                    .transition(.opacity)
+                
+                CustomAlert(
+                    icon: "figure.walk",
+                    iconColor: .blue,
+                    title: "Virtual Walkthrough",
+                    subtitle: "Go through each structure as if you were there in person.",
+                    primaryButton: .init(title: "Start Walkthrough") {
+                        showVirtualWalkthroughPopup = false
+                        isVirtualWalkthroughActive = true
+                        hasShownVirtualWalkthroughPopup = true
+                    },
+                    secondaryButton: .init(title: "Maybe Later") {
+                        showVirtualWalkthroughPopup = false
+                        hasShownVirtualWalkthroughPopup = true
+                    },
+                    isPresented: $showVirtualWalkthroughPopup
+                )
+            }
+        }
+    }
+}

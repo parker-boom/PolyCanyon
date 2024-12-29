@@ -202,7 +202,6 @@ private struct RatingContentView: View {
                 .frame(maxWidth: .infinity)
                 .background(Color.black.opacity(0.7))
                 .foregroundColor(.white)
-                .cornerRadius(20, corners: [.bottomLeft, .bottomRight])
         }
         .shadow(radius: 10)
     }

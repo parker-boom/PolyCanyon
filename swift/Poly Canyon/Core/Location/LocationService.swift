@@ -25,6 +25,11 @@ class LocationService: NSObject, ObservableObject {
     @Published private(set) var recommendedMode: Bool = false
     @Published private(set) var trackingState: TrackingState = .inactive
     
+    // MARK: - Internal State
+    private var locationMode: LocationMode = .initial
+    private var permissionContinuation: CheckedContinuation<Bool, Never>?
+    
+    
     // MARK: - Location Boundaries
     private let centerPoint = CLLocationCoordinate2D(
         latitude: 35.31461,
@@ -79,6 +84,10 @@ class LocationService: NSObject, ObservableObject {
             self.permissionContinuation = continuation
             locationManager.requestWhenInUseAuthorization()
         }
+    }
+    
+    func requestAlwaysAuthorization() {
+        locationManager.requestAlwaysAuthorization()
     }
     
     /// Switch to specified mode and handle permission upgrades
@@ -204,6 +213,11 @@ extension LocationService {
     }
     
     // Check if within safe zone (in map area)
+    func isWithinSafeZone(_ location: CLLocation) -> Bool {
+        return isWithinSafeZone(coordinate: location.coordinate)
+    }
+    
+    // Check if within safe zone (in map area)
     func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
         let isWithinLatitude = coordinate.latitude >= safeZoneCorners.bottomLeft.latitude &&
                               coordinate.latitude <= safeZoneCorners.topRight.latitude
@@ -212,6 +226,30 @@ extension LocationService {
                                coordinate.longitude <= safeZoneCorners.topRight.longitude
         
         return isWithinLatitude && isWithinLongitude
+    }
+    
+    // Find nearest map point to user
+    func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
+        var nearestPoint: MapPoint?
+        var minDistance = Double.infinity
+        
+        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        guard let mapPoints = dataStore?.mapPoints else { return nil }
+        
+        for point in mapPoints {
+            let pointLocation = CLLocation(
+                latitude: point.coordinate.latitude,
+                longitude: point.coordinate.longitude
+            )
+            let distance = userLocation.distance(from: pointLocation)
+            if distance < minDistance {
+                minDistance = distance
+                nearestPoint = point
+            }
+        }
+        
+        return nearestPoint
     }
 }
 
@@ -297,29 +335,6 @@ private extension LocationService {
         firestoreRef.collection("user_locations").addDocument(data: locationData)
     }
     
-    // Find nearest map point to user
-    func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
-        var nearestPoint: MapPoint?
-        var minDistance = Double.infinity
-        
-        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        guard let mapPoints = dataStore?.mapPoints else { return nil }
-        
-        for point in mapPoints {
-            let pointLocation = CLLocation(
-                latitude: point.coordinate.latitude,
-                longitude: point.coordinate.longitude
-            )
-            let distance = userLocation.distance(from: pointLocation)
-            if distance < minDistance {
-                minDistance = distance
-                nearestPoint = point
-            }
-        }
-        
-        return nearestPoint
-    }
 }
 
 // MARK: - Enums

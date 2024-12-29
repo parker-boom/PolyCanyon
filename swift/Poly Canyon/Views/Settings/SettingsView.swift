@@ -6,7 +6,6 @@
 */
 
 import SwiftUI
-import AlertPopUp
 
 struct SettingsView: View {
     // MARK: - Environment Objects
@@ -87,9 +86,8 @@ struct SettingsView: View {
                     primaryButton: .init(title: "Reset") {
                         if type == .structures {
                             dataStore.resetStructures()
-                            dataStore.resetMapPoints()
                         } else {
-                            dataStore.resetFavorites()
+                            dataStore.resetStructures()
                         }
                         showResetAlert = false
                     },

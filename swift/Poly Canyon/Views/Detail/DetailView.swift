@@ -57,8 +57,7 @@ struct DetailView: View {
                         showStructPopup = false
                     }
                 
-                StructPopUp(
-                    structureData: dataStore,
+                StructInfo(
                     structure: s,
                     isPresented: $showStructPopup
                 )

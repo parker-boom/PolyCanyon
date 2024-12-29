@@ -3,27 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		931EE1B42BE59F190072F162 /* structures.csv in Resources */ = {isa = PBXBuildFile; fileRef = 931EE1B32BE59F190072F162 /* structures.csv */; };
-		931EE1B62BEAD3630072F162 /* mapPoints.csv in Resources */ = {isa = PBXBuildFile; fileRef = 931EE1B52BEAD3630072F162 /* mapPoints.csv */; };
 		D001C04E2BBE319100C532F2 /* Poly_CanyonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C04D2BBE319100C532F2 /* Poly_CanyonApp.swift */; };
-		D001C0502BBE319100C532F2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C04F2BBE319100C532F2 /* ContentView.swift */; };
 		D001C0522BBE319400C532F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D001C0512BBE319400C532F2 /* Assets.xcassets */; };
-		D001C0552BBE319400C532F2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D001C0542BBE319400C532F2 /* Preview Assets.xcassets */; };
-		D001C0782BBE356C00C532F2 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C0772BBE356C00C532F2 /* MapView.swift */; };
-		D001C07A2BBE358200C532F2 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C0792BBE358200C532F2 /* DetailView.swift */; };
-		D001C07C2BBE359000C532F2 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C07B2BBE359000C532F2 /* OnboardingView.swift */; };
-		D001C07E2BBE3BD600C532F2 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C07D2BBE3BD600C532F2 /* MainView.swift */; };
-		D00C0E342BCF7D9F00E7CFCD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00C0E332BCF7D9F00E7CFCD /* SettingsView.swift */; };
-		D00C0E362BCF8D9800E7CFCD /* StructureData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00C0E352BCF8D9800E7CFCD /* StructureData.swift */; };
-		D0492C2E2BC5E32C00E4AC08 /* StructPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0492C2D2BC5E32C00E4AC08 /* StructPopUp.swift */; };
-		D0871CFF2BBF46AD003ADF53 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */; };
 		D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0871D012BBF474D003ADF53 /* CoreLocation.framework */; };
-		D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F543522BC1C5440012F998 /* mapPoints.swift */; };
-		DB064B9D2C7DA1C300CB0E4C /* StructureSwipingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */; };
 		DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */; };
 		DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */; };
 		DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD212C17A02F00397065 /* FirebaseDatabase */; };
@@ -37,32 +23,21 @@
 		DB844DED2C8A73AE00A41931 /* Shiny in Frameworks */ = {isa = PBXBuildFile; productRef = DB844DEC2C8A73AE00A41931 /* Shiny */; };
 		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
-		DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		931EE1B32BE59F190072F162 /* structures.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = structures.csv; path = ../assets/data/structures.csv; sourceTree = SOURCE_ROOT; };
-		931EE1B52BEAD3630072F162 /* mapPoints.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = mapPoints.csv; path = ../assets/data/mapPoints.csv; sourceTree = SOURCE_ROOT; };
 		D001C04A2BBE319100C532F2 /* Poly Canyon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Poly Canyon.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D001C04D2BBE319100C532F2 /* Poly_CanyonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poly_CanyonApp.swift; sourceTree = "<group>"; };
-		D001C04F2BBE319100C532F2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D001C0512BBE319400C532F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D001C0542BBE319400C532F2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		D001C0772BBE356C00C532F2 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
-		D001C0792BBE358200C532F2 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
-		D001C07B2BBE359000C532F2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		D001C07D2BBE3BD600C532F2 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		D00C0E332BCF7D9F00E7CFCD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		D00C0E352BCF8D9800E7CFCD /* StructureData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructureData.swift; sourceTree = "<group>"; };
 		D041D3172BC8A3870061E865 /* Poly-Canyon-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Poly-Canyon-Info.plist"; sourceTree = SOURCE_ROOT; };
-		D0492C2D2BC5E32C00E4AC08 /* StructPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructPopUp.swift; sourceTree = "<group>"; };
-		D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		D0871D012BBF474D003ADF53 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
-		D0F543522BC1C5440012F998 /* mapPoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mapPoints.swift; sourceTree = "<group>"; };
-		DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructureSwipingView.swift; sourceTree = "<group>"; };
 		DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../assets/data/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DB2EE6282D21E5EF0084365D /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
+		DB2EE64B2D21E6390084365D /* Core */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Core; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D001C0472BBE319100C532F2 /* Frameworks */ = {
@@ -109,58 +84,13 @@
 		D001C04C2BBE319100C532F2 /* Poly Canyon */ = {
 			isa = PBXGroup;
 			children = (
+				DB2EE64B2D21E6390084365D /* Core */,
+				DB2EE6282D21E5EF0084365D /* Views */,
 				D041D3172BC8A3870061E865 /* Poly-Canyon-Info.plist */,
 				D001C04D2BBE319100C532F2 /* Poly_CanyonApp.swift */,
-				D012A5202BD3290F00C839CC /* Views */,
-				D012A5222BD3293D00C839CC /* Data */,
 				D001C0512BBE319400C532F2 /* Assets.xcassets */,
-				D001C0532BBE319400C532F2 /* Preview Content */,
 			);
 			path = "Poly Canyon";
-			sourceTree = "<group>";
-		};
-		D001C0532BBE319400C532F2 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				D001C0542BBE319400C532F2 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		D012A5202BD3290F00C839CC /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				D001C04F2BBE319100C532F2 /* ContentView.swift */,
-				D001C07D2BBE3BD600C532F2 /* MainView.swift */,
-				D001C07B2BBE359000C532F2 /* OnboardingView.swift */,
-				D012A5212BD3293200C839CC /* Main Views */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		D012A5212BD3293200C839CC /* Main Views */ = {
-			isa = PBXGroup;
-			children = (
-				D001C0772BBE356C00C532F2 /* MapView.swift */,
-				D00C0E332BCF7D9F00E7CFCD /* SettingsView.swift */,
-				DB064B9C2C7DA1C300CB0E4C /* StructureSwipingView.swift */,
-				D001C0792BBE358200C532F2 /* DetailView.swift */,
-				D0492C2D2BC5E32C00E4AC08 /* StructPopUp.swift */,
-			);
-			path = "Main Views";
-			sourceTree = "<group>";
-		};
-		D012A5222BD3293D00C839CC /* Data */ = {
-			isa = PBXGroup;
-			children = (
-				D0871CFE2BBF46AD003ADF53 /* LocationManager.swift */,
-				DBBED3F32C811651004E939B /* OnboardingLocationManager.swift */,
-				D0F543522BC1C5440012F998 /* mapPoints.swift */,
-				D00C0E352BCF8D9800E7CFCD /* StructureData.swift */,
-				931EE1B52BEAD3630072F162 /* mapPoints.csv */,
-				931EE1B32BE59F190072F162 /* structures.csv */,
-			);
-			path = Data;
 			sourceTree = "<group>";
 		};
 		D0871D002BBF474D003ADF53 /* Frameworks */ = {
@@ -185,6 +115,10 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DB2EE6282D21E5EF0084365D /* Views */,
+				DB2EE64B2D21E6390084365D /* Core */,
 			);
 			name = "Poly Canyon";
 			packageProductDependencies = (
@@ -250,10 +184,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				931EE1B42BE59F190072F162 /* structures.csv in Resources */,
-				D001C0552BBE319400C532F2 /* Preview Assets.xcassets in Resources */,
 				DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */,
-				931EE1B62BEAD3630072F162 /* mapPoints.csv in Resources */,
 				D001C0522BBE319400C532F2 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -265,18 +196,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D001C0502BBE319100C532F2 /* ContentView.swift in Sources */,
-				D001C07E2BBE3BD600C532F2 /* MainView.swift in Sources */,
-				D001C07A2BBE358200C532F2 /* DetailView.swift in Sources */,
-				D0871CFF2BBF46AD003ADF53 /* LocationManager.swift in Sources */,
-				D001C0782BBE356C00C532F2 /* MapView.swift in Sources */,
-				D00C0E342BCF7D9F00E7CFCD /* SettingsView.swift in Sources */,
-				DB064B9D2C7DA1C300CB0E4C /* StructureSwipingView.swift in Sources */,
-				D0F543532BC1C5440012F998 /* mapPoints.swift in Sources */,
-				D001C07C2BBE359000C532F2 /* OnboardingView.swift in Sources */,
-				D00C0E362BCF8D9800E7CFCD /* StructureData.swift in Sources */,
-				DBBED3F42C811651004E939B /* OnboardingLocationManager.swift in Sources */,
-				D0492C2E2BC5E32C00E4AC08 /* StructPopUp.swift in Sources */,
 				D001C04E2BBE319100C532F2 /* Poly_CanyonApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -408,7 +327,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Poly Canyon/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -445,7 +364,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Poly Canyon/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

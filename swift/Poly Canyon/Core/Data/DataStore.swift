@@ -128,6 +128,8 @@ class DataStore: ObservableObject {
                 structures[index].isOpened = false
                 structures[index].recentlyVisited = -1
                 structures[index].isLiked = false
+                structures[index].mainPhoto = "\(structures[index].number)M"
+                structures[index].closeUp = "\(structures[index].number)C"
             }
             return structures
         } catch {
@@ -313,8 +315,6 @@ class DataStore: ObservableObject {
             return searchFiltered.filter { $0.isLiked }
         case .visited:
             return searchFiltered.filter { $0.isVisited }
-        case .unopened:
-            return searchFiltered.filter { $0.isVisited && !$0.isOpened }
         case .unvisited:
             return searchFiltered.filter { !$0.isVisited }
         }
