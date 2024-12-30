@@ -8,14 +8,16 @@ import SwiftUI
 
 struct AppView: View {
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject var dataStore: DataStore
     
     var body: some View {
-        if !appState.isOnboardingCompleted {
-            OnboardingView()
-        } else {
-            MainView()
+        Group {
+            if !appState.isOnboardingCompleted {
+                OnboardingView()
+            } else {
+                MainView()
+            }
         }
     }
 }

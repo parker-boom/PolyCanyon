@@ -1,177 +1,156 @@
 // MARK: MainView.swift
 
 import SwiftUI
-import Combine
-
-/*
- MainView implements the core navigation structure of the application using a custom tab-based interface. It 
- manages navigation between Map, Detail, and Settings views while handling keyboard presence and theme changes. 
- The view provides smooth transitions between sections and adapts to system appearance changes. It also 
- coordinates with location services for adventure mode functionality.
-*/
 
 struct MainView: View {
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
-    @StateObject private var keyboardManager = KeyboardManager()
-    @State private var selection = 1
+    @State private var selectedTab = 0
     
     var body: some View {
         VStack(spacing: 0) {
-            TabView(selection: $selection) {
-                MapView()
-                    .tag(0)
-                
-                DetailView()
-                    .tag(1)
-                
-                SettingsView()
-                    .tag(2)
+            // Main Content Area
+            switch selectedTab {
+            case 0: MapView()
+            case 1: DetailView()
+            case 2: SettingsView()
+            default: EmptyView()
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(.easeInOut, value: selection)
             
-            if !keyboardManager.isKeyboardVisible {
-                CustomTabBar(
-                    onTabSelected: { tabIndex in
-                        withAnimation {
-                            selection = tabIndex
-                        }
-                    },
-                    selection: $selection,
-                    isDarkMode: appState.isDarkMode
-                )
-                .edgesIgnoringSafeArea(.all)
-            }
-        }
-        .background(appState.isDarkMode ? Color.black : Color.white)
-        .preferredColorScheme(appState.isDarkMode ? .dark : .light)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if appState.adventureModeEnabled {
-                    locationService.handleModeChange(true)
+            // Tab Bar
+            HStack(spacing: 0) {
+                ForEach(0..<3) { index in
+                    Button(action: { selectedTab = index }) {
+                        Image(systemName: tabIcon(for: index))
+                            .font(.system(size: 30))
+                            .foregroundColor(selectedTab == index ? 
+                                (appState.isDarkMode ? .white : .black) : 
+                                (appState.isDarkMode ? .gray : .gray))
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
+            .padding(.top, 14)
+            .frame(height: 36)
+            .background(appState.isDarkMode ? Color.black : .white)
+            .overlay(
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(.gray.opacity(0.3)),
+                alignment: .top
+            )
+        }
+        .overlay {
+            if let alert = appState.activeAlert {
+                AlertContainer(alert: alert)
+            }
+        }
+    }
+    
+    private func tabIcon(for index: Int) -> String {
+        switch index {
+        case 0: return selectedTab == 0 ? "map.fill" : "map"
+        case 1: return selectedTab == 1 ? "house.fill" : "house"
+        case 2: return selectedTab == 2 ? "gearshape.fill" : "gearshape"
+        default: return ""
         }
     }
 }
 
-// MARK: - CustomTabBar
-
-/**
- * CustomTabBar
- *
- * Provides a custom tab bar for navigation between the main sections of the app.
- * Displays icons for Map, Detail, and Settings views, and adjusts appearance based on the dark mode setting.
- */
-struct CustomTabBar: View {
+// MARK: - Alert Container
+private struct AlertContainer: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject var dataStore: DataStore
+    let alert: AppState.AlertType
     
-    let tabBarHeight: CGFloat = 50
-    let onTabSelected: (Int) -> Void
-    @Binding var selection: Int
-    let isDarkMode: Bool
-
     var body: some View {
-        VStack {
-            Spacer()
+        switch alert {
+        case .backgroundLocation:
+            CustomAlert(
+                icon: "figure.walk",
+                iconColor: .green,
+                title: "Enable Background Location",
+                subtitle: "Tracks the structures you visit even when the app is closed.",
+                primaryButton: .init(title: "Allow") {
+                    locationService.requestAlwaysAuthorization()
+                    appState.hasShownBackgroundLocationAlert = true
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Cancel") {
+                    appState.hasShownBackgroundLocationAlert = true
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
             
-            // Divider line above the tab bar
-            Rectangle()
-                .fill(isDarkMode ? Color.white : Color(red: 0.3, green: 0.3, blue: 0.3))
-                .frame(height: 0.5)
+        case .rateStructures(let hasShown):
+            CustomAlert(
+                icon: "heart.fill",
+                iconColor: .red,
+                title: "Rate Structures",
+                subtitle: "Swipe through and rate the structures to customize your experience!",
+                primaryButton: .init(title: "Start Rating") {
+                    appState.hasShownRateStructuresPopup = true
+                    // Need to handle showing StructureSwipingView
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Maybe Later") {
+                    appState.hasShownRateStructuresPopup = true
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
             
-            // Tab bar icons
-            HStack {
-                Spacer()
-                
-                Image(systemName: selection == 0 ? "map.fill" : "map")
-                    .font(.system(size: 32, weight: selection == 0 ? .bold : .regular))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                    .onTapGesture {
-                        onTabSelected(0)
-                    }
-                    .padding(.top, 10)
-                
-                Spacer()
-                
-                Image(systemName: selection == 1 ? "info.circle.fill" : "info.circle")
-                    .font(.system(size: 32, weight: selection == 1 ? .bold : .regular))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                    .onTapGesture {
-                        onTabSelected(1)
-                    }
-                    .padding(.top, 10)
-                
-                Spacer()
-                
-                Image(systemName: selection == 2 ? "gearshape.fill" : "gearshape")
-                    .font(.system(size: 32, weight: selection == 2 ? .bold : .regular))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                    .onTapGesture {
-                        onTabSelected(2)
-                    }
-                    .padding(.top, 10)
-                
-                Spacer()
-            }
+        case .virtualWalkthrough(let hasShown):
+            CustomAlert(
+                icon: "figure.walk",
+                iconColor: .blue,
+                title: "Virtual Walkthrough",
+                subtitle: "Go through each structure as if you were there in person.",
+                primaryButton: .init(title: "Start Walkthrough") {
+                    UserDefaults.standard.set(true, forKey: "hasShownVirtualWalkthroughPopup")
+                    // Need to handle activating walkthrough
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Maybe Later") {
+                    UserDefaults.standard.set(true, forKey: "hasShownVirtualWalkthroughPopup")
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
+            
+        case .resetConfirmation(let type):
+            CustomAlert(
+                icon: type == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
+                iconColor: type == .structures ? .orange : .red,
+                title: type == .structures ? "Reset Visited Structures" : "Reset Favorites",
+                subtitle: type == .structures 
+                    ? "Are you sure you want to reset all visited structures? This action cannot be undone."
+                    : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
+                primaryButton: .init(title: "Reset") {
+                    dataStore.resetStructures()
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Cancel") {
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
+            
+        case .modePicker:
+            ModePickerAlert(
+                isPresented: .constant(true),
+                onDismiss: { appState.dismissAlert() }
+            )
         }
-        .frame(height: tabBarHeight)
-        .background(isDarkMode ? Color.black : Color(red: 1, green: 1, blue: 1))
     }
 }
 
-// MARK: - KeyboardManager
-
-/**
- * KeyboardManager
- *
- * Observes keyboard visibility changes to manage UI elements accordingly.
- * Specifically used to hide the tab bar when the keyboard is visible to ensure an unobstructed user interface.
- */
-class KeyboardManager: ObservableObject {
-    @Published var isKeyboardVisible = false
-    private var cancellables = Set<AnyCancellable>()
-    
-    /**
-     * Initializes the KeyboardManager and sets up observers for keyboard show and hide notifications.
-     */
-    init() {
-        setupKeyboardObservers()
-    }
-    
-    /**
-     * Adds observers for keyboard show and hide notifications to update the isKeyboardVisible state.
-     */
-    private func setupKeyboardObservers() {
-        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-            .sink { [weak self] _ in
-                self?.isKeyboardVisible = true
-            }
-            .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-            .sink { [weak self] _ in
-                self?.isKeyboardVisible = false
-            }
-            .store(in: &cancellables)
-    }
-    
-    deinit {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-    }
-}
-
-/*
- // MARK: - Preview
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
-        MainView(
-            isDarkMode: .constant(true),
-            isAdventureModeEnabled: .constant(false),
-            structureData: StructureData()
-        )
+        MainView()
+            .environmentObject(AppState())
+            .environmentObject(DataStore.shared)
+            .environmentObject(LocationService.shared)
     }
 }
-*/

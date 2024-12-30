@@ -169,3 +169,21 @@ struct PulsingCircle: View {
             }
     }
 }
+
+struct MapBackgroundLayer: View {
+    let isDarkMode: Bool
+    let isSatelliteView: Bool
+    
+    var body: some View {
+        ZStack {
+            Color(isDarkMode ? .black : .white)
+                .ignoresSafeArea(.container, edges: .top)
+            
+            if isSatelliteView {
+                Image("BlurredBG")
+                    .resizable()
+                    .edgesIgnoringSafeArea(.all)
+            }
+        }
+    }
+}

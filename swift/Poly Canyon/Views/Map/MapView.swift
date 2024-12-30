@@ -17,20 +17,15 @@ struct MapView: View {
     
     // MARK: - Persistent State
     @AppStorage("virtualTourCurrentStructure") private var currentStructureIndex: Int = 0
-    @AppStorage("hasShownAdventureModeAlert") private var hasShownAdventureModeAlert: Bool = false
-    @AppStorage("hasShownVirtualWalkthroughPopup") private var hasShownVirtualWalkthroughPopup: Bool = false
     
     // MARK: - View State
     @State private var selectedStructure: Structure?
     @State private var nearbyUnvisitedMapPoints: [MapPoint] = []
-    @State private var showAdventureModeAlert = false
     @State private var showVisitedStructurePopup = false
     @State private var showAllVisitedPopup = false
     @State private var showStructPopup = false
     @State private var showNearbyUnvisitedView = false
-    @State private var showRateStructuresPopup = false
     @State private var showStructureSwipingView = false
-    @State private var showVirtualWalkthroughPopup = false
     @State private var isSatelliteView: Bool = false
     @State private var isVirtualWalkthroughActive: Bool = false
     @State private var currentWalkthroughMapPoint: MapPoint?
@@ -39,74 +34,63 @@ struct MapView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topLeading) {
-                // Base map layers
-                MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
-                
-                // Interactive map content
-                MapWithLocationDot(
-                    mapImage: currentMapImage(),
-                    isSatelliteView: isSatelliteView,
-                    geometry: geometry,
-                    isVirtualWalkthroughActive: isVirtualWalkthroughActive,
-                    currentStructureIndex: currentStructureIndex,
-                    currentWalkthroughMapPoint: currentWalkthroughMapPoint,
-                    scale: scale,
-                    offset: offset
-                )
-                .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
-                
-                // Map controls
-                MapControlButtons(
-                    isSatelliteView: $isSatelliteView,
-                    isVirtualWalkthroughActive: $isVirtualWalkthroughActive,
-                    showNearbyUnvisitedView: $showNearbyUnvisitedView,
-                    onUpdateMapPoint: updateCurrentMapPoint,
-                    onUpdateNearbyPoints: updateNearbyUnvisitedMapPoints
-                )
-                
-                // Status messages
-                if appState.adventureModeEnabled {
-                    MapStatusOverlay(geometry: geometry)
+            ZStack {
+                // Full screen background
+                if isSatelliteView {
+                    Image("BlurredBG")
+                        .resizable()
+                        .edgesIgnoringSafeArea(.all)
+                        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height + 100)
+                        .offset(y: -50)
                 }
                 
-                // Structure overlays
-                MapStructureOverlays(
-                    selectedStructure: $selectedStructure,
-                    showStructPopup: $showStructPopup,
-                    showNearbyUnvisitedView: showNearbyUnvisitedView,
-                    nearbyUnvisitedMapPoints: nearbyUnvisitedMapPoints,
-                    isVirtualWalkthroughActive: isVirtualWalkthroughActive,
-                    currentStructureIndex: currentStructureIndex,
-                    onNext: moveToNextStructure,
-                    onPrevious: moveToPreviousStructure
-                )
+                // Rest of your map content
+                ZStack(alignment: .topLeading) {
+                    // Base map layers
+                    MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
+                    
+                    MapWithLocationDot(
+                        mapImage: currentMapImage(),
+                        isSatelliteView: isSatelliteView,
+                        geometry: geometry,
+                        isVirtualWalkthroughActive: isVirtualWalkthroughActive,
+                        currentStructureIndex: currentStructureIndex,
+                        currentWalkthroughMapPoint: currentWalkthroughMapPoint,
+                        scale: scale,
+                        offset: offset
+                    )
+                    .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
+                    
+                    
+                    // Map controls
+                    MapControlButtons(
+                        isSatelliteView: $isSatelliteView,
+                        isVirtualWalkthroughActive: $isVirtualWalkthroughActive,
+                        showNearbyUnvisitedView: $showNearbyUnvisitedView,
+                        onUpdateMapPoint: updateCurrentMapPoint
+                    )
+                    
+                    // Status messages
+                    if appState.adventureModeEnabled {
+                        MapStatusOverlay(geometry: geometry)
+                    }
+                    
+                    // Structure overlays
+                    MapStructureOverlays(
+                        selectedStructure: $selectedStructure,
+                        showStructPopup: $showStructPopup,
+                        showNearbyUnvisitedView: showNearbyUnvisitedView,
+                        nearbyUnvisitedMapPoints: nearbyUnvisitedMapPoints,
+                        isVirtualWalkthroughActive: isVirtualWalkthroughActive,
+                        currentStructureIndex: currentStructureIndex,
+                        onNext: moveToNextStructure,
+                        onPrevious: moveToPreviousStructure
+                    )
+                }
             }
             .onAppear(perform: handleOnAppear)
             .sheet(isPresented: $showStructureSwipingView) {
-                StructureSwipingView(structureData: dataStore, isDarkMode: $appState.isDarkMode)
-            }
-            .overlay(
-                MapAlertsOverlay(
-                    showAdventureModeAlert: $showAdventureModeAlert,
-                    showRateStructuresPopup: $showRateStructuresPopup,
-                    showVirtualWalkthroughPopup: $showVirtualWalkthroughPopup,
-                    hasShownAdventureModeAlert: $hasShownAdventureModeAlert,
-                    hasShownVirtualWalkthroughPopup: $hasShownVirtualWalkthroughPopup,
-                    isVirtualWalkthroughActive: $isVirtualWalkthroughActive,
-                    showStructureSwipingView: $showStructureSwipingView
-                )
-                .environmentObject(appState)
-                .environmentObject(dataStore)
-                .environmentObject(locationService)
-            )
-            .onChange(of: locationService.locationStatus) { newStatus in
-                if newStatus == .authorizedAlways || newStatus == .authorizedWhenInUse {
-                    locationService.startUpdatingLocation()
-                }
-            }
-            .onChange(of: showAllVisitedPopup) { newValue in
-                if newValue { appState.visitedAllCount += 1 }
+                StructureSwipingView()
             }
             .onChange(of: dataStore.lastVisitedStructure) { _ in
                 if dataStore.lastVisitedStructure != nil {
@@ -122,11 +106,11 @@ struct MapView: View {
     }
     
     private func handleOnAppear() {
-        if appState.adventureModeEnabled, !hasShownAdventureModeAlert {
-            showAdventureModeAlert = true
-        } else if !appState.adventureModeEnabled, !showRateStructuresPopup {
+        if appState.adventureModeEnabled && !appState.hasShownBackgroundLocationAlert {
+            appState.showAlert(.backgroundLocation)
+        } else if !appState.hasShownRateStructuresPopup {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                showRateStructuresPopup = true
+                appState.showAlert(.rateStructures(hasShown: false))
             }
         }
     }
@@ -146,9 +130,6 @@ struct MapView: View {
         updateCurrentMapPoint()
     }
     
-    private func updateNearbyUnvisitedMapPoints() {
-        nearbyUnvisitedMapPoints = dataStore.mapPoints.filter { !$0.isVisited }
-    }
 }
 
 

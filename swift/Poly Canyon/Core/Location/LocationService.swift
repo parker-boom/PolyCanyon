@@ -9,15 +9,30 @@ import CoreLocation
 import FirebaseFirestore
 import Combine
 
+extension Notification.Name {
+    static let structureVisited = Notification.Name("structureVisited")
+}
+
 class LocationService: NSObject, ObservableObject {
     static let shared = LocationService()
     
     // MARK: - Dependencies
     private let locationManager = CLLocationManager()
-    private var firestoreRef: Firestore!
+    private lazy var firestoreRef: Firestore = {
+        return Firestore.firestore()
+    }()
     private var cancellables = Set<AnyCancellable>()
-    private weak var appState: AppState?
-    private weak var dataStore: DataStore?
+    
+    // Load MapPoints directly since they're fixed
+    private var mapPoints: [MapPoint] = {
+        guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let mapPointData = try? JSONDecoder().decode([MapPointData].self, from: data) else {
+            print("⚠️ Failed to load mapPoints.json")
+            return []
+        }
+        return mapPointData.map { MapPoint(from: $0) }
+    }()
     
     // MARK: - Published States
     @Published private(set) var locationStatus: CLAuthorizationStatus?
@@ -25,10 +40,22 @@ class LocationService: NSObject, ObservableObject {
     @Published private(set) var recommendedMode: Bool = false
     @Published private(set) var trackingState: TrackingState = .inactive
     
+    // Computed states for UI
+    @Published private(set) var locationMessage: LocationMessage?
+    @Published private(set) var shouldShowLocationDot: Bool = false
+    
+    enum LocationMessage {
+        case needsPermission
+        case outOfRange
+        case nearby
+        case none
+    }
+    
     // MARK: - Internal State
     private var locationMode: LocationMode = .initial
     private var permissionContinuation: CheckedContinuation<Bool, Never>?
     
+    @Published private(set) var currentMode: LocationMode = .initial
     
     // MARK: - Location Boundaries
     private let centerPoint = CLLocationCoordinate2D(
@@ -41,27 +68,19 @@ class LocationService: NSObject, ObservableObject {
         topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
     )
     
-    private let recommendationRadius: CLLocationDistance = 48280  // 30 miles for mode recommendation
-    private let backgroundRadius: CLLocationDistance = 1609.34   // 1 mile for background tracking
+    private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
+    private let backgroundRadius: CLLocationDistance = 500.34 // Walking path bench spot
     
     // MARK: - Initialization
     private override init() {
         super.init()
+        print("📱 LocationService initialized")
         setupLocationManager()
-        setupFirestore()
     }
     
     // Pull in app state and data store, to use them in the service
-    func configure(appState: AppState, dataStore: DataStore) {
-        self.appState = appState
-        self.dataStore = dataStore
-        
-        // Observe adventure mode changes
-        appState.$adventureModeEnabled
-            .sink { [weak self] isEnabled in
-                self?.handleModeChange(isEnabled)
-            }
-            .store(in: &cancellables)
+    func configure() {
+        print("📱 LocationService configured")
     }
     
     // MARK: - Setup
@@ -72,17 +91,15 @@ class LocationService: NSObject, ObservableObject {
         locationManager.pausesLocationUpdatesAutomatically = false
     }
     
-    // Setup Firebase
-    private func setupFirestore() {
-        firestoreRef = Firestore.firestore()
-    }
-    
     // MARK: - Public Permission Interface
     // Done in onboarding first time
     func requestInitialPermission() async -> Bool {
         return await withCheckedContinuation { continuation in
             self.permissionContinuation = continuation
             locationManager.requestWhenInUseAuthorization()
+            
+            // Start updating location immediately after requesting permission
+            locationManager.startUpdatingLocation()
         }
     }
     
@@ -92,7 +109,8 @@ class LocationService: NSObject, ObservableObject {
     
     /// Switch to specified mode and handle permission upgrades
     func setMode(_ mode: LocationMode) {
-        locationMode = mode
+        print("📱 Setting LocationService mode to: \(mode)")
+        currentMode = mode
         
         switch mode {
         case .adventure:
@@ -103,16 +121,13 @@ class LocationService: NSObject, ObservableObject {
         case .initial:
             break
         }
-        
-        // Persist mode selection
-        UserDefaults.standard.set(mode == .adventure, forKey: "adventureMode")
     }
     
     // Make this private since setMode handles the public interface
     private func requestLocationPermission(for mode: LocationMode) {
         switch mode {
         case .adventure:
-            locationManager.requestAlwaysAuthorization()
+            locationManager.requestWhenInUseAuthorization()
         case .virtualTour:
             locationManager.requestWhenInUseAuthorization()
         case .initial:
@@ -134,30 +149,20 @@ class LocationService: NSObject, ObservableObject {
     
     // Update tracking if within background range
     private func updateTrackingState() {
-        guard appState?.adventureModeEnabled == true,
+        guard currentMode == .adventure,
               let location = lastLocation else {
             trackingState = .inactive
             return
         }
         
-        // If within 1 mile, enable background tracking
         if isWithinBackgroundRange(location) {
             enableBackgroundTracking()
-
-        // If not, disable background tracking
         } else {
             disableBackgroundTracking()
         }
-    }
-    
-    // If authorization changes, update the mode
-    func handleModeChange(_ isEnabled: Bool) {
-        if isEnabled {
-            locationManager.requestAlwaysAuthorization()
-            startLocationUpdates()
-        } else {
-            stopLocationUpdates()
-        }
+        
+        // Update location message whenever tracking state changes
+        updateLocationMessage()
     }
     
     // For onboarding recommendation only
@@ -167,15 +172,16 @@ class LocationService: NSObject, ObservableObject {
     
     // Distance between point & structures
     func getDistance(to structure: Structure) -> CLLocationDistance {
-        guard let userLocation = lastLocation else { return .infinity }
-        guard let structureLocation = dataStore?.mapPoints.first(where: { $0.landmark == structure.number })?.coordinate else {
+        guard let userLocation = lastLocation,
+              let structurePoint = mapPoints.first(where: { $0.landmark == structure.number }) else {
             return .infinity
         }
-        let structureCLLocation = CLLocation(
-            latitude: structureLocation.latitude, 
-            longitude: structureLocation.longitude
+        
+        let structureLocation = CLLocation(
+            latitude: structurePoint.coordinate.latitude,
+            longitude: structurePoint.coordinate.longitude
         )
-        return userLocation.distance(from: structureCLLocation)
+        return userLocation.distance(from: structureLocation)
     }
     
     var isLocationPermissionDenied: Bool {
@@ -189,6 +195,52 @@ class LocationService: NSObject, ObservableObject {
     var canUseLocation: Bool {
         guard let location = lastLocation else { return false }
         return hasLocationPermission && isWithinSafeZone(coordinate: location.coordinate)
+    }
+    
+    var isNearby: Bool {
+        guard let location = lastLocation,
+              currentMode == .adventure else {
+            print("📍 NEARBY CHECK: Failed - mode: \(currentMode)")
+            return false
+        }
+        let inRange = isWithinBackgroundRange(location)
+        let notInSafe = !isWithinSafeZone(location)
+        print("📍 NEARBY CHECK: In range: \(inRange), Not in safe zone: \(notInSafe)")
+        return inRange && notInSafe
+    }
+    
+    // Status checks for map messages
+    var isOutOfRange: Bool {
+        guard let location = lastLocation,
+              currentMode == .adventure else {
+            print("📍 OUT OF RANGE CHECK: Failed guard - location: \(lastLocation != nil), adventure mode: \(currentMode)")
+            return false
+        }
+        let result = !isWithinBackgroundRange(location)
+        print("📍 OUT OF RANGE CHECK: \(result) - Distance from center: \(location.distance(from: CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)))")
+        return result
+    }
+    
+    var isInPolyCanyonArea: Bool {
+        guard let location = lastLocation,
+              currentMode == .adventure else {
+            print("📍 IN AREA CHECK: Failed guard - location: \(lastLocation != nil), adventure mode: \(currentMode)")
+            return false
+        }
+        let result = isWithinSafeZone(location)
+        print("📍 IN AREA CHECK: \(result)")
+        return result
+    }
+    
+    // Add this public method
+    func handleAdventureModeChange(_ isEnabled: Bool) {
+        print("📱 Handling adventure mode change: \(isEnabled)")
+        if isEnabled {
+            startLocationUpdates()
+        } else {
+            stopLocationUpdates()
+        }
+        updateLocationMessage()
     }
 }
 
@@ -209,12 +261,16 @@ extension LocationService {
             latitude: centerPoint.latitude,
             longitude: centerPoint.longitude
         )
-        return location.distance(from: centerLocation) <= backgroundRadius
+        let distance = location.distance(from: centerLocation)
+        print("📍 BACKGROUND RANGE CHECK: Distance \(distance) vs Limit \(backgroundRadius)")
+        return distance <= backgroundRadius
     }
     
     // Check if within safe zone (in map area)
     func isWithinSafeZone(_ location: CLLocation) -> Bool {
-        return isWithinSafeZone(coordinate: location.coordinate)
+        let result = isWithinSafeZone(coordinate: location.coordinate)
+        print("📍 SAFE ZONE CHECK: \(result)")
+        return result
     }
     
     // Check if within safe zone (in map area)
@@ -235,8 +291,6 @@ extension LocationService {
         
         let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         
-        guard let mapPoints = dataStore?.mapPoints else { return nil }
-        
         for point in mapPoints {
             let pointLocation = CLLocation(
                 latitude: point.coordinate.latitude,
@@ -255,7 +309,6 @@ extension LocationService {
 
 // MARK: - CLLocationManagerDelegate
 extension LocationService: CLLocationManagerDelegate {
-    // If authorization changes, update the mode
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
         
@@ -264,7 +317,7 @@ extension LocationService: CLLocationManagerDelegate {
             permissionContinuation?.resume(returning: true)
             permissionContinuation = nil
             
-            if appState?.adventureModeEnabled == true {
+            if currentMode == .adventure {
                 startLocationUpdates()
             }
             
@@ -282,14 +335,23 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     
-    // If location updates, update the last location
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
+        print("📍 LOCATION UPDATE: \(location.coordinate)")
         lastLocation = location
+        
+        print("📍 CURRENT MODE: \(currentMode)")
+        print("📍 BACKGROUND RANGE: \(isWithinBackgroundRange(location))")
+        print("📍 SAFE ZONE: \(isWithinSafeZone(location))")
         
         recommendedMode = isWithinRecommendationRange(location)
         
-        guard appState?.adventureModeEnabled == true else { return }
+        if permissionContinuation != nil {
+            permissionContinuation?.resume(returning: true)
+            permissionContinuation = nil
+        }
+        
+        guard currentMode == .adventure else { return }
         
         updateTrackingState()
         
@@ -301,8 +363,13 @@ extension LocationService: CLLocationManagerDelegate {
     
     // If within safe zone, log location to firebase and check for nearby structures
     private func checkForNearbyStructures(at location: CLLocation) {
-        if let nearestPoint = findNearestMapPoint(to: location.coordinate) {
-            dataStore?.markStructureAsVisited(nearestPoint.landmark)
+        if let nearestPoint = findNearestMapPoint(to: location.coordinate),
+           nearestPoint.landmark != -1 {  // Only notify for valid structure points
+            NotificationCenter.default.post(
+                name: .structureVisited,
+                object: nil,
+                userInfo: ["structureNumber": nearestPoint.landmark]
+            )
         }
     }
 }
@@ -335,6 +402,17 @@ private extension LocationService {
         firestoreRef.collection("user_locations").addDocument(data: locationData)
     }
     
+    private func updateLocationMessage() {
+        if isLocationPermissionDenied {
+            locationMessage = .needsPermission
+        } else if isOutOfRange {
+            locationMessage = .outOfRange
+        } else if isNearby {
+            locationMessage = .nearby
+        } else {
+            locationMessage = .none
+        }
+    }
 }
 
 // MARK: - Enums

@@ -13,25 +13,21 @@ struct SettingsView: View {
     @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
     
-    // MARK: - Alert States
-    @State private var showModePopUp = false
-    @State private var showResetAlert = false
-    @State private var resetAlertType: ResetAlertType?
-    
-    // MARK: - Alert Types
-    enum ResetAlertType {
-        case structures  // Reset visited structures in adventure mode
-        case favorites  // Reset liked structures in virtual tour mode
-    }
+    // MARK: - View State
+    @State private var showStructureSwipingView = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // App configuration options
                 GeneralSettingsSection(
-                    showModePopUp: $showModePopUp,
-                    showResetAlert: $showResetAlert,
-                    resetAlertType: $resetAlertType
+                    onModeSwitch: {
+                        appState.showAlert(.modePicker(currentMode: !appState.adventureModeEnabled))
+                    },
+                    onReset: {
+                        let type: AppState.AlertType.ResetType = appState.adventureModeEnabled ? .structures : .favorites
+                        appState.showAlert(.resetConfirmation(type: type))
+                    }
                 )
                 
                 // Progress tracking (adventure mode only)
@@ -41,62 +37,26 @@ struct SettingsView: View {
                 
                 // App information and support
                 CreditsSection()
+                
+                // Development reset button
+                Button(action: {
+                    appState.resetAllSettings()
+                }) {
+                    Text("Reset App")
+                        .foregroundColor(.red)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.red, lineWidth: 1)
+                        )
+                }
+                .padding(.top, 20)
             }
             .padding()
         }
         .background(appState.isDarkMode ? Color.black : Color.white)
-        
-        // MARK: - Modal Overlays
-        .overlay(
-            Group {
-                // Mode switching interface
-                if showModePopUp {
-                    Color.black.opacity(0.4)
-                        .edgesIgnoringSafeArea(.all)
-                        .onTapGesture { showModePopUp = false }
-                    
-                    CustomModePopUp(isPresented: $showModePopUp)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 20)
-                }
-                
-                // Reset confirmation dialog
-                if showResetAlert {
-                    resetAlertView
-                }
-            }
-        )
-    }
-    
-    // Reset confirmation alert with dynamic content
-    private var resetAlertView: some View {
-        Group {
-
-            // Switches between visited and favorites based on mode
-            if let type = resetAlertType {
-                CustomAlert(
-                    icon: type == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
-                    iconColor: type == .structures ? .orange : .red,
-                    title: type == .structures
-                        ? "Reset Visited Structures"
-                        : "Reset Favorites",
-                    subtitle: type == .structures
-                        ? "Are you sure you want to reset all visited structures? This action cannot be undone."
-                        : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
-                    primaryButton: .init(title: "Reset") {
-                        if type == .structures {
-                            dataStore.resetStructures()
-                        } else {
-                            dataStore.resetStructures()
-                        }
-                        showResetAlert = false
-                    },
-                    secondaryButton: .init(title: "Cancel") {
-                        showResetAlert = false
-                    },
-                    isPresented: $showResetAlert
-                )
-            }
+        .sheet(isPresented: $showStructureSwipingView) {
+            StructureSwipingView()
         }
     }
 }

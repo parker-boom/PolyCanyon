@@ -11,9 +11,8 @@ import SwiftUI
 struct GeneralSettingsSection: View {
     @EnvironmentObject var appState: AppState
     
-    @Binding var showModePopUp: Bool
-    @Binding var showResetAlert: Bool
-    @Binding var resetAlertType: SettingsView.ResetAlertType?
+    let onModeSwitch: () -> Void
+    let onReset: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -30,35 +29,31 @@ struct GeneralSettingsSection: View {
                 // App mode selection
                 modeToggleRow
                 
-                // Action buttons row
-                HStack(spacing: 10) {
-                    // Reset data based on current mode
-                    SettingsButton(
-                        action: {
-                            resetAlertType = appState.adventureModeEnabled 
-                                ? .structures 
-                                : .favorites
-                            showResetAlert = true
-                        },
-                        imageName: appState.adventureModeEnabled 
-                            ? "arrow.clockwise" 
-                            : "heart.slash.fill",
-                        text: appState.adventureModeEnabled 
-                            ? "Reset Structures" 
-                            : "Reset Favorites",
-                        imgColor: .red,
-                        isDarkMode: appState.isDarkMode
-                    )
-                    
-                    // Location permissions access
-                    SettingsButton(
-                        action: { openSystemSettings() },
-                        imageName: "location.fill",
-                        text: "Location Settings",
-                        imgColor: .green,
-                        isDarkMode: appState.isDarkMode
-                    )
-                }
+            }
+            
+            // Action buttons row
+            HStack(spacing: 10) {
+                // Reset data based on current mode
+                SettingsButton(
+                    action: onReset,
+                    imageName: appState.adventureModeEnabled 
+                        ? "arrow.clockwise" 
+                        : "heart.slash.fill",
+                    text: appState.adventureModeEnabled 
+                        ? "Reset Structures" 
+                        : "Reset Favorites",
+                    imgColor: .red,
+                    isDarkMode: appState.isDarkMode
+                )
+                
+                // Location permissions access
+                SettingsButton(
+                    action: { openSystemSettings() },
+                    imageName: "location.fill",
+                    text: "Location Settings",
+                    imgColor: .green,
+                    isDarkMode: appState.isDarkMode
+                )
             }
         }
     }
@@ -100,7 +95,9 @@ struct GeneralSettingsSection: View {
                 .multilineTextAlignment(.center)
             
             // Mode switch trigger
-            Button(action: { showModePopUp = true }) {
+            Button(action: {
+                appState.showAlert(.modePicker(currentMode: appState.adventureModeEnabled))
+            }) {
                 Text("Switch")
                     .padding(.horizontal, 15)
                     .padding(.vertical, 10)
@@ -210,74 +207,6 @@ struct CreditsSection: View {
     }
 }
 
-// MARK: - CustomModePopUp
-/**
- * Popup for switching between Adventure Mode and Virtual Tour Mode.
- * If you want, you can unify this with other popups in SharedAlerts—but it’s unique enough to keep here.
- */
-struct CustomModePopUp: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
-    
-    @Binding var isPresented: Bool
-    
-    // Theme colors
-    let adventureModeColor = Color.green
-    let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            // Mode title
-            Text(appState.adventureModeEnabled ? "Adventure Mode" : "Virtual Tour")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .padding(.top, 10)
-            
-            // Mode description
-            Text(appState.adventureModeEnabled
-                 ? "Explore structures in person.\nLocation tracking is used to mark visits."
-                 : "Browse structures remotely.\nNo location needed.")
-                .font(.system(size: 16))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.white.opacity(0.8))
-                .padding(.horizontal, 20)
-            
-            Spacer()
-            
-            // Confirmation button
-            Button("Confirm Choice") {
-                let newMode = appState.adventureModeEnabled
-                isPresented = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    locationService.handleModeChange(newMode)
-                }
-            }
-            .font(.system(size: 18, weight: .bold))
-            .foregroundColor(.white)
-            .frame(minWidth: 150)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 30)
-            .background(appState.adventureModeEnabled ? adventureModeColor : virtualTourColor)
-            .cornerRadius(25)
-            
-            Spacer()
-        }
-        .frame(width: 300, height: 300)
-        .padding()
-        .background(appState.isDarkMode ? Color.black : Color.white)
-        .cornerRadius(20)
-        .shadow(radius: 10)
-        .overlay(
-            // Mode icon overlay
-            Image(systemName: appState.adventureModeEnabled ? "figure.walk" : "binoculars")
-                .font(.system(size: 44))
-                .foregroundColor(appState.adventureModeEnabled ? adventureModeColor : virtualTourColor)
-                .offset(y: -120)
-        )
-    }
-}
 
 // MARK: - Supporting Components
 

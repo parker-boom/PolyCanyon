@@ -104,6 +104,121 @@ struct CustomAlert: View {
             .frame(width: 300)
             .shadow(color: appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.2),
                     radius: 10, x: 0, y: 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .offset(y: -UIScreen.main.bounds.height * 0.1)
         }
+    }
+}
+
+struct ModePickerAlert: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    @Binding var isPresented: Bool
+    let onDismiss: () -> Void
+    
+    @State private var selectedMode: Bool = false // Default value
+    
+    init(isPresented: Binding<Bool>, onDismiss: @escaping () -> Void) {
+        self._isPresented = isPresented
+        self.onDismiss = onDismiss
+    }
+    
+    var body: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.4)
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture(perform: onDismiss)
+            
+            // Alert content
+            VStack(spacing: 25) {
+                // Header with close button
+                HStack {
+                    Spacer()
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                // Mode icons
+                HStack(spacing: 40) {
+                    ModeOption(
+                        isSelected: selectedMode == false,
+                        icon: "binoculars",
+                        title: "Virtual Tour",
+                        color: .orange
+                    )
+                    .onTapGesture { selectedMode = false }
+                    
+                    ModeOption(
+                        isSelected: selectedMode == true,
+                        icon: "figure.walk",
+                        title: "Adventure",
+                        color: .green
+                    )
+                    .onTapGesture { selectedMode = true }
+                }
+                
+                // Description
+                Text(selectedMode ? 
+                    "Explore structures in person with live location tracking" :
+                    "Browse and learn about structures from anywhere"
+                )
+                .multilineTextAlignment(.center)
+                .foregroundColor(.gray)
+                .padding(.horizontal)
+                
+                // Confirm button (only if mode changed)
+                if selectedMode != appState.adventureModeEnabled {
+                    Button(action: {
+                        locationService.setMode(selectedMode ? .adventure : .virtualTour)
+                        appState.adventureModeEnabled = selectedMode
+                        onDismiss()
+                    }) {
+                        Text("Confirm Change")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .frame(width: 200)
+                            .padding()
+                            .background(selectedMode ? Color.green : Color.orange)
+                            .cornerRadius(15)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 10)
+            .padding(30)
+        }
+        .onAppear {
+            selectedMode = appState.adventureModeEnabled
+        }
+    }
+}
+
+private struct ModeOption: View {
+    let isSelected: Bool
+    let icon: String
+    let title: String
+    let color: Color
+    
+    var body: some View {
+        VStack {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(isSelected ? color : .gray)
+            
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(isSelected ? color : .gray)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(isSelected ? color : Color.gray.opacity(0.3), lineWidth: 2)
+        )
     }
 }

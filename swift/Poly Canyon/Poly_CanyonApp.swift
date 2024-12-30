@@ -25,6 +25,15 @@ struct PolyCanyonApp: App {
   @StateObject private var dataStore = DataStore.shared
   @StateObject private var locationService = LocationService.shared
 
+  init() {
+    // Configure LocationService
+    LocationService.shared.configure() 
+    
+    // Initialize LocationService mode from AppState's persisted value
+    let savedMode = UserDefaults.standard.bool(forKey: "adventureMode")
+    LocationService.shared.setMode(savedMode ? .adventure : .virtualTour)
+  }
+
   var body: some Scene {
     WindowGroup {
       AppView()

@@ -9,28 +9,105 @@ enum SortState {
     case unvisited
 }
 
-struct Structure: Codable, Identifiable {
-    let id: Int
+struct Structure: Codable, Identifiable, Equatable {
+    // Static properties from JSON
     let number: Int
     let title: String
     let year: String
     let builders: String
     let funFact: String?
     let description: String
-    var mainPhoto: String
-    var closeUp: String
     
+    // Dynamic properties (not in JSON initially, but needed for persistence)
     var isVisited: Bool
     var isOpened: Bool
     var recentlyVisited: Int
     var isLiked: Bool
+    var mainPhoto: String
+    var closeUp: String
+    
+    // Conform to Identifiable
+    var id: Int { number }
+    
+    // Custom Codable implementation
+    private enum CodingKeys: String, CodingKey {
+        case number, title, year, builders, funFact, description
+        case isVisited, isOpened, recentlyVisited, isLiked
+        case mainPhoto, closeUp
+    }
+    
+    // Default initializer for creating new structures
+    init(number: Int, title: String, year: String, builders: String, 
+         funFact: String?, description: String) {
+        self.number = number
+        self.title = title
+        self.year = year
+        self.builders = builders
+        self.funFact = funFact
+        self.description = description
+        
+        // Set defaults for dynamic properties
+        self.isVisited = false
+        self.isOpened = false
+        self.recentlyVisited = -1
+        self.isLiked = false
+        self.mainPhoto = "\(number)M"
+        self.closeUp = "\(number)C"
+    }
+    
+    // Decoder initializer for loading from JSON
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode required static properties
+        number = try container.decode(Int.self, forKey: .number)
+        title = try container.decode(String.self, forKey: .title)
+        year = try container.decode(String.self, forKey: .year)
+        builders = try container.decode(String.self, forKey: .builders)
+        funFact = try container.decodeIfPresent(String.self, forKey: .funFact)
+        description = try container.decode(String.self, forKey: .description)
+        
+        // Try to decode dynamic properties, use defaults if not found
+        isVisited = try container.decodeIfPresent(Bool.self, forKey: .isVisited) ?? false
+        isOpened = try container.decodeIfPresent(Bool.self, forKey: .isOpened) ?? false
+        recentlyVisited = try container.decodeIfPresent(Int.self, forKey: .recentlyVisited) ?? -1
+        isLiked = try container.decodeIfPresent(Bool.self, forKey: .isLiked) ?? false
+        mainPhoto = try container.decodeIfPresent(String.self, forKey: .mainPhoto) ?? "\(number)M"
+        closeUp = try container.decodeIfPresent(String.self, forKey: .closeUp) ?? "\(number)C"
+    }
+    
+    // Conform to Equatable
+    static func == (lhs: Structure, rhs: Structure) -> Bool {
+        return lhs.number == rhs.number
+    }
 }
 
 struct MapPoint: Codable {
     let coordinate: CLLocationCoordinate2D
     let pixelPosition: CGPoint
     let landmark: Int
-    var isVisited: Bool
+}
+
+// For decoding the JSON format
+struct MapPointData: Codable {
+    let number: Int
+    let latitude: Double
+    let longitude: Double
+    let pixelX: String
+    let pixelY: String
+    let landmark: Int
+}
+
+// Keep our existing MapPoint model but add init from MapPointData
+extension MapPoint {
+    init(from data: MapPointData) {
+        self.coordinate = CLLocationCoordinate2D(latitude: data.latitude, longitude: data.longitude)
+        self.pixelPosition = CGPoint(
+            x: Double(data.pixelX.replacingOccurrences(of: " px", with: "")) ?? 0,
+            y: Double(data.pixelY.replacingOccurrences(of: " px", with: "")) ?? 0
+        )
+        self.landmark = data.landmark
+    }
 }
 
 // MARK: - CLLocationCoordinate2D Codable

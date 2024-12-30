@@ -42,10 +42,65 @@ class AppState: ObservableObject {
 
     // Could use more for global popups 
     
+    // MARK: - Global Alert System
+    @Published var activeAlert: AlertType?
+    
+    enum AlertType: Identifiable {
+        case backgroundLocation
+        case rateStructures(hasShown: Bool)
+        case virtualWalkthrough(hasShown: Bool)
+        case resetConfirmation(type: ResetType)
+        case modePicker(currentMode: Bool)
+        
+        enum ResetType {
+            case structures
+            case favorites
+        }
+        
+        var id: String {
+            switch self {
+            case .backgroundLocation: return "background"
+            case .rateStructures: return "rate"
+            case .virtualWalkthrough: return "walkthrough"
+            case .resetConfirmation: return "reset"
+            case .modePicker: return "mode"
+            }
+        }
+    }
+    
+    // Alert helper methods
+    func showAlert(_ type: AlertType) {
+        activeAlert = type
+    }
+    
+    func dismissAlert() {
+        activeAlert = nil
+    }
+
+    // Add property to track if background alert was shown
+    @Published var hasShownBackgroundLocationAlert: Bool {
+        didSet {
+            UserDefaults.standard.set(hasShownBackgroundLocationAlert, forKey: "hasShownBackgroundLocationAlert")
+        }
+    }
+
     init() {
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
         self.hasShownRateStructuresPopup = UserDefaults.standard.bool(forKey: "hasShownRateStructuresPopup")
+        self.hasShownBackgroundLocationAlert = UserDefaults.standard.bool(forKey: "hasShownBackgroundLocationAlert")
+    }
+
+    func resetAllSettings() {
+        let domain = Bundle.main.bundleIdentifier!
+        UserDefaults.standard.removePersistentDomain(forName: domain)
+        UserDefaults.standard.synchronize()
+        
+        // Reinitialize defaults
+        isDarkMode = false
+        adventureModeEnabled = false
+        isOnboardingCompleted = false
+        hasShownRateStructuresPopup = false
     }
 }

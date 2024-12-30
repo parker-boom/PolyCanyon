@@ -11,10 +11,10 @@ import CoreLocation
 class DataStore: ObservableObject {
     static let shared = DataStore()
     
-    // MARK: - Core Data Properties
+    // MARK: - Published Properties
     @Published private(set) var structures: [Structure] = []
     @Published private(set) var mapPoints: [MapPoint] = []
-    @Published private(set) var lastVisitedStructure: Structure? = nil
+    @Published private(set) var lastVisitedStructure: Structure?
     
     // MARK: - Statistics Properties
     @Published private(set) var visitedCount: Int {
@@ -29,12 +29,6 @@ class DataStore: ObservableObject {
         }
     }
     
-    @Published private(set) var visitedAllCount: Int {
-        didSet {
-            UserDefaults.standard.set(visitedAllCount, forKey: "visitedAllCount")
-        }
-    }
-    
     private var previousDayVisited: String? {
         didSet {
             UserDefaults.standard.set(previousDayVisited, forKey: "previousDayVisited")
@@ -44,7 +38,7 @@ class DataStore: ObservableObject {
     // MARK: - File Management
     private let fileManager = FileManager.default
     private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    private let currentBundleVersion = "1.0"
+    private let currentBundleVersion = "2.0"
     
     private var storedVersion: String {
         get { UserDefaults.standard.string(forKey: "dataVersion") ?? "0" }
@@ -52,14 +46,38 @@ class DataStore: ObservableObject {
     }
     
     // MARK: - Initialization
-    private init() {
+    init() {
+        print("📚 Initializing DataStore")
         // Load persisted stats
         self.visitedCount = UserDefaults.standard.integer(forKey: "visitedCount")
         self.dayCount = UserDefaults.standard.integer(forKey: "dayCount")
-        self.visitedAllCount = UserDefaults.standard.integer(forKey: "visitedAllCount")
         self.previousDayVisited = UserDefaults.standard.string(forKey: "previousDayVisited")
+        print("📚 Loaded stats - Visited: \(visitedCount), Days: \(dayCount)")
         
         loadInitialData()
+        setupNotifications()
+        print("📚 DataStore initialization complete")
+        
+        printCurrentState()
+    }
+    
+    private func setupNotifications() {
+        // Listen for structure visits from LocationService
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleStructureVisit),
+            name: .structureVisited,
+            object: nil
+        )
+    }
+    
+    @objc private func handleStructureVisit(_ notification: Notification) {
+        guard let number = notification.userInfo?["structureNumber"] as? Int else {
+            print("❌ Invalid structure number in visit notification")
+            return
+        }
+        print("📚 Received visit notification for structure \(number)")
+        markStructureAsVisited(number)
     }
     
     /*
@@ -72,9 +90,12 @@ class DataStore: ObservableObject {
     
     // Decides whether to load in new data (data changed on update)
     private func loadInitialData() {
+        print("📚 Checking data version - Stored: \(storedVersion), Current: \(currentBundleVersion)")
         if storedVersion != currentBundleVersion {
+            print("📚 Version mismatch - Loading fresh data from bundle")
             loadAndSaveInitialData()
         } else {
+            print("📚 Version match - Loading persisted data")
             loadPersistedData()
         }
     }
@@ -115,25 +136,23 @@ class DataStore: ObservableObject {
     
     // Loads in new data from bundle
     private func loadStructuresFromBundle() -> [Structure]? {
+        print("📚 Loading structures from bundle...")
         guard let url = Bundle.main.url(forResource: "structuresList", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
-            print("Error: Cannot find structuresList.json in bundle")
+            print("❌ Failed to find or read structuresList.json")
             return nil
         }
         
         do {
             var structures = try JSONDecoder().decode([Structure].self, from: data)
+            print("📚 Successfully decoded \(structures.count) structures")
             for index in structures.indices {
-                structures[index].isVisited = false
-                structures[index].isOpened = false
-                structures[index].recentlyVisited = -1
-                structures[index].isLiked = false
                 structures[index].mainPhoto = "\(structures[index].number)M"
                 structures[index].closeUp = "\(structures[index].number)C"
             }
             return structures
         } catch {
-            print("Error decoding structures: \(error)")
+            print("❌ Error decoding structures: \(error)")
             return nil
         }
     }
@@ -157,15 +176,23 @@ class DataStore: ObservableObject {
     
     // Sets a structure as visited (UI reacts), updates stats, and saves
     func markStructureAsVisited(_ number: Int) {
-        guard let index = structures.firstIndex(where: { $0.number == number }),
-              !structures[index].isVisited else { return }
+        guard let index = structures.firstIndex(where: { $0.number == number }) else {
+            print("❌ Structure \(number) not found")
+            return
+        }
         
+        if structures[index].isVisited {
+            print("📚 Structure \(number) already visited")
+            return
+        }
+        
+        print("📚 Marking structure \(number) as visited")
         structures[index].isVisited = true
-        structures[index].recentlyVisited = visitedCount
-        visitedCount += 1
+        structures[index].recentlyVisited = Int(Date().timeIntervalSince1970)
         lastVisitedStructure = structures[index]
+        visitedCount += 1
         
-        // Update day count
+        // Update day tracking
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let todayString = dateFormatter.string(from: Date())
@@ -174,18 +201,16 @@ class DataStore: ObservableObject {
             if lastVisited != todayString {
                 dayCount += 1
                 previousDayVisited = todayString
+                print("📚 New day visit - Total days: \(dayCount)")
             }
         } else {
             dayCount += 1
             previousDayVisited = todayString
-        }
-        
-        // Check for all structures visited
-        if structures.allSatisfy({ $0.isVisited }) {
-            visitedAllCount += 1
+            print("📚 First day visit recorded")
         }
         
         saveStructures()
+        print("📚 Structure visit processed and saved")
     }
     
     // Sets a structure as opened (UI reacts), and saves
@@ -228,30 +253,20 @@ class DataStore: ObservableObject {
     
     // Loads in new data from bundle
     private func loadMapPointsFromBundle() -> [MapPoint]? {
+        print("📚 Loading map points from bundle...")
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
-            print("Error: Cannot find mapPoints.json in bundle")
+            print("❌ Failed to find or read mapPoints.json")
             return nil
         }
         
         do {
             let mapPointData = try JSONDecoder().decode([MapPointData].self, from: data)
-            return mapPointData.map { data in
-                MapPoint(
-                    coordinate: CLLocationCoordinate2D(
-                        latitude: data.latitude,
-                        longitude: data.longitude
-                    ),
-                    pixelPosition: CGPoint(
-                        x: Double(data.pixelX.replacingOccurrences(of: " px", with: "")) ?? 0,
-                        y: Double(data.pixelY.replacingOccurrences(of: " px", with: "")) ?? 0
-                    ),
-                    landmark: data.landmark,
-                    isVisited: false
-                )
-            }
+            let points = mapPointData.map { MapPoint(from: $0) }
+            print("📚 Successfully decoded \(points.count) map points")
+            return points
         } catch {
-            print("Error decoding map points: \(error)")
+            print("❌ Error decoding map points: \(error)")
             return nil
         }
     }
@@ -363,14 +378,34 @@ class DataStore: ObservableObject {
     var hasLikedStructures: Bool {
         return structures.contains { $0.isLiked }
     }
+    
+    private func printCurrentState() {
+        print("\n📚 ====== DataStore State ======")
+        print("📚 Version Info:")
+        print("  • Stored Version: \(storedVersion)")
+        print("  • Current Version: \(currentBundleVersion)")
+        
+        print("\n📚 Statistics:")
+        print("  • Visited Count: \(visitedCount)")
+        print("  • Days Active: \(dayCount)")
+        print("  • Last Visit Date: \(previousDayVisited ?? "None")")
+        
+        print("\n📚 Structures (\(structures.count) total):")
+        print("  • Visited: \(structures.filter { $0.isVisited }.count)")
+        print("  • Unopened: \(structures.filter { !$0.isOpened }.count)")
+        print("  • Liked: \(structures.filter { $0.isLiked }.count)")
+        
+        if let lastVisited = lastVisitedStructure {
+            print("\n📚 Last Visited Structure:")
+            print("  • Number: \(lastVisited.number)")
+            print("  • Title: \(lastVisited.title)")
+            print("  • Timestamp: \(lastVisited.recentlyVisited)")
+        }
+        
+        print("\n📚 Map Points (\(mapPoints.count) total):")
+        let structurePoints = mapPoints.filter { $0.landmark != -1 }
+        print("  • Structure Points: \(structurePoints.count)")
+        print("  • Path Points: \(mapPoints.count - structurePoints.count)")
+        print("============================\n")
+    }
 }
-
-// MARK: - Supporting Types
-private struct MapPointData: Codable {
-    let number: Int
-    let latitude: Double
-    let longitude: Double
-    let pixelX: String
-    let pixelY: String
-    let landmark: Int
-} 

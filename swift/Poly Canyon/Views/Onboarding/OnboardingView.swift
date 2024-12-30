@@ -151,7 +151,9 @@ private struct LocationRequestSlide: View {
                     Task {
                         let granted = await locationService.requestInitialPermission()
                         if granted {
-                            // Set recommended mode based on location
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                            
+                            // ONLY set UI state for recommendation
                             if let loc = locationService.lastLocation {
                                 appState.adventureModeEnabled = locationService.getRecommendedMode(loc)
                             } else {
@@ -229,7 +231,8 @@ private struct ModeSelectionSlide: View {
             
             // Finished navigation button
             Button("Let's Go!") {
-                // Mark onboarding complete
+                // This is where we ACTUALLY set both states
+                locationService.setMode(appState.adventureModeEnabled ? .adventure : .virtualTour)
                 appState.isOnboardingCompleted = true
             }
             .font(.system(size: 18, weight: .bold))

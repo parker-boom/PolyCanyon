@@ -281,24 +281,6 @@ struct AllStructuresVisitedPopup: View {
     }
 }
 
-struct MapBackgroundLayer: View {
-    let isDarkMode: Bool
-    let isSatelliteView: Bool
-    
-    var body: some View {
-        ZStack {
-            Color(isDarkMode ? .black : .white)
-                .edgesIgnoringSafeArea(.all)
-            
-            if isSatelliteView {
-                Image("BlurredBG")
-                    .resizable()
-                    .edgesIgnoringSafeArea(.all)
-            }
-        }
-    }
-}
-
 struct MapControlButtons: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
@@ -308,53 +290,49 @@ struct MapControlButtons: View {
     @Binding var showNearbyUnvisitedView: Bool
     
     let onUpdateMapPoint: () -> Void
-    let onUpdateNearbyPoints: () -> Void
     
     var body: some View {
-        ZStack {
-            // Adventure mode controls
-            if locationService.canUseLocation {
-                Button(action: {
-                    withAnimation {
-                        showNearbyUnvisitedView.toggle()
-                        if showNearbyUnvisitedView {
-                            onUpdateNearbyPoints()
+        HStack {
+            // Left side buttons
+            HStack(spacing: 10) {
+                // Adventure mode controls
+                if appState.adventureModeEnabled && locationService.isInPolyCanyonArea {
+                    Button(action: {
+                        withAnimation {
+                            showNearbyUnvisitedView.toggle()
                         }
+                    }) {
+                        MapControlButton(
+                            systemName: showNearbyUnvisitedView ? "xmark.circle.fill" : "mappin.circle.fill"
+                        )
                     }
-                }) {
-                    MapControlButton(
-                        systemName: showNearbyUnvisitedView ? "xmark.circle.fill" : "mappin.circle.fill"
-                    )
                 }
-                .padding(.top, -10)
-            }
-            
-            // Virtual tour controls
-            if !appState.adventureModeEnabled {
-                Button(action: {
-                    withAnimation {
-                        isVirtualWalkthroughActive.toggle()
-                        if isVirtualWalkthroughActive {
-                            onUpdateMapPoint()
+                
+                // Virtual tour controls
+                if !appState.adventureModeEnabled {
+                    Button(action: {
+                        withAnimation {
+                            isVirtualWalkthroughActive.toggle()
+                            if isVirtualWalkthroughActive {
+                                onUpdateMapPoint()
+                            }
                         }
+                    }) {
+                        MapControlButton(
+                            systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill"
+                        )
                     }
-                }) {
-                    MapControlButton(
-                        systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill"
-                    )
                 }
-                .padding(.leading, 15)
             }
-            
-            // Map type toggle
+            Spacer()
+            // Right side satellite button
             Button(action: { isSatelliteView.toggle() }) {
                 MapControlButton(
                     systemName: isSatelliteView ? "map.fill" : "globe.americas.fill"
                 )
             }
-            .padding(.top, -10)
-            .frame(maxWidth: .infinity, alignment: .topTrailing)
         }
+        .position(x: UIScreen.main.bounds.width/2, y: 50)
     }
 }
 
@@ -368,9 +346,12 @@ struct MapStatusOverlay: View {
             Spacer()
             if locationService.isLocationPermissionDenied {
                 BottomMessage(text: "Enable location services", geometry: geometry)
-            } else if !locationService.canUseLocation {
-                BottomMessage(text: "Enter the area of Poly Canyon", geometry: geometry)
+            } else if locationService.isOutOfRange {
+                BottomMessage(text: "To use the live map, you must be in Poly Canyon", geometry: geometry)
+            } else if locationService.isNearby {
+                BottomMessage(text: "You're nearby! The live map will start soon", geometry: geometry)
             }
+            // No message if isInPolyCanyonArea (showing pulsing circle instead)
         }
     }
 }
