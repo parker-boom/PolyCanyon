@@ -253,23 +253,32 @@ class DataStore: ObservableObject {
     
     // Loads in new data from bundle
     private func loadMapPointsFromBundle() -> [MapPoint]? {
-        print("📚 Loading map points from bundle...")
-        guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
-            print("❌ Failed to find or read mapPoints.json")
-            return nil
+    print("📚 Loading and sorting map points from bundle...")
+    guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
+          let data = try? Data(contentsOf: url) else {
+        print("❌ Failed to find or read mapPoints.json")
+        return nil
+    }
+    
+    do {
+        let mapPointData = try JSONDecoder().decode([MapPointData].self, from: data)
+        let points = mapPointData.map { MapPoint(from: $0) }
+        
+        // Sort points by latitude first, then longitude
+        let sortedPoints = points.sorted {
+            $0.coordinate.latitude == $1.coordinate.latitude
+                ? $0.coordinate.longitude < $1.coordinate.longitude
+                : $0.coordinate.latitude < $1.coordinate.latitude
         }
         
-        do {
-            let mapPointData = try JSONDecoder().decode([MapPointData].self, from: data)
-            let points = mapPointData.map { MapPoint(from: $0) }
-            print("📚 Successfully decoded \(points.count) map points")
-            return points
-        } catch {
+        print("📚 Successfully loaded and sorted \(sortedPoints.count) map points")
+        return sortedPoints
+    } catch {
             print("❌ Error decoding map points: \(error)")
             return nil
         }
     }
+
     
     // Saves map points to documents
     private func saveMapPoints() {

@@ -286,25 +286,48 @@ extension LocationService {
     
     // Find nearest map point to user
     func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
-        var nearestPoint: MapPoint?
-        var minDistance = Double.infinity
-        
-        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        for point in mapPoints {
-            let pointLocation = CLLocation(
-                latitude: point.coordinate.latitude,
-                longitude: point.coordinate.longitude
-            )
-            let distance = userLocation.distance(from: pointLocation)
-            if distance < minDistance {
-                minDistance = distance
-                nearestPoint = point
-            }
-        }
-        
-        return nearestPoint
+    guard !mapPoints.isEmpty else { return nil }
+    
+    var closestPoint: MapPoint?
+    var lastNearestPoint: MapPoint?
+    var minDistance = Double.infinity
+    
+    let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    
+    // Perform a binary search on latitude-sorted points
+    let closestIndex = mapPoints.binarySearch {
+        $0.coordinate.latitude < coordinate.latitude ? .orderedAscending : .orderedDescending
     }
+    
+    // Check around the closest index for the actual nearest point
+    let indicesToCheck = (max(closestIndex - 2, 0)...min(closestIndex + 2, mapPoints.count - 1))
+    for i in indicesToCheck {
+        let point = mapPoints[i]
+        let pointLocation = CLLocation(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
+        let distance = userLocation.distance(from: pointLocation)
+        
+        if distance < minDistance {
+            minDistance = distance
+            closestPoint = point
+        }
+    }
+
+        // Sticky logic: don't switch if the new closest is only marginally better
+    if let lastPoint = lastNearestPoint {
+        let lastPointLocation = CLLocation(latitude: lastPoint.coordinate.latitude, longitude: lastPoint.coordinate.longitude)
+        let lastDistance = userLocation.distance(from: lastPointLocation)
+        
+        if abs(minDistance - lastDistance) < 5.0 { // 5 meters as a threshold
+            return lastPoint
+        }
+    }
+    
+    lastNearestPoint = closestPoint
+    
+        return closestPoint
+    }
+
+
 }
 
 // MARK: - CLLocationManagerDelegate
@@ -426,4 +449,25 @@ enum TrackingState {
     case inactive
     case inAppOnly
     case background
+}
+
+extension Array {
+    func binarySearch(_ isOrderedBefore: (Element) -> ComparisonResult) -> Int {
+        var lowerBound = 0
+        var upperBound = count
+        
+        while lowerBound < upperBound {
+            let midIndex = (lowerBound + upperBound) / 2
+            switch isOrderedBefore(self[midIndex]) {
+            case .orderedAscending:
+                lowerBound = midIndex + 1
+            case .orderedDescending:
+                upperBound = midIndex
+            case .orderedSame:
+                return midIndex
+            }
+        }
+        
+        return lowerBound
+    }
 }

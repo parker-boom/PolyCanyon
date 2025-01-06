@@ -4,42 +4,51 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
     @State private var selectedTab = 0
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Main Content Area
-            switch selectedTab {
-            case 0: MapView()
-            case 1: DetailView()
-            case 2: SettingsView()
-            default: EmptyView()
-            }
-            
-            // Tab Bar
-            HStack(spacing: 0) {
-                ForEach(0..<3) { index in
-                    Button(action: { selectedTab = index }) {
-                        Image(systemName: tabIcon(for: index))
-                            .font(.system(size: 30))
-                            .foregroundColor(selectedTab == index ? 
-                                (appState.isDarkMode ? .white : .black) : 
-                                (appState.isDarkMode ? .gray : .gray))
-                            .frame(maxWidth: .infinity)
+        ZStack {
+            // Main Content (Tabs)
+            VStack(spacing: 0) {
+                switch selectedTab {
+                case 0: MapView()
+                case 1: DetailView()
+                case 2: SettingsView()
+                default: EmptyView()
+                }
+                
+                // Tab Bar
+                HStack(spacing: 0) {
+                    ForEach(0..<3) { index in
+                        Button(action: { selectedTab = index }) {
+                            Image(systemName: tabIcon(for: index))
+                                .font(.system(size: 30))
+                                .foregroundColor(
+                                    selectedTab == index
+                                    ? (appState.isDarkMode ? .white : .black)
+                                    : (appState.isDarkMode ? .gray : .gray)
+                                )
+                                .frame(maxWidth: .infinity)
+                        }
                     }
                 }
+                .padding(.top, 14)
+                .frame(height: 36)
+                .background(appState.isDarkMode ? Color.black : .white)
+                .overlay(
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundColor(.gray.opacity(0.3)),
+                    alignment: .top
+                )
             }
-            .padding(.top, 14)
-            .frame(height: 36)
-            .background(appState.isDarkMode ? Color.black : .white)
-            .overlay(
-                Rectangle()
-                    .frame(height: 0.5)
-                    .foregroundColor(.gray.opacity(0.3)),
-                alignment: .top
-            )
-        }
-        .overlay {
+            
+            // Popup Overlay (Visit Notification)
+            if let structure = dataStore.lastVisitedStructure {
+                VisitNotificationView(structure: structure)
+            }
+            
             if let alert = appState.activeAlert {
                 AlertContainer(alert: alert)
             }
@@ -55,6 +64,7 @@ struct MainView: View {
         }
     }
 }
+
 
 // MARK: - Alert Container
 private struct AlertContainer: View {
