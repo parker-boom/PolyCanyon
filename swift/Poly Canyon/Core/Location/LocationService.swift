@@ -71,6 +71,15 @@ class LocationService: NSObject, ObservableObject {
     private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
     private let backgroundRadius: CLLocationDistance = 500.34 // Walking path bench spot
     
+    // Add throttle time tracking
+    private var lastStructureCheck: Date?
+    private let structureCheckInterval: TimeInterval = 3.0 // 3 seconds
+    
+    // Add cached point and last check time
+    private var lastMapPointCheck: Date?
+    private var cachedNearestPoint: MapPoint?
+    private let mapPointCheckInterval: TimeInterval = 3.0 // 3 seconds
+    
     // MARK: - Initialization
     private override init() {
         super.init()
@@ -286,48 +295,51 @@ extension LocationService {
     
     // Find nearest map point to user
     func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
-    guard !mapPoints.isEmpty else { return nil }
-    
-    var closestPoint: MapPoint?
-    var lastNearestPoint: MapPoint?
-    var minDistance = Double.infinity
-    
-    let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-    
-    // Perform a binary search on latitude-sorted points
-    let closestIndex = mapPoints.binarySearch {
-        $0.coordinate.latitude < coordinate.latitude ? .orderedAscending : .orderedDescending
-    }
-    
-    // Check around the closest index for the actual nearest point
-    let indicesToCheck = (max(closestIndex - 2, 0)...min(closestIndex + 2, mapPoints.count - 1))
-    for i in indicesToCheck {
-        let point = mapPoints[i]
-        let pointLocation = CLLocation(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
-        let distance = userLocation.distance(from: pointLocation)
+        let now = Date()
         
-        if distance < minDistance {
-            minDistance = distance
-            closestPoint = point
+        // Return cached point if within time interval
+        if let lastCheck = lastMapPointCheck,
+           now.timeIntervalSince(lastCheck) < mapPointCheckInterval {
+            return cachedNearestPoint
         }
-    }
-
-        // Sticky logic: don't switch if the new closest is only marginally better
-    if let lastPoint = lastNearestPoint {
-        let lastPointLocation = CLLocation(latitude: lastPoint.coordinate.latitude, longitude: lastPoint.coordinate.longitude)
-        let lastDistance = userLocation.distance(from: lastPointLocation)
         
-        if abs(minDistance - lastDistance) < 5.0 { // 5 meters as a threshold
-            return lastPoint
+        // Otherwise recalculate
+        guard !mapPoints.isEmpty else { return nil }
+        
+        var closestPoint: MapPoint?
+        var minDistance = Double.infinity
+        
+        let userLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        for point in mapPoints {
+            let pointLocation = CLLocation(
+                latitude: point.coordinate.latitude,
+                longitude: point.coordinate.longitude
+            )
+            let distance = userLocation.distance(from: pointLocation)
+            
+            if distance < minDistance {
+                minDistance = distance
+                closestPoint = point
+            }
         }
-    }
-    
-    lastNearestPoint = closestPoint
-    
+        
+        // Update cache
+        lastMapPointCheck = now
+        cachedNearestPoint = closestPoint
         return closestPoint
     }
-
-
+    
+    private func checkForNearbyStructures(at location: CLLocation) {
+        if let nearestPoint = findNearestMapPoint(to: location.coordinate),
+           nearestPoint.landmark != -1 {  // Only notify for valid structure points
+            NotificationCenter.default.post(
+                name: .structureVisited,
+                object: nil,
+                userInfo: ["structureNumber": nearestPoint.landmark]
+            )
+        }
+    }
 }
 
 // MARK: - CLLocationManagerDelegate
@@ -471,3 +483,4 @@ extension Array {
         return lowerBound
     }
 }
+
