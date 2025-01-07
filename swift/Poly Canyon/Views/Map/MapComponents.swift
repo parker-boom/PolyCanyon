@@ -50,7 +50,7 @@ struct VirtualWalkThroughBar: View {
         Button(action: onTap) {
             HStack(spacing: 15) {
                 // Structure thumbnail
-                Image(structure.mainPhoto)
+                Image(structure.images[0])
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 80, height: 80)
@@ -128,7 +128,7 @@ struct VisitedStructurePopup: View {
                 }) {
                     HStack {
                         // Structure thumbnail
-                        Image(structure.mainPhoto)
+                        Image(structure.images[0])
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)
@@ -197,7 +197,7 @@ struct NearbyUnvisitedView: View {
                     
                     // Structure preview with number
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.mainPhoto)
+                        Image(structure.images[0])
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)

@@ -14,66 +14,51 @@ struct Structure: Codable, Identifiable, Equatable {
     let number: Int
     let title: String
     let year: String
-    let builders: String
-    let funFact: String?
+    let advisors: [String]
+    let builders: [String]
     let description: String
+    let funFact: String?
+    let images: [String]  
     
-    // Dynamic properties (not in JSON initially, but needed for persistence)
+    // Dynamic properties
     var isVisited: Bool
     var isOpened: Bool
     var recentlyVisited: Int
     var isLiked: Bool
-    var mainPhoto: String
-    var closeUp: String
     
     // Conform to Identifiable
     var id: Int { number }
     
-    // Custom Codable implementation
     private enum CodingKeys: String, CodingKey {
-        case number, title, year, builders, funFact, description
+        case number = "Number"
+        case title = "Name"
+        case year = "Year"
+        case advisors = "Advisors"
+        case builders = "Builders"
+        case description = "Description"
+        case funFact = "Fun Fact"
+        case images = "Images"
         case isVisited, isOpened, recentlyVisited, isLiked
-        case mainPhoto, closeUp
     }
     
-    // Default initializer for creating new structures
-    init(number: Int, title: String, year: String, builders: String, 
-         funFact: String?, description: String) {
-        self.number = number
-        self.title = title
-        self.year = year
-        self.builders = builders
-        self.funFact = funFact
-        self.description = description
-        
-        // Set defaults for dynamic properties
-        self.isVisited = false
-        self.isOpened = false
-        self.recentlyVisited = -1
-        self.isLiked = false
-        self.mainPhoto = "\(number)M"
-        self.closeUp = "\(number)C"
-    }
-    
-    // Decoder initializer for loading from JSON
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // Decode required static properties
+        // Decode static properties
         number = try container.decode(Int.self, forKey: .number)
         title = try container.decode(String.self, forKey: .title)
         year = try container.decode(String.self, forKey: .year)
-        builders = try container.decode(String.self, forKey: .builders)
-        funFact = try container.decodeIfPresent(String.self, forKey: .funFact)
+        advisors = try container.decode([String].self, forKey: .advisors)
+        builders = try container.decode([String].self, forKey: .builders)
         description = try container.decode(String.self, forKey: .description)
+        funFact = try container.decodeIfPresent(String.self, forKey: .funFact)
+        images = try container.decode([String].self, forKey: .images)
         
-        // Try to decode dynamic properties, use defaults if not found
+        // Set dynamic properties with defaults
         isVisited = try container.decodeIfPresent(Bool.self, forKey: .isVisited) ?? false
         isOpened = try container.decodeIfPresent(Bool.self, forKey: .isOpened) ?? false
         recentlyVisited = try container.decodeIfPresent(Int.self, forKey: .recentlyVisited) ?? -1
         isLiked = try container.decodeIfPresent(Bool.self, forKey: .isLiked) ?? false
-        mainPhoto = try container.decodeIfPresent(String.self, forKey: .mainPhoto) ?? "\(number)M"
-        closeUp = try container.decodeIfPresent(String.self, forKey: .closeUp) ?? "\(number)C"
     }
     
     // Conform to Equatable
@@ -81,6 +66,56 @@ struct Structure: Codable, Identifiable, Equatable {
         return lhs.number == rhs.number
     }
 }
+
+/// IMPORTANT NOTE: Ghost structures have int values of 101,102... because this is how we will manage their pings from map point marking as visited
+struct GhostStructure: Codable, Identifiable, Equatable {
+    // Static properties from JSON
+    let number: Int
+    let name: String
+    let year: String
+    let advisors: [String]
+    let builders: [String]
+    let description: String
+    let images: [String]
+    
+    // Only dynamic property needed
+    var isVisited: Bool
+    
+    // Conform to Identifiable
+    var id: Int { number }
+    
+    // Conform to Equatable
+    static func == (lhs: GhostStructure, rhs: GhostStructure) -> Bool {
+        return lhs.number == rhs.number
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case number = "Number"
+        case name = "Name"
+        case year = "Year"
+        case advisors = "Advisors"
+        case builders = "Builders"
+        case description = "Description"
+        case images = "Images"
+        case isVisited
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let numberString = try container.decode(String.self, forKey: .number)
+        number = Int(numberString) ?? 0
+        name = try container.decode(String.self, forKey: .name)
+        year = try container.decode(String.self, forKey: .year)
+        advisors = try container.decode([String].self, forKey: .advisors)
+        builders = try container.decode([String].self, forKey: .builders)
+        description = try container.decode(String.self, forKey: .description)
+        images = try container.decode([String].self, forKey: .images)
+        
+        // Set dynamic property with default
+        isVisited = try container.decodeIfPresent(Bool.self, forKey: .isVisited) ?? false
+    }
+}
+
 
 struct MapPoint: Codable {
     let coordinate: CLLocationCoordinate2D

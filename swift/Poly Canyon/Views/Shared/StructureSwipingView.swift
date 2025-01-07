@@ -183,7 +183,7 @@ private struct RatingContentView: View {
     /// The swipeable card for each structure.
     private func cardView(for structure: Structure) -> some View {
         ZStack(alignment: .bottom) {
-            Image(structure.mainPhoto)
+            Image(structure.images[0])
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: UIScreen.main.bounds.width - 40,

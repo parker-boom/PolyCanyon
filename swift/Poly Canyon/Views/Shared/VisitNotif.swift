@@ -12,8 +12,7 @@ struct VisitNotificationView: View {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    // Tap outside to dismiss
-                    dataStore.lastVisitedStructure = nil
+                    dataStore.dismissLastVisitedStructure()
                 }
             
             // Popup content
@@ -22,7 +21,7 @@ struct VisitNotificationView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                 
-                Image(structure.mainPhoto)
+                Image(structure.images[0])
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 150)
@@ -35,7 +34,7 @@ struct VisitNotificationView: View {
                 
                 // Close button
                 Button(action: {
-                    dataStore.lastVisitedStructure = nil
+                    dataStore.dismissLastVisitedStructure()
                 }) {
                     Text("Close")
                         .fontWeight(.bold)

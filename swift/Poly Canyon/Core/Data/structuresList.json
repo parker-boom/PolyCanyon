@@ -19,8 +19,7 @@
       "entryArch1",
       "entryArch2",
       "entryArch3",
-      "entryArch4",
-      "entryArch5"
+      "entryArch4"
     ]
   },
 
@@ -131,8 +130,7 @@
       "geodesicDome1",
       "geodesicDome2",
       "geodesicDome3",
-      "geodesicDome4",
-      "geodesicDome5"
+      "geodesicDome4"
     ]
   },
 
@@ -187,14 +185,7 @@
     ],
     "Description": "Sometimes the biggest ideas start with basic needs. The team built these restrooms by creating an entire earthen hill, spraying concrete over it, then digging out the dirt to reveal the curved shell within. Moving earth at this scale meant heavy equipment, precise planning, and a massive septic system installation - making it one of the canyon's most ambitious projects. Glen Jackson, who helped build it and later became the canyon's first caretaker, noted it perfectly summed up everything he'd learned in his five years.",
     "Fun Fact": "The curved roof wasn't made with expensive forms - the students simply shaped a pile of dirt into the perfect mold, sprayed concrete over it, then dug it all back out.",
-    "Images": [
-      "M-9",
-      "C-9",
-      "restrooms1",
-      "restrooms2",
-      "restrooms3",
-      "restrooms4"
-    ]
+    "Images": ["M-9", "C-9", "restrooms1", "restrooms2", "restrooms3"]
   },
 
   {
@@ -391,8 +382,7 @@
       "bridgeHouse1",
       "bridgeHouse2",
       "bridgeHouse3",
-      "bridgeHouse4",
-      "bridgeHouse5"
+      "bridgeHouse4"
     ]
   },
 
@@ -414,17 +404,7 @@
     ],
     "Description": "By 1998, Poly Canyon's humble spring-fed water system had grown into a network serving seven toilets and four septic tanks. That's when students took water storage to new heights - literally. They designed massive polyvinyl tanks wrapped in corrugated metal, set them on foundations that could handle the canyon's shifting ground, and engineered everything from interlocking rings to overflow basins. It wasn't just about holding water anymore - it was about making infrastructure as bold and experimental as the structures it served. These tanks still stand as monuments to the canyon's most ambitious utility expansion.",
     "Fun Fact": "When the canyon's original 1965 water system started, it was just redwood planks channeling spring water to the Shell House. By the time this expansion finished, it was part of a network supporting an entire community of experimental structures.",
-    "Images": [
-      "M-17",
-      "C-17",
-      "waterTanks1",
-      "waterTanks2",
-      "waterTanks3",
-      "waterTanks4",
-      "waterTanks5",
-      "waterTanks6",
-      "waterTanks7"
-    ]
+    "Images": ["M-17", "C-17", "water1", "water2", "water3", "water4"]
   },
 
   {
@@ -535,7 +515,7 @@
     ],
     "Description": "See that floating roof? It's not actually floating - but that's exactly what these students wanted you to think. Those inverted wooden pyramids and thin steel rods are playing a brilliant game of tug-of-war, where tension and compression balance so perfectly that the canopy seems to hover in mid-air. It took two years to get it just right, working through a pandemic and countless custom parts. The real magic happened during installation, when everything had to balance into perfect equilibrium - one slight misalignment and the whole illusion would fall apart.",
     "Fun Fact": "Look closely at the wood pyramids - they're not just supports, they're actually pulling downward while the steel rods pull up, creating a perfect balance that makes the roof appear to float in space.",
-    "Images": ["M-23", "C-23", "tensegrity1", "tensegrity2", "tensegrity3"]
+    "Images": ["M-23", "C-23", "tensegrity1", "tensegrity2"]
   },
 
   {
@@ -565,14 +545,7 @@
     ],
     "Description": "Look up at the Shell House and you'll see something remarkable - a concrete canopy that seems to float on just three points, crafted by spraying concrete over tensioned cables. But the real magic happened in 1975, when students transformed this empty shell into the canyon's heart. They added Lucite windows to frame the hills, built a fireplace that preheated air, and even tucked a waterfall under the staircase. By the 80s, it was a proper home, complete with a hot tub and fish tank, hosting everyone from caretakers to visiting professors. The interior may be quiet now, but those curved walls still hold sixty years of stories, whispering of what's possible when students dream big enough.",
     "Fun Fact": "The builders didn't just spray concrete randomly - they used something called 'shotcrete' with such precision that they created a shell light enough to seem weightless, yet strong enough to shelter generations of canyon caretakers.",
-    "Images": [
-      "M-24",
-      "C-24",
-      "shellHouse1",
-      "shellHouse2",
-      "shellHouse3",
-      "shellHouse4"
-    ]
+    "Images": ["M-24", "C-24", "shellHouse1", "shellHouse2", "shellHouse3"]
   },
 
   {
@@ -669,8 +642,7 @@
       "modularHouse2",
       "modularHouse3",
       "modularHouse4",
-      "modularHouse5",
-      "modularHouse6"
+      "modularHouse5"
     ]
   },
 
@@ -758,7 +730,7 @@
     "Builders": ["Unknown Builders"],
     "Description": "The BBQ pit sits at the heart of what became an eclectic gathering space, surrounded by various structures built over the years - concrete counters, peculiar seating arrangements, and small bridges whose origins have blurred with time. During Design Village events, this area would come alive, most memorably for the traditional pig roasts that became something of a canyon legend. Today, you can still see the sturdy pit and its collection of nearby accessories, each telling fragments of stories about how students made this remote spot their own.",
     "Fun Fact": "During Design Village competitions, students would roast entire pigs here - a tradition that spoke to how this simple BBQ pit became the social center of canyon gatherings.",
-    "Images": ["M-30", "C-30"]
+    "Images": ["M-30", "C-30", "bbqPit1", "bbqPit2"]
   },
 
   {

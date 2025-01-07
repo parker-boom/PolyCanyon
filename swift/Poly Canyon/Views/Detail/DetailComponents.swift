@@ -84,7 +84,7 @@ struct HighlightStructuresRow: View {
                     
                     // Structure thumbnail with number overlay
                     ZStack(alignment: .bottomTrailing) {
-                        Image(structure.mainPhoto)
+                        Image(structure.images[0])
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 80, height: 80)

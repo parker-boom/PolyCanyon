@@ -178,7 +178,7 @@ struct StructureGridItem: View {
             alignment: .bottomLeading
         )
         .onAppear {
-            imageLoader.load(imageName: structure.mainPhoto)
+            imageLoader.load(imageName: structure.images[0])
         }
         .onDisappear {
             imageLoader.cancel()
@@ -188,7 +188,7 @@ struct StructureGridItem: View {
     // MARK: - Image Builders
     
     private var normalImage: some View {
-        Image(structure.mainPhoto)
+        Image(structure.images[0])
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(width: itemWidth, height: itemHeight)
@@ -204,7 +204,7 @@ struct StructureGridItem: View {
     }
     
     private var blurredImage: some View {
-        Image(structure.mainPhoto)
+        Image(structure.images[0])
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(width: itemWidth, height: itemHeight)

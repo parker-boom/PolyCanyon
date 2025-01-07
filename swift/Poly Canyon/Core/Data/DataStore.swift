@@ -13,6 +13,7 @@ class DataStore: ObservableObject {
     
     // MARK: - Published Properties
     @Published private(set) var structures: [Structure] = []
+    @Published private(set) var ghostStructures: [GhostStructure] = []
     @Published private(set) var mapPoints: [MapPoint] = []
     @Published private(set) var lastVisitedStructure: Structure?
     
@@ -38,7 +39,7 @@ class DataStore: ObservableObject {
     // MARK: - File Management
     private let fileManager = FileManager.default
     private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    private let currentBundleVersion = "2.0"
+    private let currentBundleVersion = "2.2"
     
     private var storedVersion: String {
         get { UserDefaults.standard.string(forKey: "dataVersion") ?? "0" }
@@ -107,6 +108,11 @@ class DataStore: ObservableObject {
             saveStructures()
         }
         
+        if let ghostStructures = loadGhostStructuresFromBundle() {
+            self.ghostStructures = ghostStructures
+            saveGhostStructures()
+        }
+        
         if let mapPoints = loadMapPointsFromBundle() {
             self.mapPoints = mapPoints
             saveMapPoints()
@@ -119,6 +125,10 @@ class DataStore: ObservableObject {
     private func loadPersistedData() {
         if let structures = loadStructuresFromDocuments() {
             self.structures = structures
+        }
+        
+        if let ghostStructures = loadGhostStructuresFromDocuments() {
+            self.ghostStructures = ghostStructures
         }
         
         if let mapPoints = loadMapPointsFromDocuments() {
@@ -144,12 +154,8 @@ class DataStore: ObservableObject {
         }
         
         do {
-            var structures = try JSONDecoder().decode([Structure].self, from: data)
+            let structures = try JSONDecoder().decode([Structure].self, from: data)
             print("📚 Successfully decoded \(structures.count) structures")
-            for index in structures.indices {
-                structures[index].mainPhoto = "\(structures[index].number)M"
-                structures[index].closeUp = "\(structures[index].number)C"
-            }
             return structures
         } catch {
             print("❌ Error decoding structures: \(error)")
@@ -233,6 +239,7 @@ class DataStore: ObservableObject {
     
     // Resets all structures to default state
     func resetStructures() {
+        // Reset regular structures
         for index in structures.indices {
             structures[index].isVisited = false
             structures[index].isOpened = false
@@ -240,6 +247,13 @@ class DataStore: ObservableObject {
             structures[index].isLiked = false
         }
         saveStructures()
+        
+        // Reset ghost structures
+        for index in ghostStructures.indices {
+            ghostStructures[index].isVisited = false
+        }
+        saveGhostStructures()
+        
         objectWillChange.send()
     }
     
@@ -404,6 +418,9 @@ class DataStore: ObservableObject {
         print("  • Unopened: \(structures.filter { !$0.isOpened }.count)")
         print("  • Liked: \(structures.filter { $0.isLiked }.count)")
         
+        print("\n📚 Ghost Structures (\(ghostStructures.count) total):")
+        print("  • Visited: \(ghostStructures.filter { $0.isVisited }.count)")
+        
         if let lastVisited = lastVisitedStructure {
             print("\n📚 Last Visited Structure:")
             print("  • Number: \(lastVisited.number)")
@@ -416,5 +433,61 @@ class DataStore: ObservableObject {
         print("  • Structure Points: \(structurePoints.count)")
         print("  • Path Points: \(mapPoints.count - structurePoints.count)")
         print("============================\n")
+    }
+    
+    // Add ghost structure loading functions
+    private func loadGhostStructuresFromBundle() -> [GhostStructure]? {
+        print("📚 Loading ghost structures from bundle...")
+        guard let url = Bundle.main.url(forResource: "ghostStructures", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            print("❌ Failed to find or read ghostStructures.json")
+            return nil
+        }
+        
+        do {
+            let structures = try JSONDecoder().decode([GhostStructure].self, from: data)
+            print("📚 Successfully decoded \(structures.count) ghost structures")
+            return structures
+        } catch {
+            print("❌ Error decoding ghost structures: \(error)")
+            return nil
+        }
+    }
+    
+    private func saveGhostStructures() {
+        let url = documentsPath.appendingPathComponent("ghostStructures.json")
+        if let data = try? JSONEncoder().encode(ghostStructures) {
+            try? data.write(to: url)
+        }
+    }
+    
+    private func loadGhostStructuresFromDocuments() -> [GhostStructure]? {
+        let url = documentsPath.appendingPathComponent("ghostStructures.json")
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode([GhostStructure].self, from: data)
+    }
+    
+    // NOTE: Will deal with marking ghost as visited later
+    /*
+    func markGhostStructureAsVisited(_ number: String) {
+        guard let index = ghostStructures.firstIndex(where: { $0.number == number }) else {
+            print("❌ Ghost structure \(number) not found")
+            return
+        }
+        
+        if ghostStructures[index].isVisited {
+            print("📚 Ghost structure \(number) already visited")
+            return
+        }
+        
+        print("📚 Marking ghost structure \(number) as visited")
+        ghostStructures[index].isVisited = true
+        saveGhostStructures()
+        objectWillChange.send()
+    }*/
+    
+    func dismissLastVisitedStructure() {
+        lastVisitedStructure = nil
+        objectWillChange.send()
     }
 }

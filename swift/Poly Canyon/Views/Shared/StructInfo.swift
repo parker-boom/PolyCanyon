@@ -106,8 +106,7 @@ private struct ImageSection: View {
         ZStack(alignment: .topLeading) {
             // Carousel
             ImprovedImageCarousel(
-                mainPhoto: structure.mainPhoto,
-                closeUp: structure.closeUp,
+                images: structure.images,
                 currentImageIndex: $currentImageIndex,
                 geometry: geometry
             )
@@ -140,6 +139,16 @@ private struct InformationPanel: View {
     @Binding var isPresented: Bool
     let geometry: GeometryProxy
     
+    // Helper function to convert arrays to truncated strings
+    private func formatPeopleList(_ people: [String], maxLength: Int = 100) -> String {
+        let joinedString = people.joined(separator: ", ")
+        if joinedString.count > maxLength {
+            let truncated = String(joinedString.prefix(maxLength))
+            return truncated + "..."
+        }
+        return joinedString
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             InfoPanelHeader(
@@ -147,18 +156,25 @@ private struct InformationPanel: View {
                 dismissAction: { isPresented = false }
             )
             
-            // Scroll view of cards in info panel
             ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
-                    if structure.builders != "iii" {
+                    if !structure.advisors.isEmpty {
                         InfoPill(
-                            icon: "👷",
-                            title: "Builders",
-                            value: structure.builders
+                            icon: "🎓",
+                            title: "Advisors",
+                            value: formatPeopleList(structure.advisors)
                         )
                     }
                     
-                    if let funFact = structure.funFact, funFact != "iii" {
+                    if !structure.builders.isEmpty {
+                        InfoPill(
+                            icon: "👷",
+                            title: "Builders",
+                            value: formatPeopleList(structure.builders)
+                        )
+                    }
+                    
+                    if let funFact = structure.funFact {
                         FunFactPill(
                             icon: "✨",
                             fact: funFact
@@ -307,7 +323,7 @@ private struct ImageDotsView: View {
             
             // Dots
             HStack(spacing: 8) {
-                ForEach(0..<2) { index in
+                ForEach(0..<structure.images.count) { index in
                     Circle()
                         .fill(Color.white)
                         .frame(width: currentImageIndex == index ? 10 : 8,
@@ -429,17 +445,16 @@ private struct FunFactPill: View {
 // MARK: - ImprovedImageCarousel
 /// A carousel for the structure's main and close-up images with a zoomable subview.
 private struct ImprovedImageCarousel: View {
-    let mainPhoto: String
-    let closeUp: String
+    let images: [String]
     @Binding var currentImageIndex: Int
     let geometry: GeometryProxy
 
     var body: some View {
         TabView(selection: $currentImageIndex) {
-            ZoomableImageView(imageName: mainPhoto)
-                .tag(0)
-            ZoomableImageView(imageName: closeUp)
-                .tag(1)
+            ForEach(images.indices, id: \.self) { index in
+                ZoomableImageView(imageName: images[index])
+                    .tag(index)
+            }
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .frame(width: geometry.size.width - 30, height: geometry.size.height * 0.75)
