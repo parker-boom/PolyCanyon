@@ -34,7 +34,7 @@ class LocationService: NSObject, ObservableObject {
     */
 
     // Load MapPoints directly since they're fixed
-    private var mapPoints: [MapPoint] = {
+    public private(set) var mapPoints: [MapPoint] = {
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let mapPointData = try? JSONDecoder().decode([MapPointData].self, from: data) else {
@@ -192,7 +192,7 @@ class LocationService: NSObject, ObservableObject {
     // Distance between point & structures
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = lastLocation,
-              let structurePoint = mapPoints.first(where: { $0.landmark == structure.number }) else {
+              let structurePoint = mapPoints.first(where: { $0.structure == structure.number }) else {
             return .infinity
         }
         
@@ -342,11 +342,11 @@ extension LocationService {
     
     private func checkForNearbyStructures(at location: CLLocation) {
         if let nearestPoint = findNearestMapPoint(to: location.coordinate),
-           nearestPoint.landmark != -1 {  // Only notify for valid structure points
+           nearestPoint.structure != -1 {  // Only notify for valid structure points
             NotificationCenter.default.post(
                 name: .structureVisited,
                 object: nil,
-                userInfo: ["structureNumber": nearestPoint.landmark]
+                userInfo: ["structureNumber": nearestPoint.structure]
             )
         }
     }
@@ -409,11 +409,11 @@ extension LocationService: CLLocationManagerDelegate {
     // If within safe zone, log location to firebase and check for nearby structures
     private func checkForNearbyStructures(at location: CLLocation) {
         if let nearestPoint = findNearestMapPoint(to: location.coordinate),
-           nearestPoint.landmark != -1 {  // Only notify for valid structure points
+           nearestPoint.structure != -1 {  // Only notify for valid structure points
             NotificationCenter.default.post(
                 name: .structureVisited,
                 object: nil,
-                userInfo: ["structureNumber": nearestPoint.landmark]
+                userInfo: ["structureNumber": nearestPoint.structure]
             )
         }
     }

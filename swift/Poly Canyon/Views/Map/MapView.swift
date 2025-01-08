@@ -117,7 +117,8 @@ struct MapView: View {
     
     private func updateCurrentMapPoint() {
         let currentStructure = dataStore.structures[currentStructureIndex]
-        currentWalkthroughMapPoint = dataStore.mapPoints.first { $0.landmark == currentStructure.number }
+        // Find the map point that matches this structure number
+        currentWalkthroughMapPoint = locationService.mapPoints.first { $0.structure == currentStructure.number }
     }
     
     private func moveToNextStructure() {

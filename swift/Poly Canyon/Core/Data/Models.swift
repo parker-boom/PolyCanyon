@@ -120,28 +120,25 @@ struct GhostStructure: Codable, Identifiable, Equatable {
 struct MapPoint: Codable {
     let coordinate: CLLocationCoordinate2D
     let pixelPosition: CGPoint
-    let landmark: Int
+    let structure: Int
 }
 
 // For decoding the JSON format
 struct MapPointData: Codable {
-    let number: Int
+    let name: Int
     let latitude: Double
     let longitude: Double
-    let pixelX: String
-    let pixelY: String
-    let landmark: Int
+    let pixelX: Int
+    let pixelY: Int
+    let structure: Int
 }
 
-// Keep our existing MapPoint model but add init from MapPointData
+// Keep our existing MapPoint model but update init from MapPointData
 extension MapPoint {
     init(from data: MapPointData) {
         self.coordinate = CLLocationCoordinate2D(latitude: data.latitude, longitude: data.longitude)
-        self.pixelPosition = CGPoint(
-            x: Double(data.pixelX.replacingOccurrences(of: " px", with: "")) ?? 0,
-            y: Double(data.pixelY.replacingOccurrences(of: " px", with: "")) ?? 0
-        )
-        self.landmark = data.landmark
+        self.pixelPosition = CGPoint(x: Double(data.pixelX), y: Double(data.pixelY))
+        self.structure = data.structure
     }
 }
 

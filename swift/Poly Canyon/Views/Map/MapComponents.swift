@@ -403,7 +403,7 @@ struct MapStructureOverlays: View {
     
     private func mapPointsToStructures(_ mapPoints: [MapPoint]) -> [Structure] {
         mapPoints.compactMap { mp in
-            dataStore.structures.first { $0.number == mp.landmark }
+            dataStore.structures.first { $0.number == mp.structure }
         }
     }
 }
