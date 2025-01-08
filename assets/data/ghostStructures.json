@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Hydraulic House",
+    "number": "101",
+    "year": "1970s",
+    "advisors": ["William Brown", "Dr. Jens Pohl"],
+    "builders": [
+      "John Hickman",
+      "Kris Reiswig",
+      "Windell Reynolds",
+      "Greg Warner",
+      "James Adams",
+      "Sergio Alvarez",
+      "Charles Cauthon",
+      "David Quattrone",
+      "Eric Farmer",
+      "Dan Smith",
+      "Mike Carson",
+      "Jerry White",
+      "Bruce Elster",
+      "Keith Foiles",
+      "Barney Mintz",
+      "Peter Van Matre",
+      "Raul Ojeda"
+    ],
+    "description": "Near where Fratessa Tower now stands, this ambitious structure once pushed the limits of building technology. At its heart stood a 23-foot steel column filled with pressurized water, designed to act as the main support. The project aimed to combine hydraulic forces with solar technology, though the latter never materialized. Only its foundation remains today, marking where students once tried to harness water pressure to hold up a building.",
+    "images": ["G-1", "hydraulic1", "hydraulic2"]
+  },
+  {
+    "name": "Accessory Shed",
+    "number": "102",
+    "year": "2022",
+    "advisors": ["Unknown"],
+    "builders": [
+      "Dylan Krueger",
+      "Vera Alekseyeva Gabriel",
+      "Cobain Galen",
+      "Anping Fong",
+      "Dara Lin",
+      "Will McCullough",
+      "Edgar Rivera",
+      "Jacqueline Velasquez"
+    ],
+    "description": "This deliberately imperfect structure once celebrated the overlooked architecture of California's Central Valley. Built without doors or windows, its asymmetrical form and exaggerated proportions challenged traditional ideas about utility buildings. Though the structure was meant to be temporary, its concrete foundation remains near the canyon's peak - exactly as planned.",
+    "images": ["G-2", "shed1", "shed2"]
+  },
+  {
+    "name": "Wooden Bridge",
+    "number": "103",
+    "year": "pre-1987",
+    "advisors": ["Unknown"],
+    "builders": ["Unknown"],
+    "description": "Built using salvaged wood from the Bridge House, this modest crossing served canyon visitors until its larger neighbor took on the role of primary passage. Though its trail has grown faint, recent repairs have kept the bridge itself sturdy. It stands today as a quiet alternative path, a reminder of how the canyon's circulation has evolved over time.",
+    "images": ["G-3"]
+  },
+  {
+    "name": "Tensegrity Mast",
+    "number": "104",
+    "year": "1975",
+    "advisors": ["Jack Peterson"],
+    "builders": ["Unknown"],
+    "description": "A few meters east of today's Tensegrity structure, this experimental mast once stood proud on the canyon's knoll. While details of its construction remain sparse, we know it faced repeated vandalism, with cut wires and loosened turnbuckles leading to multiple collapses. Brief repairs in 1978 restored it temporarily, but today only its foundation remains, marking where this ambitious project once reached skyward.",
+    "images": ["G-4", "tensegrityMast1", "tensegrityMast2"]
+  },
+  {
+    "name": "Suspension Bridge",
+    "number": "105",
+    "year": "1961",
+    "advisors": ["Unknown"],
+    "builders": [
+      "Jere Anderson",
+      "Kenneth Bennett",
+      "Donald Roster",
+      "Fred Hallock",
+      "Harold Rueb"
+    ],
+    "description": "Just south of the Entry Arch stands a remarkable feat of student engineering - an 86-foot bridge with arches leaning at 20 degrees. Built in just eight hours using 125-pound prefabricated segments in 1961, it once provided access to the Botanical Garden. Though still standing and structurally sound, the bridge now sits quietly outside canyon boundaries, a testament to precision engineering that took six months to plan but only a day to build.",
+    "images": ["G-5", "suspension1", "suspension2", "suspension3"]
+  },
+  {
+    "name": "Botanical Garden",
+    "number": "106",
+    "year": "1955",
+    "advisors": ["Unknown"],
+    "builders": ["Unknown"],
+    "description": "South of the official canyon boundary, across the creek, once sprawled a garden dedicated to California's native plants. Students accessed it via a suspension bridge, later replaced by a timber crossing. The garden showcased everything from incense cedar to foothill pine, serving as a living classroom for decades. Though nature has since reclaimed the space, traces of paths and plant markers still peek through the overgrowth, while the original work shed stands as a solitary reminder.",
+    "images": ["G-6", "botanical1", "botanical2", "botanical3", "botanical4"]
+  }
+]

@@ -22,7 +22,17 @@ class LocationService: NSObject, ObservableObject {
         return Firestore.firestore()
     }()
     private var cancellables = Set<AnyCancellable>()
-    
+
+    // WILL NEED THIS LATER:
+    /*
+    struct BoundaryCoordinates {
+    static let topLeft = (latitude: 35.31658611111111, longitude: -120.6560599752971)
+    static let topRight = (latitude: 35.31782413494509, longitude: -120.6541363709451)
+    static let bottomLeft = (latitude: 35.31277464042485, longitude: -120.6519863469588)
+    static let bottomRight = (latitude: 35.31454021427865, longitude: -120.6509764049769)
+    }
+    */
+
     // Load MapPoints directly since they're fixed
     private var mapPoints: [MapPoint] = {
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
