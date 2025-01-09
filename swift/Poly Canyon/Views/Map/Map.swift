@@ -69,8 +69,8 @@ struct MapWithLocationDot: View {
         let xOffset = (geometry.size.width - renderedSize.width) / 2
         let yOffset = (geometry.size.height - renderedSize.height) / 2
         
-        let scaledX = (nearestPoint.pixelPosition.x * scaleX * 1.1) + xOffset
-        let scaledY = (nearestPoint.pixelPosition.y * scaleY * 1.1) + yOffset
+        let scaledX = (nearestPoint.pixelPosition.x * scaleX * 1.09) + xOffset
+        let scaledY = (nearestPoint.pixelPosition.y * scaleY * 1.09) + yOffset
         
         print("📏 Position Debug:")
         print("Original Pixels: (\(nearestPoint.pixelPosition.x), \(nearestPoint.pixelPosition.y))")
