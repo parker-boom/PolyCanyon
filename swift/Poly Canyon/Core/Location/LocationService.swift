@@ -28,8 +28,8 @@ class LocationService: NSObject, ObservableObject {
     struct BoundaryCoordinates {
     static let topLeft = (latitude: 35.31658611111111, longitude: -120.6560599752971)
     static let topRight = (latitude: 35.31782413494509, longitude: -120.6541363709451)
-    static let bottomLeft = (latitude: 35.31277464042485, longitude: -120.6519863469588)
-    static let bottomRight = (latitude: 35.31454021427865, longitude: -120.6509764049769)
+    static let bottomLeft = (latitude: 35.31325277777778, longitude: -120.65185277777779)
+    static let bottomRight = (latitude: 35.314363888888884, longitude: -120.6506972222222)
     }
     */
 
@@ -81,14 +81,10 @@ class LocationService: NSObject, ObservableObject {
     private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
     private let backgroundRadius: CLLocationDistance = 500.34 // Walking path bench spot
     
-    // Add throttle time tracking
-    private var lastStructureCheck: Date?
-    private let structureCheckInterval: TimeInterval = 3.0 // 3 seconds
-    
     // Add cached point and last check time
     private var lastMapPointCheck: Date?
     private var cachedNearestPoint: MapPoint?
-    private let mapPointCheckInterval: TimeInterval = 3.0 // 3 seconds
+    private let mapPointCheckInterval: TimeInterval = 1.0 // 1 second
     
     // Used for virtual tour map points
     private let structureToMapPointMapping: [Int: Int] = [
