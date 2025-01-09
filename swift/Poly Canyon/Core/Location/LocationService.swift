@@ -90,6 +90,41 @@ class LocationService: NSObject, ObservableObject {
     private var cachedNearestPoint: MapPoint?
     private let mapPointCheckInterval: TimeInterval = 3.0 // 3 seconds
     
+    // Used for virtual tour map points
+    private let structureToMapPointMapping: [Int: Int] = [
+        1: 1,
+        2: 3,
+        3: 52,
+        4: 53,
+        5: 10,
+        6: 11,
+        7: 196,
+        8: 13,
+        9: 76,
+        10: 16,
+        11: 58,
+        12: 19,
+        13: 59,
+        14: 21,
+        15: 203,
+        16: 24,
+        17: 88,
+        18: 91,
+        19: 35,
+        20: 113,
+        21: 37,
+        22: 32,
+        23: 20,
+        24: 57,
+        25: 56,
+        26: 44,
+        27: 55,
+        28: 60,
+        29: 68,
+        30: 199,
+        31: 197
+    ]
+    
     // MARK: - Initialization
     private override init() {
         super.init()
@@ -261,6 +296,15 @@ class LocationService: NSObject, ObservableObject {
         }
         updateLocationMessage()
     }
+    
+    // Add this new function
+    func getMapPointForStructure(_ structureNumber: Int) -> MapPoint? {
+        guard let mapPointIndex = structureToMapPointMapping[structureNumber] else { return nil }
+        // Subtract 1 since array is 0-based but our mapping is 1-based
+        let arrayIndex = mapPointIndex - 1
+        guard arrayIndex >= 0 && arrayIndex < mapPoints.count else { return nil }
+        return mapPoints[arrayIndex]
+    }
 }
 
 // MARK: - Location Checks
@@ -340,16 +384,6 @@ extension LocationService {
         return closestPoint
     }
     
-    private func checkForNearbyStructures(at location: CLLocation) {
-        if let nearestPoint = findNearestMapPoint(to: location.coordinate),
-           nearestPoint.structure != -1 {  // Only notify for valid structure points
-            NotificationCenter.default.post(
-                name: .structureVisited,
-                object: nil,
-                userInfo: ["structureNumber": nearestPoint.structure]
-            )
-        }
-    }
 }
 
 // MARK: - CLLocationManagerDelegate
@@ -455,7 +489,7 @@ private extension LocationService {
         } else if isNearby {
             locationMessage = .nearby
         } else {
-            locationMessage = .none
+            locationMessage = LocationMessage.none
         }
     }
 }

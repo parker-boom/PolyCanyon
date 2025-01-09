@@ -93,7 +93,7 @@ private struct AlertContainer: View {
                 isPresented: .constant(true)
             )
             
-        case .rateStructures(let hasShown):
+        case .rateStructures:
             CustomAlert(
                 icon: "heart.fill",
                 iconColor: .red,
@@ -111,7 +111,7 @@ private struct AlertContainer: View {
                 isPresented: .constant(true)
             )
             
-        case .virtualWalkthrough(let hasShown):
+        case .virtualWalkthrough:
             CustomAlert(
                 icon: "figure.walk",
                 iconColor: .blue,

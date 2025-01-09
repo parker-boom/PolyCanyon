@@ -38,7 +38,7 @@ class DataStore: ObservableObject {
     // MARK: - File Management
     private let fileManager = FileManager.default
     private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    private let currentBundleVersion = "2.2"
+    private let currentBundleVersion = "2.3"
     
     private var storedVersion: String {
         get { UserDefaults.standard.string(forKey: "dataVersion") ?? "0" }

@@ -39,15 +39,15 @@ struct MapView: View {
                 if isSatelliteView {
                     Image("BlurredBG")
                         .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
+                        .clipped()
                         .edgesIgnoringSafeArea(.all)
-                        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height + 100)
-                        .offset(y: -50)
                 }
                 
                 // Rest of your map content
                 ZStack(alignment: .topLeading) {
                     // Base map layers
-                    MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
                     
                     MapWithLocationDot(
                         mapImage: currentMapImage(),
@@ -108,17 +108,12 @@ struct MapView: View {
     private func handleOnAppear() {
         if appState.adventureModeEnabled && !appState.hasShownBackgroundLocationAlert {
             appState.showAlert(.backgroundLocation)
-        } else if !appState.hasShownRateStructuresPopup {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                appState.showAlert(.rateStructures(hasShown: false))
-            }
-        }
+        } 
     }
     
     private func updateCurrentMapPoint() {
         let currentStructure = dataStore.structures[currentStructureIndex]
-        // Find the map point that matches this structure number
-        currentWalkthroughMapPoint = locationService.mapPoints.first { $0.structure == currentStructure.number }
+        currentWalkthroughMapPoint = locationService.getMapPointForStructure(currentStructure.number)
     }
     
     private func moveToNextStructure() {

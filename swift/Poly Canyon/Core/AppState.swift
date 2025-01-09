@@ -47,8 +47,8 @@ class AppState: ObservableObject {
     
     enum AlertType: Identifiable {
         case backgroundLocation
-        case rateStructures(hasShown: Bool)
-        case virtualWalkthrough(hasShown: Bool)
+        case rateStructures
+        case virtualWalkthrough
         case resetConfirmation(type: ResetType)
         case modePicker(currentMode: Bool)
         

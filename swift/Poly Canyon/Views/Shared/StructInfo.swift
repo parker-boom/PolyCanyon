@@ -323,7 +323,7 @@ private struct ImageDotsView: View {
             
             // Dots
             HStack(spacing: 8) {
-                ForEach(0..<structure.images.count) { index in
+                ForEach(structure.images.indices, id: \.self) { index in
                     Circle()
                         .fill(Color.white)
                         .frame(width: currentImageIndex == index ? 10 : 8,

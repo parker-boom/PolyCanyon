@@ -422,11 +422,11 @@ public struct CardSwiperView<Content: View>: View {
     }
     
     // MARK: - CardView (Internal)
-    private struct CardView<Content: View>: View {
+    private struct CardView<CardContent: View>: View {
         var index: Int
         var onCardSwiped: ((SwipeDirection) -> Void)?
         var onCardDragged: ((SwipeDirection, Int, CGSize) -> Void)?
-        var content: () -> Content
+        var content: () -> CardContent
         var initialOffsetY: CGFloat
         var initialRotationAngle: Double
         var zIndex: Double

@@ -23,8 +23,8 @@ struct MapWithLocationDot: View {
     let offset: CGSize    // x/y panning offset
     
     // Original map dimensions from Photoshop
-    private let originalWidth: CGFloat = 4519
-    private let originalHeight: CGFloat = 2000
+    private let originalWidth: CGFloat = 2000
+    private let originalHeight: CGFloat = 4519
     
     // Show location dot only in adventure mode within range
     private var showPulsingCircle: Bool {
@@ -40,6 +40,7 @@ struct MapWithLocationDot: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: geometry.size.width, height: geometry.size.height)
+            
             
             // Location indicator overlay
             if showPulsingCircle {
@@ -57,19 +58,27 @@ struct MapWithLocationDot: View {
         guard let userLoc = locationService.lastLocation,
               locationService.isWithinSafeZone(userLoc),
               let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate) else {
-            return CGPoint(x: -100, y: -100) // Hide off-screen if no valid location
+            return CGPoint(x: -100, y: -100)
         }
         
-        // Calculate the actual rendered size of the map
         let renderedSize = calculateRenderedMapSize()
-        
-        // Simple scale factors
         let scaleX = renderedSize.width / originalWidth
         let scaleY = renderedSize.height / originalHeight
         
-        // Scale the Photoshop pixel coordinates
-        let scaledX = nearestPoint.pixelPosition.x * scaleX
-        let scaledY = nearestPoint.pixelPosition.y * scaleY
+        // Calculate the offset to the top-left corner of the map image
+        let xOffset = (geometry.size.width - renderedSize.width) / 2
+        let yOffset = (geometry.size.height - renderedSize.height) / 2
+        
+        let scaledX = (nearestPoint.pixelPosition.x * scaleX * 1.1) + xOffset
+        let scaledY = (nearestPoint.pixelPosition.y * scaleY * 1.1) + yOffset
+        
+        print("📏 Position Debug:")
+        print("Original Pixels: (\(nearestPoint.pixelPosition.x), \(nearestPoint.pixelPosition.y))")
+        print("Scale Factors: (x: \(scaleX), y: \(scaleY))")
+        print("Map Offset: (x: \(xOffset), y: \(yOffset))")
+        print("Final Position: (\(scaledX), \(scaledY))")
+        print("Rendered Map Size: \(renderedSize)")
+        print("Available View Size: \(geometry.size)")
         
         return CGPoint(x: scaledX, y: scaledY)
     }
@@ -80,13 +89,15 @@ struct MapWithLocationDot: View {
         let availableHeight = geometry.size.height
         
         if availableWidth / availableHeight > aspectRatio {
-            // Height constrained
-            let width = availableHeight * aspectRatio
-            return CGSize(width: width, height: availableHeight)
+            // Width is proportionally larger than height, so we're height-constrained
+            let height = availableHeight
+            let width = height * aspectRatio
+            return CGSize(width: width, height: height)
         } else {
-            // Width constrained
-            let height = availableWidth / aspectRatio
-            return CGSize(width: availableWidth, height: height)
+            // Height is proportionally larger than width, so we're width-constrained
+            let width = availableWidth
+            let height = width / aspectRatio
+            return CGSize(width: width, height: height)
         }
     }
 }
