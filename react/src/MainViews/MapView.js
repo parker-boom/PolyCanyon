@@ -16,7 +16,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, Animated, Easing, Dimensions, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { requestLocationPermission, getCurrentLocation, isWithinSafeZone } from '../Data/LocationManager';
+import { requestLocationPermission, getCurrentLocation, isWithinCanyon } from '../Data/LocationManager';
 import Geolocation from '@react-native-community/geolocation';
 import StructPopUp from '../PopUps/StructPopUp';
 import { useStructures } from '../Data/StructureData';
@@ -211,7 +211,7 @@ const MapView = ({ route }) => {
     // Handle location updates and find the nearest map point
     const handleLocationUpdate = (position) => {
         setLocation(position);
-        if (isWithinSafeZone(position.coords)) {
+        if (isWithinCanyon(position.coords)) {
             const nearest = findNearestMapPoint(position.coords, mapPoints);
             setNearestPoint(nearest);
             if (nearest && nearest.landmark !== -1) {

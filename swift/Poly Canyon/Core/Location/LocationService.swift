@@ -23,16 +23,6 @@ class LocationService: NSObject, ObservableObject {
     }()
     private var cancellables = Set<AnyCancellable>()
 
-    // WILL NEED THIS LATER:
-    /*
-    struct BoundaryCoordinates {
-    static let topLeft = (latitude: 35.31658611111111, longitude: -120.6560599752971)
-    static let topRight = (latitude: 35.31782413494509, longitude: -120.6541363709451)
-    static let bottomLeft = (latitude: 35.31325277777778, longitude: -120.65185277777779)
-    static let bottomRight = (latitude: 35.314363888888884, longitude: -120.6506972222222)
-    }
-    */
-
     // Load MapPoints directly since they're fixed
     public private(set) var mapPoints: [MapPoint] = {
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
@@ -73,13 +63,15 @@ class LocationService: NSObject, ObservableObject {
         longitude: -120.65238
     )
     
-    private let safeZoneCorners = (
-        bottomLeft: CLLocationCoordinate2D(latitude: 35.31214, longitude: -120.65529),
-        topRight: CLLocationCoordinate2D(latitude: 35.31813, longitude: -120.65110)
-    )
+    struct BoundaryCoordinates {
+        static let topLeft = (latitude: 35.31658611111111, longitude: -120.6560599752971)
+        static let topRight = (latitude: 35.31782413494509, longitude: -120.6541363709451)
+        static let bottomLeft = (latitude: 35.31307, longitude: -120.65235)
+        static let bottomRight = (latitude: 35.31431, longitude: -120.65065)
+    }
     
     private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
-    private let backgroundRadius: CLLocationDistance = 500.34 // Walking path bench spot
+    private let backgroundRadius: CLLocationDistance = 225 // Walking path bench spot
     
     // Add cached point and last check time
     private var lastMapPointCheck: Date?
@@ -244,7 +236,7 @@ class LocationService: NSObject, ObservableObject {
     
     var canUseLocation: Bool {
         guard let location = lastLocation else { return false }
-        return hasLocationPermission && isWithinSafeZone(coordinate: location.coordinate)
+        return hasLocationPermission && isWithinCanyon(location)
     }
     
     var isNearby: Bool {
@@ -254,9 +246,9 @@ class LocationService: NSObject, ObservableObject {
             return false
         }
         let inRange = isWithinBackgroundRange(location)
-        let notInSafe = !isWithinSafeZone(location)
-        print("📍 NEARBY CHECK: In range: \(inRange), Not in safe zone: \(notInSafe)")
-        return inRange && notInSafe
+        let notInCanyon = !isWithinCanyon(location)
+        print("📍 NEARBY CHECK: In range: \(inRange), Not in canyon: \(notInCanyon)")
+        return inRange && notInCanyon
     }
     
     // Status checks for map messages
@@ -277,7 +269,7 @@ class LocationService: NSObject, ObservableObject {
             print("📍 IN AREA CHECK: Failed guard - location: \(lastLocation != nil), adventure mode: \(currentMode)")
             return false
         }
-        let result = isWithinSafeZone(location)
+        let result = isWithinCanyon(location)
         print("📍 IN AREA CHECK: \(result)")
         return result
     }
@@ -324,25 +316,7 @@ extension LocationService {
         print("📍 BACKGROUND RANGE CHECK: Distance \(distance) vs Limit \(backgroundRadius)")
         return distance <= backgroundRadius
     }
-    
-    // Check if within safe zone (in map area)
-    func isWithinSafeZone(_ location: CLLocation) -> Bool {
-        let result = isWithinSafeZone(coordinate: location.coordinate)
-        print("📍 SAFE ZONE CHECK: \(result)")
-        return result
-    }
-    
-    // Check if within safe zone (in map area)
-    func isWithinSafeZone(coordinate: CLLocationCoordinate2D) -> Bool {
-        let isWithinLatitude = coordinate.latitude >= safeZoneCorners.bottomLeft.latitude &&
-                              coordinate.latitude <= safeZoneCorners.topRight.latitude
-        
-        let isWithinLongitude = coordinate.longitude >= safeZoneCorners.bottomLeft.longitude &&
-                               coordinate.longitude <= safeZoneCorners.topRight.longitude
-        
-        return isWithinLatitude && isWithinLongitude
-    }
-    
+
     // Find nearest map point to user
     func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         let now = Date()
@@ -380,6 +354,28 @@ extension LocationService {
         return closestPoint
     }
     
+    // Check if within canyon boundaries
+    func isWithinCanyon(coordinate: CLLocationCoordinate2D) -> Bool {
+        let minLatitude  = BoundaryCoordinates.bottomLeft.latitude        // 35.31307
+        let maxLatitude  = BoundaryCoordinates.topRight.latitude          // 35.317824...
+        let minLongitude = BoundaryCoordinates.topLeft.longitude          // -120.656...
+        let maxLongitude = BoundaryCoordinates.bottomRight.longitude      // -120.65065
+
+        let isWithinLatitude = (coordinate.latitude >= minLatitude &&
+                            coordinate.latitude <= maxLatitude)
+
+        let isWithinLongitude = (coordinate.longitude >= minLongitude &&
+                             coordinate.longitude <= maxLongitude)
+
+        return isWithinLatitude && isWithinLongitude
+    }
+    
+    // Update the CLLocation version to use new function
+    func isWithinCanyon(_ location: CLLocation) -> Bool {
+        let result = isWithinCanyon(coordinate: location.coordinate)
+        print("📍 CANYON CHECK: \(result)")
+        return result
+    }
 }
 
 // MARK: - CLLocationManagerDelegate
@@ -417,7 +413,7 @@ extension LocationService: CLLocationManagerDelegate {
         
         print("📍 CURRENT MODE: \(currentMode)")
         print("📍 BACKGROUND RANGE: \(isWithinBackgroundRange(location))")
-        print("📍 SAFE ZONE: \(isWithinSafeZone(location))")
+        print("📍 IN CANYON: \(isWithinCanyon(location))")
         
         recommendedMode = isWithinRecommendationRange(location)
         
@@ -430,7 +426,7 @@ extension LocationService: CLLocationManagerDelegate {
         
         updateTrackingState()
         
-        if isWithinSafeZone(coordinate: location.coordinate) {
+        if isWithinCanyon(location) {
             logLocationToFirebase(location: location)
             checkForNearbyStructures(at: location)
         }

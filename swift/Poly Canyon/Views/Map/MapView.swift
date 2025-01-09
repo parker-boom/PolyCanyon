@@ -31,70 +31,73 @@ struct MapView: View {
     @State private var currentWalkthroughMapPoint: MapPoint?
     @State private var scale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
+    @State private var hideNumbers: Bool = false
+    @State private var isFullScreen: Bool = false
+    @State private var opacity: Double = 1.0
+    @Namespace private var mapTransition
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Full screen background
-                if isSatelliteView {
-                    Image("BlurredBG")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
-                        .clipped()
-                        .edgesIgnoringSafeArea(.all)
-                }
-                
-                // Rest of your map content
-                ZStack(alignment: .topLeading) {
-                    // Base map layers
-                    
-                    MapWithLocationDot(
+                if isFullScreen {
+                    FullScreenMapView(
+                        hideNumbers: $hideNumbers,
+                        isSatelliteView: $isSatelliteView,
                         mapImage: currentMapImage(),
-                        isSatelliteView: isSatelliteView,
                         geometry: geometry,
                         isVirtualWalkthroughActive: isVirtualWalkthroughActive,
                         currentStructureIndex: currentStructureIndex,
                         currentWalkthroughMapPoint: currentWalkthroughMapPoint,
-                        scale: scale,
-                        offset: offset
+                        onClose: {
+                            withAnimation(.easeInOut(duration: 0.3)) { 
+                                opacity = 0
+                                isFullScreen = false 
+                            }
+                        }
                     )
-                    .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
-                    
-                    
-                    // Map controls
-                    MapControlButtons(
-                        isSatelliteView: $isSatelliteView,
-                        isVirtualWalkthroughActive: $isVirtualWalkthroughActive,
-                        showNearbyUnvisitedView: $showNearbyUnvisitedView,
-                        onUpdateMapPoint: updateCurrentMapPoint
+                    .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 1.1)),
+                            removal: .opacity.combined(with: .scale(scale: 0.9))
+                        )
                     )
-                    
-                    // Status messages
-                    if appState.adventureModeEnabled {
-                        MapStatusOverlay(geometry: geometry)
+                    .opacity(opacity)
+                } else {
+                    // Regular container view
+                    VStack(spacing: 12) {
+                        MapContainerView(
+                            isSatelliteView: $isSatelliteView,
+                            hideNumbers: $hideNumbers,
+                            isFullScreen: $isFullScreen
+                        ) {
+                            MapWithLocationDot(
+                                mapImage: currentMapImage(),
+                                isSatelliteView: isSatelliteView,
+                                geometry: geometry,
+                                isVirtualWalkthroughActive: isVirtualWalkthroughActive,
+                                currentStructureIndex: currentStructureIndex,
+                                currentWalkthroughMapPoint: currentWalkthroughMapPoint
+                            )
+                            .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
+                            .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
+                        }
+                        Spacer(minLength: 0)
                     }
-                    
-                    // Structure overlays
-                    MapStructureOverlays(
-                        selectedStructure: $selectedStructure,
-                        showStructPopup: $showStructPopup,
-                        showNearbyUnvisitedView: showNearbyUnvisitedView,
-                        nearbyUnvisitedMapPoints: nearbyUnvisitedMapPoints,
-                        isVirtualWalkthroughActive: isVirtualWalkthroughActive,
-                        currentStructureIndex: currentStructureIndex,
-                        onNext: moveToNextStructure,
-                        onPrevious: moveToPreviousStructure
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.9)),
+                            removal: .opacity.combined(with: .scale(scale: 1.1))
+                        )
                     )
+                    .opacity(opacity)
                 }
             }
-            .onAppear(perform: handleOnAppear)
-            .sheet(isPresented: $showStructureSwipingView) {
-                StructureSwipingView()
-            }
-            .onChange(of: dataStore.lastVisitedStructure) { _ in
-                if dataStore.lastVisitedStructure != nil {
-                    showVisitedStructurePopup = true
+            .onChange(of: isFullScreen) { newValue in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    opacity = 1.0
                 }
             }
         }
@@ -102,7 +105,8 @@ struct MapView: View {
     
     // MARK: - Helper Methods
     private func currentMapImage() -> String {
-        isSatelliteView ? "SatelliteMap" : (appState.isDarkMode ? "DarkMap" : "LightMap")
+        let baseImage = isSatelliteView ? "SatelliteMap" : (appState.isDarkMode ? "DarkMap" : "LightMap")
+        return hideNumbers ? baseImage + "NN" : baseImage
     }
     
     private func handleOnAppear() {
@@ -128,14 +132,17 @@ struct MapView: View {
     
 }
 
-
 // MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Light Mode Preview
             MapView()
-                .environmentObject(AppState())
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
                 .environmentObject(DataStore.shared)
                 .environmentObject(LocationService.shared)
                 .previewDisplayName("Light Mode")

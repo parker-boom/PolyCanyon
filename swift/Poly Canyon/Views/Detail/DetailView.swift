@@ -83,3 +83,34 @@ struct DetailView: View {
                                       to: nil, from: nil, for: nil)
     }
 }
+
+
+
+// MARK: - Preview
+struct Detailiew_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Light Mode Preview
+            DetailView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+                
+            // Dark Mode Preview
+            DetailView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
+    }
+}

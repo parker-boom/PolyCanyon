@@ -17,11 +17,6 @@ struct MapWithLocationDot: View {
     let currentStructureIndex: Int
     let currentWalkthroughMapPoint: MapPoint?
     
-    // MARK: - Interaction State
-    // This might come from pinch-to-zoom gestures, etc.
-    let scale: CGFloat    // e.g., 1.0 means normal size, 2.0 means double zoom
-    let offset: CGSize    // x/y panning offset
-    
     // Original map dimensions from Photoshop
     private let originalWidth: CGFloat = 2000
     private let originalHeight: CGFloat = 4519
@@ -35,6 +30,9 @@ struct MapWithLocationDot: View {
     
     var body: some View {
         ZStack {
+            // Background layer
+            MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
+
             // Base map layer
             Image(mapImage)
                 .resizable()
@@ -56,7 +54,7 @@ struct MapWithLocationDot: View {
     
     private func circlePosition() -> CGPoint {
         guard let userLoc = locationService.lastLocation,
-              locationService.isWithinSafeZone(userLoc),
+              locationService.isWithinCanyon(userLoc),
               let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate) else {
             return CGPoint(x: -100, y: -100)
         }
@@ -71,14 +69,6 @@ struct MapWithLocationDot: View {
         
         let scaledX = (nearestPoint.pixelPosition.x * scaleX * 1.09) + xOffset
         let scaledY = (nearestPoint.pixelPosition.y * scaleY * 1.09) + yOffset
-        
-        print("📏 Position Debug:")
-        print("Original Pixels: (\(nearestPoint.pixelPosition.x), \(nearestPoint.pixelPosition.y))")
-        print("Scale Factors: (x: \(scaleX), y: \(scaleY))")
-        print("Map Offset: (x: \(xOffset), y: \(yOffset))")
-        print("Final Position: (\(scaledX), \(scaledY))")
-        print("Rendered Map Size: \(renderedSize)")
-        print("Available View Size: \(geometry.size)")
         
         return CGPoint(x: scaledX, y: scaledY)
     }

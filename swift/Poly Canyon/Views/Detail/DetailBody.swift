@@ -229,7 +229,7 @@ struct StructureGridItem: View {
         }
         // If user is not in the safe zone, don't blur
         guard let loc = locationService.lastLocation,
-              locationService.isWithinSafeZone(coordinate: loc.coordinate) else {
+              locationService.isWithinCanyon(coordinate: loc.coordinate) else {
             return false
         }
         // If structure is not visited => blur

@@ -93,194 +93,6 @@ struct VirtualWalkThroughBar: View {
     }
 }
 
-// MARK: - Visit Notification
-struct VisitedStructurePopup: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    let structure: Structure
-    @Binding var isPresented: Bool
-    @Binding var showStructPopup: Bool
-    @Binding var selectedStructure: Structure?
-    let onDismiss: () -> Void
-    
-    var body: some View {
-        GeometryReader { geometry in
-            HStack(alignment: .center, spacing: 10) {
-                // Dismiss button
-                Button(action: {
-                    withAnimation {
-                        onDismiss()
-                    }
-                }) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 28))
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                }
-                .padding(.leading, 15)
-                
-                // Structure preview with details
-                Button(action: {
-                    selectedStructure = structure
-                    showStructPopup = true
-                    dataStore.markStructureAsOpened(structure.number)
-                    onDismiss()
-                }) {
-                    HStack {
-                        // Structure thumbnail
-                        Image(structure.images[0])
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .cornerRadius(10)
-                        
-                        // Visit notification
-                        VStack(alignment: .leading) {
-                            Text("Just Visited!")
-                                .font(.system(size: 14))
-                                .foregroundColor(appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8))
-                            
-                            Text(structure.title)
-                                .font(.system(size: 24))
-                                .fontWeight(.semibold)
-                                .foregroundColor(appState.isDarkMode ? .white : .black)
-                                .lineLimit(2)
-                        }
-                        .frame(maxWidth: geometry.size.width - 250, alignment: .leading)
-                        .padding(.leading, 10)
-                        
-                        // Structure number
-                        Text(String(structure.number))
-                            .font(.system(size: 28))
-                            .fontWeight(.bold)
-                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
-                            .padding(.leading, 5)
-                        
-                        Spacer()
-                        
-                        // Navigation indicator
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 20))
-                            .foregroundColor(appState.isDarkMode ? .white : .black)
-                    }
-                }
-            }
-            .frame(width: geometry.size.width - 30)
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .cornerRadius(15)
-            .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
-                    radius: 5, x: 0, y: 3)
-            .padding(.horizontal, 15)
-            .padding(.bottom, 15)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        }
-        .frame(height: 120)
-    }
-}
-
-// MARK: - Nearby Structures
-struct NearbyUnvisitedView: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
-    
-    @Binding var selectedStructure: Structure?
-    @Binding var showStructPopup: Bool
-    let nearbyUnvisitedStructures: [Structure]
-    
-    var body: some View {
-        VStack {
-            // Structure thumbnails row
-            HStack {
-                ForEach(nearbyUnvisitedStructures, id: \.id) { structure in
-                    Spacer()
-                    
-                    // Structure preview with number
-                    ZStack(alignment: .bottomTrailing) {
-                        Image(structure.images[0])
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipped()
-                            .cornerRadius(15)
-                        
-                        // Structure number overlay
-                        Text("\(structure.number)")
-                            .font(.system(size: 16))
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .shadow(color: .black, radius: 2, x: 0, y: 0)
-                            .padding(4)
-                            .background(Color.black.opacity(0.6))
-                            .cornerRadius(5)
-                            .offset(x: -5, y: -5)
-                    }
-                    .frame(width: 80, height: 80)
-                    .shadow(color: appState.isDarkMode ? .white.opacity(0.1) : .black.opacity(0.2),
-                            radius: 4, x: 0, y: 0)
-                    .onTapGesture {
-                        selectedStructure = structure
-                        showStructPopup = true
-                    }
-                    
-                    Spacer()
-                }
-            }
-            
-            // Section title
-            Text("Nearby Unvisited")
-                .font(.headline)
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.top, 5)
-                .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .padding(10)
-        .background(appState.isDarkMode ? Color.black : Color.white)
-        .cornerRadius(15)
-        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
-                radius: 5, x: 0, y: 3)
-        .frame(maxWidth: UIScreen.main.bounds.width - 20)
-        .padding(.horizontal, 15)
-        .padding(.bottom, 10)
-    }
-}
-
-// MARK: - Achievement Popup
-struct AllStructuresVisitedPopup: View {
-    @EnvironmentObject var appState: AppState
-    @Binding var isPresented: Bool
-    
-    var body: some View {
-        ZStack {
-            if isPresented {
-                VStack {
-                    // Achievement message
-                    Text("Congratulations!")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                    
-                    Text("You have visited all structures!")
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                    
-                    // Celebration icon
-                    Image("partyHat")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 100, height: 100)
-                }
-                .frame(width: 300, height: 200)
-                .background(appState.isDarkMode ? Color.black : Color.white)
-                .cornerRadius(20)
-                .shadow(color: appState.isDarkMode ? Color.white : Color.black, radius: 10)
-                .onTapGesture {
-                    isPresented = false
-                }
-            }
-        }
-    }
-}
-
 struct MapControlButtons: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
@@ -371,16 +183,6 @@ struct MapStructureOverlays: View {
     
     var body: some View {
         ZStack {
-            // Nearby structures overlay
-            if showNearbyUnvisitedView, !nearbyUnvisitedMapPoints.isEmpty {
-                NearbyUnvisitedView(
-                    selectedStructure: $selectedStructure,
-                    showStructPopup: $showStructPopup,
-                    nearbyUnvisitedStructures: mapPointsToStructures(nearbyUnvisitedMapPoints)
-                )
-                .padding(.top, 75)
-                .transition(.move(edge: .top))
-            }
             
             // Virtual walkthrough interface
             if isVirtualWalkthroughActive {
@@ -463,90 +265,254 @@ struct BottomMessage: View {
     }
 }
 
-// MARK: - Example of an Overlay Using Shared Alerts
-struct MapAlertsOverlay: View {
-    @Binding var showAdventureModeAlert: Bool
-    @Binding var showRateStructuresPopup: Bool
-    @Binding var showVirtualWalkthroughPopup: Bool
-    
-    @Binding var hasShownAdventureModeAlert: Bool
-    @Binding var hasShownVirtualWalkthroughPopup: Bool
-    
-    @Binding var isVirtualWalkthroughActive: Bool
-    @Binding var showStructureSwipingView: Bool
-    
+struct MapContainerView<Content: View>: View {
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
+    @Binding var isSatelliteView: Bool
+    @Binding var hideNumbers: Bool
+    @Binding var isFullScreen: Bool
+    let content: Content
+    
+    // Add computed property for container offset
+    private var containerOffset: CGFloat {
+        UIScreen.main.bounds.height * 0.10  // 10% offset for bottom alignment
+    }
+    
+    init(isSatelliteView: Binding<Bool>,
+         hideNumbers: Binding<Bool>,
+         isFullScreen: Binding<Bool>,
+         @ViewBuilder content: () -> Content) {
+        self._isSatelliteView = isSatelliteView
+        self._hideNumbers = hideNumbers
+        self._isFullScreen = isFullScreen
+        self.content = content()
+    }
     
     var body: some View {
-        Group {
-            if showAdventureModeAlert {
-                // Reusing global CustomAlert from SharedAlerts
-                CustomAlert(
-                    icon: "figure.walk",
-                    iconColor: .green,
-                    title: "Enable Background Location",
-                    subtitle: "Tracks the structures you visit even when the app is closed.",
-                    primaryButton: .init(title: "Allow") {
-                        locationService.requestAlwaysAuthorization()
-                        appState.adventureModeEnabled = true
-                        UserDefaults.standard.set(true, forKey: "adventureModeEnabled")
-                        showAdventureModeAlert = false
-                        hasShownAdventureModeAlert = true
-                    },
-                    secondaryButton: .init(title: "Cancel") {
-                        showAdventureModeAlert = false
-                        hasShownAdventureModeAlert = true
-                    },
-                    isPresented: $showAdventureModeAlert
+        GeometryReader { containerGeometry in
+            VStack(spacing: 0) {
+                // Map content in scrollable container
+                ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                    content
+                        .frame(
+                            width: containerGeometry.size.width,
+                            height: containerGeometry.size.height - 44 // Subtract toolbar height
+                        )
+                        .offset(y: -containerOffset) // Add offset here
+                }
+                .clipped() // Ensure content stays within bounds
+                
+                // Redesigned toolbar
+                HStack {
+                    // Map type picker with numbers toggle
+                    HStack(spacing: 8) {  // Add spacing between the two controls
+                        // Existing map type picker
+                        HStack(spacing: 0) {
+                            Button(action: { isSatelliteView.toggle() }) {
+                                HStack (spacing: 0) {
+                                    Image(systemName: "map.fill")
+                                        .frame(width: 44)
+                                        .foregroundColor(!isSatelliteView ? .black : .gray)
+                                        .scaleEffect(!isSatelliteView ? 1.1 : 1.0)
+
+                                    Image(systemName: "globe.americas.fill")
+                                        .frame(width: 44)
+                                        .foregroundColor(isSatelliteView ? .black : .gray)
+                                        .scaleEffect(isSatelliteView ? 1.1 : 1.0)
+                                }
+                                .font(.system(size: 16, weight: .semibold))
+                                .frame(height: 32)
+                                .background(Color(white: 0.90))
+                            }
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
+                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 1)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                        
+                        // Numbers toggle button
+                        Button(action: { hideNumbers.toggle() }) {
+                            Group {
+                                if hideNumbers {
+                                    Image(systemName: "number")
+                                } else {
+                                    Text("13")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .overlay(
+                                            Line()
+                                                .rotation(.degrees(90)) 
+                                                .stroke(appState.isDarkMode ? .white : .black, lineWidth: 2)
+                                                .frame(width: 15, height: 15)
+                                                .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
+                                                        radius: 3, x: 0, y: 0)
+                                        )
+                                }
+                            }
+                            .foregroundColor(appState.isDarkMode ? .white : .black)
+                            .frame(width: 32, height: 32)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
+                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Fullscreen button
+                    Button(action: { 
+                        withAnimation(.easeInOut(duration: 0.3)) { 
+                            isFullScreen.toggle() 
+                        }
+                    }) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(appState.isDarkMode ? .white : .black)
+                            .frame(width: 32, height: 32)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
+                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                }
+                .frame(height: 44)
+                .padding(.horizontal, 16)
+                .background(
+                    Rectangle()
+                        .fill(appState.isDarkMode ? Color.black : Color(white: 0.95))
+                        .overlay(Divider(), alignment: .top)
                 )
             }
+            .background(appState.isDarkMode ? Color.black : .white)
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(.gray.opacity(0.3))
+            )
+            .shadow(radius: 5)
+        }
+        .frame(height: UIScreen.main.bounds.height * 0.7)
+    }
+}
+
+// Add this struct for the diagonal line
+struct Line: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        return path
+    }
+}
+
+
+struct FullScreenMapView: View {
+    @EnvironmentObject var appState: AppState
+    @Binding var hideNumbers: Bool
+    @Binding var isSatelliteView: Bool
+    let mapImage: String
+    let geometry: GeometryProxy
+    let isVirtualWalkthroughActive: Bool
+    let currentStructureIndex: Int
+    let currentWalkthroughMapPoint: MapPoint?
+    let onClose: () -> Void
+    
+    @State private var showTools: Bool = false
+    
+    private let glassBackground = Color.white.opacity(0.8)
+    
+    var body: some View {
+        ZStack {
+            // Base map layer
+            MapWithLocationDot(
+                mapImage: mapImage,
+                isSatelliteView: isSatelliteView,
+                geometry: geometry,
+                isVirtualWalkthroughActive: isVirtualWalkthroughActive,
+                currentStructureIndex: currentStructureIndex,
+                currentWalkthroughMapPoint: currentWalkthroughMapPoint
+            )
+            .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
             
-            if showRateStructuresPopup {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
+            // Bottom controls overlay
+            VStack {
+                Spacer()
                 
-                CustomAlert(
-                    icon: "heart.fill",
-                    iconColor: .red,
-                    title: "Rate Structures",
-                    subtitle: "Swipe through and rate the structures to customize your experience!",
-                    primaryButton: .init(title: "Start Rating") {
-                        showStructureSwipingView = true
-                        showRateStructuresPopup = false
-                        appState.hasShownRateStructuresPopup = true
-                    },
-                    secondaryButton: .init(title: "Maybe Later") {
-                        showRateStructuresPopup = false
-                        appState.hasShownRateStructuresPopup = true
-                    },
-                    isPresented: $showRateStructuresPopup
-                )
-            }
-            
-            if showVirtualWalkthroughPopup {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
-                
-                CustomAlert(
-                    icon: "figure.walk",
-                    iconColor: .blue,
-                    title: "Virtual Walkthrough",
-                    subtitle: "Go through each structure as if you were there in person.",
-                    primaryButton: .init(title: "Start Walkthrough") {
-                        showVirtualWalkthroughPopup = false
-                        isVirtualWalkthroughActive = true
-                        hasShownVirtualWalkthroughPopup = true
-                    },
-                    secondaryButton: .init(title: "Maybe Later") {
-                        showVirtualWalkthroughPopup = false
-                        hasShownVirtualWalkthroughPopup = true
-                    },
-                    isPresented: $showVirtualWalkthroughPopup
-                )
+                // Fixed bottom bar
+                HStack {
+                    // Tools button with expanding overlay
+                    Button(action: { withAnimation(.spring()) { showTools.toggle() }}) {
+                        Image(systemName: showTools ? "xmark" : "gearshape.fill")
+                            .font(.system(size: showTools ? 16 : 22, weight: showTools ? .bold : .semibold))
+                            .foregroundColor(.black)
+                            .frame(width: showTools ? 32 : 44, height: showTools ? 32 : 44)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.8))
+                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                            )
+                    }
+                    .overlay(alignment: .top) {
+                        if showTools {
+                            VStack(spacing: 12) {
+                                Button(action: { isSatelliteView.toggle() }) {
+                                    Image(systemName: isSatelliteView ? "map.fill" : "globe.americas.fill")
+                                }
+                                
+                                Button(action: { hideNumbers.toggle() }) {
+                                    Group {
+                                        if hideNumbers {
+                                            Image(systemName: "number")
+                                        } else {
+                                            Text("13").overlay(Line().stroke(.black, lineWidth: 2))
+                                        }
+                                    }
+                                }
+                            }
+                            .font(.system(size: 22))
+                            .foregroundColor(.black)
+                            .padding(.vertical, 12)
+                            .frame(width: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 22)
+                                    .fill(Color.white.opacity(0.8))
+                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                            )
+                            .offset(y: -90)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Minimize button
+                    Button(action: onClose) {
+                        Image(systemName: "arrow.down.right.and.arrow.up.left")
+                            .font(.system(size: 22, weight: .bold))
+                            .frame(width: 44, height: 44)
+                            .foregroundColor(.black)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.8))
+                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                            )
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
         }
     }

@@ -156,11 +156,32 @@ private struct AlertContainer: View {
     }
 }
 
+
+// MARK: - Preview
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
-        MainView()
-            .environmentObject(AppState())
-            .environmentObject(DataStore.shared)
-            .environmentObject(LocationService.shared)
+        Group {
+            // Light Mode Preview
+            MainView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+                
+            // Dark Mode Preview
+            MainView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }
