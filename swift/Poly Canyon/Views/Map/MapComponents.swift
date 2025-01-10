@@ -6,10 +6,215 @@
 
 import SwiftUI
 
+// Add these modifiers at the top level of MapComponents.swift
+
+struct GlassBackground: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    let cornerRadius: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(Material.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.5),
+                                        .white.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.15),
+                radius: 10,
+                x: 0,
+                y: 4
+            )
+    }
+}
+
+struct GlassButton: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    let isActive: Bool
+    
+    var backgroundColor: Color {
+        appState.isDarkMode ? 
+            Color.black.opacity(0.7) :
+            Color(white: 0.90)  // Slightly darker base
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(appState.isDarkMode ? .white : .black)
+            .background(
+                Circle()
+                    .fill(backgroundColor)
+                    .overlay(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                        Color.white.opacity(0.0)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        Circle()
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.5 : 0.1),
+                                        Color(white: 0.6).opacity(appState.isDarkMode ? 0.2 : 0.3)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                radius: 1,
+                x: 0,
+                y: 1
+            )
+    }
+}
+
+struct MapToolbarButton: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    let isActive: Bool
+    
+    var backgroundColor: Color {
+        appState.isDarkMode ? 
+            Color.black.opacity(0.7) :
+            Color(white: 0.90)
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(appState.isDarkMode ? .white : .black)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(backgroundColor)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                        Color.white.opacity(0.0)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.5 : 0.1),
+                                        Color(white: 0.6).opacity(appState.isDarkMode ? 0.2 : 0.3)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                radius: 1,
+                x: 0,
+                y: 1
+            )
+    }
+}
+
+struct ToolbarBackground: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                BottomRoundedRectangle(cornerRadius: 12)
+                    .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.93))
+                    .overlay(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                Color.white.opacity(0.0)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        BottomRoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(
+                                Color.white.opacity(appState.isDarkMode ? 0.2 : 0.1),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(
+                        color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                        radius: 8,
+                        x: 0,
+                        y: 4
+                    )
+            )
+    }
+}
+
+extension View {
+    func glassBackground(cornerRadius: CGFloat = 22) -> some View {
+        modifier(GlassBackground(cornerRadius: cornerRadius))
+    }
+    
+    func glassButton(isActive: Bool = false) -> some View {
+        modifier(GlassButton(isActive: isActive))
+    }
+    
+    func mapToolbarButton(isActive: Bool = false) -> some View {
+        modifier(MapToolbarButton(isActive: isActive))
+    }
+    
+    func toolbarBackground() -> some View {
+        modifier(ToolbarBackground())
+    }
+}
+
 // MARK: - Virtual Tour Navigation
 struct VirtualWalkThroughBar: View {
     @EnvironmentObject var appState: AppState
-    
     let structure: Structure
     let onNext: () -> Void
     let onPrevious: () -> Void
@@ -17,136 +222,83 @@ struct VirtualWalkThroughBar: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Background container
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(appState.isDarkMode ? Color.black : Color.white)
-                    .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 5)
-                
-                // Navigation controls
-                HStack(spacing: 0) {
-                    arrowButton(direction: .previous)
-                    
-                    Spacer()
-                    
-                    structureInfo
-                    
-                    Spacer()
-                    
-                    arrowButton(direction: .next)
+            HStack(spacing: 16) {
+                // Previous button
+                Button(action: onPrevious) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .bold))
+                        .frame(width: 42, height: 42)
+                        .glassButton()
                 }
-                .padding(.horizontal, 15)
-            }
-            .frame(width: geometry.size.width, height: 120)
-        }
-        .frame(height: 120)
-        .padding(.bottom, 10)
-    }
-    
-    // Structure preview with title
-    private var structureInfo: some View {
-        Button(action: onTap) {
-            HStack(spacing: 15) {
-                // Structure thumbnail
-                Image(structure.images[0])
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
                 
-                // Structure details
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("#\(structure.number)")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
-                    
-                    Text(structure.title)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                // Structure info (tappable)
+                Button(action: onTap) {
+                    HStack(spacing: 14) {
+                        // Image with overlaid number
+                        Image(structure.images[0])
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 65, height: 65)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                Text("#\(structure.number)")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(6)
+                                    .shadow(color: .black, radius: 2, x: 0, y: 0)
+                                    .shadow(color: .white.opacity(0.3), radius: 1, x: 0, y: 0),
+                                alignment: .bottomTrailing
+                            )
+                        
+                        Text(structure.title)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(appState.isDarkMode ? .white : .black)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxWidth: geometry.size.width - 116) // Account for smaller buttons (42*2) and spacing (16*2)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.93))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                                Color.white.opacity(0.0)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            )
+                    )
+                    .shadow(
+                        color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                        radius: 4,
+                        x: 0,
+                        y: 4
+                    )
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Next button
+                Button(action: onNext) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .bold))
+                        .frame(width: 42, height: 42)
+                        .glassButton()
+                }
             }
-            .padding(10)
-            .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-            .cornerRadius(20)
+            .frame(maxWidth: .infinity)
+            .frame(height: geometry.size.height)
         }
-    }
-    
-    // Navigation arrow button
-    private func arrowButton(direction: ArrowDirection) -> some View {
-        Button(action: direction == .next ? onNext : onPrevious) {
-            Image(systemName: direction == .next ? "chevron.right" : "chevron.left")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .frame(width: 40, height: 40)
-                .background(appState.isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.2))
-                .clipShape(Circle())
-        }
-    }
-    
-    private enum ArrowDirection {
-        case next, previous
     }
 }
 
-struct MapControlButtons: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var locationService: LocationService
-    
-    @Binding var isSatelliteView: Bool
-    @Binding var isVirtualWalkthroughActive: Bool
-    @Binding var showNearbyUnvisitedView: Bool
-    
-    let onUpdateMapPoint: () -> Void
-    
-    var body: some View {
-        HStack {
-            // Left side buttons
-            HStack(spacing: 10) {
-                // Adventure mode controls
-                if appState.adventureModeEnabled && locationService.isInPolyCanyonArea {
-                    Button(action: {
-                        withAnimation {
-                            showNearbyUnvisitedView.toggle()
-                        }
-                    }) {
-                        MapControlButton(
-                            systemName: showNearbyUnvisitedView ? "xmark.circle.fill" : "mappin.circle.fill"
-                        )
-                    }
-                }
-                
-                // Virtual tour controls
-                if !appState.adventureModeEnabled {
-                    Button(action: {
-                        withAnimation {
-                            isVirtualWalkthroughActive.toggle()
-                            if isVirtualWalkthroughActive {
-                                onUpdateMapPoint()
-                            }
-                        }
-                    }) {
-                        MapControlButton(
-                            systemName: isVirtualWalkthroughActive ? "xmark.circle.fill" : "figure.walk.circle.fill"
-                        )
-                    }
-                }
-            }
-            Spacer()
-            // Right side satellite button
-            Button(action: { isSatelliteView.toggle() }) {
-                MapControlButton(
-                    systemName: isSatelliteView ? "map.fill" : "globe.americas.fill"
-                )
-            }
-        }
-        .position(x: UIScreen.main.bounds.width/2, y: 50)
-    }
-}
 
 struct MapStatusOverlay: View {
     @EnvironmentObject var appState: AppState
@@ -165,65 +317,6 @@ struct MapStatusOverlay: View {
             }
             // No message if isInPolyCanyonArea (showing pulsing circle instead)
         }
-    }
-}
-
-struct MapStructureOverlays: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    @Binding var selectedStructure: Structure?
-    @Binding var showStructPopup: Bool
-    let showNearbyUnvisitedView: Bool
-    let nearbyUnvisitedMapPoints: [MapPoint]
-    let isVirtualWalkthroughActive: Bool
-    let currentStructureIndex: Int
-    let onNext: () -> Void
-    let onPrevious: () -> Void
-    
-    var body: some View {
-        ZStack {
-            
-            // Virtual walkthrough interface
-            if isVirtualWalkthroughActive {
-                VStack {
-                    Spacer()
-                    VirtualWalkThroughBar(
-                        structure: dataStore.structures[currentStructureIndex],
-                        onNext: onNext,
-                        onPrevious: onPrevious,
-                        onTap: {
-                            selectedStructure = dataStore.structures[currentStructureIndex]
-                            showStructPopup = true
-                        }
-                    )
-                    .transition(.move(edge: .bottom))
-                }
-            }
-        }
-    }
-    
-    private func mapPointsToStructures(_ mapPoints: [MapPoint]) -> [Structure] {
-        mapPoints.compactMap { mp in
-            dataStore.structures.first { $0.number == mp.structure }
-        }
-    }
-}
-
-struct MapControlButton: View {
-    @EnvironmentObject var appState: AppState
-    let systemName: String
-    
-    var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: 24))
-            .frame(width: 50, height: 50)
-            .foregroundColor(appState.isDarkMode ? .white : .black)
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .cornerRadius(15)
-            .padding()
-            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
-                    radius: 5, x: 0, y: 0)
     }
 }
 
@@ -304,16 +397,16 @@ struct MapContainerView<Content: View>: View {
                 // Redesigned toolbar
                 HStack {
                     // Map type picker with numbers toggle
-                    HStack(spacing: 8) {  // Add spacing between the two controls
-                        // Existing map type picker
+                    HStack(spacing: 8) {
+                        // Map type picker
                         HStack(spacing: 0) {
                             Button(action: { isSatelliteView.toggle() }) {
-                                HStack (spacing: 0) {
+                                HStack(spacing: 0) {
                                     Image(systemName: "map.fill")
                                         .frame(width: 44)
                                         .foregroundColor(!isSatelliteView ? .black : .gray)
                                         .scaleEffect(!isSatelliteView ? 1.1 : 1.0)
-
+                                    
                                     Image(systemName: "globe.americas.fill")
                                         .frame(width: 44)
                                         .foregroundColor(isSatelliteView ? .black : .gray)
@@ -321,18 +414,9 @@ struct MapContainerView<Content: View>: View {
                                 }
                                 .font(.system(size: 16, weight: .semibold))
                                 .frame(height: 32)
-                                .background(Color(white: 0.90))
+                                .mapToolbarButton()
                             }
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 1)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
                         
                         // Numbers toggle button
                         Button(action: { hideNumbers.toggle() }) {
@@ -344,66 +428,59 @@ struct MapContainerView<Content: View>: View {
                                         .font(.system(size: 18, weight: .semibold))
                                         .overlay(
                                             Line()
-                                                .rotation(.degrees(90)) 
+                                                .rotation(.degrees(90))
                                                 .stroke(appState.isDarkMode ? .white : .black, lineWidth: 2)
                                                 .frame(width: 15, height: 15)
-                                                .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
-                                                        radius: 3, x: 0, y: 0)
                                         )
                                 }
                             }
-                            .foregroundColor(appState.isDarkMode ? .white : .black)
                             .frame(width: 32, height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
-                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
+                            .mapToolbarButton(isActive: hideNumbers)
                         }
                     }
                     
                     Spacer()
                     
                     // Fullscreen button
-                    Button(action: { 
-                        withAnimation(.easeInOut(duration: 0.3)) { 
-                            isFullScreen.toggle() 
-                        }
-                    }) {
+                    Button(action: { isFullScreen.toggle() }) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(appState.isDarkMode ? .white : .black)
                             .frame(width: 32, height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(appState.isDarkMode ? Color.black : Color(white: 0.90))
-                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
+                            .mapToolbarButton()
                     }
                 }
                 .frame(height: 44)
                 .padding(.horizontal, 16)
-                .background(
-                    Rectangle()
-                        .fill(appState.isDarkMode ? Color.black : Color(white: 0.95))
-                        .overlay(Divider(), alignment: .top)
-                )
+                .toolbarBackground()
             }
             .background(appState.isDarkMode ? Color.black : .white)
             .clipShape(RoundedRectangle(cornerRadius: 15))
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(.gray.opacity(0.3))
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.2
+                    )
             )
-            .shadow(radius: 5)
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                radius: 10,
+                x: 0,
+                y: 4
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.15),
+                radius: 2,
+                x: 0,
+                y: 1
+            )
         }
         .frame(height: UIScreen.main.bounds.height * 0.7)
     }
@@ -419,6 +496,54 @@ struct Line: Shape {
     }
 }
 
+struct BottomRoundedRectangle: Shape, InsettableShape {
+    let cornerRadius: CGFloat
+    var insetAmount: CGFloat = 0
+    
+    func path(in rect: CGRect) -> Path {
+        let rect = rect.insetBy(dx: insetAmount, dy: insetAmount)
+        var path = Path()
+        
+        // Top left corner - sharp
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        
+        // Top edge
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        
+        // Right edge and bottom right corner - rounded
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - cornerRadius, y: rect.maxY - cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 0),
+            endAngle: Angle(degrees: 90),
+            clockwise: false
+        )
+        
+        // Bottom edge
+        path.addLine(to: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY))
+        
+        // Bottom left corner - rounded
+        path.addArc(
+            center: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY - cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 90),
+            endAngle: Angle(degrees: 180),
+            clockwise: false
+        )
+        
+        // Left edge
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        
+        return path
+    }
+    
+    func inset(by amount: CGFloat) -> Self {
+        var shape = self
+        shape.insetAmount = amount
+        return shape
+    }
+}
 
 struct FullScreenMapView: View {
     @EnvironmentObject var appState: AppState
@@ -452,25 +577,22 @@ struct FullScreenMapView: View {
             VStack {
                 Spacer()
                 
-                // Fixed bottom bar
                 HStack {
                     // Tools button with expanding overlay
                     Button(action: { withAnimation(.spring()) { showTools.toggle() }}) {
                         Image(systemName: showTools ? "xmark" : "gearshape.fill")
                             .font(.system(size: showTools ? 16 : 22, weight: showTools ? .bold : .semibold))
-                            .foregroundColor(.black)
                             .frame(width: showTools ? 32 : 44, height: showTools ? 32 : 44)
-                            .background(
-                                Circle()
-                                    .fill(Color.white.opacity(0.8))
-                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                            )
+                            .glassButton(isActive: showTools)
                     }
                     .overlay(alignment: .top) {
                         if showTools {
                             VStack(spacing: 12) {
                                 Button(action: { isSatelliteView.toggle() }) {
                                     Image(systemName: isSatelliteView ? "map.fill" : "globe.americas.fill")
+                                        .font(.system(size: 22))
+                                        .frame(width: 44, height: 44)
+                                        .glassButton()
                                 }
                                 
                                 Button(action: { hideNumbers.toggle() }) {
@@ -478,21 +600,20 @@ struct FullScreenMapView: View {
                                         if hideNumbers {
                                             Image(systemName: "number")
                                         } else {
-                                            Text("13").overlay(Line().stroke(.black, lineWidth: 2))
+                                            Text("13")
+                                                .overlay(
+                                                    Line()
+                                                    .rotation(.degrees(90))
+                                                    .stroke(appState.isDarkMode ? .white : .black, lineWidth: 3)
+                                                    .frame(width: 18, height: 18))
                                         }
                                     }
+                                    .font(.system(size: 22))
+                                    .frame(width: 44, height: 44)
+                                    .glassButton()
                                 }
                             }
-                            .font(.system(size: 22))
-                            .foregroundColor(.black)
-                            .padding(.vertical, 12)
-                            .frame(width: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 22)
-                                    .fill(Color.white.opacity(0.8))
-                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                            )
-                            .offset(y: -90)
+                            .offset(y: -120)
                         }
                     }
                     
@@ -503,16 +624,169 @@ struct FullScreenMapView: View {
                         Image(systemName: "arrow.down.right.and.arrow.up.left")
                             .font(.system(size: 22, weight: .bold))
                             .frame(width: 44, height: 44)
-                            .foregroundColor(.black)
-                            .background(
-                                Circle()
-                                    .fill(Color.white.opacity(0.8))
-                                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                            )
+                            .glassButton()
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+            }
+        }
+    }
+}
+
+struct MapBottomBar: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject var dataStore: DataStore
+    @Binding var isVirtualWalkthroughActive: Bool
+    @Binding var currentStructureIndex: Int
+    
+    private func moveToNextStructure() {
+        withAnimation {
+            currentStructureIndex = (currentStructureIndex + 1) % dataStore.structures.count
+        }
+    }
+    
+    private func moveToPreviousStructure() {
+        withAnimation {
+            currentStructureIndex = (currentStructureIndex - 1 + dataStore.structures.count) % dataStore.structures.count
+        }
+    }
+    
+    private var virtualTourInactiveContent: some View {
+        HStack(spacing: 10) {
+            Text("🚶‍♂️")
+                .font(.system(size: 44))
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Take a Virtual Tour")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Text("Walk through and learn about each structure")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.7))
+            }
+            
+            Spacer()
+            
+            // Simpler glass circle button
+            Circle()
+                .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
+                .frame(width: 45, height: 45)
+                .overlay(
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                )
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+                isVirtualWalkthroughActive.toggle()
+                //updateCurrentMapPoint()  
+
+        }
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            if !appState.adventureModeEnabled {
+                if isVirtualWalkthroughActive {
+                    VirtualWalkThroughBar(
+                        structure: dataStore.structures[currentStructureIndex],
+                        onNext: moveToNextStructure,
+                        onPrevious: moveToPreviousStructure,
+                        onTap: {
+                            // We'll handle structure info popup next
+                        }
+                    )
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                } else {
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(
+                            appState.isDarkMode ? 
+                            Color.black.opacity(0.7) :
+                            Color(white: 0.93)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                            Color.white.opacity(0.0)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                            Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.2
+                                )
+                        )
+                        .shadow(
+                            color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                            radius: 10,
+                            x: 0,
+                            y: 4
+                        )
+                        .overlay(virtualTourInactiveContent)
+                }
+            } else {
+                // Adventure mode content
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        appState.isDarkMode ? 
+                        Color.black.opacity(0.7) :
+                        Color(white: 0.93)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                        Color.white.opacity(0.0)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                        Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.2
+                            )
+                    )
+                    .shadow(
+                        color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                        radius: 10,
+                        x: 0,
+                        y: 4
+                    )
+                    .overlay(Text("Adventure Mode"))
             }
         }
     }

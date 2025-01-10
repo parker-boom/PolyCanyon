@@ -49,7 +49,7 @@ struct MapView: View {
                         currentStructureIndex: currentStructureIndex,
                         currentWalkthroughMapPoint: currentWalkthroughMapPoint,
                         onClose: {
-                            withAnimation(.easeInOut(duration: 0.3)) { 
+                            withAnimation(.easeInOut(duration: 0.6)) { 
                                 opacity = 0
                                 isFullScreen = false 
                             }
@@ -82,10 +82,15 @@ struct MapView: View {
                             .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
                             .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
                         }
-                        Spacer(minLength: 0)
+
+                        MapBottomBar(
+                            isVirtualWalkthroughActive: $isVirtualWalkthroughActive,
+                            currentStructureIndex: $currentStructureIndex
+                        )
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.top, 5)
+                    .padding(.bottom, 12)
                     .transition(
                         .asymmetric(
                             insertion: .opacity.combined(with: .scale(scale: 0.9)),
@@ -96,8 +101,18 @@ struct MapView: View {
                 }
             }
             .onChange(of: isFullScreen) { newValue in
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.6)) {
                     opacity = 1.0
+                }
+            }
+            .onChange(of: isVirtualWalkthroughActive) { isActive in
+                if isActive {
+                    updateCurrentMapPoint()
+                }
+            }
+            .onChange(of: currentStructureIndex) { _ in
+                if isVirtualWalkthroughActive {
+                    updateCurrentMapPoint()
                 }
             }
         }

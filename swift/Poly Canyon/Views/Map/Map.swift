@@ -23,9 +23,13 @@ struct MapWithLocationDot: View {
     
     // Show location dot only in adventure mode within range
     private var showPulsingCircle: Bool {
-        guard appState.adventureModeEnabled else { return false }
-        guard let userLoc = locationService.lastLocation else { return false }
-        return locationService.isWithinBackgroundRange(userLoc)
+        if isVirtualWalkthroughActive {
+            return currentWalkthroughMapPoint != nil
+        } else {
+            guard appState.adventureModeEnabled else { return false }
+            guard let userLoc = locationService.lastLocation else { return false }
+            return locationService.isWithinBackgroundRange(userLoc)
+        }
     }
     
     var body: some View {
@@ -53,24 +57,39 @@ struct MapWithLocationDot: View {
     // MARK: - Position Calculations
     
     private func circlePosition() -> CGPoint {
-        guard let userLoc = locationService.lastLocation,
-              locationService.isWithinCanyon(userLoc),
-              let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate) else {
-            return CGPoint(x: -100, y: -100)
+        if isVirtualWalkthroughActive, let walkPoint = currentWalkthroughMapPoint {
+            // Virtual Tour positioning
+            let renderedSize = calculateRenderedMapSize()
+            let scaleX = renderedSize.width / originalWidth
+            let scaleY = renderedSize.height / originalHeight
+            
+            let xOffset = (geometry.size.width - renderedSize.width) / 2
+            let yOffset = (geometry.size.height - renderedSize.height) / 2
+            
+            return CGPoint(
+                x: (walkPoint.pixelPosition.x * scaleX * 1.09) + xOffset,
+                y: (walkPoint.pixelPosition.y * scaleY * 1.09) + yOffset
+            )
+        } else {
+            // Adventure Mode positioning (unchanged)
+            guard let userLoc = locationService.lastLocation,
+                  locationService.isWithinCanyon(userLoc),
+                  let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate) else {
+                return CGPoint(x: -100, y: -100)
+            }
+            
+            let renderedSize = calculateRenderedMapSize()
+            let scaleX = renderedSize.width / originalWidth
+            let scaleY = renderedSize.height / originalHeight
+            
+            let xOffset = (geometry.size.width - renderedSize.width) / 2
+            let yOffset = (geometry.size.height - renderedSize.height) / 2
+            
+            return CGPoint(
+                x: (nearestPoint.pixelPosition.x * scaleX * 1.09) + xOffset,
+                y: (nearestPoint.pixelPosition.y * scaleY * 1.09) + yOffset
+            )
         }
-        
-        let renderedSize = calculateRenderedMapSize()
-        let scaleX = renderedSize.width / originalWidth
-        let scaleY = renderedSize.height / originalHeight
-        
-        // Calculate the offset to the top-left corner of the map image
-        let xOffset = (geometry.size.width - renderedSize.width) / 2
-        let yOffset = (geometry.size.height - renderedSize.height) / 2
-        
-        let scaledX = (nearestPoint.pixelPosition.x * scaleX * 1.09) + xOffset
-        let scaledY = (nearestPoint.pixelPosition.y * scaleY * 1.09) + yOffset
-        
-        return CGPoint(x: scaledX, y: scaledY)
     }
     
     private func calculateRenderedMapSize() -> CGSize {
