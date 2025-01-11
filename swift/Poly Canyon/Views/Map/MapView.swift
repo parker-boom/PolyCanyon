@@ -9,6 +9,11 @@ import SwiftUI
 import CoreLocation
 import Zoomable
 
+class CirclePositionStore: ObservableObject {
+    @Published var circleY: CGFloat? = nil
+    @Published var isDotVisible: Bool = false
+}
+
 struct MapView: View {
     // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
@@ -36,6 +41,9 @@ struct MapView: View {
     @State private var opacity: Double = 1.0
     @Namespace private var mapTransition
     
+    // ADDED: Circle position store
+    @StateObject private var circlePositionStore = CirclePositionStore()
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -53,7 +61,9 @@ struct MapView: View {
                                 opacity = 0
                                 isFullScreen = false 
                             }
-                        }
+                        },
+                        circlePositionStore: circlePositionStore
+                        
                     )
                     .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
                     .transition(
@@ -66,18 +76,22 @@ struct MapView: View {
                 } else {
                     // Regular container view
                     VStack(spacing: 12) {
+                        // PASS circlePositionStore into MapContainerView
                         MapContainerView(
                             isSatelliteView: $isSatelliteView,
                             hideNumbers: $hideNumbers,
-                            isFullScreen: $isFullScreen
+                            isFullScreen: $isFullScreen,
+                            circlePositionStore: circlePositionStore  // ADDED
                         ) {
+                            // PASS circlePositionStore into MapWithLocationDot
                             MapWithLocationDot(
                                 mapImage: currentMapImage(),
                                 isSatelliteView: isSatelliteView,
                                 geometry: geometry,
                                 isVirtualWalkthroughActive: isVirtualWalkthroughActive,
                                 currentStructureIndex: currentStructureIndex,
-                                currentWalkthroughMapPoint: currentWalkthroughMapPoint
+                                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
+                                circlePositionStore: circlePositionStore // ADDED
                             )
                             .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
                             .matchedGeometryEffect(id: "mapContainer", in: mapTransition)

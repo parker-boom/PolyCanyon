@@ -17,6 +17,9 @@ struct MapWithLocationDot: View {
     let currentStructureIndex: Int
     let currentWalkthroughMapPoint: MapPoint?
     
+    // ADDED: We bring in the CirclePositionStore
+    @ObservedObject var circlePositionStore: CirclePositionStore
+    
     // Original map dimensions from Photoshop
     private let originalWidth: CGFloat = 2000
     private let originalHeight: CGFloat = 4519
@@ -50,6 +53,15 @@ struct MapWithLocationDot: View {
                     .position(circlePosition())
                     .shadow(color: isSatelliteView ? .white.opacity(0.8) : .black.opacity(0.8),
                             radius: 4, x: 0, y: 0)
+                    .onAppear {
+                        circlePositionStore.isDotVisible = true
+                    }
+            } else {
+                Color.clear
+                    .onAppear {
+                        circlePositionStore.circleY = nil
+                        circlePositionStore.isDotVisible = false
+                    }
             }
         }
     }
@@ -57,8 +69,10 @@ struct MapWithLocationDot: View {
     // MARK: - Position Calculations
     
     private func circlePosition() -> CGPoint {
+        // We'll compute the dot position as before:
+        let pos: CGPoint
+        
         if isVirtualWalkthroughActive, let walkPoint = currentWalkthroughMapPoint {
-            // Virtual Tour positioning
             let renderedSize = calculateRenderedMapSize()
             let scaleX = renderedSize.width / originalWidth
             let scaleY = renderedSize.height / originalHeight
@@ -66,16 +80,22 @@ struct MapWithLocationDot: View {
             let xOffset = (geometry.size.width - renderedSize.width) / 2
             let yOffset = (geometry.size.height - renderedSize.height) / 2
             
-            return CGPoint(
+            pos = CGPoint(
                 x: (walkPoint.pixelPosition.x * scaleX * 1.09) + xOffset,
                 y: (walkPoint.pixelPosition.y * scaleY * 1.09) + yOffset
             )
         } else {
-            // Adventure Mode positioning (unchanged)
             guard let userLoc = locationService.lastLocation,
                   locationService.isWithinCanyon(userLoc),
-                  let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate) else {
-                return CGPoint(x: -100, y: -100)
+                  let nearestPoint = locationService.findNearestMapPoint(to: userLoc.coordinate)
+            else {
+                // If no valid location, place offscreen, and mark not visible
+                pos = CGPoint(x: -100, y: -100)
+                DispatchQueue.main.async {
+                    circlePositionStore.circleY = nil
+                    circlePositionStore.isDotVisible = false
+                }
+                return pos
             }
             
             let renderedSize = calculateRenderedMapSize()
@@ -85,11 +105,19 @@ struct MapWithLocationDot: View {
             let xOffset = (geometry.size.width - renderedSize.width) / 2
             let yOffset = (geometry.size.height - renderedSize.height) / 2
             
-            return CGPoint(
+            pos = CGPoint(
                 x: (nearestPoint.pixelPosition.x * scaleX * 1.09) + xOffset,
                 y: (nearestPoint.pixelPosition.y * scaleY * 1.09) + yOffset
             )
         }
+        
+        // ADDED: Publish to CirclePositionStore
+        DispatchQueue.main.async {
+            circlePositionStore.circleY = pos.y
+            circlePositionStore.isDotVisible = true
+        }
+        
+        return pos
     }
     
     private func calculateRenderedMapSize() -> CGSize {

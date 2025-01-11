@@ -59,8 +59,8 @@ class LocationService: NSObject, ObservableObject {
     
     // MARK: - Location Boundaries
     private let centerPoint = CLLocationCoordinate2D(
-        latitude: 35.31461,
-        longitude: -120.65238
+        latitude: 35.31583,
+        longitude: -120.65347
     )
     
     struct BoundaryCoordinates {
@@ -71,7 +71,7 @@ class LocationService: NSObject, ObservableObject {
     }
     
     private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
-    private let backgroundRadius: CLLocationDistance = 225 // Walking path bench spot
+    private let backgroundRadius: CLLocationDistance = 370 // Walking path bench spot
     
     // Add cached point and last check time
     private var lastMapPointCheck: Date?

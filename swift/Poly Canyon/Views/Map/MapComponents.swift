@@ -365,40 +365,61 @@ struct MapContainerView<Content: View>: View {
     @Binding var isFullScreen: Bool
     let content: Content
     
-    // Add computed property for container offset
-    private var containerOffset: CGFloat {
-        UIScreen.main.bounds.height * 0.10  // 10% offset for bottom alignment
-    }
+    // ADDED: We bring in the CirclePositionStore
+    @ObservedObject var circlePositionStore: CirclePositionStore
+    
+    // This was your static container height (70%).
+    // We'll still show the container at 70% overall height
+    // but shift contents internally.
     
     init(isSatelliteView: Binding<Bool>,
          hideNumbers: Binding<Bool>,
          isFullScreen: Binding<Bool>,
+         circlePositionStore: CirclePositionStore,  // ADDED
          @ViewBuilder content: () -> Content) {
+        
         self._isSatelliteView = isSatelliteView
         self._hideNumbers = hideNumbers
         self._isFullScreen = isFullScreen
+        self.circlePositionStore = circlePositionStore // ADDED
         self.content = content()
     }
     
     var body: some View {
         GeometryReader { containerGeometry in
             VStack(spacing: 0) {
-                // Map content in scrollable container
+                // Calculate dynamic offset:
+                let mapHeight = containerGeometry.size.height - 44  // space for your toolbar
+                let midY = mapHeight / 2
+                let maxOffset = containerGeometry.size.height * 0.15  // ±10% is max shift
+                let defaultOffset = containerGeometry.size.height * -0.15  // always want 10% down if no dot
+                
+                let finalOffset: CGFloat = {
+                    if let circleY = circlePositionStore.circleY,
+                       circlePositionStore.isDotVisible
+                    {
+                        let delta = circleY - midY
+                        let normalized = delta / midY
+                        let clamped = max(-1, min(1, normalized))
+                        return -clamped * maxOffset
+                    } else {
+                        return defaultOffset
+                    }
+                }()
+                
+                // Our actual scrollable content
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
                     content
-                        .frame(
-                            width: containerGeometry.size.width,
-                            height: containerGeometry.size.height - 44 // Subtract toolbar height
-                        )
-                        .offset(y: -containerOffset) // Add offset here
+                        .frame(width: containerGeometry.size.width,
+                               height: mapHeight)
+                        .offset(y: finalOffset)
+                        .animation(.easeInOut(duration: 0.4), value: finalOffset)
                 }
-                .clipped() // Ensure content stays within bounds
+                .clipped()
                 
-                // Redesigned toolbar
+                // The bottom toolbar (unchanged)
                 HStack {
-                    // Map type picker with numbers toggle
                     HStack(spacing: 8) {
-                        // Map type picker
                         HStack(spacing: 0) {
                             Button(action: { isSatelliteView.toggle() }) {
                                 HStack(spacing: 0) {
@@ -418,7 +439,6 @@ struct MapContainerView<Content: View>: View {
                             }
                         }
                         
-                        // Numbers toggle button
                         Button(action: { hideNumbers.toggle() }) {
                             Group {
                                 if hideNumbers {
@@ -441,7 +461,6 @@ struct MapContainerView<Content: View>: View {
                     
                     Spacer()
                     
-                    // Fullscreen button
                     Button(action: { isFullScreen.toggle() }) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
                             .font(.system(size: 16, weight: .medium))
@@ -482,6 +501,7 @@ struct MapContainerView<Content: View>: View {
                 y: 1
             )
         }
+        // The container still only takes 70% of screen height
         .frame(height: UIScreen.main.bounds.height * 0.7)
     }
 }
@@ -556,6 +576,8 @@ struct FullScreenMapView: View {
     let currentWalkthroughMapPoint: MapPoint?
     let onClose: () -> Void
     
+    @ObservedObject var circlePositionStore: CirclePositionStore
+    
     @State private var showTools: Bool = false
     
     private let glassBackground = Color.white.opacity(0.8)
@@ -569,7 +591,8 @@ struct FullScreenMapView: View {
                 geometry: geometry,
                 isVirtualWalkthroughActive: isVirtualWalkthroughActive,
                 currentStructureIndex: currentStructureIndex,
-                currentWalkthroughMapPoint: currentWalkthroughMapPoint
+                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
+                circlePositionStore: circlePositionStore
             )
             .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
             
