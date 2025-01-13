@@ -669,7 +669,7 @@
     "pixelY": 212,
     "latitude": 35.31715152232656,
     "longitude": -120.6545640139256,
-    "structure": 7
+    "structure": -1
   },
   {
     "name": 85,
@@ -813,7 +813,7 @@
     "pixelY": 2451,
     "latitude": 35.31511298956134,
     "longitude": -120.6529912200002,
-    "structure": -1
+    "structure": 28
   },
   {
     "name": 103,
@@ -1845,6 +1845,6 @@
     "pixelY": 3864,
     "latitude": 35.31366388888888,
     "longitude": -120.6520916666666,
-    "structure": 99
+    "structure": -1
   }
 ]

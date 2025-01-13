@@ -17,9 +17,12 @@ class AppState: ObservableObject {
         }
     }
     
+    /*
     // Used for map offset when map isn't full screen
     @Published var circleY: CGFloat? = nil
+    @Published var circleX: CGFloat? = nil
     @Published var dotVisible: Bool = false
+    */
     
     // Adventure mode - effects the entire user experience and every view rendered differently
     // FALSE = Virtual tour mode - for non-in person use, viewing information only

@@ -11,6 +11,7 @@ import Zoomable
 
 class CirclePositionStore: ObservableObject {
     @Published var circleY: CGFloat? = nil
+    @Published var circleX: CGFloat? = nil
     @Published var isDotVisible: Bool = false
 }
 

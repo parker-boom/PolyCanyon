@@ -1,11 +1,66 @@
 /*
- AlertPopUp provides reusable alert dialogs for consistent messaging across the app. It implements a 
+ PopUps provides reusable alert dialogs for consistent messaging across the app. It implements a 
  customizable alert with icon, title, subtitle, and two action buttons. The component adapts to the app's 
  theme and provides a dimmed background overlay. It's designed to be used as a modal presentation for 
  important user interactions.
 */
 
 import SwiftUI
+
+
+// MARK: - Alert Container
+struct AlertContainer: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject var dataStore: DataStore
+    let alert: AppState.AlertType
+    
+    var body: some View {
+        switch alert {
+        case .backgroundLocation:
+            CustomAlert(
+                icon: "figure.walk",
+                iconColor: .green,
+                title: "Enable Background Location",
+                subtitle: "Tracks the structures you visit even when the app is closed.",
+                primaryButton: .init(title: "Allow") {
+                    locationService.requestAlwaysAuthorization()
+                    appState.hasShownBackgroundLocationAlert = true
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Cancel") {
+                    appState.hasShownBackgroundLocationAlert = true
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
+            
+        case .resetConfirmation(let type):
+            CustomAlert(
+                icon: type == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
+                iconColor: type == .structures ? .orange : .red,
+                title: type == .structures ? "Reset Visited Structures" : "Reset Favorites",
+                subtitle: type == .structures
+                ? "Are you sure you want to reset all visited structures? This action cannot be undone."
+                : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
+                primaryButton: .init(title: "Reset") {
+                    dataStore.resetStructures()
+                    appState.dismissAlert()
+                },
+                secondaryButton: .init(title: "Cancel") {
+                    appState.dismissAlert()
+                },
+                isPresented: .constant(true)
+            )
+            
+        case .modePicker:
+            ModePickerAlert(
+                isPresented: .constant(true),
+                onDismiss: { appState.dismissAlert() }
+            )
+        }
+    }
+}
 
 struct CustomAlert: View {
     // MARK: - Properties
@@ -253,12 +308,17 @@ struct WelcomeToCanyonAlert: View {
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 }
                 
-                // Bullet points in glass containers
                 VStack(alignment: .leading, spacing: 12) {
+                    Text("Here's what you can do:")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
+                        .padding(.leading, 4)
+                        .padding(.bottom, -4)
+                    
                     ForEach([
-                        (emoji: "📍", text: "See yourself on the map"),
-                        (emoji: "✅", text: "Auto-track visited spots"),
-                        (emoji: "👆", text: "Double tap to zoom in")
+                        (emoji: "📍", text: "See your live location"),
+                        (emoji: "📚", text: "View info on structures"),
+                        (emoji: "✅", text: "Auto track your progress"),
                     ], id: \.text) { bullet in
                         HStack(spacing: 14) {
                             Text(bullet.emoji)

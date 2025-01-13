@@ -39,6 +39,7 @@ struct MapWithLocationDot: View {
         ZStack {
             // Background layer
             MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
+            .scaleEffect(1.2)
 
             // Base map layer
             Image(mapImage)
@@ -60,6 +61,7 @@ struct MapWithLocationDot: View {
                 Color.clear
                     .onAppear {
                         circlePositionStore.circleY = nil
+                        circlePositionStore.circleX = nil
                         circlePositionStore.isDotVisible = false
                     }
             }
@@ -93,6 +95,7 @@ struct MapWithLocationDot: View {
                 pos = CGPoint(x: -100, y: -100)
                 DispatchQueue.main.async {
                     circlePositionStore.circleY = nil
+                    circlePositionStore.circleX = nil
                     circlePositionStore.isDotVisible = false
                 }
                 return pos
@@ -114,6 +117,7 @@ struct MapWithLocationDot: View {
         // ADDED: Publish to CirclePositionStore
         DispatchQueue.main.async {
             circlePositionStore.circleY = pos.y
+            circlePositionStore.circleX = pos.x
             circlePositionStore.isDotVisible = true
         }
         

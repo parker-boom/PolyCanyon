@@ -391,6 +391,9 @@ struct MapContainerView<Content: View>: View {
     // We'll still show the container at 70% overall height
     // but shift contents internally.
     
+    @State private var visualScale: CGFloat = 1.0
+    @State private var targetScale: CGFloat = 1.0
+    
     init(isSatelliteView: Binding<Bool>,
          hideNumbers: Binding<Bool>,
          isFullScreen: Binding<Bool>,
@@ -404,6 +407,72 @@ struct MapContainerView<Content: View>: View {
         self.content = content()
     }
     
+    private func calculateAnchorPoint(in geometry: GeometryProxy) -> UnitPoint {
+        if circlePositionStore.isDotVisible,
+           let circleX = circlePositionStore.circleX,
+           let circleY = circlePositionStore.circleY {
+            
+            let mapSize = calculateRenderedMapSize(in: geometry)
+            let xOffset = (geometry.size.width - mapSize.width) / 2
+            let yOffset = (geometry.size.height - mapSize.height) / 2
+            
+            // Convert to relative coordinates within the actual map content
+            let relativeX = (circleX - xOffset) / mapSize.width
+            let relativeY = (circleY - yOffset) / mapSize.height
+            
+            // Clamp Y to prevent white space when zooming
+            let safeY = min(max(relativeY, 0.0), 1.0)
+            
+            return UnitPoint(x: relativeX, y: safeY)
+        } else {
+            // When no dot, anchor at bottom
+            return UnitPoint(x: 0.5, y: 1.0)
+        }
+    }
+    
+    private func calculateZoomOffset(for scale: CGFloat, in geometry: GeometryProxy, anchorPoint: UnitPoint) -> CGSize {
+        guard scale > 1.0 else { return .zero }
+        
+        let mapSize = calculateRenderedMapSize(in: geometry)
+        let scaledWidth = mapSize.width * scale
+        let scaledHeight = mapSize.height * scale
+        
+        // Calculate how much we can move without showing white space
+        let maxXOffset = (scaledWidth - mapSize.width) / 2
+        let maxYOffset = (scaledHeight - mapSize.height) / 2
+        
+        // Calculate desired offset based on anchor point
+        let desiredXOffset = (scaledWidth - mapSize.width) * (0.5 - anchorPoint.x)
+        let desiredYOffset = (scaledHeight - mapSize.height) * (0.5 - anchorPoint.y)
+        
+        // Clamp the offset to prevent white space
+        let clampedXOffset = max(-maxXOffset, min(maxXOffset, desiredXOffset))
+        let clampedYOffset = max(-maxYOffset, min(maxYOffset, desiredYOffset))
+        
+        return CGSize(width: clampedXOffset, height: 0)  // Still letting baseOffset handle Y
+    }
+    
+    private func calculateRenderedMapSize(in geometry: GeometryProxy) -> CGSize {
+        let originalWidth: CGFloat = 2000
+        let originalHeight: CGFloat = 4519
+        let aspectRatio = originalWidth / originalHeight
+        
+        let availableWidth = geometry.size.width
+        let availableHeight = geometry.size.height
+        
+        if availableWidth / availableHeight > aspectRatio {
+            // Width is proportionally larger than height, so we're height-constrained
+            let height = availableHeight
+            let width = height * aspectRatio
+            return CGSize(width: width, height: height)
+        } else {
+            // Height is proportionally larger than width, so we're width-constrained
+            let width = availableWidth
+            let height = width / aspectRatio
+            return CGSize(width: width, height: height)
+        }
+    }
+    
     var body: some View {
         GeometryReader { containerGeometry in
             VStack(spacing: 0) {
@@ -413,7 +482,7 @@ struct MapContainerView<Content: View>: View {
                 let maxOffset = containerGeometry.size.height * 0.15  // ±10% is max shift
                 let defaultOffset = containerGeometry.size.height * -0.15  // always want 10% down if no dot
                 
-                let finalOffset: CGFloat = {
+                let baseOffset: CGFloat = {
                     if let circleY = circlePositionStore.circleY,
                        circlePositionStore.isDotVisible
                     {
@@ -426,70 +495,34 @@ struct MapContainerView<Content: View>: View {
                     }
                 }()
                 
+                let anchorPoint = calculateAnchorPoint(in: containerGeometry)
+                let zoomOffset = calculateZoomOffset(for: visualScale, in: containerGeometry, anchorPoint: anchorPoint)
+                let xAdjusted = zoomOffset.width * 0.65
+                
                 // Our actual scrollable content
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
                     content
                         .frame(width: containerGeometry.size.width,
                                height: mapHeight)
-                        .offset(y: finalOffset)
-                        .animation(.easeInOut(duration: 0.4), value: finalOffset)
+                        .offset(y: baseOffset)
+                        .scaleEffect(
+                            visualScale,
+                            anchor: anchorPoint
+                        )
+                        .offset(x: xAdjusted, y: zoomOffset.height)
+                        .animation(.easeInOut(duration: 0.4), value: baseOffset)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: visualScale)
                 }
                 .clipped()
                 
                 // The bottom toolbar (unchanged)
-                HStack {
-                    HStack(spacing: 8) {
-                        HStack(spacing: 0) {
-                            Button(action: { isSatelliteView.toggle() }) {
-                                HStack(spacing: 0) {
-                                    Image(systemName: "map.fill")
-                                        .frame(width: 44)
-                                        .foregroundColor(!isSatelliteView ? .black : .gray)
-                                        .scaleEffect(!isSatelliteView ? 1.1 : 1.0)
-                                    
-                                    Image(systemName: "globe.americas.fill")
-                                        .frame(width: 44)
-                                        .foregroundColor(isSatelliteView ? .black : .gray)
-                                        .scaleEffect(isSatelliteView ? 1.1 : 1.0)
-                                }
-                                .font(.system(size: 16, weight: .semibold))
-                                .frame(height: 32)
-                                .mapToolbarButton()
-                            }
-                        }
-                        
-                        Button(action: { hideNumbers.toggle() }) {
-                            Group {
-                                if hideNumbers {
-                                    Image(systemName: "number")
-                                } else {
-                                    Text("13")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .overlay(
-                                            Line()
-                                                .rotation(.degrees(90))
-                                                .stroke(appState.isDarkMode ? .white : .black, lineWidth: 2)
-                                                .frame(width: 15, height: 15)
-                                        )
-                                }
-                            }
-                            .frame(width: 32, height: 32)
-                            .mapToolbarButton(isActive: hideNumbers)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: { isFullScreen.toggle() }) {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.system(size: 16, weight: .medium))
-                            .frame(width: 32, height: 32)
-                            .mapToolbarButton()
-                    }
-                }
-                .frame(height: 44)
-                .padding(.horizontal, 16)
-                .toolbarBackground()
+                MapToolbar(
+                    isSatelliteView: $isSatelliteView,
+                    hideNumbers: $hideNumbers,
+                    isFullScreen: $isFullScreen,
+                    visualScale: $visualScale,
+                    targetScale: $targetScale
+                )
             }
             .background(appState.isDarkMode ? Color.black : .white)
             .clipShape(RoundedRectangle(cornerRadius: 15))
@@ -524,6 +557,210 @@ struct MapContainerView<Content: View>: View {
         .frame(height: UIScreen.main.bounds.height * 0.7)
     }
 }
+
+
+// New ScaleSlider component
+struct ScaleSlider: View {
+    @EnvironmentObject var appState: AppState
+    @Binding var value: CGFloat
+    @Binding var targetValue: CGFloat
+    
+    private let snapPoints: [CGFloat] = [1.0, 1.25, 1.5, 1.75, 2.0]
+    private let mainPoints: [CGFloat] = [1.0, 1.5, 2.0]
+    private let lightFeedback = UIImpactFeedbackGenerator(style: .light)
+    private let rigidFeedback = UIImpactFeedbackGenerator(style: .rigid)
+    
+    var body: some View {
+        GeometryReader { geometry in
+            // Container using mapToolbarButton style
+            RoundedRectangle(cornerRadius: 20)
+                .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.85))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            Color.gray.opacity(0.025)
+                        )
+                )
+                .overlay(
+                    ZStack(alignment: .leading) {
+                        // Timeline track - 15% darker
+                        Rectangle()
+                            .fill(appState.isDarkMode ? 
+                                Color.white.opacity(0.4) : // Increased from 0.25
+                                Color.black.opacity(0.25))  // Increased from 0.15
+                            .frame(height: 3)
+                            .padding(.horizontal, 16)
+                        
+                        // Main points (larger circles)
+                        HStack(spacing: (geometry.size.width - 32) / 2) {
+                            ForEach(0..<3) { i in
+                                Circle()
+                                    .fill(appState.isDarkMode ? Color.white.opacity(0.4) : Color.black.opacity(0.2))
+                                    .frame(width: 6, height: 6)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        
+                        // Tick marks (smaller lines)
+                        HStack(spacing: (geometry.size.width - 32) / 4) {
+                            ForEach(0..<5) { i in
+                                if i % 2 == 1 {
+                                    Rectangle()
+                                        .fill(appState.isDarkMode ? Color.white.opacity(0.3) : Color.black.opacity(0.15))
+                                        .frame(width: 2, height: 4)
+                                } else {
+                                    Color.clear
+                                        .frame(width: 2, height: 4)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        
+                        // Draggable circle - matching toolbar button style
+                        Circle()
+                            .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.90))
+                            .overlay(
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                                Color.white.opacity(0.0)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            )
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(appState.isDarkMode ? 0.5 : 0.1),
+                                                Color(white: 0.6).opacity(appState.isDarkMode ? 0.2 : 0.3)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .shadow(
+                                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                                radius: 8
+                            )
+                            .shadow(
+                                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.1),
+                                radius: 1
+                            )
+                            .frame(width: 35, height: 35)
+                            .overlay(
+                                Text("×\(String(format: "%.1f", value))")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                            )
+                            .offset(x: (geometry.size.width - 20) * (value - 1.0))  // Adjusted from -37 to -53 to account for padding
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { gesture in
+                                        let oldValue = value
+                                        let newValue = 1.0 + gesture.location.x / (geometry.size.width - 20)
+                                        value = max(1.0, min(2.0, newValue))
+                                        
+                                        // Haptic feedback when crossing snap points
+                                        if snapPoints.contains(where: { point in
+                                            (oldValue < point && newValue >= point) || 
+                                            (oldValue > point && newValue <= point)
+                                        }) {
+                                            lightFeedback.impactOccurred()
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            targetValue = snapPoints.min(by: { abs($0 - value) < abs($1 - value) }) ?? 1.0
+                                            value = targetValue
+                                            rigidFeedback.impactOccurred()
+                                        }
+                                    }
+                            )
+                    }
+                )
+        }
+        .frame(height: 15)  // Match the container height reduction
+    }
+}
+
+struct MapToolbar: View {
+    @EnvironmentObject var appState: AppState
+    @Binding var isSatelliteView: Bool
+    @Binding var hideNumbers: Bool
+    @Binding var isFullScreen: Bool
+    @Binding var visualScale: CGFloat
+    @Binding var targetScale: CGFloat
+    
+    var body: some View {
+        HStack {
+            HStack(spacing: 8) {
+                HStack(spacing: 0) {
+                    Button(action: { isSatelliteView.toggle() }) {
+                        HStack(spacing: 0) {
+                            Image(systemName: "map.fill")
+                                .frame(width: 44)
+                                .foregroundColor(!isSatelliteView ? .black : .gray)
+                                .scaleEffect(!isSatelliteView ? 1.1 : 1.0)
+                            
+                            Image(systemName: "globe.americas.fill")
+                                .frame(width: 44)
+                                .foregroundColor(isSatelliteView ? .black : .gray)
+                                .scaleEffect(isSatelliteView ? 1.1 : 1.0)
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(height: 32)
+                        .mapToolbarButton()
+                    }
+                }
+                
+                Button(action: { hideNumbers.toggle() }) {
+                    Group {
+                        if hideNumbers {
+                            Image(systemName: "number")
+                        } else {
+                            Text("13")
+                                .font(.system(size: 18, weight: .semibold))
+                                .overlay(
+                                    Line()
+                                        .rotation(.degrees(90))
+                                        .stroke(appState.isDarkMode ? .white : .black, lineWidth: 2)
+                                        .frame(width: 15, height: 15)
+                                )
+                        }
+                    }
+                    .frame(width: 32, height: 32)
+                    .mapToolbarButton(isActive: hideNumbers)
+                }
+            }
+            
+            Spacer()
+            
+            // Scale slider
+            ScaleSlider(value: $visualScale, targetValue: $targetScale)
+                .frame(width: 120, height: 15)  
+                .padding(.trailing, 4)
+            
+            Button(action: { isFullScreen.toggle() }) {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 32, height: 32)
+                    .mapToolbarButton()
+            }
+        }
+        .frame(height: 44)
+        .padding(.horizontal, 16)
+        .toolbarBackground()
+    }
+}
+
 
 // Add this struct for the diagonal line
 struct Line: Shape {
@@ -838,7 +1075,7 @@ struct MapBottomBar: View {
     }
     
     private var notVisitingContent: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 14) {
             Text("🗺️")
                 .font(.system(size: 44))
             
@@ -866,7 +1103,7 @@ struct MapBottomBar: View {
     }
 
     private var onTheWayContent: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 14) {
             Text("🚶‍♂️")
                 .font(.system(size: 44))
             
@@ -881,7 +1118,7 @@ struct MapBottomBar: View {
     }
     
     private var almostThereContent: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 14) {
             Text("🎯")
                 .font(.system(size: 44))
             

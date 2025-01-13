@@ -382,36 +382,24 @@ class LocationService: NSObject, ObservableObject {
             return
         }
         
-        // Filter valid structure points
-        let validPoints = mapPoints.filter { point in
-            point.structure > -1 && point.structure < 35
-        }
-        
-        // Calculate distances and sort
-        var structuresWithDistances = validPoints.map { point -> NearbyStructure in
+        let structuresWithDistances = structureToMapPointMapping.compactMap { (structureNumber, mapPointIndex) -> NearbyStructure? in
+            let arrayIndex = mapPointIndex - 1
+            guard arrayIndex >= 0, arrayIndex < mapPoints.count else { return nil }
+            
+            let point = mapPoints[arrayIndex]
             let pointLocation = CLLocation(
                 latitude: point.coordinate.latitude,
                 longitude: point.coordinate.longitude
             )
+            
             return NearbyStructure(
-                structureNumber: point.structure,
+                structureNumber: structureNumber,
                 distance: userLocation.distance(from: pointLocation),
                 mapPoint: point
             )
         }
         .sorted { $0.distance < $1.distance }
         
-        // Filter duplicates (keep closest instance of each structure)
-        var seenStructures = Set<Int>()
-        structuresWithDistances = structuresWithDistances.filter { structure in
-            guard !seenStructures.contains(structure.structureNumber) else {
-                return false
-            }
-            seenStructures.insert(structure.structureNumber)
-            return true
-        }
-        
-        // Take first 3
         nearbyStructures = Array(structuresWithDistances.prefix(3))
     }
     
