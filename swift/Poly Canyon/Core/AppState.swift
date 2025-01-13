@@ -37,22 +37,11 @@ class AppState: ObservableObject {
         }
     }
     
-    // Used to show rate structures popup once 
-    @Published var hasShownRateStructuresPopup: Bool {
-        didSet {
-            UserDefaults.standard.set(hasShownRateStructuresPopup, forKey: "hasShownRateStructuresPopup")
-        }
-    }
-
-    // Could use more for global popups 
-    
     // MARK: - Global Alert System
     @Published var activeAlert: AlertType?
     
     enum AlertType: Identifiable {
         case backgroundLocation
-        case rateStructures
-        case virtualWalkthrough
         case resetConfirmation(type: ResetType)
         case modePicker(currentMode: Bool)
         
@@ -64,8 +53,6 @@ class AppState: ObservableObject {
         var id: String {
             switch self {
             case .backgroundLocation: return "background"
-            case .rateStructures: return "rate"
-            case .virtualWalkthrough: return "walkthrough"
             case .resetConfirmation: return "reset"
             case .modePicker: return "mode"
             }
@@ -88,12 +75,18 @@ class AppState: ObservableObject {
         }
     }
 
+    @Published var hasVisitedCanyon: Bool {
+        didSet {
+            UserDefaults.standard.set(hasVisitedCanyon, forKey: "hasVisitedCanyon")
+        }
+    }
+
     init() {
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
-        self.hasShownRateStructuresPopup = UserDefaults.standard.bool(forKey: "hasShownRateStructuresPopup")
         self.hasShownBackgroundLocationAlert = UserDefaults.standard.bool(forKey: "hasShownBackgroundLocationAlert")
+        self.hasVisitedCanyon = UserDefaults.standard.bool(forKey: "hasVisitedCanyon")
     }
 
     func resetAllSettings() {
@@ -103,8 +96,8 @@ class AppState: ObservableObject {
         
         // Reinitialize defaults
         isDarkMode = false
+        hasVisitedCanyon = false
         adventureModeEnabled = false
         isOnboardingCompleted = false
-        hasShownRateStructuresPopup = false
     }
 }

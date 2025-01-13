@@ -1,29 +1,66 @@
-/*
- LocationService handles all location-related functionality including permissions, tracking, and geofencing.
- It manages location updates in both foreground and background modes, coordinates with Firebase for location
- logging, and provides location-based structure discovery. The service is available app-wide as a shared 
- singleton through environment objects (@EnvironmentObject) and closely coordinates with AppState and DataStore.
-*/
+//
+//  LocationService.swift
+//  PolyCanyon
+//
+//  Handles all location-related functionality including permissions, tracking, and geofencing.
+//  It manages location updates in both foreground and background modes, coordinates with Firebase
+//  for location logging, and provides location-based structure discovery. The service is available
+//  app-wide as a shared singleton through environment objects (@EnvironmentObject) and closely
+//  coordinates with AppState and DataStore.
+//
 
 import CoreLocation
 import FirebaseFirestore
 import Combine
 
+// MARK: - Notifications
+// These notifications can be used throughout the app to listen for location-related events.
 extension Notification.Name {
     static let structureVisited = Notification.Name("structureVisited")
 }
 
+// MARK: - Enums
+/// Represents the user's high-level state when in adventure mode, based on distance from the canyon.
+enum AdventureLocationState {
+    case notVisiting      // > 750m
+    case onTheWay         // 750m > x > 370m
+    case almostThere      // < 370m (background can start), not in canyon
+    case exploring        // Within canyon boundaries
+}
+
+/// Indicates what kind of location mode the user/app is in.
+enum LocationMode {
+    case initial
+    case virtualTour
+    case adventure
+}
+
+/// Indicates the state of location tracking (i.e., whether we allow background tracking).
+enum TrackingState {
+    case inactive
+    case inAppOnly
+    case background
+}
+
+// MARK: - LocationService (Main Class)
 class LocationService: NSObject, ObservableObject {
+    // MARK: - Singleton
     static let shared = LocationService()
     
     // MARK: - Dependencies
+    /// CoreLocation manager responsible for handling location updates.
     private let locationManager = CLLocationManager()
+    
+    /// Reference to Firestore for logging location updates.
     private lazy var firestoreRef: Firestore = {
         return Firestore.firestore()
     }()
+    
+    /// A set of AnyCancellable for Combine subscriptions if needed later.
     private var cancellables = Set<AnyCancellable>()
-
-    // Load MapPoints directly since they're fixed
+    
+    // MARK: - Map Points (Static Data)
+    /// Loaded at initialization, these are all the map points from `mapPoints.json`.
     public private(set) var mapPoints: [MapPoint] = {
         guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
               let data = try? Data(contentsOf: url),
@@ -34,35 +71,28 @@ class LocationService: NSObject, ObservableObject {
         return mapPointData.map { MapPoint(from: $0) }
     }()
     
-    // MARK: - Published States
+    // MARK: - Published States (For UI Binding)
     @Published private(set) var locationStatus: CLAuthorizationStatus?
     @Published private(set) var lastLocation: CLLocation?
     @Published private(set) var recommendedMode: Bool = false
     @Published private(set) var trackingState: TrackingState = .inactive
-    
-    // Computed states for UI
-    @Published private(set) var locationMessage: LocationMessage?
-    @Published private(set) var shouldShowLocationDot: Bool = false
-    
-    enum LocationMessage {
-        case needsPermission
-        case outOfRange
-        case nearby
-        case none
-    }
+    @Published private(set) var adventureLocationState: AdventureLocationState = .notVisiting
     
     // MARK: - Internal State
     private var locationMode: LocationMode = .initial
     private var permissionContinuation: CheckedContinuation<Bool, Never>?
     
+    /// The mode that is actually set for the user in the app (initial, virtualTour, adventure).
     @Published private(set) var currentMode: LocationMode = .initial
     
     // MARK: - Location Boundaries
+    /// The approximate center point of Poly Canyon used for distance calculations.
     private let centerPoint = CLLocationCoordinate2D(
         latitude: 35.31583,
         longitude: -120.65347
     )
     
+    /// Coordinates representing the bounding box for the canyon area.
     struct BoundaryCoordinates {
         static let topLeft = (latitude: 35.31658611111111, longitude: -120.6560599752971)
         static let topRight = (latitude: 35.31782413494509, longitude: -120.6541363709451)
@@ -70,15 +100,22 @@ class LocationService: NSObject, ObservableObject {
         static let bottomRight = (latitude: 35.31431, longitude: -120.65065)
     }
     
-    private let recommendationRadius: CLLocationDistance = 28280 // SLO City Boundaries
-    private let backgroundRadius: CLLocationDistance = 370 // Walking path bench spot
+    /// Radius for recommending adventure mode (~30 miles).
+    private let recommendationRadius: CLLocationDistance = 28280
     
-    // Add cached point and last check time
+    /// Radius for enabling background updates (~370 meters).
+    private let backgroundRadius: CLLocationDistance = 370
+    
+    /// Custom outer boundary (~750 meters).
+    private let outerRadius: CLLocationDistance = 750
+    
+    // MARK: - Caching & Intervals
     private var lastMapPointCheck: Date?
     private var cachedNearestPoint: MapPoint?
     private let mapPointCheckInterval: TimeInterval = 1.0 // 1 second
     
-    // Used for virtual tour map points
+    // MARK: - Mapping Structures to Map Points
+    /// Maps each structure number to the index of its corresponding map point (minus 1 for the array index).
     private let structureToMapPointMapping: [Int: Int] = [
         1: 1,
         2: 3,
@@ -113,6 +150,21 @@ class LocationService: NSObject, ObservableObject {
         31: 197
     ]
     
+    // MARK: - Nearby Structures
+    struct NearbyStructure: Identifiable, Equatable {
+        let id = UUID()
+        let structureNumber: Int
+        let distance: CLLocationDistance
+        let mapPoint: MapPoint
+        
+        static func == (lhs: NearbyStructure, rhs: NearbyStructure) -> Bool {
+            return lhs.structureNumber == rhs.structureNumber
+        }
+    }
+    
+    // Add with other published properties
+    @Published private(set) var nearbyStructures: [NearbyStructure] = []
+    
     // MARK: - Initialization
     private override init() {
         super.init()
@@ -120,12 +172,13 @@ class LocationService: NSObject, ObservableObject {
         setupLocationManager()
     }
     
-    // Pull in app state and data store, to use them in the service
+    /// Call this once the rest of the app is set up (e.g., from AppState) to finalize configs if needed.
     func configure() {
         print("📱 LocationService configured")
     }
     
     // MARK: - Setup
+    /// Configure the location manager with desired accuracy, delegate, etc.
     private func setupLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -133,8 +186,8 @@ class LocationService: NSObject, ObservableObject {
         locationManager.pausesLocationUpdatesAutomatically = false
     }
     
-    // MARK: - Public Permission Interface
-    // Done in onboarding first time
+    // MARK: - Permission Logic
+    /// Requests the user’s initial when-in-use permission (usually during onboarding).
     func requestInitialPermission() async -> Bool {
         return await withCheckedContinuation { continuation in
             self.permissionContinuation = continuation
@@ -145,11 +198,12 @@ class LocationService: NSObject, ObservableObject {
         }
     }
     
+    /// Request "always" authorization for background tracking if needed.
     func requestAlwaysAuthorization() {
         locationManager.requestAlwaysAuthorization()
     }
     
-    /// Switch to specified mode and handle permission upgrades
+    /// Switch to a specified mode (adventure or virtualTour, etc.) and handle permission upgrades.
     func setMode(_ mode: LocationMode) {
         print("📱 Setting LocationService mode to: \(mode)")
         currentMode = mode
@@ -165,12 +219,10 @@ class LocationService: NSObject, ObservableObject {
         }
     }
     
-    // Make this private since setMode handles the public interface
+    /// Internal helper for requesting location permission based on mode.
     private func requestLocationPermission(for mode: LocationMode) {
         switch mode {
-        case .adventure:
-            locationManager.requestWhenInUseAuthorization()
-        case .virtualTour:
+        case .adventure, .virtualTour:
             locationManager.requestWhenInUseAuthorization()
         case .initial:
             break
@@ -178,18 +230,20 @@ class LocationService: NSObject, ObservableObject {
     }
     
     // MARK: - Location Updates Control
+    /// Start tracking location updates (foreground).
     private func startLocationUpdates() {
         locationManager.startUpdatingLocation()
         updateTrackingState()
     }
     
+    /// Stop all location updates.
     private func stopLocationUpdates() {
         locationManager.stopUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = false
         trackingState = .inactive
     }
     
-    // Update tracking if within background range
+    /// Check if we should enable background location updates, then update tracking state.
     private func updateTrackingState() {
         guard currentMode == .adventure,
               let location = lastLocation else {
@@ -202,17 +256,50 @@ class LocationService: NSObject, ObservableObject {
         } else {
             disableBackgroundTracking()
         }
-        
-        // Update location message whenever tracking state changes
-        updateLocationMessage()
     }
     
-    // For onboarding recommendation only
+    // MARK: - Tracking Logic
+    /// Called whenever the user toggles adventure mode on/off.
+    func handleAdventureModeChange(_ isEnabled: Bool) {
+        print("📱 Handling adventure mode change: \(isEnabled)")
+        if isEnabled {
+            startLocationUpdates()
+        } else {
+            stopLocationUpdates()
+        }
+    }
+    
+    /// Update the user’s `adventureLocationState` (e.g., notVisiting, onTheWay, almostThere, exploring).
+    private func updateAdventureState(_ location: CLLocation) {
+        guard currentMode == .adventure else { return }
+        
+        let distance = location.distance(
+            from: CLLocation(latitude: centerPoint.latitude,
+                             longitude: centerPoint.longitude)
+        )
+        
+        if isWithinCanyon(location) {
+            adventureLocationState = .exploring
+        } else if isWithinBackgroundRange(location) {
+            // < 370m
+            adventureLocationState = .almostThere
+        } else if distance <= outerRadius {
+            // < 750m
+            adventureLocationState = .onTheWay
+        } else {
+            adventureLocationState = .notVisiting
+        }
+        
+        print("📍 ADVENTURE STATE: \(adventureLocationState)")
+    }
+    
+    // MARK: - Public Methods
+    /// Returns true if the user is within the "recommendationRadius" of the canyon center.
     func getRecommendedMode(_ location: CLLocation) -> Bool {
         return isWithinRecommendationRange(location)
     }
     
-    // Distance between point & structures
+    /// Returns the distance from the user's last location to a specific structure.
     func getDistance(to structure: Structure) -> CLLocationDistance {
         guard let userLocation = lastLocation,
               let structurePoint = mapPoints.first(where: { $0.structure == structure.number }) else {
@@ -226,19 +313,23 @@ class LocationService: NSObject, ObservableObject {
         return userLocation.distance(from: structureLocation)
     }
     
+    /// Checks if the user’s permission is outright denied or restricted.
     var isLocationPermissionDenied: Bool {
         return locationStatus == .denied || locationStatus == .restricted
     }
     
+    /// Checks if the user has at least `authorizedWhenInUse`.
     var hasLocationPermission: Bool {
         return locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
     }
     
+    /// Determines if the user can actually use location inside the canyon.
     var canUseLocation: Bool {
         guard let location = lastLocation else { return false }
         return hasLocationPermission && isWithinCanyon(location)
     }
     
+    /// Checks if the user is within the "backgroundRadius" but **not** in the canyon.
     var isNearby: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
@@ -251,7 +342,7 @@ class LocationService: NSObject, ObservableObject {
         return inRange && notInCanyon
     }
     
-    // Status checks for map messages
+    /// Checks if the user is "out of range" (> 370m) in adventure mode.
     var isOutOfRange: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
@@ -263,6 +354,7 @@ class LocationService: NSObject, ObservableObject {
         return result
     }
     
+    /// Checks if the user is within the canyon bounding box.
     var isInPolyCanyonArea: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
@@ -274,18 +366,7 @@ class LocationService: NSObject, ObservableObject {
         return result
     }
     
-    // Add this public method
-    func handleAdventureModeChange(_ isEnabled: Bool) {
-        print("📱 Handling adventure mode change: \(isEnabled)")
-        if isEnabled {
-            startLocationUpdates()
-        } else {
-            stopLocationUpdates()
-        }
-        updateLocationMessage()
-    }
-    
-    // Add this new function
+    /// Retrieves a `MapPoint` for a given structure number (if available).
     func getMapPointForStructure(_ structureNumber: Int) -> MapPoint? {
         guard let mapPointIndex = structureToMapPointMapping[structureNumber] else { return nil }
         // Subtract 1 since array is 0-based but our mapping is 1-based
@@ -293,31 +374,92 @@ class LocationService: NSObject, ObservableObject {
         guard arrayIndex >= 0 && arrayIndex < mapPoints.count else { return nil }
         return mapPoints[arrayIndex]
     }
+    
+    /// Returns the 3 closest structures to the user's current location
+    func updateNearbyStructures() {
+        guard let userLocation = lastLocation else {
+            nearbyStructures = []
+            return
+        }
+        
+        // Filter valid structure points
+        let validPoints = mapPoints.filter { point in
+            point.structure > -1 && point.structure < 35
+        }
+        
+        // Calculate distances and sort
+        var structuresWithDistances = validPoints.map { point -> NearbyStructure in
+            let pointLocation = CLLocation(
+                latitude: point.coordinate.latitude,
+                longitude: point.coordinate.longitude
+            )
+            return NearbyStructure(
+                structureNumber: point.structure,
+                distance: userLocation.distance(from: pointLocation),
+                mapPoint: point
+            )
+        }
+        .sorted { $0.distance < $1.distance }
+        
+        // Filter duplicates (keep closest instance of each structure)
+        var seenStructures = Set<Int>()
+        structuresWithDistances = structuresWithDistances.filter { structure in
+            guard !seenStructures.contains(structure.structureNumber) else {
+                return false
+            }
+            seenStructures.insert(structure.structureNumber)
+            return true
+        }
+        
+        // Take first 3
+        nearbyStructures = Array(structuresWithDistances.prefix(3))
+    }
+    
+    // MARK: - Private Helpers
+    /// Enable background location updates.
+    private func enableBackgroundTracking() {
+        locationManager.allowsBackgroundLocationUpdates = true
+        trackingState = .background
+    }
+    
+    /// Disable background location updates.
+    private func disableBackgroundTracking() {
+        locationManager.allowsBackgroundLocationUpdates = false
+        trackingState = .inAppOnly
+    }
+    
+    /// Log location to Firebase, attaching the nearest map point.
+    private func logLocationToFirebase(location: CLLocation) {
+        guard let nearestPoint = findNearestMapPoint(to: location.coordinate) else { return }
+        
+        let locationData: [String: Any] = [
+            "latitude": nearestPoint.coordinate.latitude,
+            "longitude": nearestPoint.coordinate.longitude,
+            "timestamp": Timestamp(date: Date()),
+            "userId": UserDefaults.standard.string(forKey: "localUserID") ?? UUID().uuidString
+        ]
+        
+        firestoreRef.collection("user_locations").addDocument(data: locationData)
+    }
 }
 
-// MARK: - Location Checks
+// MARK: - Location Checks (Extension)
 extension LocationService {
-    // Check if within 30 miles of center point
+    /// Check if within ~30 miles of the center point to recommend adventure mode.
     func isWithinRecommendationRange(_ location: CLLocation) -> Bool {
-        let centerLocation = CLLocation(
-            latitude: centerPoint.latitude,
-            longitude: centerPoint.longitude
-        )
+        let centerLocation = CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         return location.distance(from: centerLocation) <= recommendationRadius
     }
-
-    // Check if within 1 mile of center point
+    
+    /// Check if within ~370 meters of the center point to enable background updates.
     func isWithinBackgroundRange(_ location: CLLocation) -> Bool {
-        let centerLocation = CLLocation(
-            latitude: centerPoint.latitude,
-            longitude: centerPoint.longitude
-        )
+        let centerLocation = CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         let distance = location.distance(from: centerLocation)
         print("📍 BACKGROUND RANGE CHECK: Distance \(distance) vs Limit \(backgroundRadius)")
         return distance <= backgroundRadius
     }
-
-    // Find nearest map point to user
+    
+    /// Find the nearest `MapPoint` to a given coordinate. Caches results to avoid frequent lookups.
     func findNearestMapPoint(to coordinate: CLLocationCoordinate2D) -> MapPoint? {
         let now = Date()
         
@@ -327,7 +469,7 @@ extension LocationService {
             return cachedNearestPoint
         }
         
-        // Otherwise recalculate
+        // Otherwise, recalculate
         guard !mapPoints.isEmpty else { return nil }
         
         var closestPoint: MapPoint?
@@ -354,23 +496,20 @@ extension LocationService {
         return closestPoint
     }
     
-    // Check if within canyon boundaries
+    /// Check if a coordinate is within the bounding box of the canyon.
     func isWithinCanyon(coordinate: CLLocationCoordinate2D) -> Bool {
-        let minLatitude  = BoundaryCoordinates.bottomLeft.latitude        // 35.31307
-        let maxLatitude  = BoundaryCoordinates.topRight.latitude          // 35.317824...
-        let minLongitude = BoundaryCoordinates.topLeft.longitude          // -120.656...
-        let maxLongitude = BoundaryCoordinates.bottomRight.longitude      // -120.65065
-
-        let isWithinLatitude = (coordinate.latitude >= minLatitude &&
-                            coordinate.latitude <= maxLatitude)
-
-        let isWithinLongitude = (coordinate.longitude >= minLongitude &&
-                             coordinate.longitude <= maxLongitude)
-
+        let minLatitude  = BoundaryCoordinates.bottomLeft.latitude
+        let maxLatitude  = BoundaryCoordinates.topRight.latitude
+        let minLongitude = BoundaryCoordinates.topLeft.longitude
+        let maxLongitude = BoundaryCoordinates.bottomRight.longitude
+        
+        let isWithinLatitude = (coordinate.latitude >= minLatitude && coordinate.latitude <= maxLatitude)
+        let isWithinLongitude = (coordinate.longitude >= minLongitude && coordinate.longitude <= maxLongitude)
+        
         return isWithinLatitude && isWithinLongitude
     }
     
-    // Update the CLLocation version to use new function
+    /// Convenience for `isWithinCanyon(coordinate:)` but takes a `CLLocation`.
     func isWithinCanyon(_ location: CLLocation) -> Bool {
         let result = isWithinCanyon(coordinate: location.coordinate)
         print("📍 CANYON CHECK: \(result)")
@@ -378,8 +517,9 @@ extension LocationService {
     }
 }
 
-// MARK: - CLLocationManagerDelegate
+// MARK: - CLLocationManagerDelegate (Extension)
 extension LocationService: CLLocationManagerDelegate {
+    /// Called when the authorization status changes (e.g., user grants or denies permission).
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         locationStatus = manager.authorizationStatus
         
@@ -406,6 +546,7 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
     
+    /// Called whenever there are new location updates from CoreLocation.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         print("📍 LOCATION UPDATE: \(location.coordinate)")
@@ -424,15 +565,19 @@ extension LocationService: CLLocationManagerDelegate {
         
         guard currentMode == .adventure else { return }
         
+        // Update state before other checks
+        updateAdventureState(location)
         updateTrackingState()
         
+        // If we’re actually within the canyon, log the user and check for structures.
         if isWithinCanyon(location) {
             logLocationToFirebase(location: location)
             checkForNearbyStructures(at: location)
+            updateNearbyStructures()
         }
     }
     
-    // If within safe zone, log location to firebase and check for nearby structures
+    /// Check for the nearest structure and post a notification if the user is close enough.
     private func checkForNearbyStructures(at location: CLLocation) {
         if let nearestPoint = findNearestMapPoint(to: location.coordinate),
            nearestPoint.structure != -1 {  // Only notify for valid structure points
@@ -444,79 +589,3 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
 }
-
-// MARK: - Private Helpers
-private extension LocationService {
-    // Enable background tracking
-    func enableBackgroundTracking() {
-        locationManager.allowsBackgroundLocationUpdates = true
-        trackingState = .background
-    }
-    
-    // Disable background tracking
-    func disableBackgroundTracking() {
-        locationManager.allowsBackgroundLocationUpdates = false
-        trackingState = .inAppOnly
-    }
-    
-    // Log location to firebase
-    func logLocationToFirebase(location: CLLocation) {
-        guard let nearestPoint = findNearestMapPoint(to: location.coordinate) else { return }
-        
-        let locationData: [String: Any] = [
-            "latitude": nearestPoint.coordinate.latitude,
-            "longitude": nearestPoint.coordinate.longitude,
-            "timestamp": Timestamp(date: Date()),
-            "userId": UserDefaults.standard.string(forKey: "localUserID") ?? UUID().uuidString
-        ]
-        
-        firestoreRef.collection("user_locations").addDocument(data: locationData)
-    }
-    
-    private func updateLocationMessage() {
-        if isLocationPermissionDenied {
-            locationMessage = .needsPermission
-        } else if isOutOfRange {
-            locationMessage = .outOfRange
-        } else if isNearby {
-            locationMessage = .nearby
-        } else {
-            locationMessage = LocationMessage.none
-        }
-    }
-}
-
-// MARK: - Enums
-enum LocationMode {
-    case initial
-    case virtualTour
-    case adventure
-}
-
-enum TrackingState {
-    case inactive
-    case inAppOnly
-    case background
-}
-
-extension Array {
-    func binarySearch(_ isOrderedBefore: (Element) -> ComparisonResult) -> Int {
-        var lowerBound = 0
-        var upperBound = count
-        
-        while lowerBound < upperBound {
-            let midIndex = (lowerBound + upperBound) / 2
-            switch isOrderedBefore(self[midIndex]) {
-            case .orderedAscending:
-                lowerBound = midIndex + 1
-            case .orderedDescending:
-                upperBound = midIndex
-            case .orderedSame:
-                return midIndex
-            }
-        }
-        
-        return lowerBound
-    }
-}
-

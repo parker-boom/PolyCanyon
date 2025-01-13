@@ -222,80 +222,99 @@ struct VirtualWalkThroughBar: View {
     
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 16) {
-                // Previous button
-                Button(action: onPrevious) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .bold))
-                        .frame(width: 42, height: 42)
-                        .glassButton()
-                }
-                
-                // Structure info (tappable)
-                Button(action: onTap) {
-                    HStack(spacing: 14) {
-                        // Image with overlaid number
-                        Image(structure.images[0])
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 65, height: 65)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(
-                                Text("#\(structure.number)")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .shadow(color: .black, radius: 2, x: 0, y: 0)
-                                    .shadow(color: .white.opacity(0.3), radius: 1, x: 0, y: 0),
-                                alignment: .bottomTrailing
+            // Single container with glass effect
+            RoundedRectangle(cornerRadius: 15)
+                .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.93))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                    Color.white.opacity(0.0)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
+                        )
+                )
+                .overlay(
+                    // Content overlay
+                    HStack(spacing: 16) {
+                        // Previous button
+                        Button(action: onPrevious) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .black))
+                                .frame(width: 36, height: 36)
+                                .foregroundColor(appState.isDarkMode ? .white : .black)
+                        }
                         
-                        Text(structure.title)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(appState.isDarkMode ? .white : .black)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(maxWidth: geometry.size.width - 116) // Account for smaller buttons (42*2) and spacing (16*2)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(appState.isDarkMode ? Color.black.opacity(0.7) : Color(white: 0.93))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
-                                                Color.white.opacity(0.0)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
+                        // Structure info (tappable)
+                        Button(action: onTap) {
+                            HStack(spacing: 14) {
+                                // Image with overlaid number
+                                Image(structure.images[0])
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 75, height: 75)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .overlay(
+                                        Text("#\(structure.number)")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(6)
+                                            .shadow(color: .black, radius: 2)
+                                            .shadow(color: .white.opacity(0.3), radius: 1),
+                                        alignment: .bottomTrailing
                                     )
-                            )
-                    )
-                    .shadow(
-                        color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
-                        radius: 4,
-                        x: 0,
-                        y: 4
-                    )
-                }
-                
-                // Next button
-                Button(action: onNext) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .bold))
-                        .frame(width: 42, height: 42)
-                        .glassButton()
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: geometry.size.height)
+                                
+                                Text(structure.title)
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        
+                        // Next button
+                        Button(action: onNext) {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 18, weight: .black))
+                                .frame(width: 36, height: 36)
+                                .foregroundColor(appState.isDarkMode ? .white : .black)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                    Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.2
+                        )
+                )
+                .shadow(
+                    color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                    radius: 10,
+                    x: 0,
+                    y: 4
+                )
+                .shadow(
+                    color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.15),
+                    radius: 2,
+                    x: 0,
+                    y: 1
+                )
         }
+        .frame(maxHeight: .infinity)
     }
 }
 
@@ -676,100 +695,19 @@ struct MapBottomBar: View {
         }
     }
     
-    private var virtualTourInactiveContent: some View {
-        HStack(spacing: 10) {
-            Text("🚶‍♂️")
-                .font(.system(size: 44))
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Take a Virtual Tour")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(appState.isDarkMode ? .white : .black)
-                
-                Text("Walk through and learn about each structure")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.7))
-            }
-            
-            Spacer()
-            
-            // Simpler glass circle button
-            Circle()
-                .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
-                .frame(width: 45, height: 45)
-                .overlay(
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 18, weight: .black))
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                )
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .contentShape(Rectangle())
-        .onTapGesture {
-                isVirtualWalkthroughActive.toggle()
-                //updateCurrentMapPoint()  
-
-        }
-    }
-    
     var body: some View {
         GeometryReader { geometry in
-            if !appState.adventureModeEnabled {
-                if isVirtualWalkthroughActive {
-                    VirtualWalkThroughBar(
-                        structure: dataStore.structures[currentStructureIndex],
-                        onNext: moveToNextStructure,
-                        onPrevious: moveToPreviousStructure,
-                        onTap: {
-                            // We'll handle structure info popup next
-                        }
-                    )
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                } else {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(
-                            appState.isDarkMode ? 
-                            Color.black.opacity(0.7) :
-                            Color(white: 0.93)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
-                                            Color.white.opacity(0.0)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
-                                            Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1.2
-                                )
-                        )
-                        .shadow(
-                            color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
-                            radius: 10,
-                            x: 0,
-                            y: 4
-                        )
-                        .overlay(virtualTourInactiveContent)
-                }
+            if isVirtualWalkthroughActive {
+                VirtualWalkThroughBar(
+                    structure: dataStore.structures[currentStructureIndex],
+                    onNext: moveToNextStructure,
+                    onPrevious: moveToPreviousStructure,
+                    onTap: {
+                        // We'll handle structure info popup next
+                    }
+                )
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
             } else {
-                // Adventure mode content
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
                         appState.isDarkMode ? 
@@ -809,8 +747,217 @@ struct MapBottomBar: View {
                         x: 0,
                         y: 4
                     )
-                    .overlay(Text("Adventure Mode"))
+                    .overlay(
+                        Group { 
+                            if !appState.adventureModeEnabled {
+                                virtualTourInactiveContent
+                            } else {
+                                switch locationService.adventureLocationState {
+                                case .notVisiting:
+                                    notVisitingContent
+                                case .onTheWay:
+                                    onTheWayContent
+                                case .almostThere:
+                                    almostThereContent
+                                case .exploring:
+                                    if locationService.isLocationPermissionDenied {
+                                        permissionDeniedContent
+                                    } else {
+                                        nearbyStructuresContent
+                                    }
+                                }
+                            }
+                        }
+                    )
             }
         }
     }
+    
+    private var virtualTourInactiveContent: some View {
+        HStack(spacing: 10) {
+            Text("🚶‍♂️")
+                .font(.system(size: 44))
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Take a Virtual Tour")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Text("Walk through and learn about each structure")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.7))
+            }
+            
+            Spacer()
+            
+            Circle()
+                .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
+                .frame(width: 45, height: 45)
+                .overlay(
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                )
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isVirtualWalkthroughActive.toggle()
+        }
+    }
+
+    private var permissionDeniedContent: some View {
+        HStack(spacing: 10) {
+            Text("😕")
+                .font(.system(size: 44))
+            
+            Text("Location access needed for live map")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            Spacer()
+            
+            Circle()
+                .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
+                .frame(width: 45, height: 45)
+                .overlay(
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                )
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+    
+    private var notVisitingContent: some View {
+        HStack(spacing: 10) {
+            Text("🗺️")
+                .font(.system(size: 44))
+            
+            Text("Explore virtually before you visit?")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            Spacer()
+            
+            Circle()
+                .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
+                .frame(width: 45, height: 45)
+                .overlay(
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                )
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isVirtualWalkthroughActive.toggle()
+        }
+    }
+
+    private var onTheWayContent: some View {
+        HStack(spacing: 10) {
+            Text("🚶‍♂️")
+                .font(.system(size: 44))
+            
+            Text("On your way? We're getting everything ready!")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+    }
+    
+    private var almostThereContent: some View {
+        HStack(spacing: 10) {
+            Text("🎯")
+                .font(.system(size: 44))
+            
+            Text("Almost there! Your live location will appear soon")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+    }
+    
+    private var nearbyStructuresContent: some View {
+    HStack(spacing: 12) {
+        // Two-line title with different emphasis
+        (Text("Nearby")
+            .font(.system(size: 24, weight: .bold))
+            + Text("\nStructures")
+            .font(.system(size: 20, weight: .medium))
+        )
+        .foregroundColor(appState.isDarkMode ? .white : .black)
+        .multilineTextAlignment(.leading)
+        .frame(width: 100, alignment: .leading)
+        
+        // Structure thumbnails
+        HStack(spacing: 10) {
+            ForEach(locationService.nearbyStructures) { nearby in
+                if let structure = dataStore.structures.first(where: { $0.number == nearby.structureNumber }) {
+                    Button {
+                        // Handle structure selection (we can add this later)
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(structure.images[0])
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(
+                                    width: locationService.nearbyStructures.firstIndex(of: nearby) == 0 ? 75 :
+                                        locationService.nearbyStructures.firstIndex(of: nearby) == 2 ? 55 : 65,
+                                    height: locationService.nearbyStructures.firstIndex(of: nearby) == 0 ? 75 :
+                                            locationService.nearbyStructures.firstIndex(of: nearby) == 2 ? 55 : 65
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                .overlay(
+                                    Text("#\(structure.number)")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(6)
+                                        .shadow(color: .black, radius: 2)
+                                        .shadow(color: .white.opacity(0.3), radius: 1),
+                                    alignment: .bottomTrailing
+                                )
+                            
+                            // Visit status indicators
+                            if structure.isVisited {
+                                if structure.isOpened {
+                                    Image("Check")
+                                        .resizable()
+                                        .frame(width: 10, height: 10)
+                                        .padding(6)
+                                } else {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.7))
+                                        .frame(width: 8, height: 8)
+                                        .shadow(color: .white.opacity(1), radius: 1)
+                                        .padding(6)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 16)
+}
 }

@@ -222,3 +222,200 @@ private struct ModeOption: View {
         )
     }
 }
+
+struct WelcomeToCanyonAlert: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.6)
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    appState.hasVisitedCanyon = true
+                }
+            
+            // Alert content
+            VStack(spacing: 28) {
+                // Header
+                HStack(spacing: 20) {
+                    Image("Icon")
+                        .resizable()
+                        .frame(width: 55, height: 55)
+                        .cornerRadius(12)
+                    
+                    VStack(alignment: .leading) {
+                        Text("Welcome to")
+                            .font(.system(size: 18))
+                        Text("Poly Canyon!")
+                            .font(.system(size: 24, weight: .bold))
+                    }
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                }
+                
+                // Bullet points in glass containers
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach([
+                        (emoji: "📍", text: "See yourself on the map"),
+                        (emoji: "✅", text: "Auto-track visited spots"),
+                        (emoji: "👆", text: "Double tap to zoom in")
+                    ], id: \.text) { bullet in
+                        HStack(spacing: 14) {
+                            Text(bullet.emoji)
+                                .font(.system(size: 24))
+                            Text(bullet.text)
+                                .font(.system(size: 16, weight: .semibold))
+                            Spacer()
+                        }
+                        .frame(width: 260)  // Fixed width for all bullets
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(appState.isDarkMode ?
+                                    Color(white: 0.15) :  // Solid dark gray
+                                    Color(white: 0.97)    // Solid light gray
+                                )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(appState.isDarkMode ? 0.2 : 0.5),
+                                            Color.white.opacity(0.0)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                    }
+                }
+                
+                // Action button
+                Button {
+                    appState.hasVisitedCanyon = true
+                } label: {
+                    Text("Get Exploring")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 160)
+                        .padding(.vertical, 14)
+                        .background(Color(hex: "59903e"))
+                        .cornerRadius(14)
+                        .shadow(color: Color(hex: "59903e").opacity(0.3), radius: 8, y: 4)
+                }
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(appState.isDarkMode ?
+                        Color(white: 0.1) :     // Solid dark background
+                        Color(white: 0.95)       // Solid light background
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(appState.isDarkMode ? 0.07 : 0.7),
+                                        Color.white.opacity(0.0)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(appState.isDarkMode ? 0.3 : 0.6),
+                                Color.white.opacity(0.0)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.2
+                    )
+            )
+            .shadow(color: .black.opacity(0.15), radius: 20)
+            .padding(30)
+        }
+    }
+}
+
+// Helper for hex colors
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
+#Preview {
+    ZStack {
+        // Simulate main app background
+        Color.gray.opacity(0.2)
+            .ignoresSafeArea()
+        
+        // Simulate some app content
+        VStack {
+            Text("Map View")
+                .font(.largeTitle)
+            Spacer()
+        }
+        
+        // Our alert
+        WelcomeToCanyonAlert()
+    }
+    .environmentObject({
+        let state = AppState()
+        state.isDarkMode = false
+        return state
+    }())
+}
+
+#Preview("Dark Mode") {
+    ZStack {
+        Color.black
+            .ignoresSafeArea()
+        
+        VStack {
+            Text("Map View")
+                .font(.largeTitle)
+                .foregroundColor(.white)
+            Spacer()
+        }
+        
+        WelcomeToCanyonAlert()
+    }
+    .environmentObject({
+        let state = AppState()
+        state.isDarkMode = true
+        return state
+    }())
+}

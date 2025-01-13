@@ -5,6 +5,7 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var locationService: LocationService
     @State private var selectedTab = 0
     
     var body: some View {
@@ -52,6 +53,10 @@ struct MainView: View {
             if let alert = appState.activeAlert {
                 AlertContainer(alert: alert)
             }
+            
+            if locationService.isInPolyCanyonArea && !appState.hasVisitedCanyon {
+                WelcomeToCanyonAlert()
+            }
         }
     }
     
@@ -93,50 +98,14 @@ private struct AlertContainer: View {
                 isPresented: .constant(true)
             )
             
-        case .rateStructures:
-            CustomAlert(
-                icon: "heart.fill",
-                iconColor: .red,
-                title: "Rate Structures",
-                subtitle: "Swipe through and rate the structures to customize your experience!",
-                primaryButton: .init(title: "Start Rating") {
-                    appState.hasShownRateStructuresPopup = true
-                    // Need to handle showing StructureSwipingView
-                    appState.dismissAlert()
-                },
-                secondaryButton: .init(title: "Maybe Later") {
-                    appState.hasShownRateStructuresPopup = true
-                    appState.dismissAlert()
-                },
-                isPresented: .constant(true)
-            )
-            
-        case .virtualWalkthrough:
-            CustomAlert(
-                icon: "figure.walk",
-                iconColor: .blue,
-                title: "Virtual Walkthrough",
-                subtitle: "Go through each structure as if you were there in person.",
-                primaryButton: .init(title: "Start Walkthrough") {
-                    UserDefaults.standard.set(true, forKey: "hasShownVirtualWalkthroughPopup")
-                    // Need to handle activating walkthrough
-                    appState.dismissAlert()
-                },
-                secondaryButton: .init(title: "Maybe Later") {
-                    UserDefaults.standard.set(true, forKey: "hasShownVirtualWalkthroughPopup")
-                    appState.dismissAlert()
-                },
-                isPresented: .constant(true)
-            )
-            
         case .resetConfirmation(let type):
             CustomAlert(
                 icon: type == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
                 iconColor: type == .structures ? .orange : .red,
                 title: type == .structures ? "Reset Visited Structures" : "Reset Favorites",
-                subtitle: type == .structures 
-                    ? "Are you sure you want to reset all visited structures? This action cannot be undone."
-                    : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
+                subtitle: type == .structures
+                ? "Are you sure you want to reset all visited structures? This action cannot be undone."
+                : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
                 primaryButton: .init(title: "Reset") {
                     dataStore.resetStructures()
                     appState.dismissAlert()
