@@ -9,12 +9,9 @@ struct MapWithLocationDot: View {
     
     // MARK: - Map Properties
     let mapImage: String
-    let isSatelliteView: Bool
     let geometry: GeometryProxy
     
     // Virtual Tour (not strictly changed here)
-    let isVirtualWalkthroughActive: Bool
-    let currentStructureIndex: Int
     let currentWalkthroughMapPoint: MapPoint?
     
     // ADDED: We bring in the CirclePositionStore
@@ -26,7 +23,7 @@ struct MapWithLocationDot: View {
     
     // Show location dot only in adventure mode within range
     private var showPulsingCircle: Bool {
-        if isVirtualWalkthroughActive {
+        if appState.isVirtualWalkthrough {
             return currentWalkthroughMapPoint != nil
         } else {
             guard appState.adventureModeEnabled else { return false }
@@ -38,7 +35,7 @@ struct MapWithLocationDot: View {
     var body: some View {
         ZStack {
             // Background layer
-            MapBackgroundLayer(isDarkMode: appState.isDarkMode, isSatelliteView: isSatelliteView)
+            MapBackgroundLayer()
             .scaleEffect(1.2)
 
             // Base map layer
@@ -52,7 +49,7 @@ struct MapWithLocationDot: View {
             if showPulsingCircle {
                 PulsingCircle()
                     .position(circlePosition())
-                    .shadow(color: isSatelliteView ? .white.opacity(0.8) : .black.opacity(0.8),
+                    .shadow(color: appState.mapIsSatellite ? .white.opacity(0.8) : .black.opacity(0.8),
                             radius: 4, x: 0, y: 0)
                     .onAppear {
                         circlePositionStore.isDotVisible = true
@@ -74,7 +71,7 @@ struct MapWithLocationDot: View {
         // We'll compute the dot position as before:
         let pos: CGPoint
         
-        if isVirtualWalkthroughActive, let walkPoint = currentWalkthroughMapPoint {
+        if appState.isVirtualWalkthrough, let walkPoint = currentWalkthroughMapPoint {
             let renderedSize = calculateRenderedMapSize()
             let scaleX = renderedSize.width / originalWidth
             let scaleY = renderedSize.height / originalHeight
@@ -166,15 +163,14 @@ struct PulsingCircle: View {
 }
 
 struct MapBackgroundLayer: View {
-    let isDarkMode: Bool
-    let isSatelliteView: Bool
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
         ZStack {
-            Color(isDarkMode ? .black : .white)
+            Color(appState.isDarkMode ? .black : .white)
                 .ignoresSafeArea(.container, edges: .top)
             
-            if isSatelliteView {
+            if appState.mapIsSatellite {
                 Image("BlurredBG")
                     .resizable()
                     .edgesIgnoringSafeArea(.all)

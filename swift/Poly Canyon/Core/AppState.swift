@@ -84,12 +84,92 @@ class AppState: ObservableObject {
         }
     }
 
+    // MARK: - Map Settings
+    @Published var mapIsSatellite: Bool {
+        didSet {
+            UserDefaults.standard.set(mapIsSatellite, forKey: "mapIsSatellite")
+        }
+    }
+    
+    @Published var mapShowNumbers: Bool {
+        didSet {
+            UserDefaults.standard.set(mapShowNumbers, forKey: "mapShowNumbers")
+        }
+    }
+    
+    @Published var mapScale: CGFloat {
+        didSet {
+            UserDefaults.standard.set(mapScale, forKey: "mapScale")
+        }
+    }
+    
+    // MARK: - Virtual Walkthrough
+    @Published var isVirtualWalkthrough: Bool {
+        didSet {
+            UserDefaults.standard.set(isVirtualWalkthrough, forKey: "isVirtualWalkthrough")
+            // Auto-configure map when walkthrough changes
+            configureMapSettings(forWalkthrough: isVirtualWalkthrough)
+        }
+    }
+    
+    @Published var currentStructureIndex: Int {
+        didSet {
+            UserDefaults.standard.set(currentStructureIndex, forKey: "currentStructureIndex")
+        }
+    }
+    
+    // Helper method to configure map settings based on mode
+    func configureMapSettings(forWalkthrough: Bool? = nil, inCanyon: Bool? = nil) {
+        // Only set defaults on first ever launch
+        if forWalkthrough == nil && inCanyon == nil {
+            if !UserDefaults.standard.bool(forKey: "hasConfiguredMapSettings") {
+                mapIsSatellite = false
+                mapShowNumbers = true
+                mapScale = 1.0
+                UserDefaults.standard.set(true, forKey: "hasConfiguredMapSettings")
+            }
+            return
+        }
+        
+        // Handle exiting walkthrough or leaving canyon
+        if (forWalkthrough == false) || (adventureModeEnabled && inCanyon == false) {
+            mapIsSatellite = false
+            mapShowNumbers = true
+            mapScale = 1.0
+            return
+        }
+        
+        // Virtual walkthrough takes precedence (entering walkthrough)
+        if forWalkthrough == true {
+            mapIsSatellite = true
+            mapShowNumbers = false
+            mapScale = 2.0
+            return
+        }
+        
+        // Adventure mode & physically present (entering canyon)
+        if adventureModeEnabled && inCanyon == true {
+            mapIsSatellite = true
+            mapShowNumbers = true
+            mapScale = 1.5
+            return
+        }
+    }
+    
     init() {
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
         self.hasShownBackgroundLocationAlert = UserDefaults.standard.bool(forKey: "hasShownBackgroundLocationAlert")
         self.hasVisitedCanyon = UserDefaults.standard.bool(forKey: "hasVisitedCanyon")
+        
+        // Initialize map settings
+        self.mapIsSatellite = UserDefaults.standard.bool(forKey: "mapIsSatellite")
+        self.mapShowNumbers = UserDefaults.standard.bool(forKey: "mapShowNumbers")
+        self.mapScale = UserDefaults.standard.double(forKey: "mapScale") != 0 ? 
+            UserDefaults.standard.double(forKey: "mapScale") : 1.0
+        self.isVirtualWalkthrough = UserDefaults.standard.bool(forKey: "isVirtualWalkthrough")
+        self.currentStructureIndex = UserDefaults.standard.integer(forKey: "currentStructureIndex")
     }
 
     func resetAllSettings() {

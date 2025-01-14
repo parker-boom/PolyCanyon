@@ -284,6 +284,18 @@ struct VirtualWalkThroughBar: View {
                                 .frame(width: 36, height: 36)
                                 .foregroundColor(appState.isDarkMode ? .white : .black)
                         }
+                        
+                        // Add close button
+                        Button(action: {
+                            appState.isVirtualWalkthrough = false
+                            // Reset to previous settings
+                            appState.configureMapSettings(forWalkthrough: false)
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .bold))
+                                .frame(width: 36, height: 36)
+                                .foregroundColor(appState.isDarkMode ? .white : .black)
+                        }
                     }
                     .padding(.horizontal, 16)
                 )
@@ -379,31 +391,19 @@ struct BottomMessage: View {
 
 struct MapContainerView<Content: View>: View {
     @EnvironmentObject var appState: AppState
-    @Binding var isSatelliteView: Bool
-    @Binding var hideNumbers: Bool
     @Binding var isFullScreen: Bool
     let content: Content
     
-    // ADDED: We bring in the CirclePositionStore
     @ObservedObject var circlePositionStore: CirclePositionStore
-    
-    // This was your static container height (70%).
-    // We'll still show the container at 70% overall height
-    // but shift contents internally.
-    
-    @State private var visualScale: CGFloat = 1.0
-    @State private var targetScale: CGFloat = 1.0
     
     init(isSatelliteView: Binding<Bool>,
          hideNumbers: Binding<Bool>,
          isFullScreen: Binding<Bool>,
-         circlePositionStore: CirclePositionStore,  // ADDED
+         circlePositionStore: CirclePositionStore,
          @ViewBuilder content: () -> Content) {
         
-        self._isSatelliteView = isSatelliteView
-        self._hideNumbers = hideNumbers
         self._isFullScreen = isFullScreen
-        self.circlePositionStore = circlePositionStore // ADDED
+        self.circlePositionStore = circlePositionStore
         self.content = content()
     }
     
@@ -496,7 +496,7 @@ struct MapContainerView<Content: View>: View {
                 }()
                 
                 let anchorPoint = calculateAnchorPoint(in: containerGeometry)
-                let zoomOffset = calculateZoomOffset(for: visualScale, in: containerGeometry, anchorPoint: anchorPoint)
+                let zoomOffset = calculateZoomOffset(for: appState.mapScale, in: containerGeometry, anchorPoint: anchorPoint)
                 let xAdjusted = zoomOffset.width * 0.65
                 
                 // Our actual scrollable content
@@ -506,22 +506,18 @@ struct MapContainerView<Content: View>: View {
                                height: mapHeight)
                         .offset(y: baseOffset)
                         .scaleEffect(
-                            visualScale,
+                            appState.mapScale,
                             anchor: anchorPoint
                         )
                         .offset(x: xAdjusted, y: zoomOffset.height)
                         .animation(.easeInOut(duration: 0.4), value: baseOffset)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: visualScale)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: appState.mapScale)
                 }
                 .clipped()
                 
                 // The bottom toolbar (unchanged)
                 MapToolbar(
-                    isSatelliteView: $isSatelliteView,
-                    hideNumbers: $hideNumbers,
-                    isFullScreen: $isFullScreen,
-                    visualScale: $visualScale,
-                    targetScale: $targetScale
+                    isFullScreen: $isFullScreen
                 )
             }
             .background(appState.isDarkMode ? Color.black : .white)
@@ -562,8 +558,6 @@ struct MapContainerView<Content: View>: View {
 // New ScaleSlider component
 struct ScaleSlider: View {
     @EnvironmentObject var appState: AppState
-    @Binding var value: CGFloat
-    @Binding var targetValue: CGFloat
     
     private let snapPoints: [CGFloat] = [1.0, 1.25, 1.5, 1.75, 2.0]
     private let mainPoints: [CGFloat] = [1.0, 1.5, 2.0]
@@ -656,19 +650,18 @@ struct ScaleSlider: View {
                             )
                             .frame(width: 35, height: 35)
                             .overlay(
-                                Text("×\(String(format: "%.1f", value))")
+                                Text("×\(String(format: "%.1f", appState.mapScale))")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(appState.isDarkMode ? .white : .black)
                             )
-                            .offset(x: (geometry.size.width - 20) * (value - 1.0))  // Adjusted from -37 to -53 to account for padding
+                            .offset(x: (geometry.size.width - 20) * (appState.mapScale - 1.0))
                             .gesture(
                                 DragGesture(minimumDistance: 0)
                                     .onChanged { gesture in
-                                        let oldValue = value
+                                        let oldValue = appState.mapScale
                                         let newValue = 1.0 + gesture.location.x / (geometry.size.width - 20)
-                                        value = max(1.0, min(2.0, newValue))
+                                        appState.mapScale = max(1.0, min(2.0, newValue))
                                         
-                                        // Haptic feedback when crossing snap points
                                         if snapPoints.contains(where: { point in
                                             (oldValue < point && newValue >= point) || 
                                             (oldValue > point && newValue <= point)
@@ -678,8 +671,8 @@ struct ScaleSlider: View {
                                     }
                                     .onEnded { _ in
                                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                            targetValue = snapPoints.min(by: { abs($0 - value) < abs($1 - value) }) ?? 1.0
-                                            value = targetValue
+                                            let targetValue = snapPoints.min(by: { abs($0 - appState.mapScale) < abs($1 - appState.mapScale) }) ?? 1.0
+                                            appState.mapScale = targetValue
                                             rigidFeedback.impactOccurred()
                                         }
                                     }
@@ -693,27 +686,23 @@ struct ScaleSlider: View {
 
 struct MapToolbar: View {
     @EnvironmentObject var appState: AppState
-    @Binding var isSatelliteView: Bool
-    @Binding var hideNumbers: Bool
     @Binding var isFullScreen: Bool
-    @Binding var visualScale: CGFloat
-    @Binding var targetScale: CGFloat
     
     var body: some View {
         HStack {
             HStack(spacing: 8) {
                 HStack(spacing: 0) {
-                    Button(action: { isSatelliteView.toggle() }) {
+                    Button(action: { appState.mapIsSatellite.toggle() }) {
                         HStack(spacing: 0) {
                             Image(systemName: "map.fill")
                                 .frame(width: 44)
-                                .foregroundColor(!isSatelliteView ? .black : .gray)
-                                .scaleEffect(!isSatelliteView ? 1.1 : 1.0)
+                                .foregroundColor(!appState.mapIsSatellite ? .black : .gray)
+                                .scaleEffect(!appState.mapIsSatellite ? 1.1 : 1.0)
                             
                             Image(systemName: "globe.americas.fill")
                                 .frame(width: 44)
-                                .foregroundColor(isSatelliteView ? .black : .gray)
-                                .scaleEffect(isSatelliteView ? 1.1 : 1.0)
+                                .foregroundColor(appState.mapIsSatellite ? .black : .gray)
+                                .scaleEffect(appState.mapIsSatellite ? 1.1 : 1.0)
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .frame(height: 32)
@@ -721,9 +710,9 @@ struct MapToolbar: View {
                     }
                 }
                 
-                Button(action: { hideNumbers.toggle() }) {
+                Button(action: { appState.mapShowNumbers.toggle() }) {
                     Group {
-                        if hideNumbers {
+                        if !appState.mapShowNumbers {
                             Image(systemName: "number")
                         } else {
                             Text("13")
@@ -737,14 +726,14 @@ struct MapToolbar: View {
                         }
                     }
                     .frame(width: 32, height: 32)
-                    .mapToolbarButton(isActive: hideNumbers)
+                    .mapToolbarButton(isActive: !appState.mapShowNumbers)
                 }
             }
             
             Spacer()
             
-            // Scale slider
-            ScaleSlider(value: $visualScale, targetValue: $targetScale)
+            // Scale slider (no longer needs bindings)
+            ScaleSlider()
                 .frame(width: 120, height: 15)  
                 .padding(.trailing, 4)
             
@@ -823,30 +812,21 @@ struct BottomRoundedRectangle: Shape, InsettableShape {
 
 struct FullScreenMapView: View {
     @EnvironmentObject var appState: AppState
-    @Binding var hideNumbers: Bool
-    @Binding var isSatelliteView: Bool
     let mapImage: String
     let geometry: GeometryProxy
-    let isVirtualWalkthroughActive: Bool
     let currentStructureIndex: Int
     let currentWalkthroughMapPoint: MapPoint?
     let onClose: () -> Void
     
     @ObservedObject var circlePositionStore: CirclePositionStore
-    
     @State private var showTools: Bool = false
-    
-    private let glassBackground = Color.white.opacity(0.8)
     
     var body: some View {
         ZStack {
             // Base map layer
             MapWithLocationDot(
                 mapImage: mapImage,
-                isSatelliteView: isSatelliteView,
                 geometry: geometry,
-                isVirtualWalkthroughActive: isVirtualWalkthroughActive,
-                currentStructureIndex: currentStructureIndex,
                 currentWalkthroughMapPoint: currentWalkthroughMapPoint,
                 circlePositionStore: circlePositionStore
             )
@@ -867,16 +847,16 @@ struct FullScreenMapView: View {
                     .overlay(alignment: .top) {
                         if showTools {
                             VStack(spacing: 12) {
-                                Button(action: { isSatelliteView.toggle() }) {
-                                    Image(systemName: isSatelliteView ? "map.fill" : "globe.americas.fill")
+                                Button(action: { appState.mapIsSatellite.toggle() }) {
+                                    Image(systemName: appState.mapIsSatellite ? "map.fill" : "globe.americas.fill")
                                         .font(.system(size: 22))
                                         .frame(width: 44, height: 44)
                                         .glassButton()
                                 }
                                 
-                                Button(action: { hideNumbers.toggle() }) {
+                                Button(action: { appState.mapShowNumbers.toggle() }) {
                                     Group {
-                                        if hideNumbers {
+                                        if !appState.mapShowNumbers {
                                             Image(systemName: "number")
                                         } else {
                                             Text("13")
@@ -917,7 +897,6 @@ struct MapBottomBar: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
     @EnvironmentObject var dataStore: DataStore
-    @Binding var isVirtualWalkthroughActive: Bool
     @Binding var currentStructureIndex: Int
     
     private func moveToNextStructure() {
@@ -934,7 +913,7 @@ struct MapBottomBar: View {
     
     var body: some View {
         GeometryReader { geometry in
-            if isVirtualWalkthroughActive {
+            if appState.isVirtualWalkthrough {
                 VirtualWalkThroughBar(
                     structure: dataStore.structures[currentStructureIndex],
                     onNext: moveToNextStructure,
@@ -1040,7 +1019,7 @@ struct MapBottomBar: View {
         .padding(.vertical, 16)
         .contentShape(Rectangle())
         .onTapGesture {
-            isVirtualWalkthroughActive.toggle()
+            appState.isVirtualWalkthrough.toggle()
         }
     }
 
@@ -1098,7 +1077,7 @@ struct MapBottomBar: View {
         .padding(.vertical, 16)
         .contentShape(Rectangle())
         .onTapGesture {
-            isVirtualWalkthroughActive.toggle()
+            appState.isVirtualWalkthrough.toggle()
         }
     }
 
