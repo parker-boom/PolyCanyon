@@ -479,21 +479,30 @@ struct MapContainerView<Content: View>: View {
                 // Calculate dynamic offset:
                 let mapHeight = containerGeometry.size.height - 44  // space for your toolbar
                 let midY = mapHeight / 2
-                let maxOffset = containerGeometry.size.height * 0.15  // ±10% is max shift
-                let defaultOffset = containerGeometry.size.height * -0.15  // always want 10% down if no dot
+                let maxOffset = containerGeometry.size.height * 0.12  // ±10% is max shift
+                let defaultOffset = containerGeometry.size.height * -0.12  // always want 10% down if no dot
                 
                 let baseOffset: CGFloat = {
-                    if let circleY = circlePositionStore.circleY,
-                       circlePositionStore.isDotVisible
-                    {
-                        let delta = circleY - midY
-                        let normalized = delta / midY
-                        let clamped = max(-1, min(1, normalized))
-                        return -clamped * maxOffset
-                    } else {
+                    guard circlePositionStore.isDotVisible,
+                          let circleY = circlePositionStore.circleY else {
                         return defaultOffset
                     }
+                    
+                    let delta = circleY - midY
+                    let normalized = delta / midY
+                    
+                    // Make middle section adjustment more subtle
+                    let adjustedNormalized = if abs(normalized) < 0.5 {
+                        // Reduce by 25% instead of 50%
+                        normalized * 0.75
+                    } else {
+                        normalized
+                    }
+                    
+                    let clamped = max(-1, min(1, adjustedNormalized))
+                    return -clamped * maxOffset
                 }()
+                                    
                 
                 let anchorPoint = calculateAnchorPoint(in: containerGeometry)
                 let zoomOffset = calculateZoomOffset(for: appState.mapScale, in: containerGeometry, anchorPoint: anchorPoint)
@@ -913,17 +922,6 @@ struct MapBottomBar: View {
     
     var body: some View {
         GeometryReader { geometry in
-            if appState.isVirtualWalkthrough {
-                VirtualWalkThroughBar(
-                    structure: dataStore.structures[currentStructureIndex],
-                    onNext: moveToNextStructure,
-                    onPrevious: moveToPreviousStructure,
-                    onTap: {
-                        // We'll handle structure info popup next
-                    }
-                )
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-            } else {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
                         appState.isDarkMode ? 
@@ -985,7 +983,7 @@ struct MapBottomBar: View {
                             }
                         }
                     )
-            }
+            
         }
     }
     
@@ -1176,4 +1174,314 @@ struct MapBottomBar: View {
     .padding(.horizontal, 16)
     .padding(.vertical, 16)
 }
+}
+
+
+/// A specialized container for a 60% screen-height map in Virtual Tour mode,
+/// preserving the vertical offset to center the dot, while properly anchoring
+/// zooming at the dot's position. White space is clamped to prevent overshoot.
+struct VirtualTourMapContainer<Content: View>: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var circlePositionStore: CirclePositionStore
+    
+    private let content: Content
+    
+    init(
+        circlePositionStore: CirclePositionStore,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.circlePositionStore = circlePositionStore
+        self.content = content()
+    }
+    
+    var body: some View {
+        GeometryReader { containerGeometry in
+            VStack(spacing: 0) {
+                
+                // Subtract toolbar height from the total container
+                let adjustedMapHeight = containerGeometry.size.height - 44
+                
+                // 1) Compute how much to shift map vertically so dot is near center
+                let verticalShift = computeVerticalDotShift(
+                    containerHeight: adjustedMapHeight
+                )
+                
+                // 2) Calculate the map's anchor point (0..1) based on dot location
+                let dotAnchorPoint = computeDotAnchor(
+                    geometry: containerGeometry
+                )
+                
+                // 3) Determine how to clamp X/Y after zoom to avoid white space
+                let zoomClamps = computeZoomClamp(
+                    scale: appState.mapScale,
+                    geometry: containerGeometry,
+                    anchor: dotAnchorPoint
+                )
+                
+                // The scrollable map content
+                ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                    content
+                        .frame(width: containerGeometry.size.width,
+                               height: adjustedMapHeight)
+
+                        
+                        // Then combine the final offsets:
+                        // - verticalShift (to center the dot)
+                        // - zoomClamps (to prevent white space, with reduced X if desired)
+                        .offset(
+                            x: zoomClamps.width * 0.4,
+                            y: verticalShift + zoomClamps.height
+                        )
+                        
+                                                
+                        // IMPORTANT: Scale first with anchor so the map zooms *around* the dot
+                        .scaleEffect(appState.mapScale, anchor: dotAnchorPoint)
+                        // Smooth animations
+                        .animation(.easeInOut(duration: 0.4), value: verticalShift)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7),
+                                   value: appState.mapScale)
+                }
+                .clipped()
+                
+                // Map toolbar (no fullscreen in Virtual Tour)
+                MapToolbar(isFullScreen: .constant(false))
+            }
+            .background(appState.isDarkMode ? Color.black : Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.2
+                    )
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                radius: 10, x: 0, y: 4
+            )
+            .shadow(
+                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.15),
+                radius: 2, x: 0, y: 1
+            )
+        }
+        // ~60% of screen height, minus ~49 if there's a bottom tab bar
+        .frame(height: UIScreen.main.bounds.height * 0.6 - 49)
+    }
+}
+
+// MARK: - Logic / Helper Methods
+extension VirtualTourMapContainer {
+    
+    /// Computes how much to shift the map up/down so that
+    /// the circle (dot) appears near the middle vertically.
+    private func computeVerticalDotShift(containerHeight: CGFloat) -> CGFloat {
+        // This is the maximum shift we allow from center
+        let maxVerticalMotion = containerHeight * 0.35
+        
+        guard
+            circlePositionStore.isDotVisible,
+            let dotY = circlePositionStore.circleY
+        else {
+            // If we have no dot, shift downward by default
+            return -maxVerticalMotion
+        }
+        
+        let midpoint = containerHeight / 2
+        let distance = dotY - midpoint
+        let ratio = distance / midpoint
+        
+        // Cap ratio so we don't overshoot
+        let clamped = max(-1, min(1, ratio))
+        
+        // Negative sign to move map upward if the dot is below center
+        return -clamped * maxVerticalMotion
+    }
+    
+    /// Derives a 0..1 anchor point for scaleEffect, so the map zooms around the circle position.
+    private func computeDotAnchor(geometry: GeometryProxy) -> UnitPoint {
+        guard
+            circlePositionStore.isDotVisible,
+            let dotX = circlePositionStore.circleX,
+            let dotY = circlePositionStore.circleY
+        else {
+            return .init(x: 0.5, y: 1.0)
+        }
+
+        let rawMapSize = determineMapSize(in: geometry)
+        let containerHeight = geometry.size.height - 44
+        
+        // Calculate basic relative X position
+        let xOffset = (geometry.size.width - rawMapSize.width) / 2
+        let relativeX = (dotX - xOffset) / rawMapSize.width
+        
+        // Calculate how far we are from the top as a percentage
+        let percentFromTop = dotY / geometry.size.height
+        
+        // Keep our existing damping logic
+        let dampingFactor = 1.0 - (percentFromTop * 0.5)
+        let relativeY = percentFromTop * dampingFactor
+        
+        // may need hardline addition instead 
+        let adjustedY = percentFromTop > 0.56 
+            ? relativeY + ((percentFromTop - 0.56) / 0.44) * 0.025
+            : relativeY
+
+            
+        let safeY = min(max(adjustedY, 0.1), 1)
+        
+        return UnitPoint(x: relativeX, y: safeY)
+    }
+    
+    /// Once we're scaling around the dot, we also need to offset/pan so we don't show white space.
+    /// This function clamps how far we can move in X and Y after zooming.
+    private func computeZoomClamp(
+        scale: CGFloat,
+        geometry: GeometryProxy,
+        anchor: UnitPoint
+    ) -> CGSize {
+        guard scale > 1.0 else { return .zero }
+        
+        let unscaledMap = determineMapSize(in: geometry)
+        
+        let scaledW = unscaledMap.width * scale
+        let scaledH = unscaledMap.height * scale
+        
+        let maxX = (scaledW - unscaledMap.width) / 2
+        let maxY = (scaledH - unscaledMap.height) / 2
+        
+        // Where the anchor tries to place the map
+        let desiredX = (scaledW - unscaledMap.width) * (0.5 - anchor.x)
+        let desiredY = (scaledH - unscaledMap.height) * (0.5 - anchor.y)
+        
+        // Clamp to avoid white space
+        let finalX = max(-maxX, min(maxX, desiredX))
+        let finalY = max(-maxY, min(maxY, desiredY))
+        
+        return CGSize(width: finalX, height: finalY)
+    }
+    
+    /// Figures out how large the map is before scaling in this container, preserving aspect ratio.
+    private func determineMapSize(in geometry: GeometryProxy) -> CGSize {
+        let originalWidth: CGFloat = 2000
+        let originalHeight: CGFloat = 4519
+        let aspectRatio = originalWidth / originalHeight
+        
+        let availableW = geometry.size.width
+        let availableH = geometry.size.height
+        
+        if availableW / availableH > aspectRatio {
+            // The map is height-constrained
+            let finalHeight = availableH
+            let finalWidth = finalHeight * aspectRatio
+            return CGSize(width: finalWidth, height: finalHeight)
+        } else {
+            // The map is width-constrained
+            let finalWidth = availableW
+            let finalHeight = finalWidth / aspectRatio
+            return CGSize(width: finalWidth, height: finalHeight)
+        }
+    }
+}
+
+struct VirtualTourBottomBar: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    
+    // We rely on AppState.currentStructureIndex for the “active” structure
+    private var currentStructure: Structure {
+        dataStore.structures[appState.currentStructureIndex]
+    }
+    
+    var body: some View {
+        GeometryReader { geo in
+            VStack {
+                Spacer()
+                
+                // Show structure number or name, whichever you prefer
+                Text("#\(currentStructure.number)")
+                    .font(.system(size: 38, weight: .heavy))
+                    .padding(.bottom, 8)
+                
+                // Left / Right arrows + maybe an "info" button
+                HStack(spacing: 40) {
+                    Button(action: goPrevious) {
+                        Image(systemName: "chevron.left.circle.fill")
+                            .font(.system(size: 46))
+                    }
+                    
+                    Button(action: {
+                        // Possibly show an info detail, or ignore
+                    }) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 38))
+                    }
+                    
+                    Button(action: goNext) {
+                        Image(systemName: "chevron.right.circle.fill")
+                            .font(.system(size: 46))
+                    }
+                }
+                .padding(.bottom, 18)
+                
+                // Close the walkthrough
+                Button(action: {
+                    // Turn off virtual mode
+                    withAnimation {
+                        appState.isVirtualWalkthrough = false
+                        appState.configureMapSettings(forWalkthrough: false)
+                    }
+                }) {
+                    Text("Close Virtual Tour")
+                        .font(.system(size: 16, weight: .semibold))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                }
+                .glassButton()
+                
+                Spacer()
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .glassBackground(cornerRadius: 20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: -2)
+        }
+        .frame(maxHeight: UIScreen.main.bounds.height * 0.4 - 49 - 24)  // 49 for TabBar, 24 for padding
+        .transition(.move(edge: .bottom))
+    }
+    
+    // MARK: - Navigation
+    private func goNext() {
+        withAnimation {
+            let nextIndex = (appState.currentStructureIndex + 1) % dataStore.structures.count
+            appState.currentStructureIndex = nextIndex
+        }
+    }
+    
+    private func goPrevious() {
+        withAnimation {
+            let prevIndex = (appState.currentStructureIndex - 1 + dataStore.structures.count)
+                % dataStore.structures.count
+            appState.currentStructureIndex = prevIndex
+        }
+    }
 }

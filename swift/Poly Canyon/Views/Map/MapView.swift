@@ -1,10 +1,3 @@
-/*
- MapView provides the primary map interface for structure exploration. It handles two distinct modes: 
- adventure mode with live location tracking and virtual tour mode for remote browsing. The view manages 
- multiple overlays including structure popups, alerts, and mode-specific UI elements. It coordinates with 
- LocationService for tracking and DataStore for structure management.
-*/
-
 import SwiftUI
 import CoreLocation
 import Zoomable
@@ -29,27 +22,57 @@ struct MapView: View {
     @State private var showStructPopup = false
     @State private var showNearbyUnvisitedView = false
     @State private var showStructureSwipingView = false
+    
+    // Holds the current map point for the structure being “walked through” in Virtual mode
     @State private var currentWalkthroughMapPoint: MapPoint?
+    
+    // Fullscreen toggling
     @State private var isFullScreen: Bool = false
     @State private var opacity: Double = 1.0
+    
+    // Matched geometry for smooth transitions
     @Namespace private var mapTransition
     
-    // ADDED: Circle position store
+    // Circle position store for controlling map offset
     @StateObject private var circlePositionStore = CirclePositionStore()
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if isFullScreen {
+                if appState.isVirtualWalkthrough {
+                    // MARK: - Virtual Tour Layout
+                    VStack(spacing: 12) {
+                        VirtualTourMapContainer(
+                            circlePositionStore: circlePositionStore
+                        ) {
+                            MapWithLocationDot(
+                                mapImage: currentMapImage(),
+                                geometry: geometry,
+                                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
+                                circlePositionStore: circlePositionStore
+                            )
+                            .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
+                            .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
+                        }
+                        
+                        VirtualTourBottomBar()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 5)
+                    .padding(.bottom, 12)
+                    .opacity(opacity)
+                }
+                else if isFullScreen {
+                    // MARK: - Fullscreen Adventure
                     FullScreenMapView(
                         mapImage: currentMapImage(),
                         geometry: geometry,
                         currentStructureIndex: appState.currentStructureIndex,
                         currentWalkthroughMapPoint: currentWalkthroughMapPoint,
                         onClose: {
-                            withAnimation(.easeInOut(duration: 0.6)) { 
+                            withAnimation(.easeInOut(duration: 0.6)) {
                                 opacity = 0
-                                isFullScreen = false 
+                                isFullScreen = false
                             }
                         },
                         circlePositionStore: circlePositionStore
@@ -62,10 +85,10 @@ struct MapView: View {
                         )
                     )
                     .opacity(opacity)
+                    
                 } else {
-                    // Regular container view
+                    // MARK: - Regular Map Layout (Adventure / Non-fullscreen)
                     VStack(spacing: 12) {
-                        // PASS circlePositionStore into MapContainerView
                         MapContainerView(
                             isSatelliteView: Binding(
                                 get: { appState.mapIsSatellite },
@@ -76,9 +99,8 @@ struct MapView: View {
                                 set: { appState.mapShowNumbers = !$0 }
                             ),
                             isFullScreen: $isFullScreen,
-                            circlePositionStore: circlePositionStore  // ADDED
+                            circlePositionStore: circlePositionStore
                         ) {
-                            // PASS circlePositionStore into MapWithLocationDot
                             MapWithLocationDot(
                                 mapImage: currentMapImage(),
                                 geometry: geometry,
@@ -88,10 +110,9 @@ struct MapView: View {
                             .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
                             .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
                         }
-
-                        MapBottomBar(
-                            currentStructureIndex: $appState.currentStructureIndex
-                        )
+                        
+                        // The shared bottom bar (handles modes, including starting virtual tour)
+                        MapBottomBar(currentStructureIndex: $appState.currentStructureIndex)
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 5)
@@ -105,52 +126,51 @@ struct MapView: View {
                     .opacity(opacity)
                 }
             }
-            .onChange(of: isFullScreen) { newValue in
+            .onChange(of: isFullScreen) { _ in
                 withAnimation(.easeInOut(duration: 0.6)) {
                     opacity = 1.0
                 }
             }
+            // Whenever user enters or leaves the canyon
             .onChange(of: locationService.isInPolyCanyonArea) { inCanyon in
                 if appState.adventureModeEnabled {
                     appState.configureMapSettings(inCanyon: inCanyon)
                 }
             }
+            // Whenever user toggles adventure mode
             .onChange(of: appState.adventureModeEnabled) { isEnabled in
                 if isEnabled {
                     appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)
+                }
+            }
+            // Whenever the current structure changes, update walk point
+            .onChange(of: appState.currentStructureIndex) { _ in
+                if appState.isVirtualWalkthrough {
+                    let newStructure = dataStore.structures[appState.currentStructureIndex]
+                    currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
+                } else {
+                    currentWalkthroughMapPoint = nil
                 }
             }
         }
         .onAppear {
             appState.configureMapSettings()
         }
-        .onChange(of: locationService.isInPolyCanyonArea) { inCanyon in
-            if appState.adventureModeEnabled {
-                appState.configureMapSettings(inCanyon: inCanyon)
-            }
-        }
-        .onChange(of: appState.adventureModeEnabled) { isEnabled in
-            if isEnabled {
-                appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)
-            }
-        }
     }
     
     // MARK: - Helper Methods
     private func currentMapImage() -> String {
-        let baseImage = appState.mapIsSatellite ? "SatelliteMap" : 
-            (appState.isDarkMode ? "DarkMap" : "LightMap")
+        let baseImage = appState.mapIsSatellite
+            ? "SatelliteMap"
+            : (appState.isDarkMode ? "DarkMap" : "LightMap")
         return !appState.mapShowNumbers ? baseImage + "NN" : baseImage
     }
-    
-    
 }
 
-// MARK: - Preview
 struct MapView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            // Light Mode Preview
+            // Light Mode
             MapView()
                 .environmentObject({
                     let state = AppState()
@@ -161,7 +181,7 @@ struct MapView_Previews: PreviewProvider {
                 .environmentObject(LocationService.shared)
                 .previewDisplayName("Light Mode")
                 
-            // Dark Mode Preview
+            // Dark Mode
             MapView()
                 .environmentObject({
                     let state = AppState()
