@@ -62,9 +62,9 @@ struct CustomTabBar: View {
         }
          .shadow(
                 color: Color.black.opacity(appState.isDarkMode ? 0.5 : 0.25),
-                radius: 6,
+                radius: 2,
                 x: 0,
-                y: -3
+                y: -2
             )
     }
     

@@ -3,7 +3,9 @@
     "Name": "Entry Arch",
     "Number": 1,
     "Year": "1976",
-    "Advisors": ["Nelse Greene"],
+    "Advisors": [
+      "Nelse Greene"
+    ],
     "Builders": [
       "Paul Miller (ARCH)",
       "Lynn Noah (ARCH)",
@@ -12,7 +14,7 @@
       "Gwin Stumbaugh (ARCH)"
     ],
     "Description": "The Entry Arch stands as a testament to thoughtful design meeting practical needs. A steel frame wrapped in serpentinite stone forms its core, with the stone's natural asbestos lending unexpected durability. The true ingenuity lies in its three-fingered stone walls, which guide visitors while keeping wandering cattle at bay. The builders left subtle signatures in the walls - terracotta impressions of their faces nestled within the stonework. Though their planned ceramic fountain never materialized, the arch remains a quiet guardian of the canyon's entrance, its very stones telling stories of adaptation and purpose.",
-    "Fun Fact": "Hidden within the walls' careful stonework, the recessed mortar joints form an intricate drainage system, silently managing the canyon's rainfall for decades.",
+    "Fun Fact": "The arch channels rain through recessed stone joints, hidden in plain sight.",
     "Images": [
       "M-1",
       "C-1",
@@ -22,12 +24,14 @@
       "entryArch4"
     ]
   },
-
   {
     "Name": "Techite Bridge",
     "Number": 2,
     "Year": "1973",
-    "Advisors": ["Al Mager", "Albert Draves"],
+    "Advisors": [
+      "Al Mager",
+      "Albert Draves"
+    ],
     "Builders": [
       "Robert Purdy (CE)",
       "Merrilee Amy (CE)",
@@ -40,7 +44,7 @@
       "Jesse Rainsdon (ARCE)"
     ],
     "Description": "The Techite Bridge was born from a simple question: could plastic pipe be more than just plumbing? Built for just $1,300, this 46-foot span uses hollow fiber-reinforced plastic tubes drilled with precision to house steel rebar, anchored into concrete at each end. The result was a lightweight crossing that proved plastic's potential in structural design. Time tested its resilience through vandalism and weather, leading to a careful ecological restoration in 2024 that preserved both the bridge and the river below.",
-    "Fun Fact": "The bridge's construction was so precisely engineered that surveying errors were limited to just 1/32 of an inch - about the thickness of a fingernail.",
+    "Fun Fact": "This bridge\u2019s calculations had errors no bigger than a fingernail.",
     "Images": [
       "M-2",
       "C-2",
@@ -49,12 +53,16 @@
       "techiteBridge3"
     ]
   },
-
   {
     "Name": "Blade",
     "Number": 3,
     "Year": "1963 / 2003",
-    "Advisors": ["Wesley Ward", "Kevin Dong", "Brent Nuttall", "Peter Lausen"],
+    "Advisors": [
+      "Wesley Ward",
+      "Kevin Dong",
+      "Brent Nuttall",
+      "Peter Lausen"
+    ],
     "Builders": [
       "Steve Gilmore (ARCE)",
       "Mark Haselton (ARCE)",
@@ -67,37 +75,60 @@
       "Robert Pacheo (ARCE)"
     ],
     "Description": "The Blade stands as Poly Canyon's firstborn, marking the original boundaries of what would become this architectural playground. Born in 1963 as a pioneering experiment in post-tensioned concrete, its elegant petal-shaped forms pointed the way forward. Nature had other plans - the structure became an unexpected scratching post for local cattle, leading to its collapse. Forty years later, students rebuilt it with a brilliant twist: they kept the sculptural beauty but reimagined it as a catenary arch, using gravity itself to hold the structure together. Their work earned national recognition, proving that sometimes the best designs come from learning from past mistakes.",
-    "Fun Fact": "The original structure wasn't called Blade at all - students nicknamed it 'The Concrete Flower' for its petal-like design, a name that stuck even through its rebirth as a catenary arch.",
-    "Images": ["M-3", "C-3", "blade1", "blade2"]
+    "Fun Fact": "Once called \u2018The Concrete Flower,\u2019 its petal shape makes it iconic.",
+    "Images": [
+      "M-3",
+      "C-3",
+      "blade1",
+      "blade2"
+    ]
   },
-
   {
     "Name": "Spire Array",
     "Number": 4,
     "Year": "2020",
-    "Advisors": ["Dale Clifford"],
-    "Builders": ["Design Build Team"],
+    "Advisors": [
+      "Dale Clifford"
+    ],
+    "Builders": [
+      "Design Build Team"
+    ],
     "Description": "The Spire Array tells a tale of boats in unlikely places. Using traditional wooden boat-building techniques to generate its curves, this triangular structure aimed to capture the sweep of a ship's hull - though like many experiments, it had its own ideas about its final form. Built in a single day using prefabricated pieces, it stands as a geometric puzzle of wood and light, casting ever-changing shadows across the canyon floor.",
-    "Fun Fact": "The structure's unofficial name isn't exactly a hit with its professor - though no one seems quite sure what to call it instead!",
-    "Images": ["M-4", "C-4", "spireArray1", "spireArray2"]
+    "Fun Fact": "This spire\u2019s design draws directly from traditional boat-building techniques.",
+    "Images": [
+      "M-4",
+      "C-4",
+      "spireArray1",
+      "spireArray2"
+    ]
   },
-
   {
     "Name": "Palm Tree",
     "Number": 5,
     "Year": "1993",
-    "Advisors": ["Don Grant"],
-    "Builders": ["Cristina Alcala", "Jaime Mora"],
+    "Advisors": [
+      "Don Grant"
+    ],
+    "Builders": [
+      "Cristina Alcala",
+      "Jaime Mora"
+    ],
     "Description": "Born from late nights in the metal shop, this kinetic sculpture started as two fourth-year students' ambitious side project. They worked off-hours under supervision, welding and shaping metal rods until they had a spinning mechanism balanced on ball bearings. The sails wore donated thermochromatic paint, designed to change with temperature, while the base was precision-spun by one student's father. The whole thing nearly went sideways when their concrete mixer lost a wheel on Highway 101, but they persevered, finishing just before heading to Italy for their final year.",
-    "Fun Fact": "The two builders, Cristina and Jaime, later married and started an architecture firm together. The sculpture's base plaque became their company logo - and years later, a special anniversary pendant.",
-    "Images": ["M-5", "C-5"]
+    "Fun Fact": "Thermochromatic paint made this structure dance in the sun.",
+    "Images": [
+      "M-5",
+      "C-5"
+    ]
   },
-
   {
     "Name": "Tensile",
     "Number": 6,
     "Year": "2002",
-    "Advisors": ["Abe Lynn", "Michael Lucas", "Richard Zweifel"],
+    "Advisors": [
+      "Abe Lynn",
+      "Michael Lucas",
+      "Richard Zweifel"
+    ],
     "Builders": [
       "Kiren Kelly-Sneed",
       "Theresa Zaro",
@@ -105,15 +136,24 @@
       "Walt Tryon"
     ],
     "Description": "The Tensile Pavilion broke a period of silence in the canyon. After raising $20,000 in donations and scoring specialized fabric from Ohio, students spent a year stretching high-tension panels between twelve underground anchors. Originally meant as a simple shade structure for Design Village, it turned out to be anything but simple - the swooping fabric and precise engineering created such an elegant space that someone even got married under it during that first summer in 2003.",
-    "Fun Fact": "The entire structure is held up by just twelve hidden anchors underground, proving that sometimes the most important parts of architecture are the ones you can't see.",
-    "Images": ["M-6", "C-6", "tensile1", "tensile2", "tensile3", "tensile4"]
+    "Fun Fact": "Hidden anchors keep this swooping pavilion standing strong and elegant.",
+    "Images": [
+      "M-6",
+      "C-6",
+      "tensile1",
+      "tensile2",
+      "tensile3",
+      "tensile4"
+    ]
   },
-
   {
     "Name": "Geodesic Dome",
     "Number": 7,
     "Year": "1963",
-    "Advisors": ["George Hasslein", "M.P. Taylor"],
+    "Advisors": [
+      "George Hasslein",
+      "M.P. Taylor"
+    ],
     "Builders": [
       "Richard Neill (ARCE)",
       "William Roth (ARCE)",
@@ -123,7 +163,7 @@
       "James Winter (MECH-E)"
     ],
     "Description": "The Geodesic Dome sparked something bigger than itself. Built in 1957 near the architecture building, hundreds of students turned surplus boiler pipes and 19,000 bolts into Cal Poly's first major experiment. Its success proved students could tackle ambitious projects - they just needed more space. That vision led to Poly Canyon, and in 1963, they moved the dome up piece by piece to its new home. The dome's perfect acoustics made it a natural stage during Design Village. It wasn't just Cal Poly's first leap into 'Learn by Doing' - it was the project that helped birth the canyon itself.",
-    "Fun Fact": "The dome was actually the West Coast's first dive into Buckminster Fuller's revolutionary geodesic designs - proving Cal Poly could keep pace with the biggest architectural movements of the post-war era.",
+    "Fun Fact": "This dome pioneered geodesic designs on the West Coast in the 1960s.",
     "Images": [
       "M-7",
       "C-7",
@@ -133,7 +173,6 @@
       "geodesicDome4"
     ]
   },
-
   {
     "Name": "Cantilever Deck",
     "Number": 8,
@@ -158,7 +197,7 @@
       "Rowan Hernandez"
     ],
     "Description": "The Cantilever Deck floats above the canyon floor, supported only at one end - though that didn't stop local cows from testing its strength. Built in 1990, its steel beams and cable system created a seemingly impossible platform in space. By 2024, weather had taken its toll, but a new team brought it back to life. They started from scratch with 3D scans, tracked down an original welder for guidance, and replaced weathered parts with hardy Alaskan yellow cedar. Even the deck's famous bounce got tamed - though they made sure to keep its spirit intact.",
-    "Fun Fact": "The restoration team had to manually move a massive boulder just to access the site - proving that sometimes the biggest challenges in engineering have nothing to do with engineering.",
+    "Fun Fact": "A daring single-end support gives this deck its iconic floating design.",
     "Images": [
       "M-8",
       "C-8",
@@ -169,12 +208,13 @@
       "cantileverDeck5"
     ]
   },
-
   {
     "Name": "Restrooms",
     "Number": 9,
     "Year": "1972",
-    "Advisors": ["Albert Draves"],
+    "Advisors": [
+      "Albert Draves"
+    ],
     "Builders": [
       "Robert Del Biano (ARCH)",
       "Raymond Howard (ARCH)",
@@ -184,15 +224,24 @@
       "John Sturla (ARCH)"
     ],
     "Description": "Sometimes the biggest ideas start with basic needs. The team built these restrooms by creating an entire earthen hill, spraying concrete over it, then digging out the dirt to reveal the curved shell within. Moving earth at this scale meant heavy equipment, precise planning, and a massive septic system installation - making it one of the canyon's most ambitious projects. Glen Jackson, who helped build it and later became the canyon's first caretaker, noted it perfectly summed up everything he'd learned in his five years.",
-    "Fun Fact": "The curved roof wasn't made with expensive forms - the students simply shaped a pile of dirt into the perfect mold, sprayed concrete over it, then dug it all back out.",
-    "Images": ["M-9", "C-9", "restrooms1", "restrooms2", "restrooms3"]
+    "Fun Fact": "The curved roof was shaped by spraying concrete over a dirt mold.",
+    "Images": [
+      "M-9",
+      "C-9",
+      "restrooms1",
+      "restrooms2",
+      "restrooms3"
+    ]
   },
-
   {
     "Name": "Underground House",
     "Number": 10,
     "Year": "1982",
-    "Advisors": ["Wesley Ward", "Jim Rodger", "James Rodger"],
+    "Advisors": [
+      "Wesley Ward",
+      "Jim Rodger",
+      "James Rodger"
+    ],
     "Builders": [
       "John L. Hughes",
       "Wing K. Low",
@@ -217,15 +266,21 @@
       "Mark V. Zeolla (CN)"
     ],
     "Description": "Dreamed up in 1963 but started in 1982, the Underground House was meant to be the ultimate sustainable home - tucked into the hillside to stay naturally cool, with a clever dome made of wire mesh and concrete. The team waterproofed it with special bentonite tiles and planned everything from passive solar heating to full family living spaces. But like many grand plans in the canyon, funding ran dry before it could be finished. The unfinished dome ended up serving a different purpose though - becoming a favorite hangout spot for students, its raw concrete shell echoing with decades of late-night conversations.",
-    "Fun Fact": "It took nearly 20 years from first sketch to first shovel - and while it never became the family home it was meant to be, its concrete dome has hosted countless student gatherings instead.",
-    "Images": ["M-10", "C-10", "undergroundHouse1", "undergroundHouse2"]
+    "Fun Fact": "Decades in the making, this house used natural cooling and solar design.",
+    "Images": [
+      "M-10",
+      "C-10",
+      "undergroundHouse1",
+      "undergroundHouse2"
+    ]
   },
-
   {
     "Name": "Sun Dial",
     "Number": 11,
     "Year": "1971",
-    "Advisors": ["John Stuart"],
+    "Advisors": [
+      "John Stuart"
+    ],
     "Builders": [
       "Dean Archambeau (ARCE)",
       "Michael Cheung (ARCE)",
@@ -257,15 +312,21 @@
       "Ron Whitney"
     ],
     "Description": "The Sun Dial started as part of a grander vision that included an acoustic dam to amplify the sound of the creek. While environmental concerns nixed the dam, this magnificent timekeeper lived on. Concrete ribs curve in a perfect parabola, once marked with brass hour indicators, while tensioned steel cables hold everything in place. The students used a clever leapfrog system to tension the cables just right, turning the entire hillside into a giant clock face. Though the brass markers are gone, the shadows still tell time on sunny days.",
-    "Fun Fact": "The team had to become amateur astronomers to build this - they used surveying tools to perfectly align the structure with the sun's daily path across the sky.",
-    "Images": ["M-11", "C-11", "sunDial1", "sunDial2"]
+    "Fun Fact": "This sun dial did used to actually take the time, now time has taken it.",
+    "Images": [
+      "M-11",
+      "C-11",
+      "sunDial1",
+      "sunDial2"
+    ]
   },
-
   {
     "Name": "Gunite Bridge",
     "Number": 12,
     "Year": "1965",
-    "Advisors": ["Wesley Ward"],
+    "Advisors": [
+      "Wesley Ward"
+    ],
     "Builders": [
       "Gordon Boles (ARCE)",
       "Roy Leland Bostrom (ARCE)",
@@ -274,10 +335,13 @@
       "John Ulloa (ARCE)"
     ],
     "Description": "The Gunite Bridge explored how to build using the least material possible. Starting with a steel skeleton and metal mesh, the team used temporary cables to hold the shape while they sprayed on a thin layer of gunite concrete. Once it cured, they cut the cables, letting the structure settle into its final form. A finish coat of white sand and cement completed the bridge, which has quietly stood its ground since 1965, proving that sometimes less really is more.",
-    "Fun Fact": "The gunite technique used here is the same process used to create swimming pool shells - though this might be the first time anyone turned it into a bridge.",
-    "Images": ["M-12", "C-12", "guniteBridge1"]
+    "Fun Fact": "The gunite shell of this bridge is the same material used in swimming pools.",
+    "Images": [
+      "M-12",
+      "C-12",
+      "guniteBridge1"
+    ]
   },
-
   {
     "Name": "Timber Truss",
     "Number": 13,
@@ -290,15 +354,21 @@
       "Mike Willis"
     ],
     "Description": "The Timber Truss Bridge keeps its history close, but its design speaks clearly - simple wooden trusses doing what they do best. In 2015, canyon volunteers came together to restore it, reinforcing the aging structure. Among them was first-year architecture student Keigen Langholff, whose passion for the project left a lasting impression. After his tragic passing shortly after, the bridge became more than just a crossing - it became a quiet reminder of the hands that helped build and preserve it.",
-    "Fun Fact": "Most bridges in the canyon experiment with new materials or techniques, but this one embraces traditional timber truss design - proving sometimes the old ways work just fine.",
-    "Images": ["M-13", "C-13"]
+    "Fun Fact": "This bridge honors traditional timber design, proving the old ways work.",
+    "Images": [
+      "M-13",
+      "C-13"
+    ]
   },
-
   {
     "Name": "Stick Structure",
     "Number": 14,
     "Year": "1976 / 2009",
-    "Advisors": ["Jake Feldman", "Abe Lynn", "Cole McDaniel"],
+    "Advisors": [
+      "Jake Feldman",
+      "Abe Lynn",
+      "Cole McDaniel"
+    ],
     "Builders": [
       "William P. Marin (ARCH)",
       "Brian Gottlieb (ARCH)",
@@ -312,7 +382,7 @@
       "Justin Porter (ARCE)"
     ],
     "Description": "The Stick Structure began in 1976 as an ambitious teaching tool - a full-size model students could take apart and rebuild to study how buildings handle different loads. Reality had other plans. The original orange structure, with its plywood walls and bolted connections, stood unchanged for decades until weather took its toll. In 2009, a new team rebuilt it from the ground up, swapping plywood for steel panels and adding a clever truss system. While it never became the hands-on classroom its creators imagined, it's still teaching lessons about how buildings stand up - or fall down.",
-    "Fun Fact": "The 2009 rebuild team had to wrestle with 30 years of rusted bolts before they could start fresh - sometimes the hardest part of building something new is taking apart something old.",
+    "Fun Fact": "This structure was built to be rebuilt, in 2009 it was, for the only time.",
     "Images": [
       "M-14",
       "C-14",
@@ -322,18 +392,23 @@
       "stickStructure4"
     ]
   },
-
   {
     "Name": "Pyramid",
     "Number": 15,
     "Year": "1976",
-    "Advisors": ["Jens Pohl"],
-    "Builders": ["H. William Sievers (ARCH)"],
+    "Advisors": [
+      "Jens Pohl"
+    ],
+    "Builders": [
+      "H. William Sievers (ARCH)"
+    ],
     "Description": "The Pyramid stands as one of Poly Canyon's great mysteries. Its stark geometric form has sparked endless speculation about ancient inspirations and deeper meanings. Some call it a meditation spot, others an art piece, and a few think it's an elaborate joke. The truth? It's four poles stuck in the ground - though even that proved challenging when the builder discovered just how stubborn canyon clay can be.",
-    "Fun Fact": "Legend says ancient pyramids took 20 years to build. This one also took longer than expected - the clay soil was so tough that putting up four poles turned into a multi-day adventure.",
-    "Images": ["M-15", "C-15"]
+    "Fun Fact": "Easily regarded as the most difficult structure to have been built.",
+    "Images": [
+      "M-15",
+      "C-15"
+    ]
   },
-
   {
     "Name": "Bridge House",
     "Number": 16,
@@ -375,7 +450,7 @@
       "Ben Sykes (ARCE)"
     ],
     "Description": "The Bridge House started as a partnership with Pittsburgh Plate Glass to test their latest 8x8 glass panels in 1964. What began as a material experiment evolved over decades - getting electricity in '88, running water in '95, and even housing caretakers and their families in the late 90s. The odd layout and exposure to vandals eventually took their toll. In 2019, students stripped it back to basics, turning it into a simple bridge while keeping its experimental spirit intact.",
-    "Fun Fact": "Early plans included a pool on the roof for solar heating - just one of many ambitious ideas that showed how far the original team was willing to push the boundaries of design.",
+    "Fun Fact": "Once experimental guest lodging, it now bridges history and design.",
     "Images": [
       "M-16",
       "C-16",
@@ -385,12 +460,14 @@
       "bridgeHouse4"
     ]
   },
-
   {
     "Name": "Water Infra-Structure",
     "Number": 17,
     "Year": "1965 / 1998",
-    "Advisors": ["Paul Fratessa", "Charlie Coe"],
+    "Advisors": [
+      "Paul Fratessa",
+      "Charlie Coe"
+    ],
     "Builders": [
       "George Cattey (MECH-E)",
       "Glenn Dang (MECH-E)",
@@ -403,15 +480,25 @@
       "Ian Johnson (ARCE)"
     ],
     "Description": "By 1998, Poly Canyon's humble spring-fed water system had grown into a network serving seven toilets and four septic tanks. That's when students took water storage to new heights - literally. They designed massive polyvinyl tanks wrapped in corrugated metal, set them on foundations that could handle the canyon's shifting ground, and engineered everything from interlocking rings to overflow basins. It wasn't just about holding water anymore - it was about making infrastructure as bold and experimental as the structures it served. These tanks still stand as monuments to the canyon's most ambitious utility expansion.",
-    "Fun Fact": "When the canyon's original 1965 water system started, it was just redwood planks channeling spring water to the Shell House. By the time this expansion finished, it was part of a network supporting an entire community of experimental structures.",
-    "Images": ["M-17", "C-17", "water1", "water2", "water3", "water4"]
+    "Fun Fact": "These tanks turned water storage into bold architectural experiments.",
+    "Images": [
+      "M-17",
+      "C-17",
+      "water1",
+      "water2",
+      "water3",
+      "water4"
+    ]
   },
-
   {
     "Name": "Observation Deck",
     "Number": 18,
     "Year": "2019",
-    "Advisors": ["Philip Barlow", "Kevin Dong", "Daniel Knight"],
+    "Advisors": [
+      "Philip Barlow",
+      "Kevin Dong",
+      "Daniel Knight"
+    ],
     "Builders": [
       "Jordan H. Morofsky (CM)",
       "Emir Kuljancic (ARCE)",
@@ -420,15 +507,20 @@
       "Harrison J. Woods (CM)"
     ],
     "Description": "After fifteen years without a new structure in the canyon, the Observation Deck marked a fresh chapter. What began as a simple rest stop for hikers evolved into something bigger - a signal that Poly Canyon was still very much alive. The team anchored their 12-by-12 redwood deck into the hillside with concrete piers, worked through environmental reviews, and chased down grants and donations. Two months of construction later, they'd created more than just a viewpoint - they'd built a invitation for the next generation to leave their mark on these hills.",
-    "Fun Fact": "The deck was dedicated the day before its builders graduated in 2019, bringing together deans, department heads, and project sponsors to celebrate the canyon's newest addition - and hopefully not its last.",
-    "Images": ["M-18", "C-18", "observationDeck1"]
+    "Fun Fact": "Built in 2019, this deck became the first new structure in 15 years.",
+    "Images": [
+      "M-18",
+      "C-18",
+      "observationDeck1"
+    ]
   },
-
   {
     "Name": "Poly Pavilion",
     "Number": 19,
     "Year": "1985",
-    "Advisors": ["Jake Feldman"],
+    "Advisors": [
+      "Jake Feldman"
+    ],
     "Builders": [
       "Alfredo Alcaraz",
       "Armando Paez",
@@ -452,26 +544,39 @@
       "Stan Smith"
     ],
     "Description": "Take a chain, let it hang naturally, flip that curve upside down - that's the secret behind the Poly Pavilion's sweeping arches. Inspired by engineer Heinz Isler, students turned this simple principle into three 40-foot concrete spans that rise 8 feet into the air. They precast each piece, brought in a crane, and assembled what would become the canyon's most social structure. These days you'll find students stringing hammocks between its arches or gathering underneath to stargaze, proving that sometimes the best architecture is the kind that just lets people be.",
-    "Fun Fact": "The structure creates such perfect spots for hammocks that it's become an unofficial gathering spot for stargazers and afternoon nappers - though that probably wasn't in the original engineering calculations.",
-    "Images": ["M-19", "C-19", "polyPavilion1", "polyPavilion2"]
+    "Fun Fact": "Perfect for hammocks, this social hub is a bit of a star in the canyon.",
+    "Images": [
+      "M-19",
+      "C-19",
+      "polyPavilion1",
+      "polyPavilion2"
+    ]
   },
-
   {
     "Name": "Serenity Wall",
     "Number": 20,
     "Year": "2004",
-    "Advisors": ["Jonathan Reich"],
-    "Builders": ["Brian Milton (ARCH)"],
+    "Advisors": [
+      "Jonathan Reich"
+    ],
+    "Builders": [
+      "Brian Milton (ARCH)"
+    ],
     "Description": "At first glance, the Serenity Wall is just that - a beautifully crafted wall of weathered redwood planks set on serpentine rock bases, framing a perfect view of the canyon. But look a little closer, and you'll find layers of careful thinking built into every detail. The wall is precisely aligned to track moon cycles, casting specific shadows on the 21st of each month. It's part of a larger meditation space, with two companion pieces - a cardinal direction marker and a meditation bench. Even its aging process was planned, with untreated wood meant to weather naturally while native grasses return around it.",
-    "Fun Fact": "What looks like simple wooden planks actually form a complex calendar - the wall's shadows mark specific days each month, turning a basic barrier into a quiet timekeeper.",
-    "Images": ["M-20", "C-20", "serenityWall1"]
+    "Fun Fact": "This wall\u2019s shadows form a calendar, tracking the moon\u2019s monthly path.",
+    "Images": [
+      "M-20",
+      "C-20",
+      "serenityWall1"
+    ]
   },
-
   {
     "Name": "Hay Bale Arch",
     "Number": 21,
     "Year": "2004",
-    "Advisors": ["Abe Lynn"],
+    "Advisors": [
+      "Abe Lynn"
+    ],
     "Builders": [
       "Adam Bradley (ARCE)",
       "Philip Greene (ARCE)",
@@ -479,15 +584,19 @@
       "Matthew Vorhees (ARCE)"
     ],
     "Description": "Imagine stacking hay bales into a double-barrel arch and expecting it to hold. It didn't - at least not the first time. After watching their initial attempt collapse, the students building this structure regrouped and came back with stronger rebar stakes and a better plan. The result? A parabolic arch that uses nothing but compression to stay standing, wrapped in wire mesh and stucco to keep the straw dry. They even left a 'window of truth' to show off the hay inside, though it's been covered up since. Best part? It's probably the only straw bale double-barrel arch anywhere in the world.",
-    "Fun Fact": "Despite looking delicate, straw bale structures are surprisingly fire-resistant and make excellent insulators - this arch proved you could also make them structurally ambitious.",
-    "Images": ["M-21", "C-21"]
+    "Fun Fact": "This parabolic arch is actually made out of hay bales.",
+    "Images": [
+      "M-21",
+      "C-21"
+    ]
   },
-
   {
     "Name": "Fratessa Tower",
     "Number": 22,
     "Year": "2004",
-    "Advisors": ["Abe Lynn"],
+    "Advisors": [
+      "Abe Lynn"
+    ],
     "Builders": [
       "Rachel Martin",
       "Justin Wei",
@@ -497,15 +606,20 @@
       "Adam Stagnaro"
     ],
     "Description": "Three precast concrete legs shoot skyward at sharp angles, held in perfect tension by cables meeting at a single point above. This tripod design wasn't just for show - it turned an old hydraulic structure's foundation into the base for something new: an observation deck dedicated to Paul Fratessa, who helped shape Cal Poly's Architectural Engineering program. A spiral staircase leads you up to views of the entire canyon, though the real view might be the tower itself, proving that the best tributes don't need plaques - sometimes they just need good engineering.",
-    "Fun Fact": "The tower's most impressive engineering feat might be invisible - it manages to hold a full observation deck steady using just three legs and a set of tension cables, all balanced on someone else's old foundation.",
-    "Images": ["M-22", "C-22", "fratessaTower1"]
+    "Fun Fact": "Three concrete legs and tension cables hold this soaring deck aloft.",
+    "Images": [
+      "M-22",
+      "C-22",
+      "fratessaTower1"
+    ]
   },
-
   {
     "Name": "Tensegrity",
     "Number": 23,
     "Year": "2022",
-    "Advisors": ["Kevin Dong"],
+    "Advisors": [
+      "Kevin Dong"
+    ],
     "Builders": [
       "Will Adam (ARCE)",
       "Ivan Cruz (ARCE)",
@@ -514,10 +628,14 @@
       "Truman Waller (ARCE)"
     ],
     "Description": "See that floating roof? It's not actually floating - but that's exactly what these students wanted you to think. Those inverted wooden pyramids and thin steel rods are playing a brilliant game of tug-of-war, where tension and compression balance so perfectly that the canopy seems to hover in mid-air. It took two years to get it just right, working through a pandemic and countless custom parts. The real magic happened during installation, when everything had to balance into perfect equilibrium - one slight misalignment and the whole illusion would fall apart.",
-    "Fun Fact": "Look closely at the wood pyramids - they're not just supports, they're actually pulling downward while the steel rods pull up, creating a perfect balance that makes the roof appear to float in space.",
-    "Images": ["M-23", "C-23", "tensegrity1", "tensegrity2"]
+    "Fun Fact": "Tension and compression make this center canopy appear to be floating.",
+    "Images": [
+      "M-23",
+      "C-23",
+      "tensegrity1",
+      "tensegrity2"
+    ]
   },
-
   {
     "Name": "Shell House",
     "Number": 24,
@@ -544,10 +662,15 @@
       "Cameron Tilmont (CN)"
     ],
     "Description": "Look up at the Shell House and you'll see something remarkable - a concrete canopy that seems to float on just three points, crafted by spraying concrete over tensioned cables. But the real magic happened in 1975, when students transformed this empty shell into the canyon's heart. They added Lucite windows to frame the hills, built a fireplace that preheated air, and even tucked a waterfall under the staircase. By the 80s, it was a proper home, complete with a hot tub and fish tank, hosting everyone from caretakers to visiting professors. The interior may be quiet now, but those curved walls still hold sixty years of stories, whispering of what's possible when students dream big enough.",
-    "Fun Fact": "The builders didn't just spray concrete randomly - they used something called 'shotcrete' with such precision that they created a shell light enough to seem weightless, yet strong enough to shelter generations of canyon caretakers.",
-    "Images": ["M-24", "C-24", "shellHouse1", "shellHouse2", "shellHouse3"]
+    "Fun Fact": "This used to be a top end home with a hot tub, fish tank, and a water fall.",
+    "Images": [
+      "M-24",
+      "C-24",
+      "shellHouse1",
+      "shellHouse2",
+      "shellHouse3"
+    ]
   },
-
   {
     "Name": "Green House",
     "Number": 25,
@@ -581,10 +704,15 @@
       "Margaret V. Selig (MECH-E)"
     ],
     "Description": "Picture a greenhouse that thinks for itself. In the 1980s, students built exactly that - a structure that could regulate its own climate using nothing but clever design. They tucked it into the hillside, where stone walls stored the day's heat for night. Solar chimneys and rotating vents caught breezes just right, while a water wall soaked up sunshine to keep things warm. They even added automated systems to monitor everything from water to humidity - pretty wild for the 80s. No one's quite sure how well it all worked in the end, but just look at what they were trying to do here. They weren't just growing plants - they were nuturing ideas.",
-    "Fun Fact": "It took six years and students from seven different majors to complete this project. While most canyon projects wrapped up in a year or two, this one kept evolving, getting more ambitious with each passing quarter.",
-    "Images": ["M-25", "C-25", "greenHouse1", "greenHouse2", "greenHouse3"]
+    "Fun Fact": "Over 7 different student groups in the 70s worked on the green house.",
+    "Images": [
+      "M-25",
+      "C-25",
+      "greenHouse1",
+      "greenHouse2",
+      "greenHouse3"
+    ]
   },
-
   {
     "Name": "Modular House",
     "Number": 26,
@@ -634,7 +762,7 @@
       "Michael L. Blanchard"
     ],
     "Description": "Hidden among the trees stands what began as the 'Space Module' in 1965. It started with a simple idea: an 8x8x8 steel grid that could become anything. And become something it did. By the 70s, this experiment in prefab construction had transformed into a proper home, with wood panels and Plexiglas walls bringing warmth to its industrial frame. Glen Jackson, the first caretaker, made it truly special - what looked like a stark grid from outside held a cozy sanctuary within. Though today its steel bones stand open to the sky, every beam tells a story of how simple ideas can grow into something extraordinary.",
-    "Fun Fact": "Originally named the 'Space Module,' this was designed as both a seminar space and lodging for visiting professionals before it evolved into the canyon's first caretaker home.",
+    "Fun Fact": "Originally a seminar space, this grid evolved into the first caretaker\u2019s home.",
     "Images": [
       "M-26",
       "C-26",
@@ -645,12 +773,15 @@
       "modularHouse5"
     ]
   },
-
   {
     "Name": "Centering for Center",
     "Number": 27,
     "Year": "2022",
-    "Advisors": ["Tom Fowler", "Kevin Dong", "Julie Herndon"],
+    "Advisors": [
+      "Tom Fowler",
+      "Kevin Dong",
+      "Julie Herndon"
+    ],
     "Builders": [
       "Jonathan Oberempt (ARCE)",
       "Faith Sharp (ARCE)",
@@ -674,7 +805,7 @@
       "Sloan Woodward (ARCH)"
     ],
     "Description": "This timber dome first cast its latticed shadows over a music festival in Descanso Gardens before finding its way to Poly Canyon. Its 84 identical pieces lock together to form a perfect 16-foot span, creating an ever-changing play of light through its geometric patterns. In 2024, students added the Biophilic Instrument Pavilion - an array of prisms and sensors that respond to light and sound, transforming the meditation space into something more dynamic. The whole structure can be dismantled and rebuilt, proving that good architecture doesn't always need permanent roots.",
-    "Fun Fact": "The dome's design was inspired by the Dudleya, a succulent native to California's coast - look closely and you might see the resemblance in its geometric patterns.",
+    "Fun Fact": "Inspired by a succulent, this dome can be dismantled and rebuilt anywhere.",
     "Images": [
       "M-27",
       "C-27",
@@ -684,34 +815,43 @@
       "centeringCenter4"
     ]
   },
-
   {
     "Name": "Pole House",
     "Number": 28,
     "Year": "1989",
-    "Advisors": ["Randy Detmer", "Davis Hatcher", "John Kubasak"],
+    "Advisors": [
+      "Randy Detmer",
+      "Davis Hatcher",
+      "John Kubasak"
+    ],
     "Builders": [
       "EDES Class Project",
       "Richard Mancuso (ARCE)",
       "Anything Breslin (CN)"
     ],
     "Description": "Walk around the Pole House and you'll notice something odd - it never actually touches the ground. The whole structure balances on timber poles sunk deep into bedrock, letting it hover right over the hillside without disrupting the terrain below. While other canyon structures stand as artistic statements or engineering experiments, this one's been quietly doing real work for decades. It stores tools, supplies, and serves as home base for the annual Design Village event. Sometimes the most practical solutions end up being the most elegant.",
-    "Fun Fact": "Not a single part of this building touches the earth except for its poles - the entire structure hangs in the air, anchored by caissons drilled straight into the bedrock.",
-    "Images": ["M-28", "C-28"]
+    "Fun Fact": "Floating above the ground, this house is anchored only by timber poles.",
+    "Images": [
+      "M-28",
+      "C-28"
+    ]
   },
-
   {
     "Name": "Electric Infra-Structure",
     "Number": 29,
     "Year": "1965 / 1977",
-    "Advisors": ["Warren Anderson", "Nelson Greene", "Jim Borland"],
+    "Advisors": [
+      "Warren Anderson",
+      "Nelson Greene",
+      "Jim Borland"
+    ],
     "Builders": [
       "Britton P. Grim (EE)",
       "Michael B. Fricke (ARCH)",
       "Lyndon Sobel (CM)"
     ],
     "Description": "What looks like an artistic installation at the picnic area actually houses the heart of Poly Canyon's original power system. This transformer station marked the beginning of bringing real electricity to the canyon's experimental structures. Students ran underground cables northward from here, powering everything from the Shell House's hot tub to the restrooms' lights. By 1977, the entire canyon was humming with power - though today these transformers sit quiet, their rusted housing tells a story of how students brought modern amenities to this remote architectural playground.",
-    "Fun Fact": "Before this central transformer was installed, power came directly from overhead lines. Moving everything underground let students power more ambitious projects.",
+    "Fun Fact": "This transformer powered the canyon\u2019s first hot tub and lit its paths.",
     "Images": [
       "M-29",
       "electric1",
@@ -721,23 +861,32 @@
       "electric5"
     ]
   },
-
   {
     "Name": "BBQ Area",
     "Number": 30,
     "Year": "1974",
-    "Advisors": ["No Listed Advisors"],
-    "Builders": ["Unknown Builders"],
+    "Advisors": [
+      "No Listed Advisors"
+    ],
+    "Builders": [
+      "Unknown Builders"
+    ],
     "Description": "The BBQ pit sits at the heart of what became an eclectic gathering space, surrounded by various structures built over the years - concrete counters, peculiar seating arrangements, and small bridges whose origins have blurred with time. During Design Village events, this area would come alive, most memorably for the traditional pig roasts that became something of a canyon legend. Today, you can still see the sturdy pit and its collection of nearby accessories, each telling fragments of stories about how students made this remote spot their own.",
-    "Fun Fact": "During Design Village competitions, students would roast entire pigs here - a tradition that spoke to how this simple BBQ pit became the social center of canyon gatherings.",
-    "Images": ["M-30", "C-30", "bbqPit1", "bbqPit2"]
+    "Fun Fact": "A legendary gathering spot, once home to canyon-wide pig roasts.",
+    "Images": [
+      "M-30",
+      "C-30",
+      "bbqPit1",
+      "bbqPit2"
+    ]
   },
-
   {
     "Name": "Moment Monument",
     "Number": 31,
     "Year": "2024",
-    "Advisors": ["Kevin Dong"],
+    "Advisors": [
+      "Kevin Dong"
+    ],
     "Builders": [
       "Carsten Huber (ARCE)",
       "Gaspar Solorio (ARCE)",
@@ -745,7 +894,7 @@
       "Brayden Martinez (ARCE)"
     ],
     "Description": "If 'Steel Design 101' jumped off the page, this is what you'd see. Six steel frames rise from a circular concrete stage, each showing off a different way buildings handle earthquakes. One frame has a 'dog bone' connection - deliberately weakened at just the right spot, like a gymnast who knows exactly where to bend. Another uses replaceable links that absorb shock like a car's bumper. Despite weeks of rain delaying the foundation work, these students built something that turns abstract theories into steel and bolts you can touch. It's a structure that teaches just by standing there, proving the canyon still has new lessons to share.",
-    "Fun Fact": "Each of these six frames demonstrates a different type of moment connection - from the Reduced Beam Section (dog bone) to the Simpson Strong-Tie Yield Link - showing every major way modern buildings handle seismic forces.",
+    "Fun Fact": "Six steel frames showcase how modern buildings handle earthquakes.",
     "Images": [
       "M-31",
       "C-31",

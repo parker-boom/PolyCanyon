@@ -143,7 +143,7 @@ class AppState: ObservableObject {
         if forWalkthrough == true {
             mapIsSatellite = true
             mapShowNumbers = false
-            mapScale = 2.0
+            mapScale = 1.5
             return
         }
         
