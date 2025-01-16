@@ -209,6 +209,10 @@ class DataStore: ObservableObject {
         }
     }
     
+    func isLiked(for structureId: Int) -> Bool {
+        return structures.first(where: { $0.id == structureId })?.isLiked ?? false
+    }
+    
     // Resets all structures to default state
     func resetStructures() {
         // Reset regular structures

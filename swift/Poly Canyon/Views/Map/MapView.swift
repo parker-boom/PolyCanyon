@@ -152,6 +152,14 @@ struct MapView: View {
                     currentWalkthroughMapPoint = nil
                 }
             }
+            .onChange(of: appState.currentStructureIndex) { _ in
+                if appState.isVirtualWalkthrough {
+                    let newStructure = dataStore.structures[appState.currentStructureIndex]
+                    currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
+                } else {
+                    currentWalkthroughMapPoint = nil
+                }
+            }
         }
         .onAppear {
             appState.configureMapSettings()

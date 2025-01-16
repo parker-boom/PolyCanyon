@@ -17,13 +17,6 @@ class AppState: ObservableObject {
         }
     }
     
-    /*
-    // Used for map offset when map isn't full screen
-    @Published var circleY: CGFloat? = nil
-    @Published var circleX: CGFloat? = nil
-    @Published var dotVisible: Bool = false
-    */
-    
     // Adventure mode - effects the entire user experience and every view rendered differently
     // FALSE = Virtual tour mode - for non-in person use, viewing information only
     // TRUE = Adventure mode - for in person use, location and progress tracking
@@ -41,26 +34,26 @@ class AppState: ObservableObject {
     }
     
     // MARK: - Global Alert System
+    enum AlertType: Identifiable {
+            case resetConfirmation(type: ResetType)
+            case modePicker(currentMode: Bool)
+            
+            enum ResetType {
+                case structures
+                case favorites
+            }
+            
+            var id: String {
+                switch self {
+                case .resetConfirmation: return "reset"
+                case .modePicker: return "mode"
+                }
+            }
+    }
+
+    
     @Published var activeAlert: AlertType?
     
-    enum AlertType: Identifiable {
-        case backgroundLocation
-        case resetConfirmation(type: ResetType)
-        case modePicker(currentMode: Bool)
-        
-        enum ResetType {
-            case structures
-            case favorites
-        }
-        
-        var id: String {
-            switch self {
-            case .backgroundLocation: return "background"
-            case .resetConfirmation: return "reset"
-            case .modePicker: return "mode"
-            }
-        }
-    }
     
     // Alert helper methods
     func showAlert(_ type: AlertType) {
@@ -72,17 +65,20 @@ class AppState: ObservableObject {
     }
 
     // Add property to track if background alert was shown
-    @Published var hasShownBackgroundLocationAlert: Bool {
-        didSet {
-            UserDefaults.standard.set(hasShownBackgroundLocationAlert, forKey: "hasShownBackgroundLocationAlert")
-        }
-    }
-
     @Published var hasVisitedCanyon: Bool {
         didSet {
             UserDefaults.standard.set(hasVisitedCanyon, forKey: "hasVisitedCanyon")
         }
     }
+
+    // MARK: - FullScreen Views
+    // Tracks which full-screen view is currently active
+    @Published var activeFullScreenView: FullScreenView? = nil  
+
+    // Tracks which struct being displayed in struct info
+    @Published var structInfoNum: Int = 0
+    
+
 
     // MARK: - Map Settings
     @Published var mapIsSatellite: Bool {
@@ -118,7 +114,7 @@ class AppState: ObservableObject {
         }
     }
     
-    // Helper method to configure map settings based on mode
+    // Helper method to configure map container settings based on mode
     func configureMapSettings(forWalkthrough: Bool? = nil, inCanyon: Bool? = nil) {
         // Only set defaults on first ever launch
         if forWalkthrough == nil && inCanyon == nil {
@@ -160,7 +156,6 @@ class AppState: ObservableObject {
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
-        self.hasShownBackgroundLocationAlert = UserDefaults.standard.bool(forKey: "hasShownBackgroundLocationAlert")
         self.hasVisitedCanyon = UserDefaults.standard.bool(forKey: "hasVisitedCanyon")
         
         // Initialize map settings

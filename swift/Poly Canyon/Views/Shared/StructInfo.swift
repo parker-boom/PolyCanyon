@@ -10,46 +10,36 @@ import Zoomable
 import Shimmer
 
 // MARK: - StructInfo (Top-Level Container)
+// MARK: - StructInfo (Top-Level Container)
 struct StructInfo: View {
     // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     
-    // MARK: - Properties
-    let structure: Structure
-    @Binding var isPresented: Bool
-    
     // MARK: - View State
     @State private var isShowingInfo: Bool = false
     @State private var currentImageIndex: Int = 0
-    @State private var isLiked: Bool
     
-    // MARK: - Initializer
-    init(structure: Structure, isPresented: Binding<Bool>) {
-        self.structure = structure
-        self._isPresented = isPresented
-        self._isLiked = State(initialValue: structure.isLiked)
+    // MARK: - Computed Properties
+    private var structure: Structure {
+        dataStore.structures[appState.structInfoNum - 1]
     }
     
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 15) {
-                
-                // Flip between image section and info panel
                 ZStack {
                     if !isShowingInfo {
                         ImageSection(
                             structure: structure,
                             currentImageIndex: $currentImageIndex,
-                            isLiked: $isLiked,
-                            dismissAction: { isPresented = false },
+                            dismissAction: { appState.activeFullScreenView = nil },
                             geometry: geometry
                         )
                     } else {
                         InformationPanel(
                             structure: structure,
-                            isPresented: $isPresented,
                             geometry: geometry
                         )
                     }
@@ -58,12 +48,9 @@ struct StructInfo: View {
                                   axis: (x: 0, y: 1, z: 0))
                 .animation(.easeInOut(duration: 0.5), value: isShowingInfo)
                 .onAppear {
-                    if structure.isVisited {
-                        dataStore.markStructureAsOpened(structure.number)
-                    }
+                    dataStore.markStructureAsOpened(structure.number)
                 }
                 
-                // Button to toggle image/info
                 ToggleInfoButton(isShowingInfo: $isShowingInfo, geometry: geometry)
             }
             .padding(15)
@@ -81,9 +68,8 @@ struct StructInfo: View {
     private var dismissDragGesture: some Gesture {
         DragGesture()
             .onEnded { value in
-                // If user drags down enough, dismiss
                 if value.translation.height > 100 {
-                    isPresented = false
+                    appState.activeFullScreenView = nil
                 }
             }
     }
@@ -97,7 +83,6 @@ private struct ImageSection: View {
     
     let structure: Structure
     @Binding var currentImageIndex: Int
-    @Binding var isLiked: Bool
     
     let dismissAction: () -> Void
     let geometry: GeometryProxy
@@ -120,10 +105,9 @@ private struct ImageSection: View {
             StructureInfoOverlay(structure: structure)
             
             // Like + image indicator dots (bottom trailing)
-            ImageDotsView(
+            BottomOverlay(
                 structure: structure,
-                currentImageIndex: $currentImageIndex,
-                isLiked: $isLiked
+                currentImageIndex: $currentImageIndex
             )
         }
     }
@@ -136,7 +120,6 @@ private struct InformationPanel: View {
     @EnvironmentObject var dataStore: DataStore
     
     let structure: Structure
-    @Binding var isPresented: Bool
     let geometry: GeometryProxy
     
     // Helper function to convert arrays to truncated strings
@@ -153,7 +136,7 @@ private struct InformationPanel: View {
         VStack(spacing: 0) {
             InfoPanelHeader(
                 structure: structure,
-                dismissAction: { isPresented = false }
+                dismissAction: { appState.activeFullScreenView = nil }
             )
             
             ScrollView {
@@ -309,17 +292,16 @@ private struct StructureInfoOverlay: View {
 
 // MARK: - ImageDotsView
 /// Shows a like button plus dots indicating which image is currently displayed in the carousel.
-private struct ImageDotsView: View {
+private struct BottomOverlay: View {
     @EnvironmentObject var dataStore: DataStore
     
     let structure: Structure
     @Binding var currentImageIndex: Int
-    @Binding var isLiked: Bool
     
     var body: some View {
         VStack {
             // Like button
-            LikeButton(structure: structure, isLiked: $isLiked)
+            LikeButton(structure: structure)
             
             // Dots
             HStack(spacing: 8) {
@@ -346,15 +328,13 @@ private struct LikeButton: View {
     @EnvironmentObject var dataStore: DataStore
     
     let structure: Structure
-    @Binding var isLiked: Bool
 
     var body: some View {
         Button(action: {
-            isLiked.toggle()
-            dataStore.toggleLike(for: structure.id)
+            dataStore.toggleLike(for: structure.id) // Directly toggle the "liked" state in dataStore
         }) {
-            Image(systemName: isLiked ? "heart.fill" : "heart")
-                .foregroundColor(isLiked ? .red : .white)
+            Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
+                .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
                 .font(.system(size: 42))
                 .shadow(color: .black, radius: 2, x: 0, y: 0)
         }
@@ -496,25 +476,4 @@ private struct ZoomableImageView: View {
     }
 }
 
-// MARK: - Preview
-struct StructInfo_Previews: PreviewProvider {
-    static var previews: some View {
-        let exampleStructure = DataStore.shared.structures.randomElement()
-        
-        Group {
-            StructInfo(structure: exampleStructure!, isPresented: .constant(true))
-                .environmentObject(AppState())
-                .environmentObject(DataStore.shared)
-                .previewDisplayName("Light Mode")
-            
-            StructInfo(structure: exampleStructure!, isPresented: .constant(true))
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .previewDisplayName("Dark Mode")
-        }
-    }
-}
+

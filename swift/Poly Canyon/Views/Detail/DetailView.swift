@@ -43,7 +43,8 @@ struct DetailView: View {
                     sortState: sortState,
                     isGridView: isGridView,
                     onStructureSelected: { structure in
-                        showStructurePopup(structure)
+                        appState.activeFullScreenView = .structInfo
+                        appState.structInfoNum = structure.id
                     }
                 )
             }
@@ -57,13 +58,13 @@ struct DetailView: View {
                         showStructPopup = false
                     }
                 
-                StructInfo(
+                /*StructInfo(
                     structure: s,
                     isPresented: $showStructPopup
                 )
                 .padding(15)
                 .transition(.opacity)
-                .zIndex(1)
+                .zIndex(1)*/
             }
         }
     }

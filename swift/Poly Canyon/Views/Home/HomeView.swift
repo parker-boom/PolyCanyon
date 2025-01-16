@@ -1,13 +1,19 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject var appState: AppState
+    
     var body: some View {
         VStack {
-            Spacer()
-            Text("Home!")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
+            Button {
+                appState.activeFullScreenView = .settings
+            } label: {
+                Image(systemName: "gear")
+                    .font(.title2)
+                    .foregroundColor(.primary)
+            }
+            .padding()
+            
             Spacer()
         }
     }

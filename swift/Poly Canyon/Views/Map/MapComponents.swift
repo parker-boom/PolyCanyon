@@ -6,7 +6,6 @@
 
 import SwiftUI
 
-// Add these modifiers at the top level of MapComponents.swift
 
 struct GlassBackground: ViewModifier {
     @EnvironmentObject var appState: AppState
@@ -266,64 +265,6 @@ extension View {
     }
 }
 
-
-struct MapStatusOverlay: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var locationService: LocationService
-    let geometry: GeometryProxy
-    
-    var body: some View {
-        VStack {
-            Spacer()
-            if locationService.isLocationPermissionDenied {
-                BottomMessage(text: "Enable location services", geometry: geometry)
-            } else if locationService.isOutOfRange {
-                BottomMessage(text: "To use the live map, you must be in Poly Canyon", geometry: geometry)
-            } else if locationService.isNearby {
-                BottomMessage(text: "You're nearby! The live map will start soon", geometry: geometry)
-            }
-            // No message if isInPolyCanyonArea (showing pulsing circle instead)
-        }
-    }
-}
-
-struct StatusMessage: View {
-    @EnvironmentObject var appState: AppState
-    let text: String
-    
-    init(_ text: String) {
-        self.text = text
-    }
-    
-    var body: some View {
-        Text(text)
-            .fontWeight(.semibold)
-            .padding()
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .foregroundColor(appState.isDarkMode ? .white : .black)
-            .cornerRadius(10)
-            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
-                    radius: 5, x: 0, y: 0)
-    }
-}
-
-struct BottomMessage: View {
-    @EnvironmentObject var appState: AppState
-    let text: String
-    let geometry: GeometryProxy
-    
-    var body: some View {
-        Text(text)
-            .fontWeight(.semibold)
-            .padding()
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .foregroundColor(appState.isDarkMode ? .white : .black)
-            .cornerRadius(10)
-            .shadow(color: appState.isDarkMode ? .white.opacity(0.6) : .black.opacity(0.8),
-                    radius: 5, x: 0, y: 0)
-            .position(x: geometry.size.width / 2, y: geometry.size.height - 50)
-    }
-}
 
 struct MapContainerView<Content: View>: View {
     @EnvironmentObject var appState: AppState
@@ -1062,7 +1003,8 @@ struct MapBottomBar: View {
             ForEach(locationService.nearbyStructures) { nearby in
                 if let structure = dataStore.structures.first(where: { $0.number == nearby.structureNumber }) {
                     Button {
-                        // Handle structure selection (we can add this later)
+                        appState.activeFullScreenView = .structInfo
+                        appState.structInfoNum = structure.number
                     } label: {
                         ZStack(alignment: .topTrailing) {
                             Image(structure.images[0])
@@ -1463,7 +1405,10 @@ struct VirtualTourBottomBar: View {
                                 .frame(width: 1, height: 24)
                             
                             // Learn More Section
-                            Button(action: { showLearnMore.toggle() }) {
+                            Button(action: {
+                                appState.activeFullScreenView = .structInfo
+                                appState.structInfoNum = currentStructure.number
+                            }) {
                                 HStack(spacing: 6) {
                                     Text("Learn More")
                                         .font(.system(size: 15, weight: .semibold))
@@ -1498,9 +1443,6 @@ struct VirtualTourBottomBar: View {
         }
         .frame(maxHeight: UIScreen.main.bounds.height * 0.4 - 49 - 24)
         .transition(.move(edge: .bottom))
-        .sheet(isPresented: $showLearnMore) {
-            //StructureInfo(structure: currentStructure)
-        }
     }
     
     private func closeVirtualTour() {

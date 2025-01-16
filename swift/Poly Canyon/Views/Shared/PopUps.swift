@@ -17,24 +17,6 @@ struct AlertContainer: View {
     
     var body: some View {
         switch alert {
-        case .backgroundLocation:
-            CustomAlert(
-                icon: "figure.walk",
-                iconColor: .green,
-                title: "Enable Background Location",
-                subtitle: "Tracks the structures you visit even when the app is closed.",
-                primaryButton: .init(title: "Allow") {
-                    locationService.requestAlwaysAuthorization()
-                    appState.hasShownBackgroundLocationAlert = true
-                    appState.dismissAlert()
-                },
-                secondaryButton: .init(title: "Cancel") {
-                    appState.hasShownBackgroundLocationAlert = true
-                    appState.dismissAlert()
-                },
-                isPresented: .constant(true)
-            )
-            
         case .resetConfirmation(let type):
             CustomAlert(
                 icon: type == .structures ? "arrow.counterclockwise" : "heart.slash.fill",
