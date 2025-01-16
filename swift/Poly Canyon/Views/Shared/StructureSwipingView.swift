@@ -14,11 +14,8 @@ struct StructureSwipingView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     
-    // MARK: - Presentation
-    @Environment(\.presentationMode) var presentationMode
-    
     // MARK: - State
-    @State private var currentIndex: Int
+    @State private var currentIndex: Int = -1
     @State private var offset: CGSize = .zero
     @State private var color: Color = .black
     @State private var likedCount = 0
@@ -27,44 +24,38 @@ struct StructureSwipingView: View {
     // MARK: - Constants
     private let swipeThreshold: CGFloat = 50.0
     
-    // MARK: - Init
-    init() {
-        let savedIndex = UserDefaults.standard.integer(forKey: "ratingProgress")
-        let isCompleted = UserDefaults.standard.bool(forKey: "ratingCompleted")
-        self._currentIndex = State(initialValue: savedIndex)
-        self._hasFinishedRating = State(initialValue: isCompleted)
-    }
-    
     // MARK: - Body
     var body: some View {
         ZStack {
             backgroundColor
             
             VStack {
-
-                // Show structures to rate
-                if !hasFinishedRating {
+                if currentIndex == -1 {
+                    StartingView()
+                } else if currentIndex < dataStore.structures.count {
                     RatingContentView(
                         currentIndex: $currentIndex,
                         offset: $offset,
                         color: $color,
                         likedCount: $likedCount,
-                        swipeThreshold: swipeThreshold,
-                        hasFinishedRating: $hasFinishedRating
+                        swipeThreshold: swipeThreshold
                     )
-                
-                // Show completed view
+                    .padding(.top, 50)
                 } else {
                     CompletionView(
                         likedCount: $likedCount,
                         onRestart: restartRating,
-                        onExit: { presentationMode.wrappedValue.dismiss() }
+                        onExit: { appState.activeFullScreenView = nil }
                     )
                 }
             }
         }
+        .onChange(of: appState.tinderModeStructureNum) { newVal in
+            currentIndex = newVal
+        }
         .edgesIgnoringSafeArea(.all)
         .onAppear {
+            initializeCurrentIndex()
             updateLikedCount()
         }
     }
@@ -80,19 +71,23 @@ struct StructureSwipingView: View {
     private func updateLikedCount() {
         likedCount = dataStore.structures.filter { $0.isLiked }.count
     }
+
+    /// Initializes the current index based on the app state.
+    private func initializeCurrentIndex() {
+        currentIndex = appState.tinderModeStructureNum
+    }
     
     /// Resets the rating flow so the user can start over.
     private func restartRating() {
         currentIndex = 0
-        hasFinishedRating = false
-        UserDefaults.standard.set(false, forKey: "ratingCompleted")
         saveProgress()
+        dataStore.resetLikes()
         updateLikedCount()
     }
     
     /// Saves current progress in UserDefaults.
     private func saveProgress() {
-        UserDefaults.standard.set(currentIndex, forKey: "ratingProgress")
+        appState.tinderModeStructureNum = currentIndex
     }
 }
 
@@ -104,32 +99,43 @@ private struct RatingContentView: View {
     @EnvironmentObject var dataStore: DataStore
     @Environment(\.presentationMode) var presentationMode
     
+    @State private var scale: CGFloat = 1.0
+    
     @Binding var currentIndex: Int
     @Binding var offset: CGSize
     @Binding var color: Color
     @Binding var likedCount: Int
     
     let swipeThreshold: CGFloat
-    @Binding var hasFinishedRating: Bool
     
     var body: some View {
-        VStack {
-            Text("Rate Structures")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.top, 20)
-            
-            Text("\(currentIndex + 1)/\(dataStore.structures.count)")
-                .font(.headline)
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.bottom, 5)
-            
+        VStack(spacing: 0) {
+            // Title section - positioned from top
+            VStack(spacing: 5) {
+                Text("Rate Structures")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.black.opacity(0.8))
+                    .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
+
+                Text(progressText)
+                    .font(.headline)
+                    .foregroundColor(.black.opacity(0.8))
+                    .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
+            }
+            .frame(maxWidth: UIScreen.main.bounds.width - 40)
+            .padding(.vertical, 15)
+            .glassBackground(cornerRadius: 20)
+            .shadow(color: .black.opacity(0.65), radius: 7, x: 0, y: 0)
+            .padding(.top, 20) // Distance from top safe area
+
+            // Card section with reduced height
             ZStack {
                 ForEach(dataStore.structures.indices, id: \.self) { index in
-                    if index >= currentIndex && index <= currentIndex + 2 {
+                    if index >= currentIndex && index <= min(currentIndex + 2, dataStore.structures.count - 1) {
                         cardView(for: dataStore.structures[index])
                             .offset(index == currentIndex ? offset : .zero)
                             .rotationEffect(.degrees(Double(index == currentIndex ? offset.width / 10 : 0)))
+                            .zIndex(index == currentIndex ? 1 : 0) 
                             .gesture(
                                 DragGesture()
                                     .onChanged { gesture in
@@ -149,32 +155,107 @@ private struct RatingContentView: View {
                                         }
                                     }
                             )
-                            .zIndex(Double(dataStore.structures.count - index))
+                            .zIndex(Double(dataStore.structures.count - index)) // Ensure the currentIndex card is on top
                     }
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            
-            HStack(spacing: 60) {
+            .padding(.vertical, 25) // Spacing around card section
+
+            // Like/Dislike buttons
+            HStack(spacing: 20) {
                 // Dislike Button
                 Button(action: { swipeCard(width: -500) }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.red)
-                        .font(.system(size: 50))
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 24))
+                        Text("Not for me")
+                            .font(.system(size: 18, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Material.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.red.opacity(0.7))
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.5),
+                                        .red.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(
+                        color: Color.red.opacity(0.3),
+                        radius: 8,
+                        x: 0,
+                        y: 4
+                    )
                 }
                 
                 // Like Button
                 Button(action: { swipeCard(width: 500) }) {
-                    Image(systemName: "heart.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.system(size: 50))
+                    HStack(spacing: 8) {
+                        Image(systemName: "heart.circle.fill")
+                            .font(.system(size: 24))
+                        Text("Favorite")
+                            .font(.system(size: 18, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Material.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.green.opacity(0.7))
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.5),
+                                        .green.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(
+                        color: Color.green.opacity(0.3),
+                        radius: 8,
+                        x: 0,
+                        y: 4
+                    )
                 }
             }
-            .padding(.bottom, 20)
-            
-            // Exit button at bottom
+            .padding(.horizontal, 20)
+            .padding(.top, 15) // Space from cards to buttons
+
+            Spacer() // Dynamic space
+
+            // Exit button - positioned from bottom
             exitButton
+                .padding(.bottom, 30) // Distance from bottom edge
         }
     }
     
@@ -187,7 +268,7 @@ private struct RatingContentView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: UIScreen.main.bounds.width - 40,
-                       height: UIScreen.main.bounds.height * 0.6)
+                       height: UIScreen.main.bounds.height * 0.50) // Reduced height
                 .clipped()
                 .cornerRadius(20)
                 .overlay(
@@ -210,15 +291,39 @@ private struct RatingContentView: View {
     private var exitButton: some View {
         Button(action: {
             saveProgress()
-            presentationMode.wrappedValue.dismiss()
+            appState.activeFullScreenView = nil
         }) {
-            Text("Exit")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.red)
-                .underline()
-                .padding(.vertical, 15)
+            HStack(spacing: 8) {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 20))
+                Text("Exit")
+                    .font(.system(size: 20, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.5))
+                    .background(Material.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.5),
+                                .white.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
-        .padding(.bottom, 30)
     }
     
     // MARK: - Swipe Logic
@@ -231,21 +336,28 @@ private struct RatingContentView: View {
             } else {
                 dislikeStructure()
             }
-            moveToNextCard()
+            
+            // Check if this is the last structure before moving
+            if currentIndex == dataStore.structures.count - 1 {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    currentIndex = dataStore.structures.count // Move to completion view
+                    saveProgress()
+                }
+            } else {
+                moveToNextCard()
+            }
         }
         offset = .zero
     }
     
     /// Moves to the next card or marks the process finished if at the end.
     private func moveToNextCard() {
-        if currentIndex < dataStore.structures.count - 1 {
+        withAnimation {
             currentIndex += 1
             saveProgress()
-        } else {
-            hasFinishedRating = true
-            UserDefaults.standard.set(true, forKey: "ratingCompleted")
         }
     }
+    
     
     /// Likes the current structure and updates the liked count.
     private func likeStructure() {
@@ -268,7 +380,11 @@ private struct RatingContentView: View {
     
     /// Persists the current rating progress to UserDefaults.
     private func saveProgress() {
-        UserDefaults.standard.set(currentIndex, forKey: "ratingProgress")
+        appState.tinderModeStructureNum = currentIndex
+    }
+    
+    private var progressText: String {
+        "\(currentIndex + 1)/\(dataStore.structures.count)"
     }
 }
 
@@ -282,43 +398,82 @@ private struct CompletionView: View {
     let onRestart: () -> Void
     let onExit: () -> Void
     
+    private var percentage: Int {
+        Int((Double(likedCount) / Double(DataStore.shared.structures.count)) * 100)
+    }
+    
     var body: some View {
-        VStack(spacing: 0) {
-            PulsingHeart()
-                .frame(width: 100, height: 100)
-                .padding(.bottom, 15)
-            
-            Text("Rating Complete!")
-                .font(.system(size: 28, weight: .bold))
+        VStack(spacing: 25) {
+            Text("That was a lot!")
+                .font(.system(size: 32, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.bottom, 10)
             
-            Text("\(likedCount)/\(DataStore.shared.structures.count) structures liked")
-                .font(.headline)
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.bottom, 15)
+            Text("You liked **\(likedCount)** structures\nThat's **\(percentage)%**, good job!")
+                .font(.title3)
+                .multilineTextAlignment(.center)
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                .lineSpacing(8)
             
-            HStack(spacing: 15) {
-                // Restart
+            HStack(spacing: 20) {
                 Button(action: onRestart) {
-                    Label("Restart", systemImage: "arrow.clockwise")
+                    Text("Start Over")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(width: 120, height: 50)
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                        .frame(width: 140, height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.blue.opacity(0.7))
+                                .background(Material.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            .white.opacity(0.5),
+                                            .white.opacity(0.2)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 0.5
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
-                // Exit
+                
                 Button(action: onExit) {
-                    Label("Exit", systemImage: "xmark.circle")
+                    Text("Exit")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(width: 120, height: 50)
-                        .background(Color.red)
-                        .cornerRadius(10)
+                        .frame(width: 140, height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.gray.opacity(0.5))
+                                .background(Material.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            .white.opacity(0.5),
+                                            .white.opacity(0.2)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 0.5
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
             }
+            .padding(.top, 20)
         }
+        .padding()
     }
 }
 
@@ -523,7 +678,11 @@ struct StructureSwipingView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             StructureSwipingView()
-                .environmentObject(AppState())
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
                 .environmentObject(DataStore.shared)
                 .previewDisplayName("Light Mode")
             
@@ -536,5 +695,58 @@ struct StructureSwipingView_Previews: PreviewProvider {
                 .environmentObject(DataStore.shared)
                 .previewDisplayName("Dark Mode")
         }
+    }
+}
+
+// Add new StartingView
+private struct StartingView: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        VStack(spacing: 30) {
+            Text("🏛️💫")
+                .font(.system(size: 70))
+                .padding(.bottom, 10)
+            
+            Text("Ready to Rate?")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            Text("**Swipe right** to like a structure\n**Swipe left** if it's not for you")
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                .lineSpacing(8)
+            
+            Button(action: {
+                appState.tinderModeStructureNum = 0
+            }) {
+                Text("Let's Start!")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(width: 200, height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.blue)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [
+                                                .white.opacity(0.5),
+                                                .white.opacity(0.2)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            }
+            .padding(.top, 20)
+        }
+        .padding()
     }
 }

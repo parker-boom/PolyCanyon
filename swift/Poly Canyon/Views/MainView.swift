@@ -63,9 +63,11 @@ struct MainView: View {
         case .settings:
             SettingsView()
                 .environmentObject(appState)
+                .environmentObject(dataStore)
         case .tinderMode:
             StructureSwipingView()
                 .environmentObject(appState)
+                .environmentObject(dataStore)
         }
     }
 }

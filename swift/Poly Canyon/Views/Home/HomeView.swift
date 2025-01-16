@@ -5,6 +5,7 @@ struct HomeView: View {
     
     var body: some View {
         VStack {
+            Spacer()
             Button {
                 appState.activeFullScreenView = .settings
             } label: {
@@ -13,7 +14,15 @@ struct HomeView: View {
                     .foregroundColor(.primary)
             }
             .padding()
-            
+            Spacer()
+            Button {
+                appState.activeFullScreenView = .tinderMode
+            } label: {
+                Image(systemName: "heart.fill")
+                    .font(.title2)
+                    .foregroundColor(.primary)
+            }
+            .padding()
             Spacer()
         }
     }
