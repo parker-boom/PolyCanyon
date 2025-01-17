@@ -9,11 +9,15 @@ import SwiftUI
 
 class AppState: ObservableObject {
 
+    // Temporary flag to force light mode
+    private let forceLightMode: Bool = true
+
     // Dark mode - updates UI to theme accordingly  
     @Published var isDarkMode: Bool {
         didSet {
-            UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
-            // should update to match system setting
+            if !forceLightMode { // Only save if not forcing light mode
+                UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
+            }
         }
     }
     
@@ -155,7 +159,14 @@ class AppState: ObservableObject {
     }
     
     init() {
-        self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+
+        // Force Light Mode or initialize with UserDefaults
+        if forceLightMode {
+            self.isDarkMode = false // Light Mode
+        } else {
+            self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        }
+        
         self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
         self.hasVisitedCanyon = UserDefaults.standard.bool(forKey: "hasVisitedCanyon")

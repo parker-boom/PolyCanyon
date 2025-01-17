@@ -28,7 +28,7 @@ struct VisitNotificationView: View {
                                 .padding(.top, -2) 
                             Text("Just Visited!")
                                 .font(.system(size: 28, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.black.opacity(0.8))
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                             
                         }
@@ -77,7 +77,7 @@ struct VisitNotificationView: View {
                         HStack {
                             Image(systemName: "xmark")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.black.opacity(0.6))
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                         }
                         .frame(width: 60, height: 50) // Fixed size for the "X" button 
@@ -98,17 +98,17 @@ struct VisitNotificationView: View {
                         HStack {
                             Text("Learn More")
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.black.opacity(0.6))
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
 
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.black.opacity(0.6))
                                 .padding(.leading, 15)
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                         }
                         .padding(.vertical, 14)
-                        .frame(maxWidth: .infinity) // Take up the remaining space
+                        .frame(maxWidth: .infinity)
                         .frame(height: 50)
                     }
                 }
@@ -124,9 +124,13 @@ struct VisitNotificationView: View {
                     .fill(Material.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white.opacity(0.6))
+                        )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
                             .stroke(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                    colors: [Color.white.opacity(0.9), Color.white.opacity(0.7)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
@@ -155,6 +159,10 @@ struct GlassyBackground: ViewModifier {
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Material.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white.opacity(0.6))
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(
@@ -207,7 +215,6 @@ struct VisitNotificationView_Previews: PreviewProvider {
                 .environmentObject(appState)
                 .environmentObject(dataStore)
                 .previewLayout(.sizeThatFits)
-                .environment(\.colorScheme, .light)
                 .previewDisplayName("Light Mode")
             
             // Dark Mode Preview
@@ -215,7 +222,6 @@ struct VisitNotificationView_Previews: PreviewProvider {
                 .environmentObject(appState)
                 .environmentObject(dataStore)
                 .previewLayout(.sizeThatFits)
-                .environment(\.colorScheme, .dark)
                 .previewDisplayName("Dark Mode")
         }
     }

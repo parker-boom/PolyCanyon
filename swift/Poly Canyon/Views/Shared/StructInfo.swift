@@ -29,6 +29,7 @@ struct StructInfo: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 15) {
+
                 ZStack {
                     if !isShowingInfo {
                         ImageSection(
@@ -52,15 +53,15 @@ struct StructInfo: View {
                 }
                 
                 ToggleInfoButton(isShowingInfo: $isShowingInfo, geometry: geometry)
+
             }
             .padding(15)
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .cornerRadius(20)
-            .shadow(color: appState.isDarkMode ? .white.opacity(0.3) : .black.opacity(0.5),
-                    radius: 7, x: 0, y: 3)
+            .background(Color.white)
             .gesture(dismissDragGesture)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: 650)
         }
+        .padding(.top, 100)
+        .background(Color.white)
         .edgesIgnoringSafeArea(.all)
     }
     
@@ -91,7 +92,7 @@ private struct ImageSection: View {
         ZStack(alignment: .topLeading) {
             // Carousel
             ImprovedImageCarousel(
-                images: structure.images,
+                images: Array(structure.images.prefix(2)),
                 currentImageIndex: $currentImageIndex,
                 geometry: geometry
             )
@@ -305,7 +306,7 @@ private struct BottomOverlay: View {
             
             // Dots
             HStack(spacing: 8) {
-                ForEach(structure.images.indices, id: \.self) { index in
+                ForEach(0..<2, id: \.self) { index in
                     Circle()
                         .fill(Color.white)
                         .frame(width: currentImageIndex == index ? 10 : 8,

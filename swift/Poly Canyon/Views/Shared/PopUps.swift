@@ -153,25 +153,60 @@ struct ModePickerAlert: View {
     @Binding var isPresented: Bool
     let onDismiss: () -> Void
     
-    @State private var selectedMode: Bool = false // Default value
+    @State private var selectedMode: Bool
+    
+    let adventureModeColor = Color.green
+    let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255)
     
     init(isPresented: Binding<Bool>, onDismiss: @escaping () -> Void) {
         self._isPresented = isPresented
         self.onDismiss = onDismiss
+        self._selectedMode = State(initialValue: false)
     }
     
     var body: some View {
         ZStack {
-            // Semi-transparent background
             Color.black.opacity(0.4)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture(perform: onDismiss)
             
-            // Alert content
-            VStack(spacing: 25) {
-                // Header with close button
-                HStack {
-                    Spacer()
+            VStack(spacing: 12) {
+                HStack(spacing: 4) {
+
+                
+                
+                HStack(spacing: 0) {
+                    ModeButton(
+                        title: "Virtual",
+                        isSelected: !selectedMode,
+                        color: virtualTourColor
+                    ) {
+                        withAnimation(.spring()) {
+                            selectedMode = false
+                        }
+                    }
+                    
+                    ModeButton(
+                        title: "Adventure",
+                        isSelected: selectedMode,
+                        color: adventureModeColor
+                    ) {
+                        withAnimation(.spring()) {
+                            selectedMode = true
+                        }
+                    }
+                }
+                .background(
+                    Capsule()
+                        .fill(Color.gray.opacity(0.2))
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+                .padding(.horizontal)
+
+
                     Button(action: onDismiss) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 28))
@@ -179,56 +214,53 @@ struct ModePickerAlert: View {
                     }
                 }
                 
-                // Mode icons
-                HStack(spacing: 40) {
-                    ModeOption(
-                        isSelected: selectedMode == false,
-                        icon: "binoculars",
-                        title: "Virtual Tour",
-                        color: .orange
-                    )
-                    .onTapGesture { selectedMode = false }
-                    
-                    ModeOption(
-                        isSelected: selectedMode == true,
-                        icon: "figure.walk",
-                        title: "Adventure",
-                        color: .green
-                    )
-                    .onTapGesture { selectedMode = true }
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(selectedMode ? 
+                        ["Explore structures in person",
+                         "Track your progress",
+                         "Use live location"] :
+                        ["Browse remotely",
+                         "Learn about all structures",
+                         "No location needed"], id: \.self) { feature in
+                        HStack(alignment: .top, spacing: 10) {
+                            Text("•")
+                                .font(.system(size: 18, weight: .bold))
+                            Text(feature)
+                                .font(.system(size: 18))
+                        }
+                        .foregroundColor(appState.isDarkMode ? .white : .black)
+                    }
                 }
+                .padding(.vertical)
                 
-                // Description
-                Text(selectedMode ? 
-                    "Explore structures in person with live location tracking" :
-                    "Browse and learn about structures from anywhere"
-                )
-                .multilineTextAlignment(.center)
-                .foregroundColor(.gray)
-                .padding(.horizontal)
+                Text("Better for: \(selectedMode ? "In-person visits" : "Remote exploration")")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .gray)
+                    .padding(.top, 15)
                 
-                // Confirm button (only if mode changed)
                 if selectedMode != appState.adventureModeEnabled {
-                    Button(action: {
+                    Button {
                         locationService.setMode(selectedMode ? .adventure : .virtualTour)
                         appState.adventureModeEnabled = selectedMode
                         onDismiss()
-                    }) {
-                        Text("Confirm Change")
-                            .fontWeight(.bold)
+                    } label: {
+                        Text("Confirm Choice")
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 200)
-                            .padding()
-                            .background(selectedMode ? Color.green : Color.orange)
-                            .cornerRadius(15)
+                            .frame(minWidth: 150)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 30)
+                            .background(selectedMode ? adventureModeColor : virtualTourColor)
+                            .cornerRadius(25)
                     }
                 }
             }
             .padding()
-            .background(Color.white)
+            .background(appState.isDarkMode ? Color.black : Color.white)
             .cornerRadius(20)
             .shadow(radius: 10)
-            .padding(30)
+            .padding(15)
         }
         .onAppear {
             selectedMode = appState.adventureModeEnabled
@@ -236,29 +268,6 @@ struct ModePickerAlert: View {
     }
 }
 
-private struct ModeOption: View {
-    let isSelected: Bool
-    let icon: String
-    let title: String
-    let color: Color
-    
-    var body: some View {
-        VStack {
-            Image(systemName: icon)
-                .font(.system(size: 40))
-                .foregroundColor(isSelected ? color : .gray)
-            
-            Text(title)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(isSelected ? color : .gray)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(isSelected ? color : Color.gray.opacity(0.3), lineWidth: 2)
-        )
-    }
-}
 
 struct WelcomeToCanyonAlert: View {
     @EnvironmentObject var appState: AppState

@@ -31,6 +31,7 @@ struct StructureSwipingView: View {
             
             VStack {
                 if currentIndex == -1 {
+                    // 
                     StartingView()
                 } else if currentIndex < dataStore.structures.count {
                     RatingContentView(
@@ -294,22 +295,22 @@ private struct RatingContentView: View {
             appState.activeFullScreenView = nil
         }) {
             HStack(spacing: 8) {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .font(.system(size: 20))
                 Text("Exit")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 16, weight: .bold))
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 15)
+            .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.5))
                     .background(Material.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 15)
                     .stroke(
                         LinearGradient(
                             colors: [
@@ -403,7 +404,12 @@ private struct CompletionView: View {
     }
     
     var body: some View {
-        VStack(spacing: 25) {
+        VStack(spacing: 15) {
+            
+            Text("✅")
+                .font(.system(size: 80))
+                .padding(.bottom, 0)
+            
             Text("That was a lot!")
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
@@ -414,40 +420,57 @@ private struct CompletionView: View {
                 .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
                 .lineSpacing(8)
             
-            HStack(spacing: 20) {
+            VStack(spacing: 10) {
                 Button(action: onRestart) {
-                    Text("Start Over")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 140, height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.blue.opacity(0.7))
-                                .background(Material.ultraThinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                    HStack{
+                        Text("Start Over")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                        
+                        
+                        
+                    }
+                    .frame(width: 140, height: 50)
+                    .padding(.horizontal, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.blue.opacity(0.7))
+                            .background(Material.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.5),
+                                        .white.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [
-                                            .white.opacity(0.5),
-                                            .white.opacity(0.2)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 0.5
-                                )
-                        )
-                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
                 
                 Button(action: onExit) {
-                    Text("Exit")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 140, height: 50)
+                    HStack(spacing: 5) {
+                        Text("Exit")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    
+                    }
+                        .frame(width: 80, height: 30)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color.gray.opacity(0.5))
@@ -703,20 +726,42 @@ private struct StartingView: View {
     @EnvironmentObject var appState: AppState
     
     var body: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 20) {
             Text("🏛️💫")
-                .font(.system(size: 70))
-                .padding(.bottom, 10)
+                .font(.system(size: 80))
+                .padding(.bottom, 0)
             
             Text("Ready to Rate?")
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: 32, weight: .black))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
-            
-            Text("**Swipe right** to like a structure\n**Swipe left** if it's not for you")
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
-                .lineSpacing(8)
+
+            HStack (spacing: 0) {
+                Text("Swipe right ")
+                    .font(.system(size: 16, weight: .bold))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                    .lineSpacing(8)
+                Text("to like a structure")
+                    .font(.system(size: 16, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                    .lineSpacing(8)
+            }
+            .padding(.bottom, -15)
+
+            HStack (spacing: 0) {
+                Text("Swipe left ")
+                    .font(.system(size: 16, weight: .bold))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                    .lineSpacing(8)
+                Text("if it's not for you")
+                    .font(.system(size: 16, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
+                    .lineSpacing(8)
+            }
+
             
             Button(action: {
                 appState.tinderModeStructureNum = 0
@@ -727,7 +772,7 @@ private struct StartingView: View {
                     .frame(width: 200, height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.blue)
+                            .fill(Color.green.opacity(0.7))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 25)
                                     .stroke(
@@ -745,7 +790,7 @@ private struct StartingView: View {
                     )
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
             }
-            .padding(.top, 20)
+            .padding(.top, 10)
         }
         .padding()
     }

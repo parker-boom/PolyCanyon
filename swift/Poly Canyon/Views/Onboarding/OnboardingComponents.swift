@@ -142,9 +142,9 @@ struct ModeButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .padding(.vertical, 12)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 15)
                 .frame(maxWidth: .infinity)
                 .background(
                     Capsule()

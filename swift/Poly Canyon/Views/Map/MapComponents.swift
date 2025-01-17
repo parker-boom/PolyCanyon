@@ -874,7 +874,7 @@ struct MapBottomBar: View {
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 
-                Text("Walk through and learn about each structure")
+                Text("Walk through virtually")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.7))
             }
@@ -1122,14 +1122,16 @@ struct VirtualTourMapContainer<Content: View>: View {
                 .clipped()
                 
                 // Map toolbar (no fullscreen in Virtual Tour)
-                MapToolbar(isFullScreen: .constant(false))
+                //MapToolbar(isFullScreen: .constant(false))
                 
             }
             .background(appState.isDarkMode ? Color.black : Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .clipShape(
+                RoundedCorner2(radius: 24, corners: [.topLeft, .topRight])
+            )
             .overlay(StructureMapOverlay(structure: dataStore.structures[appState.currentStructureIndex]))
             .overlay(
-                RoundedRectangle(cornerRadius: 15)
+                Rectangle()
                     .strokeBorder(
                         LinearGradient(
                             colors: [
@@ -1141,14 +1143,9 @@ struct VirtualTourMapContainer<Content: View>: View {
                         ),
                         lineWidth: 1.2
                     )
-            )
-            .shadow(
-                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
-                radius: 10, x: 0, y: 4
-            )
-            .shadow(
-                color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.15),
-                radius: 2, x: 0, y: 1
+                    .clipShape(
+                        RoundedCorner2(radius: 24, corners: [.topLeft, .topRight])
+                    )
             )
         }
         // ~60% of screen height, minus ~49 if there's a bottom tab bar
@@ -1273,7 +1270,6 @@ extension VirtualTourMapContainer {
 struct VirtualTourBottomBar: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
-    @Environment(\.colorScheme) var colorScheme
     
     // Animation states
     @State private var isImageExpanded = false
@@ -1288,19 +1284,18 @@ struct VirtualTourBottomBar: View {
             VStack(spacing: 0) {
                 // Main Content Section (80%)
                 HStack(spacing: 8) {
-                    // Image Container with hover effect
+                    // Image Container - now 50% width
                     Image(currentStructure.images[0])
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geo.size.width * 0.35, height: geo.size.height * 0.7)
+                        .frame(width: geo.size.width * 0.42, height: geo.size.height * 0.7)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .shadow(color: Color.black.opacity(0.3), radius: 3)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .strokeBorder(
                                     LinearGradient(
                                         colors: [
-                                            Color.white.opacity(colorScheme == .dark ? 0.3 : 0.6),
+                                            Color.white.opacity(appState.isDarkMode ? 0.3 : 0.6),
                                             Color.white.opacity(0.1)
                                         ],
                                         startPoint: .topLeading,
@@ -1309,31 +1304,26 @@ struct VirtualTourBottomBar: View {
                                     lineWidth: 1
                                 )
                         )
-                        .shadow(color: Color.black.opacity(0.2), radius: 3)
                         .scaleEffect(isImageExpanded ? 1.02 : 1.0)
                         .onHover { hovering in
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 isImageExpanded = hovering
                             }
                         }
-                    
 
+                    // Fun Fact Container - vertically centered text that scales
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack {
-                            Spacer()
-                            Text(currentStructure.funFact ?? "")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(colorScheme == .dark ? .white.opacity(0.9) : .black.opacity(0.8))
-                                .lineSpacing(3)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Spacer()
-                        }
+                        Text(currentStructure.funFact ?? "")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.9) : .black.opacity(0.8))
+                            .lineSpacing(3)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                            .padding(.vertical, 10)
                     }
-                    .transition(.opacity) 
-                    .animation(.easeInOut(duration: 0.2), value: currentStructure.funFact)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 15)
-                    .padding(.vertical, 15)
+                    .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Material.ultraThinMaterial)
@@ -1342,8 +1332,8 @@ struct VirtualTourBottomBar: View {
                                     .stroke(
                                         LinearGradient(
                                             colors: [
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.4),  // Gold
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.1)
+                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.8),
+                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.5)
                                             ],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
@@ -1351,95 +1341,83 @@ struct VirtualTourBottomBar: View {
                                         lineWidth: 1
                                     )
                             )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.4),  // Gold
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.1)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                    )
-                    .shadow(
-                        color: Color(red: 1, green: 0.84, blue: 0).opacity(0.1),  // Gold glow
-                        radius: 12,
-                        x: 0,
-                        y: 0
                     )
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 10)
                 
-                // Control Bar (20%)
+                // Control Bar (20%) - Now without shadows
                 HStack(spacing: 16) {
-                    // Previous Button
                     Button(action: goPrevious) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .semibold))
                             .frame(width: 40, height: 40)
                             .glassButtonNoShadow()
                     }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(Color.black.opacity(0.8), lineWidth: 0.3)
+                    )
+                    
 
                     Spacer()
                     
-                    // Combined Control Button
-                    Button(action: {}) { // Empty action as we'll handle touches separately
-                        HStack(spacing: 0) {
-                            // Close Button Section
-                            Button(action: closeVirtualTour) {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(colorScheme == .dark ? .white.opacity(0.7) : .black.opacity(0.7))
-                                    .frame(width: 44)
-                            }
-                            
-                            // Divider
-                            Rectangle()
-                                .fill(colorScheme == .dark ? .white.opacity(0.2) : .black.opacity(0.15))
-                                .frame(width: 1, height: 24)
-                            
-                            // Learn More Section
-                            Button(action: {
-                                appState.activeFullScreenView = .structInfo
-                                appState.structInfoNum = currentStructure.number
-                            }) {
-                                HStack(spacing: 6) {
-                                    Text("Learn More")
-                                        .font(.system(size: 15, weight: .semibold))
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .bold))
-                                }
-                                .padding(.horizontal, 16)
-                            }
+                    HStack(spacing: 0) {
+                        Button(action: closeVirtualTour) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
+                                .frame(width: 44)
                         }
-                        .frame(height: 44)
-                        .glassBackground()
-                        //.shadow(color: Color.black.opacity(0.2), radius: 3)
-                        .foregroundColor(colorScheme == .dark ? .white.opacity(0.8) : .black.opacity(0.7))
+                        
+                        Rectangle()
+                            .fill(appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.25))
+                            .frame(width: 1, height: 44)
+                        
+                        Button(action: {
+                            appState.activeFullScreenView = .structInfo
+                            appState.structInfoNum = currentStructure.number
+                        }) {
+                            HStack(spacing: 6) {
+                                Text("Learn More")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .bold))
+                            }
+                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.9))
+                            .padding(.horizontal, 16)
+                        }
                     }
+                    .frame(height: 44)
+                    .glassBackgroundNoShadow()
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(Color.black.opacity(1), lineWidth: 0.8)
+                    )
                     
+
                     Spacer()
                     
-                    // Next Button
                     Button(action: goNext) {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 18, weight: .semibold))
                             .frame(width: 40, height: 40)
                             .glassButtonNoShadow()
                     }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(Color.black.opacity(0.8), lineWidth: 0.3)
+                    )
+                    
+                    
                 }
                 .padding(.horizontal, 10)
                 .padding(.bottom, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .glassBackground(cornerRadius: 24)
-            .shadow(color: Color.black.opacity(0.4), radius: 6)
+            .clipShape(
+                RoundedCorner2(radius: 24, corners: [.bottomLeft, .bottomRight])
+            )
         }
         .frame(maxHeight: UIScreen.main.bounds.height * 0.4 - 49 - 24)
         .transition(.move(edge: .bottom))
@@ -1469,7 +1447,7 @@ struct VirtualTourBottomBar: View {
 }
 
 struct StructureMapOverlay: View {
-    @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var appState: AppState
     let structure: Structure
     
     var body: some View {
@@ -1495,7 +1473,7 @@ struct StructureMapOverlay: View {
                     .overlay(
                         LinearGradient(
                             colors: [
-                                .white.opacity(colorScheme == .dark ? 0.15 : 0.3),
+                                .white.opacity(appState.isDarkMode ? 0.15 : 0.3),
                                 .white.opacity(0.05)
                             ],
                             startPoint: .top,
@@ -1519,7 +1497,55 @@ struct StructureMapOverlay: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 20))
         }
-        .padding(.bottom, 55)
+        .padding(.bottom, 10)
         .frame(maxWidth: 280, maxHeight: .infinity, alignment: .bottom)
+    }
+}
+
+
+struct GlassBackgroundNoShadow: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(Material.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.7),
+                                        .white.opacity(0.5)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.8
+                            )
+                    )
+            )
+    }
+}
+
+
+extension View {
+    func glassBackgroundNoShadow() -> some View {
+        modifier(GlassBackgroundNoShadow())
+    }
+}
+
+struct RoundedCorner2: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }

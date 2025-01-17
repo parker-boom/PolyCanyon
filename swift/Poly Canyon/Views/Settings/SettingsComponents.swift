@@ -23,12 +23,16 @@ struct GeneralSettingsSection: View {
                 .padding(.bottom, -5)
             
             VStack(spacing: 10) {
+
+                // *** Hiding theme selection for now
+                /*
                 // Theme selection
                 darkModeRow
-                
+                                */
+
                 // App mode selection
                 modeToggleRow
-                
+
             }
             
             // Action buttons row

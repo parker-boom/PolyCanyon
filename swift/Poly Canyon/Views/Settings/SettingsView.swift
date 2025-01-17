@@ -15,6 +15,9 @@ struct SettingsView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+
+            // *** Hiding header for now
+            /*
             // Header
             HStack {
                 HStack {
@@ -36,6 +39,7 @@ struct SettingsView: View {
                 }
             }
             .padding()
+            */
             
             // Existing ScrollView content
             ScrollView {
@@ -56,6 +60,8 @@ struct SettingsView: View {
                     
                     CreditsSection()
                     
+                    // *** DEV ONLY
+                    /*
                     Button(action: {
                         appState.resetAllSettings()
                     }) {
@@ -68,6 +74,7 @@ struct SettingsView: View {
                             )
                     }
                     .padding(.top, 20)
+                    */
                 }
                 .padding()
             }

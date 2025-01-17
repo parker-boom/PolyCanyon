@@ -71,8 +71,8 @@ struct CustomTabBar: View {
     private func tabIcon(for index: Int) -> String {
         switch index {
         case 0: return "map.fill"
-        case 1: return "house.fill"
-        case 2: return "archivebox.fill"
+        case 1: return "archivebox.fill"
+        case 2: return "gearshape.fill"
         default: return ""
         }
     }

@@ -22,10 +22,11 @@ struct MainView: View {
         ZStack {
             // Main Content (Tabs)
             VStack(spacing: 0) {
+                // *** Need to change back to Map -> Home -> Detail
                 switch selectedTab {
                 case 0: MapView()
-                case 1: HomeView()
-                case 2: DetailView()
+                case 1: DetailView()
+                case 2: SettingsView()
                 default: EmptyView()
                 }
                 CustomTabBar(selectedTab: $selectedTab)
