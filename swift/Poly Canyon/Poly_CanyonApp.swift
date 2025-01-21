@@ -40,6 +40,7 @@ struct PolyCanyonApp: App {
         .environmentObject(appState)
         .environmentObject(dataStore)
         .environmentObject(locationService)
+        .preferredColorScheme(.light)
     }
   }
 }

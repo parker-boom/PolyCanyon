@@ -6,7 +6,6 @@ enum SortState {
     case all
     case favorites
     case visited
-    case unvisited
 }
 
 struct Structure: Codable, Identifiable, Equatable {

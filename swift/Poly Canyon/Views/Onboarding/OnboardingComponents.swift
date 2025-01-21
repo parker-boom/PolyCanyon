@@ -14,21 +14,27 @@ import SwiftUI
 struct NavigationButton: View {
     let text: String
     let action: () -> Void
-    
+    var iconName: String? = nil // Optional icon name
+    var isDisabled: Bool = false // Button state
+
     var body: some View {
         Button(action: action) {
             HStack {
                 Text(text)
                     .font(.system(size: 18, weight: .bold))
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .bold))
+                if let iconName = iconName {
+                    Image(systemName: iconName)
+                        .font(.system(size: 16, weight: .bold))
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(Color.black.opacity(0.8))
-            .foregroundColor(.white)
+            .background(isDisabled ? Color.gray : Color.black.opacity(0.8))
+            .foregroundColor(isDisabled ? Color.white.opacity(0.7) : .white)
             .cornerRadius(25)
         }
+        .disabled(isDisabled) // Disable button if isDisabled is true
+        .opacity(isDisabled ? 0.7 : 1.0) // Visually indicate disabled state
     }
 }
 
@@ -55,6 +61,33 @@ struct PulsingLocationDot: View {
             // Inner solid circle
             Circle()
                 .fill(Color.blue)
+                .frame(width: 100, height: 100)
+        }
+        .onAppear {
+            self.scale = 1.2
+        }
+    }
+}
+
+struct PulsingAdvDot: View {
+    @State private var scale: CGFloat = 1
+    
+    var body: some View {
+        ZStack {
+            // Outer pulsing circle
+            Circle()
+                .fill(Color.green.opacity(0.25))
+                .frame(width: 120, height: 120)
+                .scaleEffect(scale)
+                .animation(
+                    Animation.easeInOut(duration: 1)
+                        .repeatForever(autoreverses: true),
+                    value: scale
+                )
+            
+            // Inner solid circle
+            Circle()
+                .fill(Color.green)
                 .frame(width: 100, height: 100)
         }
         .onAppear {

@@ -23,27 +23,6 @@ struct DetailBody: View {
     
     var body: some View {
         ScrollView {
-            // Show highlight sections based on current mode and sort state
-            if shouldShowRecentlyVisited {
-                HighlightStructuresRow(
-                    title: "Recently Visited",
-                    structures: dataStore.getRecentlyVisitedStructures()
-                ) { structure in
-                    onStructureSelected(structure)
-                }
-                .padding(.top, 10)
-            }
-            
-            else if shouldShowNearbyUnvisited {
-                HighlightStructuresRow(
-                    title: "Nearby Unvisited",
-                    structures: dataStore.getNearbyUnvisitedStructures()
-                ) { structure in
-                    onStructureSelected(structure)
-                }
-                .padding(.top, 10)
-            }
-            
             // Display structures in selected view mode
             if isGridView {
                 gridView
@@ -61,7 +40,7 @@ struct DetailBody: View {
         return VStack {
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 2),
-                spacing: 15
+                spacing: 10
             ) {
                 ForEach(structures, id: \.id) { structure in
                     StructureGridItem(structure: structure)
@@ -69,10 +48,10 @@ struct DetailBody: View {
                             onStructureSelected(structure)
                         }
                 }
-                .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
-                        radius: 5, x: 0, y: 3)
+                .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.7),
+                        radius: 5, x: 0, y: 0)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 25)
             .padding(.top, 10)
             .padding(.bottom, 30)
         }
@@ -105,22 +84,8 @@ struct DetailBody: View {
         )
     }
     
-    // MARK: - Display Logic
+    // 
     
-    // Show recently visited section in adventure mode on visited tab
-    private var shouldShowRecentlyVisited: Bool {
-        return sortState == .visited 
-            && dataStore.hasVisitedStructures 
-            && appState.adventureModeEnabled
-    }
-    
-    // Show nearby unvisited section in adventure mode within safe zone
-    private var shouldShowNearbyUnvisited: Bool {
-        return sortState == .unvisited
-            && dataStore.hasUnvisitedStructures
-            && appState.adventureModeEnabled
-            && locationService.canUseLocation
-    }
 }
 
 /**
@@ -192,6 +157,7 @@ struct StructureGridItem: View {
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(width: itemWidth, height: itemHeight)
+            .glur(radius: 6.0, offset: 0.6, interpolation: 0.4, direction: .down)
             .cornerRadius(15)
             .clipped()
             .overlay(
@@ -208,7 +174,7 @@ struct StructureGridItem: View {
             .resizable()
             .aspectRatio(contentMode: .fill)
             .frame(width: itemWidth, height: itemHeight)
-            .glur(radius: 6.0, offset: 0.6, interpolation: 0.4, direction: .down)
+            .blur(radius: 1.9)
             .cornerRadius(15)
             .clipped()
             .overlay(
@@ -237,10 +203,10 @@ struct StructureGridItem: View {
     }
     
     private var itemWidth: CGFloat {
-        (UIScreen.main.bounds.width - 45) / 2
+        (UIScreen.main.bounds.width - 55) / 2
     }
     private var itemHeight: CGFloat {
-        (UIScreen.main.bounds.width - 60) / 2
+        (UIScreen.main.bounds.width - 55) / 2
     }
 }
 

@@ -9,79 +9,49 @@ import SwiftUI
 import CoreLocation
 
 struct DetailView: View {
-    // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
-    
-    // MARK: - View State
     @State private var searchText = ""
     @State private var sortState: SortState = .all
     @State private var isGridView = true
-    
-    // MARK: - Popup State
-    @State private var selectedStructure: Structure? = nil
-    @State private var showStructPopup = false
-    
+
     var body: some View {
-        ZStack {
-            // Set background color based on theme
-            (appState.isDarkMode ? Color.black : Color.white)
-                .edgesIgnoringSafeArea(.all)
-            
-            VStack {
-                // Search, sort and view mode controls
-                DetailHeaderView(
-                    searchText: $searchText,
-                    sortState: $sortState,
-                    isGridView: $isGridView
-                )
-                
-                // Main scrollable content
-                DetailBody(
-                    searchText: searchText,
-                    sortState: sortState,
-                    isGridView: isGridView,
-                    onStructureSelected: { structure in
-                        appState.activeFullScreenView = .structInfo
-                        appState.structInfoNum = structure.id
-                    }
-                )
+        ZStack(alignment: .top) {
+            // Background color to fill any gaps
+            Color(appState.isDarkMode ? .black : .white)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 10)
+
+                // Main content
+                ScrollView {
+                    
+                        DetailBody(
+                            searchText: searchText,
+                            sortState: sortState,
+                            isGridView: isGridView,
+                            onStructureSelected: { structure in
+                                appState.activeFullScreenView = .structInfo
+                                appState.structInfoNum = structure.id
+                            }
+                        )
+                        .padding(.top, 110)
+                    
+                    
+                }
             }
-            .background(appState.isDarkMode ? Color.black : Color.white)
             
-            // Popup overlay when structure is selected
-            if showStructPopup, let s = selectedStructure {
-                Color.black.opacity(0.5)
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture {
-                        showStructPopup = false
-                    }
-                
-                /*StructInfo(
-                    structure: s,
-                    isPresented: $showStructPopup
-                )
-                .padding(15)
-                .transition(.opacity)
-                .zIndex(1)*/
-            }
+            
+            // Header
+            DetailHeaderView(
+                searchText: $searchText,
+                sortState: $sortState,
+                isGridView: $isGridView
+            )
+            .frame(maxWidth: .infinity)
+            .zIndex(1)
         }
-    }
-    
-    // Show structure details popup and mark as opened if visited
-    private func showStructurePopup(_ structure: Structure) {
-        selectedStructure = structure
-        dataStore.markStructureAsOpened(structure.number)
-        showStructPopup = true
-        
-        // Haptic feedback for selection
-        let impactMed = UIImpactFeedbackGenerator(style: .rigid)
-        impactMed.impactOccurred()
-        
-        // Dismiss keyboard if active
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                      to: nil, from: nil, for: nil)
     }
 }
 

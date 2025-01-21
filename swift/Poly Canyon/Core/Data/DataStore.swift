@@ -278,21 +278,31 @@ class DataStore: ObservableObject {
     
     // MARK: - Structure Filtering
     func getFilteredStructures(searchText: String = "", sortState: SortState) -> [Structure] {
+        // First apply search filter
         let searchFiltered = structures.filter { structure in
             searchText.isEmpty || 
             structure.title.localizedCaseInsensitiveContains(searchText) || 
             String(structure.number).contains(searchText)
         }
         
+        // Then apply sort state filter and additional sorting logic
         switch sortState {
         case .all:
+            // If user is in canyon, sort by distance
+            if LocationService.shared.isInPolyCanyonArea {
+                return searchFiltered.sorted { s1, s2 in
+                    LocationService.shared.getDistance(to: s1) < LocationService.shared.getDistance(to: s2)
+                }
+            }
             return searchFiltered
+            
         case .favorites:
             return searchFiltered.filter { $0.isLiked }
+            
         case .visited:
-            return searchFiltered.filter { $0.isVisited }
-        case .unvisited:
-            return searchFiltered.filter { !$0.isVisited }
+            return searchFiltered
+                .filter { $0.isVisited }
+                .sorted { $0.recentlyVisited > $1.recentlyVisited } // Sort by most recently visited
         }
     }
     

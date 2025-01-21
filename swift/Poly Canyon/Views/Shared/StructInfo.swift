@@ -29,6 +29,25 @@ struct StructInfo: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 15) {
+                // New Title Header
+                HStack {
+                    Text("🔍")
+                        .font(.system(size: 32, weight: .black))
+
+
+                    Text("Full Details")
+                        .font(.system(size: 28, weight: .bold))
+
+                }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 30)
+                    .background(
+                        Capsule()
+                            .fill(Color.gray.opacity(0.15))
+                    )
+                    .padding(.top, 15)
+                    .padding(.bottom, 10)
+                    .shadow(color: .black.opacity(0.7), radius: 8, x: 0, y: 0)
 
                 ZStack {
                     if !isShowingInfo {
@@ -343,7 +362,7 @@ private struct LikeButton: View {
 }
 
 // MARK: - InfoPill
-/// Displays a small “pill” with an icon, title, and a text value.
+/// Displays a small "pill" with an icon, title, and a text value.
 private struct InfoPill: View {
     @EnvironmentObject var appState: AppState
     

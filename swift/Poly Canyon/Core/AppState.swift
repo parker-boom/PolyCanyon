@@ -158,6 +158,13 @@ class AppState: ObservableObject {
         }
     }
     
+    // Add near the top with other UserDefaults-backed properties
+    @Published private(set) var needsFullReset: Bool {
+        didSet {
+            UserDefaults.standard.set(needsFullReset, forKey: "needsFullReset")
+        }
+    }
+    
     init() {
 
         // Force Light Mode or initialize with UserDefaults
@@ -178,6 +185,8 @@ class AppState: ObservableObject {
             UserDefaults.standard.double(forKey: "mapScale") : 1.0
         self.isVirtualWalkthrough = UserDefaults.standard.bool(forKey: "isVirtualWalkthrough")
         self.currentStructureIndex = UserDefaults.standard.integer(forKey: "currentStructureIndex")
+        
+        self.needsFullReset = UserDefaults.standard.bool(forKey: "needsFullReset")
     }
 
     func resetAllSettings() {
@@ -185,10 +194,14 @@ class AppState: ObservableObject {
         UserDefaults.standard.removePersistentDomain(forName: domain)
         UserDefaults.standard.synchronize()
         
-        // Reinitialize defaults
+        // Reset location services
+        LocationService.shared.reset()
+        
+        // Reset our state
         isDarkMode = false
         hasVisitedCanyon = false
         adventureModeEnabled = false
         isOnboardingCompleted = false
+        needsFullReset = false  // Ensure we don't reset again
     }
 }

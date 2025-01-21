@@ -13,10 +13,15 @@ struct AppView: View {
     
     var body: some View {
         Group {
-            if !appState.isOnboardingCompleted {
+            if !appState.isOnboardingCompleted || appState.needsFullReset {
                 OnboardingView()
             } else {
                 MainView()
+            }
+        }
+        .onAppear {
+            if appState.needsFullReset {
+                appState.resetAllSettings()
             }
         }
     }

@@ -15,42 +15,59 @@ struct GeneralSettingsSection: View {
     let onReset: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Section header
-            Text("General Settings")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.bottom, -5)
-            
-            VStack(spacing: 10) {
-
-                // *** Hiding theme selection for now
-                /*
-                // Theme selection
-                darkModeRow
-                                */
-
-                // App mode selection
-                modeToggleRow
-
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("General Settings")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Spacer()
+                
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
             }
+            .padding(.bottom, 5)
             
-            // Action buttons row
-            HStack(spacing: 10) {
-                // Reset data based on current mode
+            VStack(spacing: 15) {
+                modeToggleRow
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(appState.isDarkMode ? 
+                        Color.gray.opacity(0.15) : 
+                        Color.white.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(
+                                appState.isDarkMode ? 
+                                    Color.white.opacity(0.1) : 
+                                    Color.black.opacity(0.05),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(
+                        color: appState.isDarkMode ? 
+                            .black.opacity(0.3) : 
+                            .gray.opacity(0.2),
+                        radius: 10, x: 0, y: 5
+                    )
+            )
+            
+            // Action buttons row with updated styling
+            HStack(spacing: 12) {
                 SettingsButton(
                     action: onReset,
-                    imageName: appState.adventureModeEnabled 
-                        ? "arrow.clockwise" 
-                        : "heart.slash.fill",
-                    text: appState.adventureModeEnabled 
-                        ? "Reset Structures" 
-                        : "Reset Favorites",
+                    imageName: appState.adventureModeEnabled ? 
+                        "arrow.clockwise" : 
+                        "heart.slash.fill",
+                    text: appState.adventureModeEnabled ? 
+                        "Reset Progress" : 
+                        "Reset Liked",
                     imgColor: .red,
                     isDarkMode: appState.isDarkMode
                 )
                 
-                // Location permissions access
                 SettingsButton(
                     action: { openSystemSettings() },
                     imageName: "location.fill",
@@ -60,20 +77,6 @@ struct GeneralSettingsSection: View {
                 )
             }
         }
-    }
-    
-    // Dark mode toggle with icons
-    private var darkModeRow: some View {
-        HStack {
-            Text("Dark Mode")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-            Spacer()
-            DarkModeToggle()
-        }
-        .padding()
-        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-        .cornerRadius(15)
     }
     
     // Mode selection with description
@@ -112,8 +115,16 @@ struct GeneralSettingsSection: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-        .cornerRadius(15)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(appState.isDarkMode ? Color.gray.opacity(0.15) : Color.white.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                )
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
+                       radius: 10, x: 0, y: 5)
+        )
     }
     
     // Open system settings for location permissions
@@ -132,22 +143,27 @@ struct StatisticsSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Section header
-            Text("Statistics")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-                .padding(.top, 10)
-                .padding(.bottom, -5)
+            HStack {
+                Text("Statistics")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Spacer()
+                
+                Image(systemName: "chart.bar.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
+            }
+            .padding(.top, 10)
+            .padding(.bottom, -5)
             
-            HStack(spacing: 10) {
-                // Total structures visited
+            HStack(spacing: 12) {
                 StatBox(
                     title: "Visited",
                     value: dataStore.visitedCount,
                     iconName: "checkmark.circle.fill"
                 )
                 
-                // Total active days
                 StatBox(
                     title: "Days",
                     value: dataStore.dayCount,
@@ -164,10 +180,15 @@ struct CreditsSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Section header
-            Text("Credits")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
+            HStack(spacing: 12) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.orange)
+                
+                Text("Credits")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+            }
             
             // Attribution list
             VStack(spacing: 15) {
@@ -177,6 +198,12 @@ struct CreditsSection: View {
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 CreditItem(title: "Department", name: "CAED College")
                     .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Image("CAEDLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 60)
+                    .padding(.top, 10)
             }
             
             // Support contact info
@@ -198,16 +225,20 @@ struct CreditsSection: View {
                 }
             }
             .padding(.top, 10)
-            
-            Text("Thank you for using the Poly Canyon app!")
-                .font(.system(size: 14))
-                .foregroundColor(.gray)
-                .padding(.top, 20)
+
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-        .cornerRadius(15)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(appState.isDarkMode ? Color.gray.opacity(0.15) : Color.white.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                )
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
+                       radius: 10, x: 0, y: 5)
+        )
     }
 }
 
@@ -257,8 +288,16 @@ struct SettingsButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .background(
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(isDarkMode ? Color.gray.opacity(0.15) : Color.white.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                    )
+                    .shadow(color: isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
+                           radius: 10, x: 0, y: 5)
+            )
         }
     }
 }
@@ -271,28 +310,33 @@ struct StatBox: View {
     let iconName: String
     
     var body: some View {
-        VStack(spacing: 5) {
-            // Stat value
+        VStack(spacing: 12) {
             Text("\(value)")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
                 .foregroundColor(appState.isDarkMode ? .white : .black)
             
-            // Stat label
             Text(title)
-                .font(.system(size: 16))
+                .font(.system(size: 18))
                 .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
             
-            // Stat icon
             Image(systemName: iconName)
                 .font(.system(size: 24))
                 .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical)
-        .background(appState.isDarkMode ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
-        .cornerRadius(15)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(appState.isDarkMode ? Color.gray.opacity(0.15) : Color.white.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
+                )
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
+                       radius: 10, x: 0, y: 5)
+        )
     }
 }
 

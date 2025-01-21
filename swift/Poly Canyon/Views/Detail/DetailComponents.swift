@@ -17,50 +17,191 @@ import Glur
 */
 struct DetailHeaderView: View {
     @EnvironmentObject var appState: AppState
-    
     @Binding var searchText: String
     @Binding var sortState: SortState
     @Binding var isGridView: Bool
     
     var body: some View {
-        HStack {
-            // Sort menu with dynamic options based on mode
-            SortButton(sortState: $sortState)
-            
-            // Search field with clear button
-            SearchBar(
-                text: $searchText,
-                placeholder: "Search structures..."
+        VStack(spacing: 8) {
+            HStack(spacing: 15) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.black)
+                    .font(.system(size: 20))
+                
+                TextField("Search structures...", text: $searchText)
+                    .font(.system(size: 17))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.1))
+                }
             )
-            .frame(maxWidth: .infinity)
+            .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 0)
+            .padding(.horizontal, 15)
+            .padding(.top, 12)
             
-            // Clear search text button
-            if !searchText.isEmpty {
-                Button(action: {
-                    searchText = ""
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                                  to: nil, from: nil, for: nil)
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(appState.isDarkMode ? .white : .black)
-                        .font(.system(size: 20, weight: .semibold))
-                        .padding(.trailing, 5)
+            HStack(spacing: 12) {
+                FilterButton(sortState: $sortState)
+                
+                Spacer()
+                
+                ViewModePicker(isGridView: $isGridView)
+            }
+            .padding(.horizontal, 15)
+            .padding(.bottom, 12)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(white: 0.65).opacity(0.75))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+                )
+                .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 5)
+        )
+        .padding(.horizontal, 10)
+    }
+}
+
+struct FilterButton: View {
+    @EnvironmentObject var appState: AppState
+    @Binding var sortState: SortState
+    
+    var filterText: String {
+        switch sortState {
+        case .all: return "All"
+        case .visited: return "Visited"
+        case .favorites: return "Liked"
+        }
+    }
+    
+    var filterIcon: String {
+        switch sortState {
+        case .all: return "circle.fill"
+        case .visited: return "checkmark.circle.fill"
+        case .favorites: return "heart.fill"
+        }
+    }
+    
+    var filterColor: Color {
+        switch sortState {
+        case .all: return .blue
+        case .visited: return .green
+        case .favorites: return .pink
+        }
+    }
+    
+    var body: some View {
+        Menu {
+            Button(action: { sortState = .all }) {
+                Label("All", systemImage: "circle.fill")
+            }
+            
+            if appState.adventureModeEnabled {
+                Button(action: { sortState = .visited }) {
+                    Label("Visited", systemImage: "checkmark.circle.fill")
                 }
             }
             
-            // Toggle between grid and list views
-            Toggle(isOn: $isGridView) {
-                Text("View Mode")
+            Button(action: { sortState = .favorites }) {
+                Label("Liked", systemImage: "heart.fill")
             }
-            .toggleStyle(CustomToggleStyle()) 
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: filterIcon)
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.35), radius: 2, x: 0, y: 0)
+                
+                Text(filterText)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.black)
+                
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.black.opacity(0.8))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.3))
+                }
+            )
         }
-        .background(appState.isDarkMode ? Color.black : Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.4),
-                radius: 5, x: 0, y: 3)
-        .padding(.horizontal, 10)
-        .padding(.bottom, -5)
     }
+}
+
+struct ViewModePicker: View {
+    @Binding var isGridView: Bool
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Button(action: { isGridView = true }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.grid.2x2.fill")
+                    if isGridView {
+                        Text("Grid")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.ultraThinMaterial)
+                )
+                
+            }
+            .foregroundColor(isGridView ? .black : .gray)
+
+            
+            
+            Button(action: { isGridView = false }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "list.bullet")
+                    if !isGridView {
+                        Text("List")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.ultraThinMaterial)
+                )
+            }
+            .foregroundColor(!isGridView ? .black : .gray)
+        }
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.3))
+                }
+            )
+    }
+}
+
+// Helper for frosted-glass effect
+struct BlurView: UIViewRepresentable {
+    var style: UIBlurEffect.Style
+
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        return UIVisualEffectView(effect: UIBlurEffect(style: style))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
 }
 
 /*
@@ -220,74 +361,5 @@ struct CustomToggleStyle: ToggleStyle {
         .background(appState.isDarkMode ? Color.black.opacity(0.1) : Color.white.opacity(0.9))
         .cornerRadius(10)
         .padding(.trailing, 5)
-    }
-}
-
-/*
- SortButton provides a menu for filtering structures based on the current app mode.
- Shows different options for adventure mode vs virtual tour mode.
-*/
-struct SortButton: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @Binding var sortState: SortState
-    
-    var body: some View {
-        Menu {
-            // Always show "All" option
-            Button(action: {
-                sortState = .all
-            }) {
-                Label("All", systemImage: "circle.fill")
-            }
-            
-            // Adventure mode options
-            if appState.adventureModeEnabled {
-                if dataStore.hasVisitedStructures {
-                    Button(action: {
-                        sortState = .visited
-                    }) {
-                        Label("Visited", systemImage: "checkmark.circle")
-                    }
-                }
-                if dataStore.hasUnvisitedStructures {
-                    Button(action: {
-                        sortState = .unvisited
-                    }) {
-                        Label("Unvisited", systemImage: "xmark.circle")
-                    }
-                }
-            }
-            
-            // Show favorites in both modes
-            if dataStore.hasLikedStructures {
-                Button(action: {
-                    sortState = .favorites
-                }) {
-                    Label("Favorites", systemImage: "heart.fill")
-                }
-            }
-        } label: {
-            Image(systemName: {
-                switch sortState {
-                case .all: return "circle.fill"
-                case .favorites: return "heart.fill"
-                case .visited: return "checkmark.circle"
-                case .unvisited: return "xmark.circle"
-                }
-            }())
-            .foregroundColor({
-                switch sortState {
-                case .all: return appState.isDarkMode ? .white : .black
-                case .favorites: return .red
-                case .visited: return .green
-                case .unvisited: return .red
-                }
-            }())
-            .font(.system(size: 28, weight: .semibold))
-            .padding(5)
-            .cornerRadius(8)
-        }
-        .padding(.leading, 5)
     }
 }

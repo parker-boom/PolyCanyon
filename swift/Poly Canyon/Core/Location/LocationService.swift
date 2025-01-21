@@ -79,11 +79,11 @@ class LocationService: NSObject, ObservableObject {
     @Published private(set) var adventureLocationState: AdventureLocationState = .notVisiting
     
     // MARK: - Internal State
-    private var locationMode: LocationMode = .initial
+    private var locationMode: LocationMode = .adventure // Default to adventure
     private var permissionContinuation: CheckedContinuation<Bool, Never>?
     
     /// The mode that is actually set for the user in the app (initial, virtualTour, adventure).
-    @Published private(set) var currentMode: LocationMode = .initial
+    @Published private(set) var currentMode: LocationMode = .adventure
     
     // MARK: - Location Boundaries
     /// The approximate center point of Poly Canyon used for distance calculations.
@@ -165,16 +165,19 @@ class LocationService: NSObject, ObservableObject {
     // Add with other published properties
     @Published private(set) var nearbyStructures: [NearbyStructure] = []
     
+    // Add this with other properties at the top
+    private var lastLocationUpdate: Date?
+    private let minimumUpdateInterval: TimeInterval = 1.5
+    
     // MARK: - Initialization
     private override init() {
         super.init()
-        print("📱 LocationService initialized")
         setupLocationManager()
     }
     
     /// Call this once the rest of the app is set up (e.g., from AppState) to finalize configs if needed.
     func configure() {
-        print("📱 LocationService configured")
+        // Empty configure method
     }
     
     // MARK: - Setup
@@ -187,7 +190,7 @@ class LocationService: NSObject, ObservableObject {
     }
     
     // MARK: - Permission Logic
-    /// Requests the user’s initial when-in-use permission (usually during onboarding).
+    /// Requests the user's initial when-in-use permission (usually during onboarding).
     func requestInitialPermission() async -> Bool {
         return await withCheckedContinuation { continuation in
             self.permissionContinuation = continuation
@@ -205,7 +208,6 @@ class LocationService: NSObject, ObservableObject {
     
     /// Switch to a specified mode (adventure or virtualTour, etc.) and handle permission upgrades.
     func setMode(_ mode: LocationMode) {
-        print("📱 Setting LocationService mode to: \(mode)")
         currentMode = mode
         
         switch mode {
@@ -215,7 +217,7 @@ class LocationService: NSObject, ObservableObject {
         case .virtualTour:
             stopLocationUpdates()
         case .initial:
-            break
+            startLocationUpdates() // Keep tracking even in initial state
         }
     }
     
@@ -261,7 +263,6 @@ class LocationService: NSObject, ObservableObject {
     // MARK: - Tracking Logic
     /// Called whenever the user toggles adventure mode on/off.
     func handleAdventureModeChange(_ isEnabled: Bool) {
-        print("📱 Handling adventure mode change: \(isEnabled)")
         if isEnabled {
             startLocationUpdates()
         } else {
@@ -269,7 +270,7 @@ class LocationService: NSObject, ObservableObject {
         }
     }
     
-    /// Update the user’s `adventureLocationState` (e.g., notVisiting, onTheWay, almostThere, exploring).
+    /// Update the user's `adventureLocationState` (e.g., notVisiting, onTheWay, almostThere, exploring).
     private func updateAdventureState(_ location: CLLocation) {
         guard currentMode == .adventure else { return }
         
@@ -289,8 +290,6 @@ class LocationService: NSObject, ObservableObject {
         } else {
             adventureLocationState = .notVisiting
         }
-        
-        print("📍 ADVENTURE STATE: \(adventureLocationState)")
     }
     
     // MARK: - Public Methods
@@ -313,7 +312,7 @@ class LocationService: NSObject, ObservableObject {
         return userLocation.distance(from: structureLocation)
     }
     
-    /// Checks if the user’s permission is outright denied or restricted.
+    /// Checks if the user's permission is outright denied or restricted.
     var isLocationPermissionDenied: Bool {
         return locationStatus == .denied || locationStatus == .restricted
     }
@@ -333,12 +332,10 @@ class LocationService: NSObject, ObservableObject {
     var isNearby: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
-            print("📍 NEARBY CHECK: Failed - mode: \(currentMode)")
             return false
         }
         let inRange = isWithinBackgroundRange(location)
         let notInCanyon = !isWithinCanyon(location)
-        print("📍 NEARBY CHECK: In range: \(inRange), Not in canyon: \(notInCanyon)")
         return inRange && notInCanyon
     }
     
@@ -346,23 +343,18 @@ class LocationService: NSObject, ObservableObject {
     var isOutOfRange: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
-            print("📍 OUT OF RANGE CHECK: Failed guard - location: \(lastLocation != nil), adventure mode: \(currentMode)")
             return false
         }
         let result = !isWithinBackgroundRange(location)
-        print("📍 OUT OF RANGE CHECK: \(result) - Distance from center: \(location.distance(from: CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)))")
         return result
     }
     
     /// Checks if the user is within the canyon bounding box.
     var isInPolyCanyonArea: Bool {
-        guard let location = lastLocation,
-              currentMode == .adventure else {
-            print("📍 IN AREA CHECK: Failed guard - location: \(lastLocation != nil), adventure mode: \(currentMode)")
+        guard let location = lastLocation else {
             return false
         }
         let result = isWithinCanyon(location)
-        print("📍 IN AREA CHECK: \(result)")
         return result
     }
     
@@ -401,6 +393,25 @@ class LocationService: NSObject, ObservableObject {
         .sorted { $0.distance < $1.distance }
         
         nearbyStructures = Array(structuresWithDistances.prefix(3))
+    }
+    
+    /// Reset the location service
+    func reset() {
+        // Reset location manager
+        locationManager.stopUpdatingLocation()
+        locationManager.allowsBackgroundLocationUpdates = false
+        
+        // Reset published states
+        trackingState = .inactive
+        adventureLocationState = .notVisiting
+        recommendedMode = false
+        lastLocation = nil
+        
+        // Reset mode
+        currentMode = .adventure
+        
+        // Clear any stored location preferences
+        UserDefaults.standard.removeObject(forKey: "adventureMode")
     }
     
     // MARK: - Private Helpers
@@ -443,7 +454,6 @@ extension LocationService {
     func isWithinBackgroundRange(_ location: CLLocation) -> Bool {
         let centerLocation = CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         let distance = location.distance(from: centerLocation)
-        print("📍 BACKGROUND RANGE CHECK: Distance \(distance) vs Limit \(backgroundRadius)")
         return distance <= backgroundRadius
     }
     
@@ -500,7 +510,6 @@ extension LocationService {
     /// Convenience for `isWithinCanyon(coordinate:)` but takes a `CLLocation`.
     func isWithinCanyon(_ location: CLLocation) -> Bool {
         let result = isWithinCanyon(coordinate: location.coordinate)
-        print("📍 CANYON CHECK: \(result)")
         return result
     }
 }
@@ -537,12 +546,15 @@ extension LocationService: CLLocationManagerDelegate {
     /// Called whenever there are new location updates from CoreLocation.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        print("📍 LOCATION UPDATE: \(location.coordinate)")
-        lastLocation = location
         
-        print("📍 CURRENT MODE: \(currentMode)")
-        print("📍 BACKGROUND RANGE: \(isWithinBackgroundRange(location))")
-        print("📍 IN CANYON: \(isWithinCanyon(location))")
+        let now = Date()
+        if let lastUpdate = lastLocationUpdate, 
+           now.timeIntervalSince(lastUpdate) < minimumUpdateInterval {
+            return
+        }
+        
+        lastLocationUpdate = now
+        lastLocation = location
         
         recommendedMode = isWithinRecommendationRange(location)
         
@@ -553,11 +565,9 @@ extension LocationService: CLLocationManagerDelegate {
         
         guard currentMode == .adventure else { return }
         
-        // Update state before other checks
         updateAdventureState(location)
         updateTrackingState()
         
-        // If we’re actually within the canyon, log the user and check for structures.
         if isWithinCanyon(location) {
             logLocationToFirebase(location: location)
             checkForNearbyStructures(at: location)

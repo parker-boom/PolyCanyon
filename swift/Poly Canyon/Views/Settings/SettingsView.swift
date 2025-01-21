@@ -75,10 +75,40 @@ struct SettingsView: View {
                     }
                     .padding(.top, 20)
                     */
+                    
                 }
                 .padding()
             }
         }
         .background(appState.isDarkMode ? Color.black : Color.white)
+    }
+}
+
+// MARK: - Preview
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Light Mode Preview
+            SettingsView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+                
+            // Dark Mode Preview
+            SettingsView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }
