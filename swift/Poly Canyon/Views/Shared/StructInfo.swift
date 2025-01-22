@@ -1,499 +1,452 @@
-/*
- StructInfo displays detailed information about a structure with an interactive flip animation. The front 
- shows an image carousel with basic details, while the back shows extended information. It supports image 
- zooming, structure liking, and provides visual feedback for visited/opened states. The view adapts to the 
- app theme and handles gesture-based dismissal.
-*/
+//
+//  StructInfo.swift
+//  YourApp
+//
+//  Created by Your Name on 1/21/25.
+//
 
 import SwiftUI
 import Zoomable
-import Shimmer
 
-// MARK: - StructInfo (Top-Level Container)
-// MARK: - StructInfo (Top-Level Container)
 struct StructInfo: View {
     // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     
-    // MARK: - View State
-    @State private var isShowingInfo: Bool = false
-    @State private var currentImageIndex: Int = 0
+    // MARK: - Local State
+    @State private var selectedTab: InfoTab = .info
     
-    // MARK: - Computed Properties
+    // MARK: - Computed Property for the Structure
     private var structure: Structure {
+        // You can modify how the correct structure is retrieved if needed
         dataStore.structures[appState.structInfoNum - 1]
     }
     
     // MARK: - Body
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 15) {
-                // New Title Header
-                HStack {
-                    Text("🔍")
-                        .font(.system(size: 32, weight: .black))
-
-
-                    Text("Full Details")
-                        .font(.system(size: 28, weight: .bold))
-
-                }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 30)
-                    .background(
-                        Capsule()
-                            .fill(Color.gray.opacity(0.15))
-                    )
-                    .padding(.top, 15)
-                    .padding(.bottom, 10)
-                    .shadow(color: .black.opacity(0.7), radius: 8, x: 0, y: 0)
-
-                ZStack {
-                    if !isShowingInfo {
-                        ImageSection(
-                            structure: structure,
-                            currentImageIndex: $currentImageIndex,
-                            dismissAction: { appState.activeFullScreenView = nil },
-                            geometry: geometry
-                        )
-                    } else {
-                        InformationPanel(
-                            structure: structure,
-                            geometry: geometry
-                        )
-                    }
-                }
-                .rotation3DEffect(.degrees(isShowingInfo ? 180 : 0),
-                                  axis: (x: 0, y: 1, z: 0))
-                .animation(.easeInOut(duration: 0.5), value: isShowingInfo)
-                .onAppear {
-                    dataStore.markStructureAsOpened(structure.number)
-                }
-                
-                ToggleInfoButton(isShowingInfo: $isShowingInfo, geometry: geometry)
-
-            }
-            .padding(15)
-            .background(Color.white)
-            .gesture(dismissDragGesture)
-            .frame(maxWidth: .infinity, maxHeight: 650)
-        }
-        .padding(.top, 100)
-        .background(Color.white)
-        .edgesIgnoringSafeArea(.all)
-    }
-    
-    // MARK: - Drag-to-Dismiss Gesture
-    private var dismissDragGesture: some Gesture {
-        DragGesture()
-            .onEnded { value in
-                if value.translation.height > 100 {
-                    appState.activeFullScreenView = nil
-                }
-            }
-    }
-}
-
-// MARK: - Image Section
-/// Shows the image carousel, dismiss button, structure info overlay, and image indicator dots.
-private struct ImageSection: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    let structure: Structure
-    @Binding var currentImageIndex: Int
-    
-    let dismissAction: () -> Void
-    let geometry: GeometryProxy
-    
-    var body: some View {
-        ZStack(alignment: .topLeading) {
-            // Carousel
-            ImprovedImageCarousel(
-                images: Array(structure.images.prefix(2)),
-                currentImageIndex: $currentImageIndex,
-                geometry: geometry
-            )
-            .frame(height: geometry.size.height * 0.75)
-            .shadow(color: Color.black.opacity(0.4), radius: 10, x: 0, y: 5)
-            
-            // Dismiss button (top trailing)
-            DismissButton { dismissAction() }
-            
-            // Structure info overlay (bottom leading)
-            StructureInfoOverlay(structure: structure)
-            
-            // Like + image indicator dots (bottom trailing)
-            BottomOverlay(
-                structure: structure,
-                currentImageIndex: $currentImageIndex
-            )
-        }
-    }
-}
-
-// MARK: - Information Panel
-/// Flipped view that shows extended details about the structure.
-private struct InformationPanel: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    let structure: Structure
-    let geometry: GeometryProxy
-    
-    // Helper function to convert arrays to truncated strings
-    private func formatPeopleList(_ people: [String], maxLength: Int = 100) -> String {
-        let joinedString = people.joined(separator: ", ")
-        if joinedString.count > maxLength {
-            let truncated = String(joinedString.prefix(maxLength))
-            return truncated + "..."
-        }
-        return joinedString
-    }
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            InfoPanelHeader(
-                structure: structure,
-                dismissAction: { appState.activeFullScreenView = nil }
-            )
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 15) {
-                    if !structure.advisors.isEmpty {
-                        InfoPill(
-                            icon: "🎓",
-                            title: "Advisors",
-                            value: formatPeopleList(structure.advisors)
-                        )
-                    }
-                    
-                    if !structure.builders.isEmpty {
-                        InfoPill(
-                            icon: "👷",
-                            title: "Builders",
-                            value: formatPeopleList(structure.builders)
-                        )
-                    }
-                    
-                    if let funFact = structure.funFact {
-                        FunFactPill(
-                            icon: "✨",
-                            fact: funFact
-                        )
-                    }
-                    
-                    InfoPill(
-                        icon: "📝",
-                        title: "Description",
-                        value: structure.description
-                    )
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 5)
-            }
-        }
-        .frame(height: geometry.size.height * 0.75)
-        .background(appState.isDarkMode ? Color.black : Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
-        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
-    }
-}
-
-// MARK: - ToggleInfoButton
-/// A button to toggle between the image carousel and the information panel.
-private struct ToggleInfoButton: View {
-    @EnvironmentObject var appState: AppState
-    @Binding var isShowingInfo: Bool
-    let geometry: GeometryProxy
-    
-    var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                isShowingInfo.toggle()
-            }
-        }) {
-            HStack {
-                Text(isShowingInfo ? "Images  " : "Information  ")
-                    .font(.system(size: 22, weight: .semibold))
-                
-                Image(systemName: isShowingInfo ? "photo" : "info.circle")
-                    .font(.system(size: 18, weight: .bold))
-            }
-            .foregroundColor(appState.isDarkMode ? .white : .black)
-            .padding()
-            .frame(width: geometry.size.width - 30)
-            .background(Color.gray.opacity(0.2))
-            .cornerRadius(15)
-        }
-    }
-}
-
-// MARK: - InfoPanelHeader
-/// Header for the information panel, displaying structure number, title, and year (if any).
-private struct InfoPanelHeader: View {
-    @EnvironmentObject var appState: AppState
-    
-    let structure: Structure
-    let dismissAction: () -> Void
-    
-    var body: some View {
-        HStack {
-            Text("\(structure.number)")
-                .font(.system(size: 30, weight: .bold))
-            
-            Spacer()
-            
-            VStack {
-                Text(structure.title)
-                    .font(.system(size: 24, weight: .bold))
-                    .multilineTextAlignment(.center)
-                
-                if structure.year != "xxxx" {
-                    Text(structure.year)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.8))
-                }
-            }
-            
-            Spacer()
-            
-            Button(action: {
-                dismissAction()
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(appState.isDarkMode ? .white : .black)
-            }
-        }
-        .padding()
-        .background(appState.isDarkMode ? Color.black : Color.white)
-    }
-}
-
-// MARK: - DismissButton
-/// A simple top-right "X" button to dismiss the entire view.
-private struct DismissButton: View {
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 30))
-                .foregroundColor(.white)
-                .shadow(color: .black, radius: 2, x: 0, y: 0)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-    }
-}
-
-// MARK: - StructureInfoOverlay
-/// Overlay showing the structure number and title at bottom-left of the image section.
-private struct StructureInfoOverlay: View {
-    let structure: Structure
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            Spacer()
-            Text("\(structure.number)")
-                .font(.system(size: 40, weight: .bold))
-            Text(structure.title)
-                .font(.system(size: 30, weight: .semibold))
-        }
-        .foregroundColor(.white)
-        .shadow(color: .black, radius: 2, x: 0, y: 0)
-        .padding(20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-    }
-}
-
-// MARK: - ImageDotsView
-/// Shows a like button plus dots indicating which image is currently displayed in the carousel.
-private struct BottomOverlay: View {
-    @EnvironmentObject var dataStore: DataStore
-    
-    let structure: Structure
-    @Binding var currentImageIndex: Int
-    
-    var body: some View {
-        VStack {
-            // Like button
-            LikeButton(structure: structure)
-            
-            // Dots
-            HStack(spacing: 8) {
-                ForEach(0..<2, id: \.self) { index in
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: currentImageIndex == index ? 10 : 8,
-                               height: currentImageIndex == index ? 10 : 8)
-                        .opacity(currentImageIndex == index ? 1 : 0.5)
-                }
-            }
-            .padding(10)
-            .background(Color.black.opacity(0.6))
-            .cornerRadius(15)
-            .padding(10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-    }
-}
-
-// MARK: - LikeButton
-/// A button that toggles the "liked" status of a structure.
-private struct LikeButton: View {
-    @EnvironmentObject var dataStore: DataStore
-    
-    let structure: Structure
-
-    var body: some View {
-        Button(action: {
-            dataStore.toggleLike(for: structure.id) // Directly toggle the "liked" state in dataStore
-        }) {
-            Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
-                .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
-                .font(.system(size: 42))
-                .shadow(color: .black, radius: 2, x: 0, y: 0)
-        }
-    }
-}
-
-// MARK: - InfoPill
-/// Displays a small "pill" with an icon, title, and a text value.
-private struct InfoPill: View {
-    @EnvironmentObject var appState: AppState
-    
-    let icon: String
-    let title: String
-    let value: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(icon)
-                    .font(.system(size: 18, weight: .bold))
-                Text(title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
-            }
-            Text(value)
-                .font(.system(size: 18, weight: .regular))
-                .foregroundColor(appState.isDarkMode ? .white : .black)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(appState.isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.1))
-        .cornerRadius(20)
-        .shadow(
-            color: appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1),
-            radius: 5, x: 0, y: 2
-        )
-    }
-}
-
-// MARK: - FunFactPill
-/// A special pill that highlights a fun fact with a shimmering border.
-private struct FunFactPill: View {
-    @EnvironmentObject var appState: AppState
-    
-    let icon: String
-    let fact: String
-    @State private var isGlowing = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(icon)
-                    .font(.system(size: 18, weight: .bold))
-                Text("Fun Fact")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
-            }
-            Text(fact)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(appState.isDarkMode ? .white.opacity(0.9) : .black.opacity(0.9))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(appState.isDarkMode ? Color.blue.opacity(0.2) : Color.blue.opacity(0.1))
-        .cornerRadius(20)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(appState.isDarkMode ? Color.blue.opacity(0.6) : Color.blue.opacity(0.8), lineWidth: 2)
-                .shimmering(
-                    animation: .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
-                    bandSize: 0.3
-                )
-        )
-        .shadow(
-            color: isGlowing ? (appState.isDarkMode ? .blue.opacity(0.4) : .blue.opacity(0.2)) : .clear,
-            radius: 10, x: 0, y: 0
-        )
-        .scaleEffect(isGlowing ? 1.02 : 1.0)
-        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isGlowing)
-        .onAppear {
-            self.isGlowing = true
-        }
-    }
-}
-
-// MARK: - ImprovedImageCarousel
-/// A carousel for the structure's main and close-up images with a zoomable subview.
-private struct ImprovedImageCarousel: View {
-    let images: [String]
-    @Binding var currentImageIndex: Int
-    let geometry: GeometryProxy
-
-    var body: some View {
-        TabView(selection: $currentImageIndex) {
-            ForEach(images.indices, id: \.self) { index in
-                ZoomableImageView(imageName: images[index])
-                    .tag(index)
-            }
-        }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .frame(width: geometry.size.width - 30, height: geometry.size.height * 0.75)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-    }
-}
-
-// MARK: - ZoomableImageView
-/// An image that can be pinch-zoomed and panned.
-private struct ZoomableImageView: View {
-    let imageName: String
-    
-
-    var body: some View {
-        GeometryReader { proxy in
-            let size = proxy.size
-            
+        GeometryReader { geo in
             ZStack {
-                // Blurred background
-                Image(imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: size.width, height: size.height)
-                    .blur(radius: 20)
+                Color.white
+                    .ignoresSafeArea(edges: .all)
                 
-                // Foreground image
-                Image(imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: size.width, height: size.height)
-                    .scaleEffect(1.2)
-                    .zoomable(
-                        minZoomScale: 1.0,
-                        doubleTapZoomScale: 2.0
+                VStack(spacing: 0) {
+                    HeaderView(
+                        structure: structure,
+                        dismissAction: { appState.activeFullScreenView = nil },
+                        safeAreaHeight: geo.size.height * 0.15
                     )
+                    
+                    // 2) Main Content - ~75% of height
+                    ZStack {
+                        switch selectedTab {
+                        case .info:
+                            InfoSectionView(structure: structure)
+                        case .images:
+                            ImagesSectionView(structure: structure)
+                        }
+                    }
+                    .frame(height: geo.size.height * 0.78)
+                    
+                    // 3) Bottom Picker - ~10% of height
+                    BottomTabPicker(selectedTab: $selectedTab)
+                        .frame(height: geo.size.height * 0.07)
+                }
+                
+
             }
-            .clipped()
+        }
+        .ignoresSafeArea(edges: .top)
+        .onAppear {
+            if structure.isVisited && !structure.isOpened {
+                dataStore.markStructureAsOpened(structure.number)
+            }
         }
     }
 }
 
+// MARK: - InfoTab Enum
+/// Tracks which tab is currently selected at the bottom (Info or Images).
+fileprivate enum InfoTab {
+    case info
+    case images
+}
 
+// MARK: - HeaderView
+/// Top header with a circle for the structure number (left), a large (possibly multiline) title in the center,
+/// and an `X` button in a circle on the right to dismiss.
+fileprivate struct HeaderView: View {
+    let structure: Structure
+    let dismissAction: () -> Void
+    let safeAreaHeight: CGFloat
+    
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.gray.opacity(0.15)
+                .frame(height: safeAreaHeight)
+                .background(Color.gray.opacity(0.15))
+                .ignoresSafeArea(edges: .top)
+                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
+            
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(.thinMaterial)
+                            .shadow(color: .black.opacity(0.65), radius: 4)
+                        Text("\(structure.number)")
+                            .font(.system(size: 22, weight: .black))
+                    }
+                    .frame(width: 44, height: 44)
+                    
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(.thinMaterial)
+                            .shadow(color: .black.opacity(0.65), radius: 3)
+                        
+                        Text(structure.title)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.black)
+                            .shadow(color: .white.opacity(0.65), radius: 3, y: 0)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.5)
+                            .padding(.horizontal, 16)
+                    }
+                    .frame(height: 44)
+                    
+                    Button(action: dismissAction) {
+                        ZStack {
+                            Circle()
+                                .fill(.thinMaterial)
+                                .shadow(color: .black.opacity(0.65), radius: 4)
+                            Image(systemName: "xmark")
+                                .font(.system(size: 15, weight: .black))
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.bottom, 12)
+        }
+    }
+}
+
+// MARK: - InfoSectionView
+/// Main Content for the "Info" tab. This is a scroll view with:
+/// 1) A row: [Image with year overlay, Fun Fact next to it]
+/// 2) A collapsible description (starts expanded)
+/// 3) Builders row
+/// 4) Advisors row
+fileprivate struct InfoSectionView: View {
+    let structure: Structure
+    @State private var isDescriptionExpanded = true
+    
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 15) {
+                // Top Row - Fixed size containers
+                HStack(spacing: 15) {
+                    // Image Container - Fixed size
+                    ZStack(alignment: .bottomTrailing) {
+                        if let firstImage = structure.images.first {
+                            Image(firstImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 160, height: 160)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        
+                        if structure.year != "xxxx" {
+                            Text(structure.year)
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.65), radius: 3)
+                                .padding(6)
+                                .background(.ultraThinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .padding(8)
+                        }
+                    }
+                    .frame(width: 160, height: 160)
+                    .background(.thinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.75), radius: 5, y: 2)
+                    
+                    // Fun Fact Container - Fixed size
+                    if let fact = structure.funFact, !fact.isEmpty {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack {
+                                Text("💯")
+                                    .font(.system(size: 14, weight: .bold))
+                                Text("FUN FACT")
+                                    .font(.system(size: 20, weight: .bold))
+                                
+                                Spacer()
+                            }
+                            .padding(.top, 10)
+                            
+                            Text(fact)
+                                .font(.system(size: 18))
+                                .padding(.top, 5)
+                                .lineSpacing(4)
+                                .minimumScaleFactor(0.7)
+                                .lineLimit(6)
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .frame(maxWidth: .infinity, minHeight: 160)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
+                    }
+                }
+                
+                // Description Box - Full width with padding
+                VStack(alignment: .leading, spacing: 8) {
+                    Button(action: { isDescriptionExpanded.toggle() }) {
+                        HStack {
+                            Text("📝")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("DESCRIPTION")
+                                .font(.system(size: 20, weight: .bold))
+                            Spacer()
+                            Image(systemName: isDescriptionExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .foregroundColor(.primary)
+                    }
+                    
+                    if isDescriptionExpanded {
+                        Text(structure.description)
+                            .font(.system(size: 18))
+                            .padding(.top, 4)
+                            .lineSpacing(5)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(.thinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
+                
+                // Builders Row - Full width with padding
+                if !structure.builders.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack{
+                            Text("👷")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("BUILDERS")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        Text(structure.builders.joined(separator: ", "))
+                            .font(.system(size: 17))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.thinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
+                }
+                
+                // Advisors Row - Full width with padding
+                if !structure.advisors.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack{
+                            Text("🎓")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("ADVISORS")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        Text(structure.advisors.joined(separator: ", "))
+                            .font(.system(size: 17))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.thinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
+                }
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 20)
+        }
+    }
+}
+
+// MARK: - ImagesSectionView
+/// Main content for the "Images" tab. Shows a full-screen image with blurred background behind it,
+/// plus a dot indicator at the bottom. The user can swipe horizontally through all structure images.
+fileprivate struct ImagesSectionView: View {
+    let structure: Structure
+    @EnvironmentObject var dataStore: DataStore
+    @State private var currentIndex: Int = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                // TabView for images
+                TabView(selection: $currentIndex) {
+                    ForEach(structure.images.indices, id: \.self) { idx in
+                        // Each page: blurred background + main image
+                        ZStack {
+                            // Blurred background
+                            Image(structure.images[idx])
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .blur(radius: 8)
+                                .clipped()
+                            
+                            // Foreground image scaled to fit
+                            Image(structure.images[idx])
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .clipped()
+                                .zoomable()
+                        }
+                        .tag(idx)
+                    }
+                }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                
+                // Dot indicator overlay (bottom center)
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        ForEach(structure.images.indices, id: \.self) { dotIndex in
+                            Circle()
+                                .fill(dotIndex == currentIndex ? Color.white : Color.white.opacity(0.4))
+                                .frame(width: dotIndex == currentIndex ? 10 : 8,
+                                       height: dotIndex == currentIndex ? 10 : 8)
+                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
+                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
+                        }
+                    }
+                    .padding(.bottom, 30)
+                }
+                
+                // Like Button Overlay
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: { dataStore.toggleLike(for: structure.id) }) {
+                            Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
+                                .font(.system(size: 28, weight: .semibold))
+                                .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
+                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
+                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
+                        }
+                        .padding(25)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - BottomTabPicker
+/// A custom bottom picker (or toggle) that shows the currently selected tab in text/icon form,
+/// plus a button to switch to the other tab. The exact style can be further tweaked.
+fileprivate struct BottomTabPicker: View {
+    @Binding var selectedTab: InfoTab
+    
+    var body: some View {
+        ZStack {
+            Color.gray.opacity(0.15)
+                .background(Color.gray.opacity(0.15))
+                .ignoresSafeArea(edges: .bottom)
+                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
+            
+            HStack {
+                Spacer()
+                
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.thinMaterial)
+                        .shadow(color: .black.opacity(0.4), radius: 3)
+                    
+                    HStack(spacing: 15) {
+                        Button(action: { selectedTab = .info }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                if selectedTab == .info {
+                                    Text("Info")
+                                        .font(.system(size: 16, weight: .medium))
+                                }
+                            }
+                            .foregroundColor(selectedTab == .info ? .black : .gray)
+                            .frame(width: 120)
+                        }
+                        
+                        Divider()
+                            .frame(width: 1)
+                            .background(Color.black.opacity(0.4))
+                        
+                        Button(action: { selectedTab = .images }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                if selectedTab == .images {
+                                    Text("Images")
+                                        .font(.system(size: 16, weight: .medium))
+                                        
+                                        
+                                }
+                                    
+                            }
+                            .padding(.trailing, 20)
+                            .foregroundColor(selectedTab == .images ? .black : .gray)
+                            
+                            .frame(width: 120)
+                        }
+                    }
+                }
+                .frame(width: 220, height: 38)
+                
+                
+                Spacer()
+            }
+            .padding(.top, 8)
+        }
+    }
+}
+
+// MARK: - Preview
+struct StructInfo_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Light Mode Preview
+            StructInfo()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    state.structInfoNum = getRandomStructureNumber()
+                    return state
+                }())
+                .environmentObject(DataStore())
+                .previewDisplayName("Light Mode")
+            
+            // Dark Mode Preview
+            StructInfo()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    state.structInfoNum = getRandomStructureNumber()
+                    return state
+                }())
+                .environmentObject(DataStore())
+                .previewDisplayName("Dark Mode")
+        }
+    }
+
+    // Generate a random structure number for preview
+    private static func getRandomStructureNumber() -> Int {
+        return Int.random(in: 1...31) // Adjust range based on the mock structures
+    }
+}

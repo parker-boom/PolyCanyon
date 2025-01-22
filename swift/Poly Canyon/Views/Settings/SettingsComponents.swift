@@ -18,14 +18,14 @@ struct GeneralSettingsSection: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("General Settings")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 26, weight: .bold))
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 
                 Spacer()
                 
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 24))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.black.opacity(0.8))
             }
             .padding(.bottom, 5)
             
@@ -122,8 +122,8 @@ struct GeneralSettingsSection: View {
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
                 )
-                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
-                       radius: 10, x: 0, y: 5)
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.65),
+                       radius: 6, x: 0, y: 3)
         )
     }
     
@@ -145,14 +145,14 @@ struct StatisticsSection: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text("Statistics")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 26, weight: .bold))
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 
                 Spacer()
                 
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 24))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.black.opacity(0.8))
             }
             .padding(.top, 10)
             .padding(.bottom, -5)
@@ -236,8 +236,8 @@ struct CreditsSection: View {
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
                 )
-                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
-                       radius: 10, x: 0, y: 5)
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.65),
+                       radius: 6, x: 0, y: 3)
         )
     }
 }
@@ -295,8 +295,8 @@ struct SettingsButton: View {
                         RoundedRectangle(cornerRadius: 15)
                             .stroke(isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
                     )
-                    .shadow(color: isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
-                           radius: 10, x: 0, y: 5)
+                    .shadow(color: isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.65),
+                           radius: 6, x: 0, y: 3)
             )
         }
     }
@@ -334,8 +334,8 @@ struct StatBox: View {
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(appState.isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
                 )
-                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.2), 
-                       radius: 10, x: 0, y: 5)
+                .shadow(color: appState.isDarkMode ? .black.opacity(0.3) : .gray.opacity(0.65),
+                       radius: 6, x: 0, y: 3)
         )
     }
 }

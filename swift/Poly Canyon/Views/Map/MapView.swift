@@ -23,7 +23,7 @@ struct MapView: View {
     @State private var showNearbyUnvisitedView = false
     @State private var showStructureSwipingView = false
     
-    // Holds the current map point for the structure being “walked through” in Virtual mode
+    // Holds the current map point for the structure being "walked through" in Virtual mode
     @State private var currentWalkthroughMapPoint: MapPoint?
     
     // Fullscreen toggling
@@ -82,7 +82,7 @@ struct MapView: View {
                     .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
                     .padding(.horizontal, 16)
                     .padding(.top, 5)
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 20)
                     .opacity(opacity)
                 }
                 else if isFullScreen {
@@ -186,6 +186,9 @@ struct MapView: View {
         }
         .onAppear {
             appState.configureMapSettings()
+            if appState.adventureModeEnabled {
+                appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)
+            }
         }
     }
     

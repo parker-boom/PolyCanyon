@@ -110,6 +110,7 @@ struct OnboardingView: View {
         .onChange(of: locationState) { newState in
             print("📍 OnboardingView: Location state updated to \(newState)")
         }
+        .ignoresSafeArea(.all)
     }
     
     // Advance to next onboarding slide
@@ -204,6 +205,7 @@ private struct BaseSlide<Content: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white)
+        .padding(.bottom, 20)
     }
 }
 

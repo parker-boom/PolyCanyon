@@ -31,6 +31,9 @@ struct DetailBody: View {
             }
         }
         .background(appState.isDarkMode ? Color.black : Color.white)
+        .onChange(of: locationService.isInPolyCanyonArea) { _ in
+            dataStore.objectWillChange.send()
+        }
     }
     
     // Grid layout with blur effects for unvisited structures

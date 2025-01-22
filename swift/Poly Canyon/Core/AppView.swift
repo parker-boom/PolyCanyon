@@ -26,3 +26,33 @@ struct AppView: View {
         }
     }
 }
+
+
+// MARK: - Preview
+struct AppView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Light Mode Preview
+            AppView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = false
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Light Mode")
+                
+            // Dark Mode Preview
+            AppView()
+                .environmentObject({
+                    let state = AppState()
+                    state.isDarkMode = true
+                    return state
+                }())
+                .environmentObject(DataStore.shared)
+                .environmentObject(LocationService.shared)
+                .previewDisplayName("Dark Mode")
+        }
+    }
+}

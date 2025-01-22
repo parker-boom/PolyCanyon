@@ -293,8 +293,9 @@ class DataStore: ObservableObject {
                 return searchFiltered.sorted { s1, s2 in
                     LocationService.shared.getDistance(to: s1) < LocationService.shared.getDistance(to: s2)
                 }
+            } else {
+                return searchFiltered.sorted { $0.number < $1.number }
             }
-            return searchFiltered
             
         case .favorites:
             return searchFiltered.filter { $0.isLiked }
@@ -313,34 +314,11 @@ class DataStore: ObservableObject {
             .prefix(limit)
             .map { $0 }
     }
-    
-    func getRecentlyUnopenedStructures(limit: Int = 3) -> [Structure] {
-        return structures
-            .filter { !$0.isOpened && $0.isVisited }
-            .sorted { $0.recentlyVisited > $1.recentlyVisited }
-            .prefix(limit)
-            .map { $0 }
-    }
-    
-    func getNearbyUnvisitedStructures(limit: Int = 3) -> [Structure] {
-        return structures
-            .filter { !$0.isVisited }
-            .sorted { LocationService.shared.getDistance(to: $0) < LocationService.shared.getDistance(to: $1) }
-            .prefix(limit)
-            .map { $0 }
-    }
+
     
     // MARK: - Helper Checks
-    var hasUnvisitedStructures: Bool {
-        return structures.contains { !$0.isVisited }
-    }
-    
     var hasVisitedStructures: Bool {
         return structures.contains { $0.isVisited }
-    }
-    
-    var hasUnopenedStructures: Bool {
-        return structures.contains { $0.isVisited && !$0.isOpened }
     }
     
     var hasLikedStructures: Bool {

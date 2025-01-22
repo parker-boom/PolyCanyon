@@ -71,7 +71,9 @@ struct DetailHeaderView: View {
 
 struct FilterButton: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
     @Binding var sortState: SortState
+
     
     var filterText: String {
         switch sortState {
@@ -103,14 +105,16 @@ struct FilterButton: View {
                 Label("All", systemImage: "circle.fill")
             }
             
-            if appState.adventureModeEnabled {
+            if dataStore.hasVisitedStructures {
                 Button(action: { sortState = .visited }) {
                     Label("Visited", systemImage: "checkmark.circle.fill")
                 }
             }
             
-            Button(action: { sortState = .favorites }) {
-                Label("Liked", systemImage: "heart.fill")
+            if dataStore.hasLikedStructures {
+                Button(action: { sortState = .favorites }) {
+                    Label("Liked", systemImage: "heart.fill")
+                }
             }
         } label: {
             HStack(spacing: 10) {

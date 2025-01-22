@@ -36,7 +36,7 @@ struct MapWithLocationDot: View {
         ZStack {
             // Background layer
             MapBackgroundLayer()
-            .scaleEffect(1.2)
+                .scaleEffect(appState.isVirtualWalkthrough ? 1.4 : 1.2)
 
             // Base map layer
             Image(mapImage)

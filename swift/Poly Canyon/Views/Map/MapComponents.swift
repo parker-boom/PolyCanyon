@@ -1101,29 +1101,32 @@ struct VirtualTourMapContainer<Content: View>: View {
                     content
                         .frame(width: containerGeometry.size.width,
                                height: adjustedMapHeight)
-
-                        
-                        // Then combine the final offsets:
-                        // - verticalShift (to center the dot)
-                        // - zoomClamps (to prevent white space, with reduced X if desired)
                         .offset(
                             x: zoomClamps.width * 0.4,
                             y: verticalShift + zoomClamps.height
                         )
-                        
-                                                
-                        // IMPORTANT: Scale first with anchor so the map zooms *around* the dot
                         .scaleEffect(appState.mapScale, anchor: dotAnchorPoint)
-                        // Smooth animations
                         .animation(.easeInOut(duration: 0.4), value: verticalShift)
                         .animation(.spring(response: 0.3, dampingFraction: 0.7),
                                    value: appState.mapScale)
                 }
                 .clipped()
-                
-                // Map toolbar (no fullscreen in Virtual Tour)
-                //MapToolbar(isFullScreen: .constant(false))
-                
+                .overlay(alignment: .topTrailing) {
+                    // Close button overlay
+                    Button(action: {
+                        withAnimation {
+                            appState.isVirtualWalkthrough = false
+                            appState.configureMapSettings(forWalkthrough: false)
+                        }
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(appState.isDarkMode ? .white : .black)
+                            .frame(width: 36, height: 36)
+                            .glassButton()
+                    }
+                    .padding(16)
+                }
             }
             .background(appState.isDarkMode ? Color.black : Color.white)
             .clipShape(
@@ -1148,9 +1151,9 @@ struct VirtualTourMapContainer<Content: View>: View {
                     )
             )
         }
-        // ~60% of screen height, minus ~49 if there's a bottom tab bar
         .frame(height: UIScreen.main.bounds.height * 0.6 - 49)
     }
+
 }
 
 // MARK: - Logic / Helper Methods
@@ -1271,7 +1274,6 @@ struct VirtualTourBottomBar: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     
-    // Animation states
     @State private var isImageExpanded = false
     @State private var showLearnMore = false
     
@@ -1283,26 +1285,32 @@ struct VirtualTourBottomBar: View {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 // Main Content Section (80%)
-                HStack(spacing: 8) {
-                    // Image Container - now 50% width
+                HStack(spacing: 12) {
+                    // Image Container with enhanced styling
                     Image(currentStructure.images[0])
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geo.size.width * 0.42, height: geo.size.height * 0.7)
+                        .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.65)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .strokeBorder(
                                     LinearGradient(
                                         colors: [
-                                            Color.white.opacity(appState.isDarkMode ? 0.3 : 0.6),
-                                            Color.white.opacity(0.1)
+                                            Color.white.opacity(0.7),
+                                            Color.white.opacity(0.3)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
-                                    lineWidth: 1
+                                    lineWidth: 1.2
                                 )
+                        )
+                        .shadow(
+                            color: .black.opacity(0.25),
+                            radius: 12,
+                            x: 0,
+                            y: 6
                         )
                         .scaleEffect(isImageExpanded ? 1.02 : 1.0)
                         .onHover { hovering in
@@ -1311,7 +1319,7 @@ struct VirtualTourBottomBar: View {
                             }
                         }
 
-                    // Fun Fact Container - vertically centered text that scales
+                    // Fun Fact Container with glowing effect
                     ScrollView(.vertical, showsIndicators: false) {
                         Text(currentStructure.funFact ?? "")
                             .font(.system(size: 18, weight: .semibold))
@@ -1321,98 +1329,75 @@ struct VirtualTourBottomBar: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                             .padding(.vertical, 10)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 15)
                     .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Material.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.8),
-                                                Color(red: 1, green: 0.84, blue: 0).opacity(0.5)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                    )
+                    .glowingContainer()
+                    .frame(width: geo.size.width * 0.5, height: geo.size.height * 0.65)
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 
-                // Control Bar (20%) - Now without shadows
-                HStack(spacing: 16) {
+                // Unified Navigation Bar
+                HStack(spacing: 0) {
+                    // Previous Button (20%)
                     Button(action: goPrevious) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .semibold))
-                            .frame(width: 40, height: 40)
-                            .glassButtonNoShadow()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .stroke(Color.black.opacity(0.8), lineWidth: 0.3)
-                    )
-                    
+                    .frame(width: UIScreen.main.bounds.width * 0.15)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
 
-                    Spacer()
-                    
-                    HStack(spacing: 0) {
-                        Button(action: closeVirtualTour) {
-                            Image(systemName: "xmark")
+                    // Divider
+                    Divider()
+                        .frame(width: 1)
+                        .background(Color.black.opacity(0.7))
+
+                    // Learn More Button (60%)
+                    Button(action: {
+                        appState.activeFullScreenView = .structInfo
+                        appState.structInfoNum = currentStructure.number
+                    }) {
+                        HStack(spacing: 0) {
+                            Text("Learn More")
                                 .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.7))
-                                .frame(width: 44)
-                        }
-                        
-                        Rectangle()
-                            .fill(appState.isDarkMode ? .white.opacity(0.2) : .black.opacity(0.25))
-                            .frame(width: 1, height: 44)
-                        
-                        Button(action: {
-                            appState.activeFullScreenView = .structInfo
-                            appState.structInfoNum = currentStructure.number
-                        }) {
-                            HStack(spacing: 6) {
-                                Text("Learn More")
-                                    .font(.system(size: 15, weight: .semibold))
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .bold))
-                            }
-                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.7) : .black.opacity(0.9))
-                            .padding(.horizontal, 16)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .contentShape(Rectangle())
+                            
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(appState.isDarkMode ? .white : .black)
+                                .padding(.trailing, 15)
                         }
                     }
-                    .frame(height: 44)
-                    .glassBackgroundNoShadow()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .stroke(Color.black.opacity(1), lineWidth: 0.8)
-                    )
-                    
+                    .frame(width: UIScreen.main.bounds.width * 0.4)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
 
-                    Spacer()
-                    
+                    // Divider
+                    Divider()
+                        .frame(width: 1)
+                        .background(Color.black.opacity(0.7))
+
+                    // Next Button (20%)
                     Button(action: goNext) {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 18, weight: .semibold))
-                            .frame(width: 40, height: 40)
-                            .glassButtonNoShadow()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .stroke(Color.black.opacity(0.8), lineWidth: 0.3)
-                    )
-                    
-                    
+                    .frame(width: UIScreen.main.bounds.width * 0.15)
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
                 }
-                .padding(.horizontal, 10)
-                .padding(.bottom, 8)
+                .frame(height: 40) // Unified bar height
+                .background(
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(Material.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                )
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
+                .padding(.top, 5)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(
@@ -1547,5 +1532,59 @@ struct RoundedCorner2: Shape {
             cornerRadii: CGSize(width: radius, height: radius)
         )
         return Path(path.cgPath)
+    }
+}
+
+struct GlowingContainer: ViewModifier {
+    @EnvironmentObject var appState: AppState
+    @State private var rotation: Double = 0
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Material.ultraThinMaterial)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        Color(red: 1, green: 0.84, blue: 0).opacity(0.2),
+                        lineWidth: 1.2
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .trim(from: 0.4, to: 0.6)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 1, green: 0.84, blue: 0).opacity(0),
+                                Color(red: 1, green: 0.84, blue: 0).opacity(0.8),
+                                Color(red: 1, green: 0.84, blue: 0).opacity(0)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(rotation))
+            )
+            .shadow(
+                color: Color(red: 1, green: 0.84, blue: 0).opacity(0.15),
+                radius: 8,
+                x: 0,
+                y: 0
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 4).repeatForever(autoreverses: false)) {
+                    rotation = 360
+                }
+            }
+    }
+}
+
+extension View {
+    func glowingContainer() -> some View {
+        modifier(GlowingContainer())
     }
 }
