@@ -1,11 +1,11 @@
-import React from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import ContentView from './src/ContentView';
+import React from "react";
+import { SafeAreaView, StyleSheet } from "react-native";
+import AppView from "./src/AppView";
 
 const App = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <ContentView />
+      <AppView />
     </SafeAreaView>
   );
 };

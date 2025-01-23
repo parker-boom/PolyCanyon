@@ -1,0 +1,45 @@
+This text file outlines the images for the app. Later to be converted to JSON.
+
+There are 31 active structures, every single one has a close and main. Index runs 1 to 31.
+MAIN: /main/M-#
+CLOSE: /close/C-#
+
+There are 6 ghost structures, each one has a main photo. Index runs 1 to 6.
+GHOST: /ghost/G-# 
+
+
+There are a collection of other images. Some correlate to ghost, some to active structures. They are labeled as: camelCaseTitle#
+so if "Bridge House" as 3 other images: bridgeHouse1, bridgeHouse2, bridgeHouse3
+
+Here's a list of their camelCase and (# of other images)
+bbqPit(2)
+blade(2)
+botanical(4)
+bridgeHouse(4)
+cantileverDeck(5)
+centeringCenter(4)
+electric(5)
+entryArch(4)
+geodesicDome(4)
+greenhouse(3)
+guniteBridge(1)
+hydraulic(2)
+modularHouse(5)
+momentMounment(4)
+observationDeck(1)
+polyPavilion(2)
+restrooms(3)
+serenityWall(1)
+shed(2)
+shellHouse(3)
+spireArray(2)
+stickStructure(4)
+sundial(2)
+suspension(3)
+techiteBridge(3)
+tensegrity(2)
+tensegrityMast(2)
+tensile(4)
+treehouse(1)
+undergroundHouse(2)
+water(4)
