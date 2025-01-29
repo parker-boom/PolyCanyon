@@ -11,12 +11,9 @@ import {
 import Swiper from "react-native-swiper";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  requestLocationPermission,
-  getCurrentLocation,
-  isNearSanLuisObispo,
-} from "../OldData/OnboardingLocationManager";
+import { useLocationService } from "../../Core/Location/LocationService";
 import { useAdventureMode } from "../../Core/States/AdventureModeContext";
+import Geolocation from "@react-native-community/geolocation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,6 +25,8 @@ const OnboardingView = ({ onComplete }) => {
   const [isAdventureModeRecommended, setIsAdventureModeRecommended] =
     useState(false);
   const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(false);
+  const { requestLocationPermission, getDistanceToCanyon } =
+    useLocationService();
   const { updateAdventureMode } = useAdventureMode();
 
   // Color constants
@@ -36,15 +35,26 @@ const OnboardingView = ({ onComplete }) => {
 
   // Handle location permission and determine if Adventure Mode is recommended
   const handleLocationPermission = async () => {
-    const permissionGranted = await requestLocationPermission();
+    const permissionGranted = await requestLocationPermission(true);
     setHasAskedForLocation(true);
 
     if (permissionGranted) {
       try {
-        const position = await getCurrentLocation();
-        const nearSLO = isNearSanLuisObispo(position);
-        setIsAdventureModeRecommended(nearSLO);
-        setIsAdventureModeEnabled(nearSLO);
+        Geolocation.getCurrentPosition(
+          (position) => {
+            const distanceToCanyon = getDistanceToCanyon(position.coords);
+            const nearSLO =
+              distanceToCanyon <= DISTANCE_THRESHOLDS.ONBOARDING_RECOMMENDATION;
+            setIsAdventureModeRecommended(nearSLO);
+            setIsAdventureModeEnabled(nearSLO);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            setIsAdventureModeRecommended(false);
+            setIsAdventureModeEnabled(false);
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
       } catch (error) {
         console.error("Error getting location:", error);
         setIsAdventureModeRecommended(false);
@@ -63,6 +73,8 @@ const OnboardingView = ({ onComplete }) => {
       JSON.stringify(isAdventureModeEnabled)
     );
     updateAdventureMode(isAdventureModeEnabled);
+
+    await AsyncStorage.setItem("isFirstLaunchV2", "false");
     onComplete();
   };
 

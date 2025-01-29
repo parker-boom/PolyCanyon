@@ -1,139 +1,71 @@
-// MARK: - DetailView Component
-/**
- * DetailView Component
- *
- * This component displays a list or grid of structures with the following features:
- * - Search functionality
- * - Filtering options (All, Visited, Unvisited, Favorites)
- * - Toggle between list and grid views
- * - Dark mode support
- * - Structure detail pop-up
- * - Adventure mode integration
- *
- * The component uses various hooks and contexts for state management and
- * consistent theming across the app.
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   Animated,
-  Modal,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useStructures } from "../OldData/StructureData";
 import FastImage from "react-native-fast-image";
 import { BlurView } from "@react-native-community/blur";
-import StructPopUp from "../PopUps/StructPopUp";
 import { useDarkMode } from "../../Core/States/DarkMode";
 import { useAdventureMode } from "../../Core/States/AdventureModeContext";
-import { useLocation } from "../OldData/LocationManager";
+import { useDataStore } from "../../Core/Data/DataStore";
+import { useAppState } from "../../Core/States/AppState";
+import styles from "./DetailStyles";
 
-// MARK: - Main Component
 const DetailView = () => {
-  // MARK: - Hooks and State
-  const {
-    structures,
-    toggleStructureLiked,
-    hasVisitedStructures,
-    hasUnvisitedStructures,
-    hasFavoritedStructures,
-  } = useStructures();
+  // Context hooks
   const { isDarkMode } = useDarkMode();
   const { adventureMode } = useAdventureMode();
+  const { structures, hasVisitedStructures, hasLikedStructures } =
+    useDataStore();
+  const { setSelectedStructure } = useAppState();
+
+  // Local state
   const [searchText, setSearchText] = useState("");
   const [isListView, setIsListView] = useState(false);
   const [filterState, setFilterState] = useState("all");
   const popUpOpacity = useState(new Animated.Value(0))[0];
-  const [selectedStructure, setSelectedStructure] = useState(null);
   const [popUpText, setPopUpText] = useState("");
-  const [localLikedStatus, setLocalLikedStatus] = useState({});
 
-  // MARK: - Effects
-  useEffect(() => {
-    // Initialize local liked status
-    const initialLikedStatus = {};
-    structures.forEach((structure) => {
-      initialLikedStatus[structure.number] = structure.isLiked;
-    });
-    setLocalLikedStatus(initialLikedStatus);
-  }, [structures]);
-
-  // MARK: - Helper Functions
-  const handleFavoriteToggle = (structureNumber) => {
-    // Toggle favorite status locally and in global state
-    setLocalLikedStatus((prevStatus) => {
-      const newStatus = {
-        ...prevStatus,
-        [structureNumber]: !prevStatus[structureNumber],
-      };
-      toggleStructureLiked(structureNumber);
-      return newStatus;
-    });
-  };
-
-  // MARK: - Filtering Logic
+  // Filter structures based on search text and filter state
   const filteredStructures = structures.filter((structure) => {
-    // Filter structures based on search text and current filter state
     const searchLower = searchText.toLowerCase();
     const matchesSearch =
       structure.title.toLowerCase().includes(searchLower) ||
       structure.number.toString().includes(searchLower);
 
     switch (filterState) {
-      case "all":
-        return matchesSearch;
       case "visited":
         return matchesSearch && structure.isVisited;
-      case "unvisited":
-        return matchesSearch && !structure.isVisited;
       case "favorites":
         return matchesSearch && structure.isLiked;
-      default:
+      default: // "all"
         return matchesSearch;
     }
   });
 
-  // MARK: - Event Handlers
   const handleFilterChange = () => {
-    let newFilterState;
-    let newPopUpText;
-
     const filterOptions = ["all"];
-    if (hasFavoritedStructures()) filterOptions.push("favorites");
-    if (adventureMode) {
-      if (hasVisitedStructures()) filterOptions.push("visited");
-      if (hasUnvisitedStructures()) filterOptions.push("unvisited");
-    }
+    if (hasLikedStructures()) filterOptions.push("favorites");
+    if (adventureMode && hasVisitedStructures()) filterOptions.push("visited");
 
     const currentIndex = filterOptions.indexOf(filterState);
     const nextIndex = (currentIndex + 1) % filterOptions.length;
-    newFilterState = filterOptions[nextIndex];
+    const newFilterState = filterOptions[nextIndex];
 
-    switch (newFilterState) {
-      case "all":
-        newPopUpText = "All";
-        break;
-      case "visited":
-        newPopUpText = "Visited";
-        break;
-      case "unvisited":
-        newPopUpText = "Unvisited";
-        break;
-      case "favorites":
-        newPopUpText = "Favorites";
-        break;
-    }
+    const newPopUpText = {
+      all: "All",
+      visited: "Visited",
+      favorites: "Favorites",
+    }[newFilterState];
 
     setFilterState(newFilterState);
     setPopUpText(newPopUpText);
 
-    // Always show the pop-up, regardless of adventureMode
     Animated.sequence([
       Animated.timing(popUpOpacity, {
         toValue: 1,
@@ -143,20 +75,17 @@ const DetailView = () => {
       Animated.timing(popUpOpacity, {
         toValue: 0,
         duration: 700,
-        useNativeDriver: true,
         delay: 1000,
+        useNativeDriver: true,
       }),
     ]).start();
   };
 
   const handleStructurePress = (structure) => {
-    // Set selected structure for detail view
     setSelectedStructure(structure);
   };
 
-  // MARK: - Render Functions
   const renderListItem = ({ item }) => (
-    // Render individual list item
     <TouchableOpacity onPress={() => handleStructurePress(item)}>
       <View style={[styles.row, isDarkMode && styles.darkRow]}>
         <Text style={[styles.number, isDarkMode && styles.darkText]}>
@@ -165,37 +94,17 @@ const DetailView = () => {
         <Text style={[styles.title, isDarkMode && styles.darkText]}>
           {item.title}
         </Text>
-        {adventureMode ? (
-          <View
-            style={[
-              styles.statusIndicator,
-              item.isVisited ? styles.visited : styles.notVisited,
-            ]}
-          />
-        ) : (
-          <TouchableOpacity
-            style={styles.heartContainer}
-            onPress={() => handleFavoriteToggle(item.number)}
-          >
-            <Ionicons
-              name={localLikedStatus[item.number] ? "heart" : "heart-outline"}
-              size={24}
-              color={
-                localLikedStatus[item.number]
-                  ? "red"
-                  : isDarkMode
-                  ? "white"
-                  : "black"
-              }
-            />
-          </TouchableOpacity>
-        )}
+        <View
+          style={[
+            styles.statusIndicator,
+            item.isVisited ? styles.visited : styles.notVisited,
+          ]}
+        />
       </View>
     </TouchableOpacity>
   );
 
   const renderGridItem = ({ item }) => (
-    // Render individual grid item
     <TouchableOpacity
       onPress={() => handleStructurePress(item)}
       style={[
@@ -235,16 +144,15 @@ const DetailView = () => {
     </TouchableOpacity>
   );
 
-  // MARK: - Main Render
-  useLocation((error, position) => {
-    if (adventureMode && !error && position) {
-      // Update any location-dependent state or perform actions
-    }
-  });
+  const getFilterColor = (currentFilterState) =>
+    ({
+      all: isDarkMode ? "white" : "black",
+      visited: "green",
+      favorites: "pink",
+    }[currentFilterState]);
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      {/* Search and filter controls */}
       <View style={styles.searchContainerWrapper}>
         <View
           style={[
@@ -259,7 +167,7 @@ const DetailView = () => {
             <Ionicons
               name={filterState === "favorites" ? "heart" : "eye"}
               size={32}
-              color={getFilterColor(filterState, isDarkMode)}
+              color={getFilterColor(filterState)}
             />
           </TouchableOpacity>
           <View style={styles.searchBarContainer}>
@@ -298,7 +206,6 @@ const DetailView = () => {
         </View>
       </View>
 
-      {/* Structure list/grid */}
       <FlatList
         style={[styles.list, isDarkMode && styles.darkList]}
         data={filteredStructures}
@@ -308,47 +215,13 @@ const DetailView = () => {
         numColumns={isListView ? 1 : 2}
       />
 
-      {/* Filter change popup */}
       <Animated.View style={[styles.popUp, { opacity: popUpOpacity }]}>
         <Text style={[styles.popUpText, isDarkMode && styles.darkPopUpText]}>
           {popUpText}
         </Text>
       </Animated.View>
-
-      {/* Structure detail modal */}
-      <Modal
-        visible={selectedStructure !== null}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSelectedStructure(null)}
-      >
-        {selectedStructure && (
-          <StructPopUp
-            structure={selectedStructure}
-            onClose={() => setSelectedStructure(null)}
-            isDarkMode={isDarkMode}
-          />
-        )}
-      </Modal>
     </View>
   );
-};
-
-// MARK: - Helper Functions
-const getFilterColor = (currentFilterState, isDarkMode) => {
-  // Return appropriate color for filter icon
-  switch (currentFilterState) {
-    case "all":
-      return isDarkMode ? "white" : "black";
-    case "visited":
-      return "green";
-    case "unvisited":
-      return "red";
-    case "favorites":
-      return "pink";
-    default:
-      return isDarkMode ? "white" : "black";
-  }
 };
 
 export default DetailView;

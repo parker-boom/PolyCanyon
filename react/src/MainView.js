@@ -8,26 +8,26 @@
  * It employs the 'screenOptions' approach for configuring the tab bar, ensuring a consistent look across the app.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import DetailView from "./Views/Detail/DetailView";
 import MapView from "./Views/Map/MapView";
 import SettingsView from "./Views/Settings/SettingView";
-import { useMapPoints } from "./OldData/MapPoint";
-import { DarkModeProvider, useDarkMode } from "./Core/States/DarkMode";
-import { useAdventureMode } from "./Core/States/AdventureModeContext";
+import StructPopUp from "./Views/PopUps/StructPopUp";
+import VisitedPopUp from "./Views/PopUps/VisitedPopUp";
+import { useDarkMode } from "./Core/States/DarkMode";
+import { useDataStore } from "./Core/Data/DataStore";
+import { useAppState } from "./Core/States/AppState";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
-const MainView = () => {
-  // MARK: - Hooks
-  // Access shared state and context
-  const { mapPoints } = useMapPoints();
+// TabNavigator component for main app tabs
+const TabNavigator = () => {
   const { isDarkMode } = useDarkMode();
-  const { adventureMode } = useAdventureMode();
 
-  // MARK: - Tab Bar Configuration
   const screenOptions = ({ route }) => ({
     headerShown: false,
     tabBarShowLabel: false,
@@ -54,33 +54,69 @@ const MainView = () => {
     },
   });
 
-  // MARK: - Tab Navigator
   return (
     <Tab.Navigator screenOptions={screenOptions}>
-      {/* Map Tab */}
-      <Tab.Screen
-        name="Map"
-        component={MapView}
-        initialParams={{ mapPoints, adventureMode }}
-      />
-      {/* Detail Tab */}
-      <Tab.Screen
-        name="Detail"
-        component={DetailView}
-        initialParams={{ mapPoints, adventureMode }}
-      />
-      {/* Settings Tab */}
+      <Tab.Screen name="Map" component={MapView} />
+      <Tab.Screen name="Detail" component={DetailView} />
       <Tab.Screen name="Settings" component={SettingsView} />
     </Tab.Navigator>
   );
 };
 
-// MARK: - DarkMode Wrapper
-// Ensure DarkMode context is available throughout the app
-const WrappedMainView = () => (
-  <DarkModeProvider>
-    <MainView />
-  </DarkModeProvider>
-);
+const MainView = () => {
+  const { isDarkMode } = useDarkMode();
+  const { lastVisitedStructure, dismissLastVisitedStructure } = useDataStore();
+  const {
+    visitedPopupVisible,
+    hideVisitedPopup,
+    selectedStructure,
+    setSelectedStructure,
+  } = useAppState();
 
-export default WrappedMainView;
+  // Watch for newly visited structures
+  useEffect(() => {
+    if (lastVisitedStructure) {
+      // Show visited popup when a structure is marked as visited
+      showVisitedPopup(lastVisitedStructure);
+    }
+  }, [lastVisitedStructure]);
+
+  const handleStructurePress = (structure) => {
+    hideVisitedPopup();
+    dismissLastVisitedStructure();
+    setSelectedStructure(structure);
+    navigation.navigate("StructureDetail");
+  };
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        presentation: "modal",
+      }}
+    >
+      <Stack.Screen name="TabNavigator" component={TabNavigator} />
+      <Stack.Screen
+        name="StructureDetail"
+        component={StructPopUp}
+        options={{
+          presentation: "fullScreenModal",
+          animation: "slide_from_bottom",
+        }}
+      />
+
+      {/* Visited Popup overlay */}
+      {visitedPopupVisible && lastVisitedStructure && (
+        <VisitedPopUp
+          structure={lastVisitedStructure}
+          isPresented={visitedPopupVisible}
+          setIsPresented={hideVisitedPopup}
+          isDarkMode={isDarkMode}
+          onStructurePress={handleStructurePress}
+        />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default MainView;

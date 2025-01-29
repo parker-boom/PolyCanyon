@@ -17,10 +17,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import OnboardingView from "./Views/Onboarding/OnboardingView";
 import MainView from "./MainView";
 import { NavigationContainer } from "@react-navigation/native";
-import { StructureProvider } from "./OldData/StructureData";
-import { MapPointsProvider } from "./OldData/MapPoint";
 import { DarkModeProvider } from "./Core/States/DarkMode";
+import { DataStoreProvider } from "./Core/Data/DataStore";
 import { AdventureModeProvider } from "./Core/States/AdventureModeContext";
+import { LocationServiceProvider } from "./Core/Location/LocationService";
+import { AppStateProvider } from "./Core/States/AppState";
 
 const ContentView = () => {
   // State to track if this is the app's first launch
@@ -52,23 +53,25 @@ const ContentView = () => {
   return (
     // Wrap the app in various context providers for global state management
     <DarkModeProvider>
-      <StructureProvider>
-        <MapPointsProvider>
-          <AdventureModeProvider>
-            <View style={{ flex: 1 }}>
-              {isFirstLaunchV2 ? (
-                // Show onboarding view if it's the first launch
-                <OnboardingView onComplete={handleOnboardingComplete} />
-              ) : (
-                // Show main app content if it's not the first launch
-                <NavigationContainer>
-                  <MainView />
-                </NavigationContainer>
-              )}
-            </View>
-          </AdventureModeProvider>
-        </MapPointsProvider>
-      </StructureProvider>
+      <DataStoreProvider>
+        <AdventureModeProvider>
+          <LocationServiceProvider>
+            <AppStateProvider>
+              <View style={{ flex: 1 }}>
+                {isFirstLaunchV2 ? (
+                  // Show onboarding view if it's the first launch
+                  <OnboardingView onComplete={handleOnboardingComplete} />
+                ) : (
+                  // Show main app content if it's not the first launch
+                  <NavigationContainer>
+                    <MainView />
+                  </NavigationContainer>
+                )}
+              </View>
+            </AppStateProvider>
+          </LocationServiceProvider>
+        </AdventureModeProvider>
+      </DataStoreProvider>
     </DarkModeProvider>
   );
 };
