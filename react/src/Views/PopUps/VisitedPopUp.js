@@ -1,3 +1,6 @@
+import React from "react";
+import { View, TouchableOpacity, Image, Text } from "react-native";
+
 // MARK: - VisitedStructurePopup Component
 /**
  * Displays a popup when a structure is visited.
@@ -68,6 +71,3 @@ const VisitedStructurePopup = ({
     </View>
   );
 };
-import React from "react";
-import { View, TouchableOpacity, Image, Text } from "react-native";
-import { Icon } from "react-native-vector-icons/Icon";

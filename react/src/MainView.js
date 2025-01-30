@@ -8,7 +8,7 @@
  * It employs the 'screenOptions' approach for configuring the tab bar, ensuring a consistent look across the app.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -20,6 +20,8 @@ import VisitedPopUp from "./Views/PopUps/VisitedPopUp";
 import { useDarkMode } from "./Core/States/DarkMode";
 import { useDataStore } from "./Core/Data/DataStore";
 import { useAppState } from "./Core/States/AppState";
+import { useAdventureMode } from "./Core/States/AdventureMode";
+import ModeSelectionPopup from "./Views/PopUps/ModeSelectionPopup";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -65,6 +67,9 @@ const TabNavigator = () => {
 
 const MainView = () => {
   const { isDarkMode } = useDarkMode();
+  const { adventureMode, updateAdventureMode } = useAdventureMode();
+  const { isModeSelectionVisible, hideModeSelectionPopup } = useAppState();
+  const [selectedMode, setSelectedMode] = useState(adventureMode);
   const { lastVisitedStructure, dismissLastVisitedStructure } = useDataStore();
   const {
     visitedPopupVisible,
@@ -89,33 +94,47 @@ const MainView = () => {
   };
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        presentation: "modal",
-      }}
-    >
-      <Stack.Screen name="TabNavigator" component={TabNavigator} />
-      <Stack.Screen
-        name="StructureDetail"
-        component={StructPopUp}
-        options={{
-          presentation: "fullScreenModal",
-          animation: "slide_from_bottom",
+    <>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          presentation: "modal",
         }}
-      />
-
-      {/* Visited Popup overlay */}
-      {visitedPopupVisible && lastVisitedStructure && (
-        <VisitedPopUp
-          structure={lastVisitedStructure}
-          isPresented={visitedPopupVisible}
-          setIsPresented={hideVisitedPopup}
-          isDarkMode={isDarkMode}
-          onStructurePress={handleStructurePress}
+      >
+        <Stack.Screen name="TabNavigator" component={TabNavigator} />
+        <Stack.Screen
+          name="StructureDetail"
+          component={StructPopUp}
+          options={{
+            presentation: "fullScreenModal",
+            animation: "slide_from_bottom",
+          }}
         />
-      )}
-    </Stack.Navigator>
+
+        {/* Visited Popup overlay */}
+        {visitedPopupVisible && lastVisitedStructure && (
+          <VisitedPopUp
+            structure={lastVisitedStructure}
+            isPresented={visitedPopupVisible}
+            setIsPresented={hideVisitedPopup}
+            isDarkMode={isDarkMode}
+            onStructurePress={handleStructurePress}
+          />
+        )}
+      </Stack.Navigator>
+
+      <ModeSelectionPopup
+        isVisible={isModeSelectionVisible}
+        onSelect={(mode) => setSelectedMode(mode)}
+        onConfirm={() => {
+          updateAdventureMode(selectedMode);
+          hideModeSelectionPopup();
+        }}
+        currentMode={adventureMode}
+        selectedMode={selectedMode}
+        isDarkMode={isDarkMode}
+      />
+    </>
   );
 };
 

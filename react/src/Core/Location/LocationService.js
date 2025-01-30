@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { PermissionsAndroid } from "react-native";
 import { useDataStore } from "../Data/DataStore";
-import { useAdventureMode } from "../States/AdventureModeContext";
+import { useAdventureMode } from "../States/AdventureMode";
 import mapPointsData from "./mapPoints.json";
 import { MapPoint } from "../Data/Models";
 

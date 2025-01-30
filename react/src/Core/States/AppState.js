@@ -17,6 +17,9 @@ export const AppStateProvider = ({ children }) => {
   const [visitedPopupVisible, setVisitedPopupVisible] = useState(false);
   const [selectedStructure, setSelectedStructure] = useState(null);
 
+  // Mode selection popup management
+  const [isModeSelectionVisible, setIsModeSelectionVisible] = useState(false);
+
   // Load saved state on mount
   useEffect(() => {
     loadSavedState();
@@ -45,6 +48,14 @@ export const AppStateProvider = ({ children }) => {
   const showVisitedPopup = () => setVisitedPopupVisible(true);
   const hideVisitedPopup = () => setVisitedPopupVisible(false);
 
+  const showModeSelectionPopup = () => {
+    setIsModeSelectionVisible(true);
+  };
+
+  const hideModeSelectionPopup = () => {
+    setIsModeSelectionVisible(false);
+  };
+
   const value = {
     mapStyle,
     toggleMapStyle,
@@ -53,6 +64,9 @@ export const AppStateProvider = ({ children }) => {
     hideVisitedPopup,
     selectedStructure,
     setSelectedStructure,
+    isModeSelectionVisible,
+    showModeSelectionPopup,
+    hideModeSelectionPopup,
   };
 
   return (

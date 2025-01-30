@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Image, TouchableOpacity } from "react-native";
+import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDarkMode } from "../../Core/States/DarkMode";
-import { useAdventureMode } from "../../Core/States/AdventureModeContext";
+import { useAdventureMode } from "../../Core/States/AdventureMode";
 import { useLocationService } from "../../Core/Location/LocationService";
 import { useAppState } from "../../Core/States/AppState";
 import styles from "./MapStyles";

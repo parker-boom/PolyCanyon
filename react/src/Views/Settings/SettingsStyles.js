@@ -1,3 +1,5 @@
+import { StyleSheet } from "react-native";
+
 // MARK: - Styles
 const styles = StyleSheet.create({
   container: {
@@ -113,3 +115,5 @@ const styles = StyleSheet.create({
     color: "#B0B0B0",
   },
 });
+
+export default styles;

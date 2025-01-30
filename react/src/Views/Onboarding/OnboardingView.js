@@ -12,8 +12,9 @@ import Swiper from "react-native-swiper";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocationService } from "../../Core/Location/LocationService";
-import { useAdventureMode } from "../../Core/States/AdventureModeContext";
+import { useAdventureMode } from "../../Core/States/AdventureMode";
 import Geolocation from "@react-native-community/geolocation";
+import styles from "./OnboardingStyles";
 
 const { width, height } = Dimensions.get("window");
 

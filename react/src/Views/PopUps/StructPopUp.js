@@ -16,7 +16,7 @@
  * - Fun fact animation
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,9 +24,6 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
-  Animated,
-  PanResponder,
-  LayoutAnimation,
   Platform,
   UIManager,
   Image,
@@ -35,7 +32,11 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import FastImage from "react-native-fast-image";
 import { BlurView } from "@react-native-community/blur";
 import { LinearGradient } from "react-native-linear-gradient";
-import { useStructures } from "../OldData/StructureData";
+import { useNavigation } from "@react-navigation/native";
+import { useDataStore } from "../../Core/Data/DataStore";
+import { useAppState } from "../../Core/States/AppState";
+import { useDarkMode } from "../../Core/States/DarkMode";
+import { getImageSource } from "../../Core/Images/ImageRegistry";
 
 if (
   Platform.OS === "android" &&
@@ -45,169 +46,50 @@ if (
 }
 
 const { width, height } = Dimensions.get("window");
-const POPUP_PADDING = 40;
-const POPUP_WIDTH = width - POPUP_PADDING * 2;
-const POPUP_HEIGHT = height - POPUP_PADDING * 2;
 
-const StructPopUp = ({ structure, onClose, isDarkMode }) => {
+const StructPopUp = () => {
+  // Hooks
+  const navigation = useNavigation();
+  const { isDarkMode } = useDarkMode();
+  const { selectedStructure, setSelectedStructure } = useAppState();
+  const { getStructure, toggleStructureLiked } = useDataStore();
+
+  // Local state
   const [isShowingInfo, setIsShowingInfo] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageAspectRatios, setImageAspectRatios] = useState([1, 1]);
+  const [imageAspectRatios, setImageAspectRatios] = useState({});
 
-  const pan = useRef(new Animated.ValueXY()).current;
-  const flipAnimation = useRef(new Animated.Value(0)).current;
-  const [funFactAnimation] = useState(new Animated.Value(0));
-  const [rotateAnimation] = useState(new Animated.Value(0));
-  const { toggleStructureLiked } = useStructures();
-  const [localIsLiked, setLocalIsLiked] = useState(structure.isLiked);
+  // Get the full structure data using just the number
+  const structure = getStructure(selectedStructure);
+
+  console.log("StructPopUp: getting structure", selectedStructure, structure);
 
   useEffect(() => {
-    const images = [structure.mainImage, structure.closeUpImage];
-    const aspectRatios = [];
+    if (!structure) {
+      navigation.goBack();
+      return;
+    }
 
-    images.forEach((image, index) => {
-      if (typeof image === "number") {
-        // Local image (require)
-        const { width, height } = Image.resolveAssetSource(image);
-        aspectRatios[index] = width / height;
-      } else if (typeof image === "string") {
-        // Remote image URL
-        Image.getSize(
-          image,
-          (width, height) => {
-            aspectRatios[index] = width / height;
-            if (aspectRatios.length === images.length) {
-              setImageAspectRatios(aspectRatios);
-            }
-          },
-          (error) => {
-            console.error(
-              `Error getting image size for image ${index}:`,
-              error
-            );
-            aspectRatios[index] = 1;
-            if (aspectRatios.length === images.length) {
-              setImageAspectRatios(aspectRatios);
-            }
-          }
-        );
-      } else if (image && image.image) {
-        // Object with image property
-        if (typeof image.image === "number") {
-          // Local image (require)
-          const { width, height } = Image.resolveAssetSource(image.image);
-          aspectRatios[index] = width / height;
-        } else if (typeof image.image === "string") {
-          // Remote image URL
-          Image.getSize(
-            image.image,
-            (width, height) => {
-              aspectRatios[index] = width / height;
-              if (aspectRatios.length === images.length) {
-                setImageAspectRatios(aspectRatios);
-              }
-            },
-            (error) => {
-              console.error(
-                `Error getting image size for image ${index}:`,
-                error
-              );
-              aspectRatios[index] = 1;
-              if (aspectRatios.length === images.length) {
-                setImageAspectRatios(aspectRatios);
-              }
-            }
-          );
-        }
-      } else {
-        console.error(`Unsupported image format for image ${index}`);
-        aspectRatios[index] = 1;
-      }
-
-      if (aspectRatios.length === images.length) {
-        setImageAspectRatios(aspectRatios);
-      }
+    // Load aspect ratios for all images
+    structure.images.forEach((imageKey, index) => {
+      const image = Image.resolveAssetSource(getImageSource(imageKey));
+      setImageAspectRatios((prev) => ({
+        ...prev,
+        [imageKey]: image.width / image.height,
+      }));
     });
-  }, [structure.mainImage, structure.closeUpImage]);
+  }, [structure]);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(funFactAnimation, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(funFactAnimation, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(rotateAnimation, {
-        toValue: 1,
-        duration: 4000,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
-
-  const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderMove: Animated.event([null, { dy: pan.y }], {
-      useNativeDriver: false,
-    }),
-    onPanResponderRelease: (e, gestureState) => {
-      if (gestureState.dy > 100) {
-        onClose();
-      } else {
-        Animated.spring(pan, {
-          toValue: { x: 0, y: 0 },
-          useNativeDriver: false,
-        }).start();
-      }
-    },
-  });
-
-  const flipCard = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsShowingInfo(!isShowingInfo);
-    Animated.timing(flipAnimation, {
-      toValue: isShowingInfo ? 0 : 180,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const frontInterpolate = flipAnimation.interpolate({
-    inputRange: [0, 180],
-    outputRange: ["0deg", "180deg"],
-  });
-
-  const backInterpolate = flipAnimation.interpolate({
-    inputRange: [0, 180],
-    outputRange: ["180deg", "360deg"],
-  });
-
-  const frontAnimatedStyle = {
-    transform: [{ rotateY: frontInterpolate }],
-  };
-
-  const backAnimatedStyle = {
-    transform: [{ rotateY: backInterpolate }],
+  const handleClose = () => {
+    setSelectedStructure(null);
+    navigation.goBack();
   };
 
   const handleFavoriteToggle = () => {
-    const newLikedStatus = !localIsLiked;
-    setLocalIsLiked(newLikedStatus);
-    toggleStructureLiked(structure.number, newLikedStatus);
+    toggleStructureLiked(structure.number);
   };
 
+  // Component render methods...
   const renderImageSection = () => (
     <View style={styles.imageSection}>
       <ScrollView
@@ -216,42 +98,34 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(event) => {
           const newIndex = Math.round(
-            event.nativeEvent.contentOffset.x / POPUP_WIDTH
+            event.nativeEvent.contentOffset.x / width
           );
           setCurrentImageIndex(newIndex);
         }}
       >
-        {[structure.mainImage, structure.closeUpImage].map((image, index) => {
-          const aspectRatio = imageAspectRatios[index];
+        {structure.images.map((imageKey, index) => {
+          const aspectRatio = imageAspectRatios[imageKey] || 1;
           const isLandscape = aspectRatio > 1;
           const imageStyle = isLandscape
-            ? {
-                width: POPUP_WIDTH - 20,
-                height: (POPUP_WIDTH - 20) / aspectRatio,
-              }
-            : {
-                width: (POPUP_HEIGHT - 80) * aspectRatio,
-                height: POPUP_HEIGHT - 80,
-              }; // Subtract space for info button and padding
-
-          const imageSource = image.image || image;
+            ? { width: width, height: width / aspectRatio }
+            : { height: height, width: height * aspectRatio };
 
           return (
-            <View key={index} style={styles.imageContainer}>
+            <View key={imageKey} style={styles.imageContainer}>
               {isLandscape && (
                 <BlurView
                   style={StyleSheet.absoluteFill}
-                  blurType="light"
+                  blurType={isDarkMode ? "dark" : "light"}
                   blurAmount={10}
                 >
                   <FastImage
-                    source={imageSource}
+                    source={getImageSource(imageKey)}
                     style={[StyleSheet.absoluteFill, { opacity: 0.5 }]}
                   />
                 </BlurView>
               )}
               <FastImage
-                source={imageSource}
+                source={getImageSource(imageKey)}
                 style={[styles.image, imageStyle]}
                 resizeMode="contain"
               />
@@ -259,8 +133,22 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
           );
         })}
       </ScrollView>
+
+      {/* Image dots indicator */}
+      <View style={styles.imageDots}>
+        {structure.images.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              currentImageIndex === index && styles.activeDot,
+            ]}
+          />
+        ))}
+      </View>
+
       <View style={styles.overlayContent}>
-        <TouchableOpacity style={styles.dismissButton} onPress={onClose}>
+        <TouchableOpacity style={styles.dismissButton} onPress={handleClose}>
           <Ionicons name="close-circle-outline" size={30} color="white" />
         </TouchableOpacity>
         <View style={styles.structureInfo}>
@@ -272,22 +160,12 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
           </Text>
         </View>
       </View>
-      <View style={[styles.imageDots, styles.textShadow]}>
-        {[0, 1].map((index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              currentImageIndex === index && styles.activeDot,
-            ]}
-          />
-        ))}
-      </View>
+
       <TouchableOpacity style={styles.heartIcon} onPress={handleFavoriteToggle}>
         <Ionicons
-          name={localIsLiked ? "heart" : "heart-outline"}
+          name={structure.isLiked ? "heart" : "heart-outline"}
           size={40}
-          color={localIsLiked ? "red" : "white"}
+          color={structure.isLiked ? "red" : "white"}
         />
       </TouchableOpacity>
     </View>
@@ -296,7 +174,12 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
   const renderInformationPanel = () => (
     <View style={styles.informationPanel}>
       <View style={styles.infoHeader}>
-        <Text style={[styles.infoHeaderNumber, isDarkMode && styles.darkText]}>
+        <Text
+          style={[
+            styles.infoHeaderNumber,
+            { color: isDarkMode ? "#FFFFFF" : "#000000" },
+          ]}
+        >
           {structure.number}
         </Text>
         <View style={styles.infoHeaderTitleContainer}>
@@ -311,379 +194,236 @@ const StructPopUp = ({ structure, onClose, isDarkMode }) => {
             </Text>
           )}
         </View>
-        <TouchableOpacity style={styles.closeInfoButton} onPress={onClose}>
-          <Ionicons
-            name="close-circle"
-            size={30}
-            color={isDarkMode ? "white" : "black"}
-          />
-        </TouchableOpacity>
       </View>
+
       <ScrollView style={styles.infoScrollView}>
         {structure.builders !== "iii" && (
-          <InfoPill
+          <InfoSection
             icon="👷"
             title="Builders"
             value={structure.builders}
             isDarkMode={isDarkMode}
           />
         )}
-        <FunFactPill
-          fact={structure["fun fact"]}
+        <InfoSection
+          icon="✨"
+          title="Fun Fact"
+          value={structure["fun fact"]}
           isDarkMode={isDarkMode}
-          animation={funFactAnimation}
         />
-        <DescriptionPill
-          description={structure.description}
+        <InfoSection
+          icon="📖"
+          title="Description"
+          value={structure.description}
           isDarkMode={isDarkMode}
         />
       </ScrollView>
     </View>
   );
 
-  const InfoPill = ({ icon, title, value, isDarkMode }) => (
-    <View style={[styles.infoPill, isDarkMode && styles.darkInfoPill]}>
-      <View style={styles.infoPillHeader}>
-        <Text style={styles.infoPillIcon}>{icon}</Text>
-        <Text style={[styles.infoPillTitle, isDarkMode && styles.darkText]}>
-          {title}
-        </Text>
-      </View>
-      <Text style={styles.infoPillValue}>{value}</Text>
-    </View>
-  );
-
-  const FunFactPill = ({ fact, isDarkMode, animation }) => {
-    const rotate = rotateAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["0deg", "360deg"],
-    });
-
-    return (
-      <View style={[styles.funFactPill, isDarkMode && styles.darkFunFactPill]}>
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            styles.funFactGlow,
-            { transform: [{ rotate }] },
-          ]}
-        >
-          <LinearGradient
-            colors={["#FFD700", "#FFA500", "#FF4500", "#FF6347"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-        </Animated.View>
-        <View style={styles.funFactContent}>
-          <View style={styles.funFactHeader}>
-            <Text style={styles.funFactIcon}>✨</Text>
-            <Text style={[styles.funFactTitle, isDarkMode && styles.darkText]}>
-              Fun Fact
-            </Text>
-          </View>
-          <Text style={styles.funFactValue}>{fact}</Text>
-        </View>
-      </View>
-    );
-  };
-
-  const DescriptionPill = ({ description, isDarkMode }) => (
-    <View
-      style={[styles.descriptionPill, isDarkMode && styles.darkDescriptionPill]}
-    >
-      <View style={styles.descriptionHeader}>
-        <Text style={styles.descriptionIcon}>📖</Text>
-        <Text style={[styles.descriptionTitle, isDarkMode && styles.darkText]}>
-          Description
-        </Text>
-      </View>
-      <Text style={styles.descriptionValue}>{description}</Text>
-    </View>
-  );
-
-  const styles = StyleSheet.create({
-    outerContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-    },
-    container: {
-      width: POPUP_WIDTH,
-      height: POPUP_HEIGHT,
-      backgroundColor: "white",
-      borderRadius: 20,
-      overflow: "hidden",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    darkContainer: {
-      backgroundColor: "black",
-    },
-    contentContainer: {
-      flex: 1,
-      padding: 10,
-    },
-    imageSection: {
-      flex: 1,
-      borderRadius: 10,
-      overflow: "hidden",
-    },
-    imageContainer: {
-      width: POPUP_WIDTH - 20,
-      height: POPUP_HEIGHT - 80, // Subtract space for info button and padding
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 10,
-      overflow: "hidden",
-    },
-    image: {
-      // The width and height will be set dynamically
-    },
-    overlayContent: {
-      ...StyleSheet.absoluteFillObject,
-      padding: 20,
-      justifyContent: "space-between",
-    },
-    dismissButton: {
-      alignSelf: "flex-end",
-    },
-    structureInfo: {
-      alignItems: "flex-start",
-    },
-    textShadow: {
-      textShadowColor: "rgba(0, 0, 0, 0.75)",
-      textShadowOffset: { width: -1, height: 1 },
-      textShadowRadius: 10,
-    },
-    structureNumber: {
-      fontSize: 40,
-      fontWeight: "bold",
-      color: "white",
-      marginBottom: 5,
-    },
-    structureTitle: {
-      fontSize: 30,
-      fontWeight: "600",
-      color: "white",
-    },
-    imageDots: {
-      flexDirection: "row",
-      position: "absolute",
-      bottom: 20,
-      right: 20,
-    },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: "rgba(255, 255, 255, 0.5)",
-      marginHorizontal: 4,
-    },
-    activeDot: {
-      backgroundColor: "white",
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-    },
-    infoButton: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(200, 200, 200, 0.3)",
-      borderRadius: 15,
-      padding: 15,
-      marginHorizontal: 15,
-      marginVertical: 10,
-      marginBottom: 20, // Added bottom padding
-    },
-    darkInfoButton: {
-      backgroundColor: "rgba(100, 100, 100, 0.3)",
-    },
-    infoButtonText: {
-      fontSize: 18,
-      fontWeight: "600",
-      marginRight: 10,
-    },
-    darkText: {
-      color: "white",
-    },
-    informationPanel: {
-      flex: 1,
-      padding: 10,
-    },
-    infoHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 20,
-    },
-    infoHeaderNumber: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: isDarkMode ? "#FFFFFF" : "#000000",
-    },
-    infoHeaderTitleContainer: {
-      flex: 1,
-      alignItems: "center",
-    },
-    infoHeaderTitle: {
-      fontSize: 22,
-      fontWeight: "700",
-      textAlign: "center",
-      color: isDarkMode ? "#FFFFFF" : "#000000",
-    },
-    infoHeaderYear: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: isDarkMode ? "#CCCCCC" : "#666666",
-      marginTop: 0,
-    },
-    closeInfoButton: {
-      padding: 5,
-    },
-    infoScrollView: {
-      flex: 1,
-    },
-    infoPill: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#F2F2F7",
-      borderRadius: 15,
-      padding: 15,
-      marginBottom: 15,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    infoPillHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 5,
-    },
-    infoPillIcon: {
-      fontSize: 20,
-      marginRight: 10,
-      textShadowColor: "rgba(0, 0, 0, 0.3)",
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
-    },
-    infoPillTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: isDarkMode ? "#CCCCCC" : "#666666",
-    },
-    infoPillValue: {
-      fontSize: 18,
-      fontWeight: "400",
-      color: "#000000",
-    },
-    funFactPill: {
-      borderRadius: 15,
-      padding: 2,
-      marginBottom: 15,
-      overflow: "hidden",
-    },
-    funFactGlow: {
-      borderRadius: 15,
-    },
-    funFactContent: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#F2F2F7",
-      borderRadius: 13,
-      padding: 13,
-    },
-    funFactHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 5,
-    },
-    funFactIcon: {
-      fontSize: 20,
-      marginRight: 10,
-      textShadowColor: "rgba(0, 0, 0, 0.3)",
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
-    },
-    funFactTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: "#000000",
-    },
-    funFactValue: {
-      fontSize: 18,
-      fontWeight: "400",
-      color: "#000000",
-    },
-    descriptionPill: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#F2F2F7",
-      borderRadius: 15,
-      padding: 15,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    descriptionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    descriptionIcon: {
-      fontSize: 20,
-      marginRight: 10,
-      textShadowColor: "rgba(0, 0, 0, 0.3)",
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
-    },
-    descriptionTitle: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: isDarkMode ? "#FFFFFF" : "#000000",
-    },
-    descriptionValue: {
-      fontSize: 18,
-      lineHeight: 24,
-      fontWeight: "400",
-      color: "#000000",
-    },
-    heartIcon: {
-      position: "absolute",
-      bottom: 50, // Positioned just above the image dots
-      right: 20,
-      zIndex: 10,
-    },
-  });
+  // Early return if no structure
+  if (!structure) return null;
 
   return (
-    <View style={styles.outerContainer}>
-      <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-        <View style={styles.contentContainer}>
-          {isShowingInfo ? renderInformationPanel() : renderImageSection()}
-        </View>
-        <TouchableOpacity
-          style={[styles.infoButton, isDarkMode && styles.darkInfoButton]}
-          onPress={() => setIsShowingInfo(!isShowingInfo)}
-        >
-          <Text style={[styles.infoButtonText, isDarkMode && styles.darkText]}>
-            {isShowingInfo ? "Images" : "Information"}
-          </Text>
-          <Ionicons
-            name={isShowingInfo ? "image" : "information-circle"}
-            size={24}
-            color={isDarkMode ? "white" : "black"}
-          />
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+      {isShowingInfo ? renderInformationPanel() : renderImageSection()}
+      <TouchableOpacity
+        style={[styles.infoButton, isDarkMode && styles.darkInfoButton]}
+        onPress={() => setIsShowingInfo(!isShowingInfo)}
+      >
+        <Text style={[styles.infoButtonText, isDarkMode && styles.darkText]}>
+          {isShowingInfo ? "Images" : "Information"}
+        </Text>
+        <Ionicons
+          name={isShowingInfo ? "image" : "information-circle"}
+          size={24}
+          color={isDarkMode ? "white" : "black"}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
+
+// InfoSection component for information panel
+const InfoSection = ({ icon, title, value, isDarkMode }) => (
+  <View style={[styles.infoSection, isDarkMode && styles.darkInfoSection]}>
+    <View style={styles.infoSectionHeader}>
+      <Text style={styles.infoSectionIcon}>{icon}</Text>
+      <Text style={[styles.infoSectionTitle, isDarkMode && styles.darkText]}>
+        {title}
+      </Text>
+    </View>
+    <Text style={[styles.infoSectionValue, isDarkMode && styles.darkText]}>
+      {value}
+    </Text>
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  darkContainer: {
+    backgroundColor: "#121212",
+  },
+  imageSection: {
+    flex: 1,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  imageContainer: {
+    width: width - 20,
+    height: height - 80, // Subtract space for info button and padding
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  image: {
+    // The width and height will be set dynamically
+  },
+  overlayContent: {
+    ...StyleSheet.absoluteFillObject,
+    padding: 20,
+    justifyContent: "space-between",
+  },
+  dismissButton: {
+    alignSelf: "flex-end",
+  },
+  structureInfo: {
+    alignItems: "flex-start",
+  },
+  textShadow: {
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+  structureNumber: {
+    fontSize: 40,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  structureTitle: {
+    fontSize: 30,
+    fontWeight: "600",
+    color: "white",
+  },
+  imageDots: {
+    flexDirection: "row",
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: "white",
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  infoButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(200, 200, 200, 0.3)",
+    borderRadius: 15,
+    padding: 15,
+    marginHorizontal: 15,
+    marginVertical: 10,
+    marginBottom: 20, // Added bottom padding
+  },
+  darkInfoButton: {
+    backgroundColor: "rgba(100, 100, 100, 0.3)",
+  },
+  infoButtonText: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginRight: 10,
+  },
+  darkText: {
+    color: "white",
+  },
+  informationPanel: {
+    flex: 1,
+    padding: 10,
+  },
+  infoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  infoHeaderNumber: {
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  infoHeaderTitleContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  infoHeaderTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  infoHeaderYear: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 0,
+  },
+  infoScrollView: {
+    flex: 1,
+  },
+  infoSection: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  infoSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  infoSectionIcon: {
+    fontSize: 20,
+    marginRight: 10,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  infoSectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666666",
+  },
+  infoSectionValue: {
+    fontSize: 18,
+    fontWeight: "400",
+    color: "#000000",
+  },
+  darkInfoSection: {
+    backgroundColor: "#2C2C2E",
+  },
+  heartIcon: {
+    position: "absolute",
+    bottom: 50, // Positioned just above the image dots
+    right: 20,
+    zIndex: 10,
+  },
+});
 
 export default StructPopUp;

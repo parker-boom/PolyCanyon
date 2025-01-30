@@ -19,7 +19,7 @@ import MainView from "./MainView";
 import { NavigationContainer } from "@react-navigation/native";
 import { DarkModeProvider } from "./Core/States/DarkMode";
 import { DataStoreProvider } from "./Core/Data/DataStore";
-import { AdventureModeProvider } from "./Core/States/AdventureModeContext";
+import { AdventureModeProvider } from "./Core/States/AdventureMode";
 import { LocationServiceProvider } from "./Core/Location/LocationService";
 import { AppStateProvider } from "./Core/States/AppState";
 

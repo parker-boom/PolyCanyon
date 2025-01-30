@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useDarkMode } from "../../Core/States/DarkMode";
-import { useAdventureMode } from "../../Core/States/AdventureModeContext";
+import { useAdventureMode } from "../../Core/States/AdventureMode";
 import { useDataStore } from "../../Core/Data/DataStore";
 import { useAppState } from "../../Core/States/AppState";
 import { useLocationService } from "../../Core/Location/LocationService";
