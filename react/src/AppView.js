@@ -30,6 +30,7 @@ const ContentView = () => {
   // Check first launch status when component mounts
   useEffect(() => {
     checkFirstLaunchV2();
+    console.log("App mounted - Location service should be initializing");
   }, []);
 
   // Function to check if this is the app's first launch
@@ -51,12 +52,12 @@ const ContentView = () => {
   };
 
   return (
-    // Wrap the app in various context providers for global state management
-    <DarkModeProvider>
-      <DataStoreProvider>
-        <AdventureModeProvider>
-          <LocationServiceProvider>
-            <AppStateProvider>
+    // Reorder providers to ensure AppState is available to all
+    <AppStateProvider>
+      <DarkModeProvider>
+        <DataStoreProvider>
+          <AdventureModeProvider>
+            <LocationServiceProvider>
               <View style={{ flex: 1 }}>
                 {isFirstLaunchV2 ? (
                   // Show onboarding view if it's the first launch
@@ -68,11 +69,11 @@ const ContentView = () => {
                   </NavigationContainer>
                 )}
               </View>
-            </AppStateProvider>
-          </LocationServiceProvider>
-        </AdventureModeProvider>
-      </DataStoreProvider>
-    </DarkModeProvider>
+            </LocationServiceProvider>
+          </AdventureModeProvider>
+        </DataStoreProvider>
+      </DarkModeProvider>
+    </AppStateProvider>
   );
 };
 

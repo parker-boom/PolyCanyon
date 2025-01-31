@@ -16,12 +16,13 @@ import DetailView from "./Views/Detail/DetailView";
 import MapView from "./Views/Map/MapView";
 import SettingsView from "./Views/Settings/SettingView";
 import StructPopUp from "./Views/PopUps/StructPopUp";
-import VisitedPopUp from "./Views/PopUps/VisitedPopUp";
+import VisitedStructurePopup from "./Views/PopUps/VisitedPopUp";
 import { useDarkMode } from "./Core/States/DarkMode";
 import { useDataStore } from "./Core/Data/DataStore";
 import { useAppState } from "./Core/States/AppState";
 import { useAdventureMode } from "./Core/States/AdventureMode";
 import ModeSelectionPopup from "./Views/PopUps/ModeSelectionPopup";
+import { useNavigation } from "@react-navigation/native";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -69,28 +70,41 @@ const MainView = () => {
   const { isDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
   const { isModeSelectionVisible, hideModeSelectionPopup } = useAppState();
-  const [selectedMode, setSelectedMode] = useState(adventureMode);
-  const { lastVisitedStructure, dismissLastVisitedStructure } = useDataStore();
+  const {
+    lastVisitedStructure,
+    dismissLastVisitedStructure,
+    structures,
+    getStructure,
+  } = useDataStore();
   const {
     visitedPopupVisible,
     hideVisitedPopup,
+    showVisitedPopup,
     selectedStructure,
     setSelectedStructure,
   } = useAppState();
+  const navigation = useNavigation();
+  const [selectedMode, setSelectedMode] = useState(adventureMode);
 
   // Watch for newly visited structures
   useEffect(() => {
     if (lastVisitedStructure) {
-      // Show visited popup when a structure is marked as visited
-      showVisitedPopup(lastVisitedStructure);
+      const structure = getStructure(lastVisitedStructure);
+      // Only show popup for newly visited structures
+      if (structure && structure.isVisited) {
+        console.log("New structure visited:", lastVisitedStructure);
+        showVisitedPopup();
+      }
     }
   }, [lastVisitedStructure]);
 
+  // Handle structure selection (this is the SAME logic as DetailView)
   const handleStructurePress = (structure) => {
+    console.log("Opening structure detail for number:", structure.number);
+    setSelectedStructure(structure.number);
     hideVisitedPopup();
     dismissLastVisitedStructure();
-    setSelectedStructure(structure);
-    navigation.navigate("StructureDetail");
+    navigation.navigate("StructureDetail"); // That's it! StructPopUp gets the number from selectedStructure
   };
 
   return (
@@ -110,19 +124,20 @@ const MainView = () => {
             animation: "slide_from_bottom",
           }}
         />
-
-        {/* Visited Popup overlay */}
-        {visitedPopupVisible && lastVisitedStructure && (
-          <VisitedPopUp
-            structure={lastVisitedStructure}
-            isPresented={visitedPopupVisible}
-            setIsPresented={hideVisitedPopup}
-            isDarkMode={isDarkMode}
-            onStructurePress={handleStructurePress}
-          />
-        )}
       </Stack.Navigator>
 
+      {/* Visited Popup overlay */}
+      {visitedPopupVisible && lastVisitedStructure && (
+        <VisitedStructurePopup
+          structure={getStructure(lastVisitedStructure)}
+          isPresented={visitedPopupVisible}
+          setIsPresented={hideVisitedPopup}
+          isDarkMode={isDarkMode}
+          onStructurePress={handleStructurePress}
+        />
+      )}
+
+      {/* Mode selection popup */}
       <ModeSelectionPopup
         isVisible={isModeSelectionVisible}
         onSelect={(mode) => setSelectedMode(mode)}

@@ -45,9 +45,19 @@ export const AppStateProvider = ({ children }) => {
     }
   };
 
-  const showVisitedPopup = () => setVisitedPopupVisible(true);
-  const hideVisitedPopup = () => setVisitedPopupVisible(false);
+  // Visited popup management
+  const showVisitedPopup = () => {
+    console.log("Showing visited popup");
+    setVisitedPopupVisible(true);
+  };
 
+  const hideVisitedPopup = () => {
+    console.log("Hiding visited popup");
+    setVisitedPopupVisible(false);
+    setSelectedStructure(null); // Clear selected structure when hiding popup
+  };
+
+  // Mode selection popup management
   const showModeSelectionPopup = () => {
     setIsModeSelectionVisible(true);
   };
@@ -57,13 +67,20 @@ export const AppStateProvider = ({ children }) => {
   };
 
   const value = {
+    // Map style
     mapStyle,
     toggleMapStyle,
+
+    // Visited popup
     visitedPopupVisible,
     showVisitedPopup,
     hideVisitedPopup,
+
+    // Structure selection
     selectedStructure,
     setSelectedStructure,
+
+    // Mode selection
     isModeSelectionVisible,
     showModeSelectionPopup,
     hideModeSelectionPopup,

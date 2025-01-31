@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Easing,
+} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDarkMode } from "../../Core/States/DarkMode";
 import { useAdventureMode } from "../../Core/States/AdventureMode";
@@ -76,31 +83,57 @@ const MapView = () => {
   // Local state for map layout calculations
   const [mapLayout, setMapLayout] = useState({ width: 0, height: 0 });
 
-  // Calculate pixel position for the location marker
+  // Add debug logging
+  useEffect(() => {
+    if (adventureMode && nearestMapPoint) {
+      console.log("MapView received new nearest point:", {
+        pixelPosition: nearestMapPoint.pixelPosition,
+        coordinate: nearestMapPoint.coordinate,
+        structure: nearestMapPoint.structure,
+      });
+    }
+  }, [adventureMode, nearestMapPoint]);
+
+  // Add logging to pixel position calculation
   const calculatePixelPosition = (point) => {
+    console.log("Calculating pixel position for point:", point);
+
     if (!point || !mapLayout.width || !mapLayout.height) {
+      console.log("Missing required data:", {
+        hasPoint: !!point,
+        width: mapLayout.width,
+        height: mapLayout.height,
+      });
       return { left: 0, top: 0 };
     }
 
-    const originalX = parseFloat(point["Pixel X"].replace(" px", ""));
-    const originalY = parseFloat(point["Pixel Y"].replace(" px", ""));
+    const originalX = parseFloat(point.pixelPosition.x);
+    const originalY = parseFloat(point.pixelPosition.y);
+
+    console.log("Original pixel coordinates:", { x: originalX, y: originalY });
 
     const scaleX = mapLayout.width / MAP_ORIGINAL_WIDTH;
     const scaleY = mapLayout.height / MAP_ORIGINAL_HEIGHT;
     const scale = Math.min(scaleX, scaleY);
 
+    console.log("Scale factors:", { scaleX, scaleY, finalScale: scale });
+
     const offsetX = (mapLayout.width - MAP_ORIGINAL_WIDTH * scale) / 2;
     const offsetY = (mapLayout.height - MAP_ORIGINAL_HEIGHT * scale) / 2;
 
-    return {
+    const position = {
       left: offsetX + originalX * scale - 10,
       top: offsetY + originalY * scale - 10,
     };
+
+    console.log("Final calculated position:", position);
+    return position;
   };
 
-  // Handle map layout changes
+  // Add logging for map layout changes
   const onMapLayout = (event) => {
     const { width, height } = event.nativeEvent.layout;
+    console.log("Map layout updated:", { width, height });
     setMapLayout({ width, height });
   };
 
@@ -109,6 +142,13 @@ const MapView = () => {
     if (mapStyle === "satellite") return MAP_ASSETS.satellite;
     return isDarkMode ? MAP_ASSETS.dark : MAP_ASSETS.light;
   };
+
+  // Add logging in render to track adventure mode and nearest point
+  console.log("MapView render:", {
+    adventureMode,
+    hasNearestPoint: !!nearestMapPoint,
+    currentLocation,
+  });
 
   return (
     <View style={styles.container}>

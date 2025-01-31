@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { Platform } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { PermissionsAndroid } from "react-native";
@@ -6,6 +12,7 @@ import { useDataStore } from "../Data/DataStore";
 import { useAdventureMode } from "../States/AdventureMode";
 import mapPointsData from "./mapPoints.json";
 import { MapPoint } from "../Data/Models";
+import { useAppState } from "../States/AppState";
 
 // MARK: - Enums
 
@@ -92,10 +99,11 @@ const structureToMapPointMapping = {
 };
 
 export const LocationServiceProvider = ({ children }) => {
-  // Existing state from current implementation
   const [mapPoints, setMapPoints] = useState([]);
-  const { markStructureAsVisited } = useDataStore();
+  const mapPointsRef = useRef([]);
+  const { markStructureAsVisited, getStructure } = useDataStore();
   const { adventureMode } = useAdventureMode();
+  const { showVisitedPopup, setSelectedStructure } = useAppState();
 
   // New state for location tracking
   const [trackingState, setTrackingState] = useState(TrackingState.INACTIVE);
@@ -105,13 +113,13 @@ export const LocationServiceProvider = ({ children }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(0);
   const [watchId, setWatchId] = useState(null);
+  const [nearestPoint, setNearestPoint] = useState(null);
 
-  // Load map points on mount
   useEffect(() => {
+    console.log("LocationService initializing - Loading map points");
     loadMapPoints();
   }, []);
 
-  // Handle adventure mode changes
   useEffect(() => {
     if (!adventureMode) {
       stopLocationTracking();
@@ -120,8 +128,6 @@ export const LocationServiceProvider = ({ children }) => {
       startAppropriateTracking();
     }
   }, [adventureMode]);
-
-  // MARK: - Permission Handling
 
   const requestLocationPermission = async (requestBackground = false) => {
     try {
@@ -165,8 +171,6 @@ export const LocationServiceProvider = ({ children }) => {
     }
   };
 
-  // MARK: - Location Utilities
-
   const calculateDistance = (coord1, coord2) => {
     const R = 6371e3; // Earth's radius in meters
     const φ1 = (coord1.latitude * Math.PI) / 180;
@@ -183,53 +187,87 @@ export const LocationServiceProvider = ({ children }) => {
   };
 
   const isWithinCanyon = (coordinate) => {
-    return (
+    console.log("Checking canyon bounds for coordinate:", coordinate);
+    console.log(
+      "Latitude bounds:",
+      CANYON_BOUNDS.bottomLeft.latitude,
+      "to",
+      CANYON_BOUNDS.topRight.latitude
+    );
+    console.log(
+      "Longitude bounds:",
+      CANYON_BOUNDS.topLeft.longitude,
+      "to",
+      CANYON_BOUNDS.bottomRight.longitude
+    );
+
+    const inBounds =
       coordinate.latitude >= CANYON_BOUNDS.bottomLeft.latitude &&
       coordinate.latitude <= CANYON_BOUNDS.topRight.latitude &&
-      coordinate.longitude >= CANYON_BOUNDS.bottomLeft.longitude &&
-      coordinate.longitude <= CANYON_BOUNDS.topRight.longitude
-    );
+      coordinate.longitude >= CANYON_BOUNDS.topLeft.longitude &&
+      coordinate.longitude <= CANYON_BOUNDS.bottomRight.longitude;
+
+    console.log("Is within canyon:", inBounds);
+    return inBounds;
   };
 
   const getDistanceToCanyon = (coordinate) => {
     return calculateDistance(coordinate, CANYON_CENTER);
   };
 
-  // MARK: - Location Tracking
-
   const handleLocationUpdate = (position) => {
+    console.log("Location Update Received:", position);
     const now = Date.now();
     if (now - lastUpdateTime < UPDATE_INTERVALS.MINIMUM_TIME) {
+      console.log("Update too soon, skipping");
       return;
     }
 
     setLastUpdateTime(now);
     setCurrentLocation(position);
 
-    const distance = getDistanceToCanyon(position.coords);
-
+    // Check if in canyon boundaries FIRST
     if (isWithinCanyon(position.coords)) {
+      console.log("User is in canyon, finding nearest point");
+      const nearest = findNearestMapPoint(position.coords);
+      console.log("Setting nearest point:", nearest);
+      setNearestPoint(nearest);
       setAdventureModeStatus(AdventureModeStatus.EXPLORING);
       checkForStructureVisits(position.coords);
-    } else if (distance <= DISTANCE_THRESHOLDS.ALMOST_THERE) {
+      return;
+    }
+
+    // If not in canyon, then check distance to determine if approaching
+    const distance = getDistanceToCanyon(position.coords);
+    console.log("Distance to canyon:", distance);
+
+    if (distance <= DISTANCE_THRESHOLDS.ALMOST_THERE) {
+      console.log("User is almost at canyon");
       setAdventureModeStatus(AdventureModeStatus.ALMOST_THERE);
       startBackgroundTracking();
     } else {
+      console.log("User is far from canyon");
       setAdventureModeStatus(AdventureModeStatus.NOT_VISITING);
       stopBackgroundTracking();
     }
   };
 
   const startAppropriateTracking = async () => {
+    console.log(
+      "Starting appropriate tracking, Adventure Mode:",
+      adventureMode
+    );
     if (!adventureMode) return;
 
     const hasPermission = await requestLocationPermission(false);
+    console.log("Location permission granted:", hasPermission);
     if (!hasPermission) return;
 
     startInAppTracking();
   };
 
   const startInAppTracking = () => {
+    console.log("Starting in-app tracking, current watchId:", watchId);
     if (watchId) return;
 
     const newWatchId = Geolocation.watchPosition(
@@ -242,6 +280,7 @@ export const LocationServiceProvider = ({ children }) => {
       }
     );
 
+    console.log("New watch ID created:", newWatchId);
     setWatchId(newWatchId);
     setTrackingState(TrackingState.IN_APP_ONLY);
   };
@@ -283,38 +322,61 @@ export const LocationServiceProvider = ({ children }) => {
     }
   };
 
-  // MARK: - Structure Visit Detection
-
   const checkForStructureVisits = (coordinate) => {
     const nearestPoint = findNearestMapPoint(coordinate);
     if (!nearestPoint) return;
 
-    const distance = calculateDistance(coordinate, {
-      latitude: nearestPoint.latitude,
-      longitude: nearestPoint.longitude,
-    });
+    const distance = calculateDistance(coordinate, nearestPoint.coordinate);
+
+    // Get the structure to check if it's already visited
+    const structure = getStructure(nearestPoint.structure);
 
     if (
       distance <= DISTANCE_THRESHOLDS.STRUCTURE_VISIT &&
-      nearestPoint.structure !== -1
+      nearestPoint.structure !== -1 &&
+      structure && // Make sure structure exists
+      !structure.isVisited // Only mark if not already visited
     ) {
+      console.log(
+        "Structure in range and not visited:",
+        nearestPoint.structure
+      );
       markStructureAsVisited(nearestPoint.structure);
     }
   };
 
-  // Existing map point functionality...
   const loadMapPoints = () => {
-    const points = mapPointsData.map((data) => MapPoint.fromMapPointData(data));
-    setMapPoints(points);
+    try {
+      const points = mapPointsData.map((data) =>
+        MapPoint.fromMapPointData(data)
+      );
+      console.log(
+        `Successfully loaded ${points.length} map points:`,
+        points[0]
+      );
+      setMapPoints(points);
+      mapPointsRef.current = points;
+    } catch (error) {
+      console.error("Error loading map points:", error);
+    }
   };
 
   const findNearestMapPoint = (coordinate) => {
-    if (!mapPoints.length) return null;
+    const points = mapPointsRef.current;
+    if (!points.length) {
+      console.log("No map points available to find nearest point");
+      return null;
+    }
+
+    console.log(
+      `Finding nearest point to coordinate from ${points.length} points:`,
+      coordinate
+    );
 
     let nearestPoint = null;
     let minDistance = Infinity;
 
-    mapPoints.forEach((point) => {
+    points.forEach((point) => {
       const distance = calculateDistance(coordinate, point.coordinate);
       if (distance < minDistance) {
         minDistance = distance;
@@ -322,10 +384,15 @@ export const LocationServiceProvider = ({ children }) => {
       }
     });
 
+    console.log("Nearest point found:", {
+      point: nearestPoint,
+      distance: minDistance,
+      pixelPosition: nearestPoint?.pixelPosition,
+    });
+
     return nearestPoint;
   };
 
-  // Find 3 closest structures (no duplicates)
   const findThreeClosestStructures = (coordinate) => {
     const structurePoints = mapPoints.filter((point) => point.structure !== -1);
 
@@ -346,7 +413,6 @@ export const LocationServiceProvider = ({ children }) => {
     return sortedUniqueStructures.slice(0, 3);
   };
 
-  // Get map point for virtual tour
   const getMapPointForStructure = (structureNumber) => {
     const mapPointIndex = structureToMapPointMapping[structureNumber];
     return mapPointIndex ? mapPoints[mapPointIndex - 1] : null;
@@ -357,6 +423,7 @@ export const LocationServiceProvider = ({ children }) => {
     currentLocation,
     adventureModeStatus,
     trackingState,
+    nearestMapPoint: nearestPoint,
     findNearestMapPoint,
     requestLocationPermission,
     startAppropriateTracking,

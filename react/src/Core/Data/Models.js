@@ -1,8 +1,8 @@
 // Enum for sorting structures
 export const SortState = {
-  ALL: 'all',
-  FAVORITES: 'favorites',
-  VISITED: 'visited'
+  ALL: "all",
+  FAVORITES: "favorites",
+  VISITED: "visited",
 };
 
 // Structure model representing architectural structures
@@ -53,7 +53,7 @@ export class Structure {
       isVisited: this.isVisited,
       isOpened: this.isOpened,
       recentlyVisited: this.recentlyVisited,
-      isLiked: this.isLiked
+      isLiked: this.isLiked,
     };
   }
 }
@@ -106,23 +106,23 @@ export class MapPoint {
   constructor(data) {
     this.coordinate = {
       latitude: data.latitude,
-      longitude: data.longitude
+      longitude: data.longitude,
     };
     this.pixelPosition = {
       x: data.pixelX,
-      y: data.pixelY
+      y: data.pixelY,
     };
     this.structure = data.structure;
   }
 
-  // Helper method to create from raw JSON data
+  // Updated to match the JSON structure
   static fromMapPointData(data) {
     return new MapPoint({
       latitude: data.latitude,
       longitude: data.longitude,
       pixelX: data.pixelX,
       pixelY: data.pixelY,
-      structure: data.structure
+      structure: data.structure,
     });
   }
 }
