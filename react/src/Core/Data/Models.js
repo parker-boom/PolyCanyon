@@ -58,45 +58,6 @@ export class Structure {
   }
 }
 
-// Not implemented yet
-/*
-// Ghost structure model for special locations
-export class GhostStructure {
-  // Static properties
-  number;
-  name;
-  year;
-  advisors;
-  builders;
-  description;
-  images;
-
-  // Dynamic property
-  isVisited;
-
-  constructor(data) {
-    this.number = parseInt(data.Number);
-    this.name = data.Name;
-    this.year = data.Year;
-    this.advisors = data.Advisors;
-    this.builders = data.Builders;
-    this.description = data.Description;
-    this.images = data.Images;
-    
-    this.isVisited = data.isVisited || false;
-  }
-
-  get id() {
-    return this.number;
-  }
-
-  toJSON() {
-    return {
-      isVisited: this.isVisited
-    };
-  }
-} */
-
 // Map point model for locations
 export class MapPoint {
   coordinate;

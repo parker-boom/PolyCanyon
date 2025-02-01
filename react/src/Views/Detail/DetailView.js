@@ -118,6 +118,7 @@ const DetailView = () => {
   const renderGridItem = ({ item }) => {
     const showAdventureBlur =
       adventureMode &&
+      locationService.currentLocation?.coords &&
       locationService.isWithinCanyon(locationService.currentLocation?.coords) &&
       !item.isVisited;
 

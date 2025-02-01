@@ -46,15 +46,18 @@ export const AppStateProvider = ({ children }) => {
   };
 
   // Visited popup management
-  const showVisitedPopup = () => {
-    console.log("Showing visited popup");
+  const showVisitedPopup = (structureNumber) => {
+    console.log(
+      `AppState - Showing visited popup for structure ${structureNumber}`
+    );
+    setSelectedStructure(structureNumber);
     setVisitedPopupVisible(true);
   };
 
   const hideVisitedPopup = () => {
-    console.log("Hiding visited popup");
+    console.log("AppState - Hiding visited popup");
     setVisitedPopupVisible(false);
-    setSelectedStructure(null); // Clear selected structure when hiding popup
+    setSelectedStructure(null);
   };
 
   // Mode selection popup management

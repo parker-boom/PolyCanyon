@@ -70,40 +70,16 @@ const MainView = () => {
   const { isDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
   const { isModeSelectionVisible, hideModeSelectionPopup } = useAppState();
-  const {
-    lastVisitedStructure,
-    dismissLastVisitedStructure,
-    structures,
-    getStructure,
-  } = useDataStore();
-  const {
-    visitedPopupVisible,
-    hideVisitedPopup,
-    showVisitedPopup,
-    selectedStructure,
-    setSelectedStructure,
-  } = useAppState();
+  const { structures, getStructure } = useDataStore();
+  const { visitedPopupVisible, hideVisitedPopup, selectedStructure } =
+    useAppState();
   const navigation = useNavigation();
   const [selectedMode, setSelectedMode] = useState(adventureMode);
-
-  // Watch for newly visited structures
-  useEffect(() => {
-    if (lastVisitedStructure) {
-      const structure = getStructure(lastVisitedStructure);
-      // Only show popup for newly visited structures
-      if (structure && structure.isVisited) {
-        console.log("New structure visited:", lastVisitedStructure);
-        showVisitedPopup();
-      }
-    }
-  }, [lastVisitedStructure]);
 
   // Handle structure selection (this is the SAME logic as DetailView)
   const handleStructurePress = (structure) => {
     console.log("Opening structure detail for number:", structure.number);
-    setSelectedStructure(structure.number);
     hideVisitedPopup();
-    dismissLastVisitedStructure();
     navigation.navigate("StructureDetail"); // That's it! StructPopUp gets the number from selectedStructure
   };
 
@@ -127,9 +103,9 @@ const MainView = () => {
       </Stack.Navigator>
 
       {/* Visited Popup overlay */}
-      {visitedPopupVisible && lastVisitedStructure && (
+      {visitedPopupVisible && selectedStructure && (
         <VisitedStructurePopup
-          structure={getStructure(lastVisitedStructure)}
+          structure={getStructure(selectedStructure)}
           isPresented={visitedPopupVisible}
           setIsPresented={hideVisitedPopup}
           isDarkMode={isDarkMode}
