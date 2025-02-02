@@ -52,7 +52,8 @@ const StructPopUp = () => {
   const navigation = useNavigation();
   const { isDarkMode } = useDarkMode();
   const { selectedStructure, setSelectedStructure } = useAppState();
-  const { getStructure, toggleStructureLiked } = useDataStore();
+  const { getStructure, toggleStructureLiked, markStructureAsOpened } =
+    useDataStore();
 
   // Local state
   const [isShowingInfo, setIsShowingInfo] = useState(false);
@@ -80,9 +81,16 @@ const StructPopUp = () => {
     });
   }, [structure]);
 
+  // Mark structure as opened only on initial mount
+  useEffect(() => {
+    if (structure) {
+      markStructureAsOpened(structure.number);
+    }
+  }, []); // Empty dependency array - only run once on mount
+
   const handleClose = () => {
     setSelectedStructure(null);
-    navigation.goBack();
+    navigation.navigate("TabNavigator", { screen: "Detail" });
   };
 
   const handleFavoriteToggle = () => {

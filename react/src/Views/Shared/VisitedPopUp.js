@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: width - 80,
-    maxHeight: height * 0.5,
+    maxHeight: height * 0.7,
     backgroundColor: "white",
     borderRadius: 20,
     padding: 10,

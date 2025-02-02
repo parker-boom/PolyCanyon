@@ -24,23 +24,23 @@ import { LocationServiceProvider } from "./Core/Location/LocationService";
 import { AppStateProvider } from "./Core/States/AppState";
 
 const ContentView = () => {
-  // State to track if this is the app's first launch
-  const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(true);
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(false); // Default to false instead of true
 
   // Check first launch status when component mounts
   useEffect(() => {
     checkFirstLaunchV2();
   }, []);
 
-  // Function to check if this is the app's first launch
   const checkFirstLaunchV2 = async () => {
     try {
       const value = await AsyncStorage.getItem("isFirstLaunchV2");
-      if (value !== null) {
-        setIsFirstLaunchV2(false);
-      }
+      setIsFirstLaunchV2(value === null);
+      setIsLoading(false);
     } catch (error) {
       console.log("Error checking first launch V2:", error);
+      setIsLoading(false);
     }
   };
 
@@ -49,6 +49,11 @@ const ContentView = () => {
     setIsFirstLaunchV2(false);
     AsyncStorage.setItem("isFirstLaunchV2", "false");
   };
+
+  // Don't render anything while loading
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <AppStateProvider>
