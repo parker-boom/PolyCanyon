@@ -19,8 +19,8 @@ const SettingsView = () => {
   // Context hooks
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
-  const { resetAllData } = useDataStore();
-  const { showModeSelectionPopup } = useAppState();
+  const { resetStructures } = useDataStore();
+  const { showModeSelectionPopup, resetVisitedStructures } = useAppState();
   const { requestLocationPermission } = useLocationService();
 
   // Event Handlers
@@ -40,7 +40,10 @@ const SettingsView = () => {
         { text: "Cancel", style: "cancel" },
         {
           text: "Yes",
-          onPress: resetAllData,
+          onPress: () => {
+            resetVisitedStructures();
+            resetStructures();
+          },
         },
       ]
     );

@@ -69,18 +69,27 @@ const TabNavigator = () => {
 const MainView = () => {
   const { isDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
-  const { isModeSelectionVisible, hideModeSelectionPopup } = useAppState();
-  const { structures, getStructure } = useDataStore();
-  const { visitedPopupVisible, hideVisitedPopup, selectedStructure } =
-    useAppState();
+  const {
+    isModeSelectionVisible,
+    hideModeSelectionPopup,
+    setSelectedStructure,
+    visitedPopupVisible,
+    hideVisitedPopup,
+    selectedStructure,
+  } = useAppState();
+  const { getStructure } = useDataStore();
   const navigation = useNavigation();
   const [selectedMode, setSelectedMode] = useState(adventureMode);
 
-  // Handle structure selection (this is the SAME logic as DetailView)
+  // Open struct pop up when Learn More is clicked
   const handleStructurePress = (structure) => {
-    console.log("Opening structure detail for number:", structure.number);
+    console.log(
+      "MainView - Opening structure detail for number:",
+      structure.number
+    );
     hideVisitedPopup();
-    navigation.navigate("StructureDetail"); // That's it! StructPopUp gets the number from selectedStructure
+    setSelectedStructure(structure.number);
+    navigation.navigate("StructureDetail");
   };
 
   return (

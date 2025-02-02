@@ -116,7 +116,6 @@ export const LocationServiceProvider = ({ children }) => {
   const [nearestPoint, setNearestPoint] = useState(null);
 
   useEffect(() => {
-    console.log("LocationService initializing - Loading map points");
     loadMapPoints();
   }, []);
 
@@ -321,10 +320,6 @@ export const LocationServiceProvider = ({ children }) => {
     try {
       const points = mapPointsData.map((data) =>
         MapPoint.fromMapPointData(data)
-      );
-      console.log(
-        `Successfully loaded ${points.length} map points:`,
-        points[0]
       );
       setMapPoints(points);
       mapPointsRef.current = points;

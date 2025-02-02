@@ -7,10 +7,12 @@ const AppStateContext = createContext();
 // Keys for AsyncStorage
 const STORAGE_KEYS = {
   MAP_STYLE: "mapStyle",
+  VISITED_STRUCTURES: "visitedStructures",
 };
 
 export const AppStateProvider = ({ children }) => {
-  // Map style state
+  // Change Set to Array
+  const [visitedStructures, setVisitedStructures] = useState([]);
   const [mapStyle, setMapStyle] = useState("standard"); // standard, satellite
 
   // Structure and popup management
@@ -25,10 +27,26 @@ export const AppStateProvider = ({ children }) => {
     loadSavedState();
   }, []);
 
+  useEffect(() => {
+    console.log("AppState - visitedStructures updated:", visitedStructures);
+  }, [visitedStructures]);
+
   const loadSavedState = async () => {
     try {
+      // Load map style
       const savedMapStyle = await AsyncStorage.getItem(STORAGE_KEYS.MAP_STYLE);
       if (savedMapStyle) setMapStyle(savedMapStyle);
+
+      // Load visited structures
+      const savedVisitedStructures = await AsyncStorage.getItem(
+        STORAGE_KEYS.VISITED_STRUCTURES
+      );
+      console.log("Loading saved structures:", savedVisitedStructures); // Debug log
+      if (savedVisitedStructures) {
+        const parsedStructures = JSON.parse(savedVisitedStructures);
+        console.log("Setting visited structures to:", parsedStructures);
+        setVisitedStructures(parsedStructures);
+      }
     } catch (error) {
       console.error("Error loading app state:", error);
     }
@@ -45,19 +63,57 @@ export const AppStateProvider = ({ children }) => {
     }
   };
 
-  // Visited popup management
+  // Modified showVisitedPopup to use a functional state update
   const showVisitedPopup = (structureNumber) => {
-    console.log(
-      `AppState - Showing visited popup for structure ${structureNumber}`
-    );
-    setSelectedStructure(structureNumber);
-    setVisitedPopupVisible(true);
+    const numStructure = Number(structureNumber);
+    // Use a functional update to ensure we always have the latest state:
+    setVisitedStructures((prevVisitedStructures) => {
+      console.log(
+        "Inside functional update. Previous visited structures:",
+        prevVisitedStructures
+      );
+      if (prevVisitedStructures.includes(numStructure)) {
+        console.log(
+          `Structure ${numStructure} already visited, skipping popup`
+        );
+        // Return the current state unchanged if already included
+        return prevVisitedStructures;
+      }
+      // Not present? Create the new array.
+      const newVisitedStructures = [...prevVisitedStructures, numStructure];
+      console.log("New visited structures:", newVisitedStructures);
+      // Persist the updated list to AsyncStorage.
+      AsyncStorage.setItem(
+        STORAGE_KEYS.VISITED_STRUCTURES,
+        JSON.stringify(newVisitedStructures)
+      ).catch((error) =>
+        console.error("Error saving visited structures:", error)
+      );
+
+      // Because this update function is run immediately when showVisitedPopup is called,
+      // we can safely trigger the popup here knowing that we are updating based on the latest state.
+      setSelectedStructure(numStructure);
+      setVisitedPopupVisible(true);
+
+      return newVisitedStructures;
+    });
   };
 
   const hideVisitedPopup = () => {
     console.log("AppState - Hiding visited popup");
     setVisitedPopupVisible(false);
     setSelectedStructure(null);
+  };
+
+  // Update resetVisitedStructures to clear AsyncStorage as well
+  const resetVisitedStructures = async () => {
+    setVisitedStructures([]);
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.VISITED_STRUCTURES);
+      console.log("Visited structures reset");
+    } catch (error) {
+      console.error("Error resetting visited structures:", error);
+    }
   };
 
   // Mode selection popup management
@@ -78,6 +134,7 @@ export const AppStateProvider = ({ children }) => {
     visitedPopupVisible,
     showVisitedPopup,
     hideVisitedPopup,
+    resetVisitedStructures,
 
     // Structure selection
     selectedStructure,

@@ -52,7 +52,6 @@ export const DataStoreProvider = ({ children }) => {
             );
           })
         );
-        console.log("DataStore - Dynamic data merged.");
       } catch (error) {
         console.error("DataStore - Error loading dynamic data:", error);
       }
@@ -74,7 +73,6 @@ export const DataStoreProvider = ({ children }) => {
           STORAGE_KEYS.DYNAMIC_DATA,
           JSON.stringify(dynamicData)
         );
-        console.log("DataStore - Dynamic data saved.");
       } catch (error) {
         console.error("DataStore - Error saving dynamic data:", error);
       }
@@ -100,20 +98,24 @@ export const DataStoreProvider = ({ children }) => {
     );
   };
 
+  const isVisited = (number) => {
+    const structure = getStructure(number);
+    return structure.isVisited;
+  };
+
   // Structure operations
   const markStructureAsVisited = (number) => {
-    console.log(
-      `DataStore - markStructureAsVisited called for structure ${number}`
-    );
     const structure = getStructure(number);
     if (!structure) {
       console.log(`DataStore - Structure ${number} not found`);
       return;
     }
+
     if (structure.isVisited) {
       console.log(`DataStore - Structure ${number} already visited, skipping`);
       return;
     }
+
     const nextVisitCount = visitCounter + 1;
     setVisitCounter(nextVisitCount);
     updateStructure(number, {
@@ -156,7 +158,6 @@ export const DataStoreProvider = ({ children }) => {
       )
     );
     await AsyncStorage.removeItem(STORAGE_KEYS.DYNAMIC_DATA);
-    console.log("DataStore - Structures have been reset.");
   };
 
   // Filter operations
@@ -178,11 +179,6 @@ export const DataStoreProvider = ({ children }) => {
 
   // Get structure by number
   const getStructure = (number) => {
-    console.log(`DataStore - Searching for structure ${number}`);
-    console.log(
-      "DataStore - Available structures:",
-      structures.map((s) => s.number)
-    );
     return structures.find((s) => s.number === number);
   };
 
