@@ -21,14 +21,14 @@ import { DarkModeProvider } from "./Core/States/DarkMode";
 import { DataStoreProvider } from "./Core/Data/DataStore";
 import { AdventureModeProvider } from "./Core/States/AdventureMode";
 import { LocationServiceProvider } from "./Core/Location/LocationService";
-import { AppStateProvider } from "./Core/States/AppState";
+import { AppStateProvider, useAppState } from "./Core/States/AppState";
 
-const ContentView = () => {
-  // Add loading state
+// Separate component for app content that uses AppState
+const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(false); // Default to false instead of true
+  const [isFirstLaunchV2, setIsFirstLaunchV2] = useState(false);
+  const { setIsOnboardingCompleted } = useAppState();
 
-  // Check first launch status when component mounts
   useEffect(() => {
     checkFirstLaunchV2();
   }, []);
@@ -36,7 +36,9 @@ const ContentView = () => {
   const checkFirstLaunchV2 = async () => {
     try {
       const value = await AsyncStorage.getItem("isFirstLaunchV2");
-      setIsFirstLaunchV2(value === null);
+      const isFirstLaunch = value === null;
+      setIsFirstLaunchV2(isFirstLaunch);
+      setIsOnboardingCompleted(!isFirstLaunch);
       setIsLoading(false);
     } catch (error) {
       console.log("Error checking first launch V2:", error);
@@ -44,34 +46,38 @@ const ContentView = () => {
     }
   };
 
-  // Function to handle completion of onboarding
   const handleOnboardingComplete = () => {
     setIsFirstLaunchV2(false);
+    setIsOnboardingCompleted(true);
     AsyncStorage.setItem("isFirstLaunchV2", "false");
   };
 
-  // Don't render anything while loading
   if (isLoading) {
     return null;
   }
 
+  return (
+    <View style={{ flex: 1 }}>
+      {isFirstLaunchV2 ? (
+        <OnboardingView onComplete={handleOnboardingComplete} />
+      ) : (
+        <NavigationContainer>
+          <MainView />
+        </NavigationContainer>
+      )}
+    </View>
+  );
+};
+
+// Main ContentView that provides context
+const ContentView = () => {
   return (
     <AppStateProvider>
       <DarkModeProvider>
         <DataStoreProvider>
           <AdventureModeProvider>
             <LocationServiceProvider>
-              <View style={{ flex: 1 }}>
-                {isFirstLaunchV2 ? (
-                  // Show onboarding view if it's the first launch
-                  <OnboardingView onComplete={handleOnboardingComplete} />
-                ) : (
-                  // Show main app content if it's not the first launch
-                  <NavigationContainer>
-                    <MainView />
-                  </NavigationContainer>
-                )}
-              </View>
+              <AppContent />
             </LocationServiceProvider>
           </AdventureModeProvider>
         </DataStoreProvider>

@@ -13,170 +13,255 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocationService } from "../../Core/Location/LocationService";
 import { useAdventureMode } from "../../Core/States/AdventureMode";
+import { useAppState } from "../../Core/States/AppState";
 import Geolocation from "@react-native-community/geolocation";
 import styles from "./OnboardingStyles";
 
 const { width, height } = Dimensions.get("window");
 
+// Location state enum to match SwiftUI version
+const OnboardingLocationState = {
+  NO_LOCATION: "noLocation",
+  NOT_COMING: "notComing",
+  NOT_VISITING: "notVisiting",
+  VISITING: "visiting",
+};
+
 // Main component
 const OnboardingView = ({ onComplete }) => {
   // State management
   const [currentPage, setCurrentPage] = useState(0);
-  const [hasAskedForLocation, setHasAskedForLocation] = useState(false);
-  const [isAdventureModeRecommended, setIsAdventureModeRecommended] =
-    useState(false);
-  const [isAdventureModeEnabled, setIsAdventureModeEnabled] = useState(false);
-  const { requestLocationPermission, getDistanceToCanyon } =
-    useLocationService();
+  const [locationState, setLocationState] = useState(
+    OnboardingLocationState.NO_LOCATION
+  );
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const {
+    requestLocationPermission,
+    getDistanceToCanyon,
+    isWithinCanyon,
+    currentLocation,
+  } = useLocationService();
   const { updateAdventureMode } = useAdventureMode();
+  const { setSelectedStructure } = useAppState();
 
   // Color constants
   const adventureModeColor = "#4CAF50";
   const virtualTourColor = "#FF6803";
 
+  // Add at the top with other constants
+  const DISTANCE_THRESHOLDS = {
+    ONBOARDING_RECOMMENDATION: 48280, // 30 miles in meters
+  };
+
   // Handle location permission and determine if Adventure Mode is recommended
   const handleLocationPermission = async () => {
     const permissionGranted = await requestLocationPermission(true);
-    setHasAskedForLocation(true);
+    setHasLocationPermission(permissionGranted);
 
-    if (permissionGranted) {
-      try {
-        Geolocation.getCurrentPosition(
-          (position) => {
-            const distanceToCanyon = getDistanceToCanyon(position.coords);
-            const nearSLO =
-              distanceToCanyon <= DISTANCE_THRESHOLDS.ONBOARDING_RECOMMENDATION;
-            setIsAdventureModeRecommended(nearSLO);
-            setIsAdventureModeEnabled(nearSLO);
-          },
-          (error) => {
-            console.error("Error getting location:", error);
-            setIsAdventureModeRecommended(false);
-            setIsAdventureModeEnabled(false);
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
-      } catch (error) {
-        console.error("Error getting location:", error);
-        setIsAdventureModeRecommended(false);
-        setIsAdventureModeEnabled(false);
+    if (permissionGranted && currentLocation) {
+      console.log("Using LocationService position:", currentLocation);
+      if (isWithinCanyon(currentLocation.coords)) {
+        console.log("User is in canyon");
+        setLocationState(OnboardingLocationState.VISITING);
+      } else {
+        const distance = getDistanceToCanyon(currentLocation.coords);
+        console.log("Distance to canyon:", distance);
+        if (distance <= DISTANCE_THRESHOLDS.ONBOARDING_RECOMMENDATION) {
+          console.log("User is within 30 miles");
+          setLocationState(OnboardingLocationState.NOT_VISITING);
+        } else {
+          console.log("User is far away");
+          setLocationState(OnboardingLocationState.NOT_COMING);
+        }
       }
     } else {
-      setIsAdventureModeRecommended(false);
-      setIsAdventureModeEnabled(false);
+      console.log("No location available or permission denied");
+      setLocationState(OnboardingLocationState.NO_LOCATION);
     }
   };
 
   // Complete onboarding and save Adventure Mode preference
   const handleComplete = async () => {
+    const isAdventureModeRecommended = [
+      OnboardingLocationState.VISITING,
+      OnboardingLocationState.NOT_VISITING,
+    ].includes(locationState);
+
     await AsyncStorage.setItem(
       "adventureMode",
-      JSON.stringify(isAdventureModeEnabled)
+      JSON.stringify(isAdventureModeRecommended)
     );
-    updateAdventureMode(isAdventureModeEnabled);
-
+    updateAdventureMode(isAdventureModeRecommended);
     await AsyncStorage.setItem("isFirstLaunchV2", "false");
     onComplete();
   };
+
+  // Add this near the top of the component
+  useEffect(() => {
+    if (hasLocationPermission) {
+      handleLocationPermission(); // This will update the location state
+    }
+  }, [hasLocationPermission]);
 
   // Render individual slides
   const renderWelcomeSlide = () => (
     <View style={styles.slide}>
       <Image source={require("../../assets/icon.jpg")} style={styles.icon} />
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Welcome to</Text>
-        <Text style={[styles.title, styles.greenTitle, styles.boldTitle]}>
-          Poly Canyon
-        </Text>
-      </View>
-      <Text style={[styles.subtitle, styles.largerSubtitle]}>
-        Explore and learn about Cal Poly's famous architectural structures
+      <Text style={styles.title}>Time to discover</Text>
+      <Text style={[styles.title, styles.greenTitle]}>Poly Canyon</Text>
+      <Text style={styles.subtitle}>
+        Before you start exploring, let's get things ready.
       </Text>
-      <View style={styles.bottomButtonContainer}>
-        {renderNavigationButton("Next", () => setCurrentPage(1))}
-      </View>
+      {renderNavigationButton("Next", () => setCurrentPage(1))}
     </View>
   );
 
   const renderLocationRequestSlide = () => (
     <View style={styles.slide}>
+      <Text style={styles.title}>First, we need</Text>
+      <Text style={[styles.title, styles.blueTitle]}>your location</Text>
       <PulsingLocationDot />
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Enable</Text>
-        <Text style={[styles.title, styles.blueTitle, styles.boldTitle]}>
-          Location Services
-        </Text>
-      </View>
-      <Text style={[styles.subtitle, styles.largerSubtitle]}>
-        We need your location to enhance your experience
+      <Text style={styles.subtitle}>
+        This helps us know if you're visiting the canyon
       </Text>
-      {!hasAskedForLocation ? (
-        renderNavigationButton(
-          "Allow Location Access",
-          handleLocationPermission
-        )
-      ) : (
-        <View style={styles.bottomButtonContainer}>
-          {renderNavigationButton("Next", () => setCurrentPage(2))}
-        </View>
-      )}
+      {!hasLocationPermission
+        ? renderNavigationButton("Enable Location", handleLocationPermission)
+        : renderNavigationButton("Next", async () => {
+            await handleLocationPermission(); // Re-check location
+            setCurrentPage(2);
+          })}
     </View>
   );
 
   const renderModeSelectionSlide = () => (
     <View style={styles.slide}>
-      <Text style={[styles.title, styles.grayTitle, styles.largerTitle]}>
-        Choose Your Experience
+      <Text style={styles.title}>
+        {locationState === OnboardingLocationState.VISITING
+          ? "You're here!"
+          : locationState === OnboardingLocationState.NOT_VISITING
+          ? "Planning to visit?"
+          : "Let's explore virtually"}
       </Text>
-      <View style={styles.iconSpacing}>
-        <ModeIcon
-          name={isAdventureModeEnabled ? "walk" : "search"}
-          color={isAdventureModeEnabled ? adventureModeColor : virtualTourColor}
-        />
-      </View>
-      <CustomModePicker
-        isAdventureModeEnabled={isAdventureModeEnabled}
-        setIsAdventureModeEnabled={setIsAdventureModeEnabled}
-        adventureModeColor={adventureModeColor}
-        virtualTourColor={virtualTourColor}
+      <ModeIcon
+        name={
+          locationState === OnboardingLocationState.VISITING ||
+          locationState === OnboardingLocationState.NOT_VISITING
+            ? "walk"
+            : "search"
+        }
+        color={
+          locationState === OnboardingLocationState.VISITING ||
+          locationState === OnboardingLocationState.NOT_VISITING
+            ? adventureModeColor
+            : virtualTourColor
+        }
       />
-      <View style={styles.recommendationSpacing}>
-        <RecommendationLabel
-          isRecommended={isAdventureModeEnabled === isAdventureModeRecommended}
-        />
-      </View>
-      <View style={styles.centeredFeatureList}>
-        {isAdventureModeEnabled ? (
-          <>
-            <Text style={styles.largerFeatureItem}>
-              • Explore structures in person
+      <Text style={styles.subtitle}>
+        {locationState === OnboardingLocationState.VISITING
+          ? "Since you're already in the canyon, let's get you set up for an in-person adventure!"
+          : locationState === OnboardingLocationState.NOT_VISITING
+          ? "You're close enough to visit! Let's set you up for an in-person adventure."
+          : "Since you're far from the canyon, we'll set you up for virtual exploration."}
+      </Text>
+      {renderNavigationButton("Next", () => setCurrentPage(3))}
+    </View>
+  );
+
+  const renderModeFollowUpSlide = () => (
+    <View style={styles.slide}>
+      <Text style={styles.title}>
+        {locationState === OnboardingLocationState.VISITING ||
+        locationState === OnboardingLocationState.NOT_VISITING
+          ? "Let's auto track"
+          : "Best ways to"}
+      </Text>
+      <Text
+        style={[
+          styles.title,
+          styles.coloredTitle,
+          {
+            color:
+              locationState === OnboardingLocationState.VISITING ||
+              locationState === OnboardingLocationState.NOT_VISITING
+                ? adventureModeColor
+                : virtualTourColor,
+          },
+        ]}
+      >
+        {locationState === OnboardingLocationState.VISITING ||
+        locationState === OnboardingLocationState.NOT_VISITING
+          ? "Your Adventure:"
+          : "Virtually Explore:"}
+      </Text>
+      {locationState === OnboardingLocationState.VISITING ||
+      locationState === OnboardingLocationState.NOT_VISITING ? (
+        <>
+          <AdventureFeaturesList />
+          <TouchableOpacity
+            style={[
+              styles.backgroundLocationButton,
+              { backgroundColor: adventureModeColor },
+            ]}
+            onPress={() => requestLocationPermission(true)}
+          >
+            <Ionicons
+              name="location"
+              size={20}
+              color="white"
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.backgroundLocationButtonText}>
+              Enable Background Location
             </Text>
-            <Text style={styles.largerFeatureItem}>• Track your progress</Text>
-            <Text style={styles.largerFeatureItem}>• Use live location</Text>
-          </>
-        ) : (
-          <>
-            <Text style={styles.largerFeatureItem}>• Browse remotely</Text>
-            <Text style={styles.largerFeatureItem}>
-              • Learn about all structures
-            </Text>
-            <Text style={styles.largerFeatureItem}>• No location needed</Text>
-          </>
-        )}
-      </View>
-      <View style={styles.bottomButtonContainer}>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <VirtualFeaturesList />
+      )}
+      {renderNavigationButton("Next", () => setCurrentPage(4))}
+    </View>
+  );
+
+  const renderFinalSlide = () => (
+    <View style={styles.finalSlide}>
+      <View
+        style={[
+          styles.finalSlideBackground,
+          {
+            backgroundColor:
+              locationState === OnboardingLocationState.VISITING ||
+              locationState === OnboardingLocationState.NOT_VISITING
+                ? adventureModeColor
+                : virtualTourColor,
+          },
+        ]}
+      />
+      <View style={{ alignItems: "center" }}>
+        <Text style={[styles.title, { marginBottom: 10 }]}>
+          You're all set!
+        </Text>
+        <Text style={[styles.subtitle, { marginBottom: 40 }]}>
+          {locationState === OnboardingLocationState.VISITING ||
+          locationState === OnboardingLocationState.NOT_VISITING
+            ? "Time to explore the canyon"
+            : "Time to learn about the canyon"}
+        </Text>
         <TouchableOpacity
           style={[
             styles.completeButton,
             {
-              backgroundColor: isAdventureModeEnabled
-                ? adventureModeColor
-                : virtualTourColor,
+              backgroundColor:
+                locationState === OnboardingLocationState.VISITING ||
+                locationState === OnboardingLocationState.NOT_VISITING
+                  ? adventureModeColor
+                  : virtualTourColor,
+              width: 200,
+              alignItems: "center",
             },
           ]}
           onPress={handleComplete}
         >
-          <Text style={styles.completeButtonText}>Let's Go!</Text>
+          <Text style={styles.completeButtonText}>Begin</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -185,67 +270,35 @@ const OnboardingView = ({ onComplete }) => {
   // Custom components for Mode Selection slide
   const ModeIcon = ({ name, color }) => (
     <View style={[styles.modeIcon, { backgroundColor: color }]}>
-      <Ionicons name={name} size={40} color="white" />
-    </View>
-  );
-
-  const CustomModePicker = ({
-    isAdventureModeEnabled,
-    setIsAdventureModeEnabled,
-    adventureModeColor,
-    virtualTourColor,
-  }) => (
-    <View style={styles.modePicker}>
-      <TouchableOpacity
-        style={[
-          styles.modeButton,
-          !isAdventureModeEnabled && styles.selectedMode,
-        ]}
-        onPress={() => setIsAdventureModeEnabled(false)}
-      >
-        <Text
-          style={[
-            styles.modeButtonText,
-            !isAdventureModeEnabled && { color: virtualTourColor },
-          ]}
-        >
-          Virtual Tour
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.modeButton,
-          isAdventureModeEnabled && styles.selectedMode,
-        ]}
-        onPress={() => setIsAdventureModeEnabled(true)}
-      >
-        <Text
-          style={[
-            styles.modeButtonText,
-            isAdventureModeEnabled && { color: adventureModeColor },
-          ]}
-        >
-          Adventure
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const RecommendationLabel = ({ isRecommended }) => (
-    <View
-      style={[
-        styles.recommendationLabel,
-        { backgroundColor: isRecommended ? "#4CAF50" : "#FF5722" },
-      ]}
-    >
       <Ionicons
-        name={isRecommended ? "checkmark-circle" : "close-circle"}
-        size={20}
+        name={name === "search" ? "search" : "walk"}
+        size={40}
         color="white"
       />
-      <Text style={styles.recommendationText}>
-        {isRecommended ? "Recommended" : "Not Recommended"}
+    </View>
+  );
+
+  const VirtualFeaturesList = () => (
+    <View style={styles.featureList}>
+      <Text style={styles.featureItem}>
+        • Take a virtual tour of the canyon
       </Text>
+      <Text style={styles.featureItem}>
+        • Uncover key details about structures
+      </Text>
+      <Text style={styles.featureItem}>
+        • Mark your favorites as you explore
+      </Text>
+    </View>
+  );
+
+  const AdventureFeaturesList = () => (
+    <View style={styles.featureList}>
+      <Text style={styles.featureItem}>
+        • Auto-track your visited structures
+      </Text>
+      <Text style={styles.featureItem}>• Get real-time distance updates</Text>
+      <Text style={styles.featureItem}>• Earn achievements as you explore</Text>
     </View>
   );
 
@@ -254,7 +307,7 @@ const OnboardingView = ({ onComplete }) => {
     const pulseAnim = new Animated.Value(1);
 
     useEffect(() => {
-      Animated.loop(
+      const animation = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
             toValue: 1.2,
@@ -267,7 +320,13 @@ const OnboardingView = ({ onComplete }) => {
             useNativeDriver: true,
           }),
         ])
-      ).start();
+      );
+
+      animation.start();
+
+      return () => {
+        animation.stop();
+      };
     }, []);
 
     return (
@@ -282,10 +341,20 @@ const OnboardingView = ({ onComplete }) => {
 
   // Navigation button component
   const renderNavigationButton = (text, onPress) => (
-    <TouchableOpacity style={styles.navigationButton} onPress={onPress}>
-      <Text style={styles.navigationButtonText}>{text}</Text>
-      <Ionicons name="chevron-forward" size={24} color="white" />
-    </TouchableOpacity>
+    <View style={styles.bottomButtonContainer}>
+      <TouchableOpacity style={styles.navigationButton} onPress={onPress}>
+        <Text style={styles.navigationButtonText}>{text}</Text>
+        <Ionicons name="chevron-forward" size={24} color="white" />
+      </TouchableOpacity>
+      {currentPage > 0 && (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => setCurrentPage(currentPage - 1)}
+        >
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 
   // Main render method
@@ -296,13 +365,17 @@ const OnboardingView = ({ onComplete }) => {
         showsPagination={true}
         index={currentPage}
         onIndexChanged={setCurrentPage}
+        scrollEnabled={false}
         paginationStyle={styles.pagination}
         dotStyle={styles.dot}
         activeDotStyle={styles.activeDot}
+        removeClippedSubviews={false}
       >
         {renderWelcomeSlide()}
         {renderLocationRequestSlide()}
         {renderModeSelectionSlide()}
+        {renderModeFollowUpSlide()}
+        {renderFinalSlide()}
       </Swiper>
     </View>
   );

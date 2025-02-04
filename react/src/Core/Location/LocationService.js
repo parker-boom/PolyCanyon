@@ -103,7 +103,8 @@ export const LocationServiceProvider = ({ children }) => {
   const [mapPoints, setMapPoints] = useState([]);
   const mapPointsRef = useRef([]);
   const { adventureMode } = useAdventureMode();
-  const { showVisitedPopup, setSelectedStructure } = useAppState();
+  const { showVisitedPopup, setSelectedStructure, isOnboardingCompleted } =
+    useAppState();
 
   // New state for location tracking
   const [trackingState, setTrackingState] = useState(TrackingState.INACTIVE);
@@ -217,12 +218,17 @@ export const LocationServiceProvider = ({ children }) => {
     setLastUpdateTime(now);
     setCurrentLocation(position);
 
-    // Check if in canyon boundaries FIRST
+    // Skip structure checks during onboarding
+    if (!isOnboardingCompleted) {
+      console.log("Skipping location updates during onboarding");
+      return;
+    }
+
+    // Continue with normal location handling...
     if (isWithinCanyon(position.coords)) {
       const nearest = findNearestMapPoint(position.coords);
       setNearestPoint(nearest);
       setAdventureModeStatus(AdventureModeStatus.EXPLORING);
-      // Pass both the user's coordinates and the pre-calculated nearest map point
       checkForStructureVisits(nearest);
       return;
     }
@@ -304,6 +310,12 @@ export const LocationServiceProvider = ({ children }) => {
   };
 
   const checkForStructureVisits = (nearestPoint) => {
+    // Early return if in onboarding
+    if (!isOnboardingCompleted) {
+      console.log("Skipping structure visit check during onboarding");
+      return;
+    }
+
     // Early return if no map point was found
     if (!nearestPoint) return;
 

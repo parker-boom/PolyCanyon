@@ -22,6 +22,9 @@ export const AppStateProvider = ({ children }) => {
   // Mode selection popup management
   const [isModeSelectionVisible, setIsModeSelectionVisible] = useState(false);
 
+  // Onboarding management
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(true); // Default to true
+
   // Load saved state on mount
   useEffect(() => {
     loadSavedState();
@@ -47,6 +50,10 @@ export const AppStateProvider = ({ children }) => {
         console.log("Setting visited structures to:", parsedStructures);
         setVisitedStructures(parsedStructures);
       }
+
+      // Load onboarding status
+      const onboardingCompleted = await AsyncStorage.getItem("isFirstLaunchV2");
+      setIsOnboardingCompleted(onboardingCompleted === "false");
     } catch (error) {
       console.error("Error loading app state:", error);
     }
@@ -65,6 +72,11 @@ export const AppStateProvider = ({ children }) => {
 
   // Modified showVisitedPopup to use a functional state update
   const showVisitedPopup = (structureNumber) => {
+    if (!isOnboardingCompleted) {
+      console.log("Skipping visited popup during onboarding");
+      return;
+    }
+
     const numStructure = Number(structureNumber);
     // Use a functional update to ensure we always have the latest state:
     setVisitedStructures((prevVisitedStructures) => {
@@ -125,6 +137,16 @@ export const AppStateProvider = ({ children }) => {
     setIsModeSelectionVisible(false);
   };
 
+  // Update setIsOnboardingCompleted to persist the value
+  const handleSetIsOnboardingCompleted = async (value) => {
+    setIsOnboardingCompleted(value);
+    try {
+      await AsyncStorage.setItem("isFirstLaunchV2", value ? "false" : "true");
+    } catch (error) {
+      console.error("Error saving onboarding status:", error);
+    }
+  };
+
   const value = {
     // Map style
     mapStyle,
@@ -144,6 +166,10 @@ export const AppStateProvider = ({ children }) => {
     isModeSelectionVisible,
     showModeSelectionPopup,
     hideModeSelectionPopup,
+
+    // Onboarding
+    isOnboardingCompleted,
+    setIsOnboardingCompleted: handleSetIsOnboardingCompleted,
   };
 
   return (

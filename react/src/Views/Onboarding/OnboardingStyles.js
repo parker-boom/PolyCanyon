@@ -1,4 +1,6 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 // Styles
 const styles = StyleSheet.create({
@@ -11,21 +13,46 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    marginTop: -height * 0.1,
   },
   icon: {
     width: 180,
     height: 180,
-    marginTop: 40,
-    marginBottom: 20,
-    borderRadius: 36,
-  },
-  titleContainer: {
-    marginBottom: 10,
+    marginBottom: 30,
+    borderRadius: 40,
+    marginTop: -20,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
+    color: "black",
+    marginBottom: 5,
+  },
+  greenTitle: {
+    color: "#4CAF50",
+    fontSize: 42,
+  },
+  blueTitle: {
+    color: "#2196F3",
+    fontSize: 42,
+  },
+  coloredTitle: {
+    fontSize: 38,
+    marginTop: -5,
+  },
+  subtitle: {
+    fontSize: 22,
+    textAlign: "center",
+    color: "#666",
+    marginVertical: 20,
+    paddingHorizontal: 20,
+    lineHeight: 30,
+  },
+  titleContainer: {
+    marginBottom: 10,
   },
   blackTitle: {
     color: "black",
@@ -36,28 +63,13 @@ const styles = StyleSheet.create({
   boldTitle: {
     fontWeight: "900",
   },
-  greenTitle: {
-    color: "#4CAF50",
-  },
-  blueTitle: {
-    color: "#2196F3",
-  },
-  subtitle: {
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 30,
-    color: "#666",
-  },
-  largerSubtitle: {
-    fontSize: 20,
-  },
   modeIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginVertical: 30,
   },
   modePicker: {
     flexDirection: "row",
@@ -92,56 +104,65 @@ const styles = StyleSheet.create({
   },
   featureList: {
     alignSelf: "stretch",
+    marginTop: 20,
     marginBottom: 30,
+    paddingHorizontal: 20,
+    alignItems: "center",
   },
   featureItem: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 18,
+    color: "#444",
+    marginBottom: 15,
+    lineHeight: 24,
+    textAlign: "center",
   },
   completeButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+    paddingVertical: 16,
+    paddingHorizontal: 50,
+    borderRadius: 30,
+    marginTop: 20,
   },
   completeButtonText: {
     color: "white",
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "bold",
   },
   pulsingDotContainer: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 30,
+    marginVertical: 30,
   },
   pulsingDot: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: "rgba(33, 150, 243, 0.3)",
     position: "absolute",
   },
   largerInnerDot: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#2196F3",
   },
   navigationButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2196F3",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
     borderRadius: 25,
-    marginBottom: 30,
+    position: "absolute",
+    bottom: height * 0.15,
+    alignSelf: "center",
   },
   navigationButtonText: {
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
-    marginRight: 10,
+    marginRight: 8,
   },
   pagination: {
     bottom: 20,
@@ -158,7 +179,7 @@ const styles = StyleSheet.create({
   },
   bottomButtonContainer: {
     position: "absolute",
-    bottom: 60,
+    bottom: 0,
     left: 0,
     right: 0,
     alignItems: "center",
@@ -179,6 +200,45 @@ const styles = StyleSheet.create({
   },
   grayTitle: {
     color: "#666",
+  },
+  backButton: {
+    position: "absolute",
+    bottom: height * 0.08,
+    alignSelf: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  backButtonText: {
+    color: "#666",
+    fontSize: 16,
+  },
+  finalSlide: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    marginTop: -height * 0.1,
+  },
+  finalSlideBackground: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.15,
+    zIndex: -1,
+  },
+  backgroundLocationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  backgroundLocationButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
