@@ -11,7 +11,6 @@
 import React, { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import DetailView from "./Views/Detail/DetailView";
 import MapView from "./Views/Map/MapView";
 import SettingsView from "./Views/Settings/SettingView";
