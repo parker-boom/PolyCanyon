@@ -4,17 +4,17 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#F5F5F5",
   },
-  darkContainer: {
-    backgroundColor: "#121212",
+  contentContainer: {
+    padding: 20,
   },
   section: {
     marginBottom: 20,
     backgroundColor: "white",
     borderRadius: 10,
     padding: 15,
+    marginHorizontal: 2,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -23,6 +23,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
+  },
+  sectionHeaderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  darkContainer: {
+    backgroundColor: "#121212",
   },
   darkSection: {
     backgroundColor: "#1E1E1E",
@@ -92,9 +101,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   darkSettingsButton: {
     backgroundColor: "#333",
+    borderColor: "#404040",
   },
   settingsButtonText: {
     marginTop: 5,
@@ -113,6 +125,24 @@ const styles = StyleSheet.create({
   },
   darkCaption: {
     color: "#B0B0B0",
+  },
+  modeSelectionContainer: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 5,
+    marginBottom: 0,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  darkModeSelectionContainer: {
+    backgroundColor: "#333",
+    borderColor: "#404040",
+  },
+  sectionIcon: {
+    opacity: 0.6,
+    marginBottom: 10,
   },
 });
 

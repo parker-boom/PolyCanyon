@@ -61,12 +61,23 @@ const SettingsView = () => {
   };
 
   return (
-    <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>
+    <ScrollView
+      style={[styles.container, isDarkMode && styles.darkContainer]}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* General Settings Section */}
       <View style={[styles.section, isDarkMode && styles.darkSection]}>
-        <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>
-          General Settings
-        </Text>
+        <View style={styles.sectionHeaderContainer}>
+          <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>
+            General Settings
+          </Text>
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color={isDarkMode ? "#F5F5F5" : "#333"}
+            style={styles.sectionIcon}
+          />
+        </View>
 
         {/* Dark Mode Toggle */}
         <View style={styles.settingItem}>
@@ -82,39 +93,49 @@ const SettingsView = () => {
         </View>
 
         {/* Mode Selection UI */}
-        <View style={styles.modeSection}>
-          <Ionicons
-            name={adventureMode ? "walk" : "search"}
-            size={40}
-            color={
-              adventureMode
-                ? isDarkMode
-                  ? "#6ECF76"
-                  : "#4CAF50"
-                : isDarkMode
-                ? "#FFA347"
-                : "#FF6803"
-            }
-          />
-          <Text style={[styles.modeTitle, isDarkMode && styles.darkText]}>
-            {adventureMode ? "Adventure Mode" : "Virtual Tour Mode"}
-          </Text>
-          <Text
-            style={[
-              styles.modeDescription,
-              isDarkMode && styles.darkModeDescription,
-            ]}
-          >
-            {adventureMode
-              ? "Explore structures in person"
-              : "Browse structures remotely"}
-          </Text>
-          <TouchableOpacity
-            style={[styles.switchButton, isDarkMode && styles.darkSwitchButton]}
-            onPress={handleToggleMode}
-          >
-            <Text style={styles.switchButtonText}>Switch</Text>
-          </TouchableOpacity>
+        <View
+          style={[
+            styles.modeSelectionContainer,
+            isDarkMode && styles.darkModeSelectionContainer,
+          ]}
+        >
+          <View style={styles.modeSection}>
+            <Ionicons
+              name={adventureMode ? "walk" : "search"}
+              size={40}
+              color={
+                adventureMode
+                  ? isDarkMode
+                    ? "#6ECF76"
+                    : "#4CAF50"
+                  : isDarkMode
+                  ? "#FFA347"
+                  : "#FF6803"
+              }
+            />
+            <Text style={[styles.modeTitle, isDarkMode && styles.darkText]}>
+              {adventureMode ? "Adventure Mode" : "Virtual Tour Mode"}
+            </Text>
+            <Text
+              style={[
+                styles.modeDescription,
+                isDarkMode && styles.darkModeDescription,
+              ]}
+            >
+              {adventureMode
+                ? "Explore structures in person"
+                : "Browse structures remotely"}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.switchButton,
+                isDarkMode && styles.darkSwitchButton,
+              ]}
+              onPress={handleToggleMode}
+            >
+              <Text style={styles.switchButtonText}>Switch</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Mode-specific Action Buttons */}
@@ -140,9 +161,17 @@ const SettingsView = () => {
 
       {/* Credits Section */}
       <View style={[styles.section, isDarkMode && styles.darkSection]}>
-        <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>
-          Credits
-        </Text>
+        <View style={styles.sectionHeaderContainer}>
+          <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>
+            Credits
+          </Text>
+          <Ionicons
+            name="information-circle-outline"
+            size={24}
+            color={isDarkMode ? "#F5F5F5" : "#333"}
+            style={styles.sectionIcon}
+          />
+        </View>
         <Text style={[styles.creditText, isDarkMode && styles.darkText]}>
           Parker Jones
         </Text>
