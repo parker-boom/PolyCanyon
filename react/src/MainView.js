@@ -1,13 +1,3 @@
-// MARK: - MainView Component
-/**
- * MainView Component
- *
- * This component sets up the bottom tab navigation for the app, including Detail, Map, and Settings views.
- * It dynamically adjusts the tab bar appearance based on dark mode settings.
- * The component utilizes various contexts and hooks for state management (mapPoints, darkMode, adventureMode).
- * It employs the 'screenOptions' approach for configuring the tab bar, ensuring a consistent look across the app.
- */
-
 import React, { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -23,6 +13,7 @@ import { useAdventureMode } from "./Core/States/AdventureMode";
 import ModeSelectionPopup from "./Views/Shared/ModeSelectionPopup";
 import { useNavigation } from "@react-navigation/native";
 import TabBar from "./Views/Shared/TabBar";
+import VirtualTour from "./Views/Map/VirtualTour"; // NEW: Import VirtualTour
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -83,6 +74,15 @@ const MainView = () => {
         <Stack.Screen
           name="StructureDetail"
           component={StructPopUp}
+          options={{
+            presentation: "fullScreenModal",
+            animation: "slide_from_bottom",
+          }}
+        />
+        {/* NEW: VirtualTour screen as a full-screen view */}
+        <Stack.Screen
+          name="VirtualTour"
+          component={VirtualTour}
           options={{
             presentation: "fullScreenModal",
             animation: "slide_from_bottom",

@@ -8,12 +8,16 @@ const AppStateContext = createContext();
 const STORAGE_KEYS = {
   MAP_STYLE: "mapStyle",
   VISITED_STRUCTURES: "visitedStructures",
+  // (Optional: You can persist mapShowNumbers if desired, e.g. "mapNumbers")
 };
 
 export const AppStateProvider = ({ children }) => {
-  // Change Set to Array
+  // Visited structures
   const [visitedStructures, setVisitedStructures] = useState([]);
-  const [mapStyle, setMapStyle] = useState("standard"); // standard, satellite
+  const [mapStyle, setMapStyle] = useState("standard"); // "standard" or "satellite"
+
+  // New state for map numbers: true = show numbers, false = no numbers
+  const [mapShowNumbers, setMapShowNumbers] = useState(true);
 
   // Structure and popup management
   const [visitedPopupVisible, setVisitedPopupVisible] = useState(false);
@@ -40,11 +44,15 @@ export const AppStateProvider = ({ children }) => {
       const savedMapStyle = await AsyncStorage.getItem(STORAGE_KEYS.MAP_STYLE);
       if (savedMapStyle) setMapStyle(savedMapStyle);
 
+      // (Optional: load mapShowNumbers if persisting)
+      // const savedMapNumbers = await AsyncStorage.getItem("mapNumbers");
+      // if (savedMapNumbers !== null) setMapShowNumbers(savedMapNumbers === "true");
+
       // Load visited structures
       const savedVisitedStructures = await AsyncStorage.getItem(
         STORAGE_KEYS.VISITED_STRUCTURES
       );
-      console.log("Loading saved structures:", savedVisitedStructures); // Debug log
+      console.log("Loading saved structures:", savedVisitedStructures);
       if (savedVisitedStructures) {
         const parsedStructures = JSON.parse(savedVisitedStructures);
         console.log("Setting visited structures to:", parsedStructures);
@@ -70,6 +78,15 @@ export const AppStateProvider = ({ children }) => {
     }
   };
 
+  // New: Toggle mapShowNumbers
+  const toggleMapNumbers = () => {
+    setMapShowNumbers((prev) => !prev);
+    // (Optional: Persist this state)
+    AsyncStorage.setItem("mapNumbers", (!mapShowNumbers).toString()).catch(
+      (error) => console.error("Error saving map numbers state:", error)
+    );
+  };
+
   // Modified showVisitedPopup to use a functional state update
   const showVisitedPopup = (structureNumber) => {
     if (!isOnboardingCompleted) {
@@ -78,7 +95,6 @@ export const AppStateProvider = ({ children }) => {
     }
 
     const numStructure = Number(structureNumber);
-    // Use a functional update to ensure we always have the latest state:
     setVisitedStructures((prevVisitedStructures) => {
       console.log(
         "Inside functional update. Previous visited structures:",
@@ -88,25 +104,18 @@ export const AppStateProvider = ({ children }) => {
         console.log(
           `Structure ${numStructure} already visited, skipping popup`
         );
-        // Return the current state unchanged if already included
         return prevVisitedStructures;
       }
-      // Not present? Create the new array.
       const newVisitedStructures = [...prevVisitedStructures, numStructure];
       console.log("New visited structures:", newVisitedStructures);
-      // Persist the updated list to AsyncStorage.
       AsyncStorage.setItem(
         STORAGE_KEYS.VISITED_STRUCTURES,
         JSON.stringify(newVisitedStructures)
       ).catch((error) =>
         console.error("Error saving visited structures:", error)
       );
-
-      // Because this update function is run immediately when showVisitedPopup is called,
-      // we can safely trigger the popup here knowing that we are updating based on the latest state.
       setSelectedStructure(numStructure);
       setVisitedPopupVisible(true);
-
       return newVisitedStructures;
     });
   };
@@ -117,7 +126,6 @@ export const AppStateProvider = ({ children }) => {
     setSelectedStructure(null);
   };
 
-  // Update resetVisitedStructures to clear AsyncStorage as well
   const resetVisitedStructures = async () => {
     setVisitedStructures([]);
     try {
@@ -128,7 +136,6 @@ export const AppStateProvider = ({ children }) => {
     }
   };
 
-  // Mode selection popup management
   const showModeSelectionPopup = () => {
     setIsModeSelectionVisible(true);
   };
@@ -137,7 +144,6 @@ export const AppStateProvider = ({ children }) => {
     setIsModeSelectionVisible(false);
   };
 
-  // Update setIsOnboardingCompleted to persist the value
   const handleSetIsOnboardingCompleted = async (value) => {
     setIsOnboardingCompleted(value);
     try {
@@ -148,25 +154,23 @@ export const AppStateProvider = ({ children }) => {
   };
 
   const value = {
-    // Map style
+    // Map style and numbers
     mapStyle,
     toggleMapStyle,
-
+    mapShowNumbers,
+    toggleMapNumbers,
     // Visited popup
     visitedPopupVisible,
     showVisitedPopup,
     hideVisitedPopup,
     resetVisitedStructures,
-
     // Structure selection
     selectedStructure,
     setSelectedStructure,
-
     // Mode selection
     isModeSelectionVisible,
     showModeSelectionPopup,
     hideModeSelectionPopup,
-
     // Onboarding
     isOnboardingCompleted,
     setIsOnboardingCompleted: handleSetIsOnboardingCompleted,

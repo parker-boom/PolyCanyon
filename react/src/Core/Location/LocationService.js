@@ -63,41 +63,6 @@ const UPDATE_INTERVALS = {
 // Create context
 const LocationServiceContext = createContext(null);
 
-// Structure to MapPoint mapping for virtual tour
-const structureToMapPointMapping = {
-  1: 1,
-  2: 3,
-  3: 52,
-  4: 53,
-  5: 10,
-  6: 11,
-  7: 196,
-  8: 13,
-  9: 76,
-  10: 16,
-  11: 58,
-  12: 19,
-  13: 59,
-  14: 21,
-  15: 203,
-  16: 24,
-  17: 88,
-  18: 91,
-  19: 35,
-  20: 113,
-  21: 37,
-  22: 32,
-  23: 20,
-  24: 57,
-  25: 56,
-  26: 44,
-  27: 55,
-  28: 60,
-  29: 68,
-  30: 199,
-  31: 197,
-};
-
 export const LocationServiceProvider = ({ children }) => {
   const { markStructureAsVisited, getStructure } = useDataStore();
   const [mapPoints, setMapPoints] = useState([]);
@@ -128,6 +93,54 @@ export const LocationServiceProvider = ({ children }) => {
       startAppropriateTracking();
     }
   }, [adventureMode]);
+
+  // Maps structure numbers to their corresponding map points, adjusting for 0-based array indexing
+  const getMapPointForStructure = (structureNumber) => {
+    const structureToMapPointMapping = {
+      1: 0, // MapPoint 1
+      2: 2, // MapPoint 3
+      3: 51, // MapPoint 52
+      4: 52, // MapPoint 53
+      5: 9, // MapPoint 10
+      6: 10, // MapPoint 11
+      7: 195, // MapPoint 196
+      8: 12, // MapPoint 13
+      9: 75, // MapPoint 76
+      10: 15, // MapPoint 16
+      11: 57, // MapPoint 58
+      12: 18, // MapPoint 19
+      13: 58, // MapPoint 59
+      14: 20, // MapPoint 21
+      15: 202, // MapPoint 203
+      16: 23, // MapPoint 24
+      17: 87, // MapPoint 88
+      18: 90, // MapPoint 91
+      19: 34, // MapPoint 35
+      20: 112, // MapPoint 113
+      21: 36, // MapPoint 37
+      22: 31, // MapPoint 32
+      23: 19, // MapPoint 20
+      24: 56, // MapPoint 57
+      25: 55, // MapPoint 56
+      26: 43, // MapPoint 44
+      27: 54, // MapPoint 55
+      28: 59, // MapPoint 60
+      29: 67, // MapPoint 68
+      30: 198, // MapPoint 199
+      31: 196, // MapPoint 197
+    };
+
+    const mapPointIndex = structureToMapPointMapping[structureNumber];
+    if (mapPointIndex === undefined || !mapPoints[mapPointIndex]) {
+      return null;
+    }
+
+    const mapPoint = mapPoints[mapPointIndex];
+    return {
+      x: mapPoint.pixelPosition.x,
+      y: mapPoint.pixelPosition.y,
+    };
+  };
 
   const requestLocationPermission = async (requestBackground = false) => {
     try {
@@ -380,16 +393,12 @@ export const LocationServiceProvider = ({ children }) => {
     return sortedUniqueStructures.slice(0, 3);
   };
 
-  const getMapPointForStructure = (structureNumber) => {
-    const mapPointIndex = structureToMapPointMapping[structureNumber];
-    return mapPointIndex ? mapPoints[mapPointIndex - 1] : null;
-  };
-
   const value = {
     mapPoints,
     currentLocation,
     adventureModeStatus,
     trackingState,
+    getMapPointForStructure,
     nearestMapPoint: nearestPoint,
     findNearestMapPoint,
     requestLocationPermission,
