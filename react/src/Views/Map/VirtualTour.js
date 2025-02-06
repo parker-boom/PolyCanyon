@@ -1,4 +1,14 @@
-// File: ./Views/VirtualTour/VirtualTour.js
+/**
+ * VirtualTour Component
+ *
+ * A guided tour interface that allows users to explore structures on a map.
+ * Features include:
+ * - Interactive map with structure locations
+ * - Auto-centering on selected structures
+ * - Structure information display
+ * - Navigation between structures
+ * - Persistent tour progress
+ */
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -10,25 +20,33 @@ import {
   Animated,
   Easing,
   Dimensions,
+  Image as RNImage,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDataStore } from "../../Core/Data/DataStore";
 import { useLocationService } from "../../Core/Location/LocationService";
+import { getMainPhoto } from "../../Core/Images/ImageRegistry";
+import { useDarkMode } from "../../Core/States/DarkMode";
+import { useAppState } from "../../Core/States/AppState";
 
-// Constants for the original map image dimensions
+// Map dimensions used for scaling calculations
 const ORIGINAL_WIDTH = 1843;
 const ORIGINAL_HEIGHT = 4164;
 
-// Always use this asset for Virtual Tour
+// Base map image without structure numbers
 const MAP_IMAGE = require("../../assets/map/NoNumbers/SatelliteMapNN.jpg");
 
-// AsyncStorage key for persisting the current structure index
+// Storage key for saving tour progress
 const CURRENT_STRUCTURE_INDEX_KEY = "virtualTourCurrentStructureIndex";
 
-// Helper function: clamp a value between min and max
+/**
+ * Constrains a value between minimum and maximum bounds
+ */
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const VirtualTour = () => {
   const navigation = useNavigation();
@@ -36,7 +54,9 @@ const VirtualTour = () => {
   const { getMapPointForStructure } = useLocationService();
   const screenWidth = Dimensions.get("window").width;
   const screenHeight = Dimensions.get("window").height;
-  const containerHeight = screenHeight * 0.6; // Top 60% as the “map window”
+  const containerHeight = screenHeight * 0.6; // Top 60% as the "map window"
+  const { isDarkMode } = useDarkMode();
+  const { setSelectedStructure } = useAppState();
 
   // Compute scale factor so that the map image's width always equals container's width.
   const scaleFactor = screenWidth / ORIGINAL_WIDTH;
@@ -47,6 +67,9 @@ const VirtualTour = () => {
 
   // Animated value for vertical offset (applied to the entire map+dot component)
   const animatedOffset = useRef(new Animated.Value(0)).current;
+
+  // Add state for fade animation
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // Load persisted index on mount
   useEffect(() => {
@@ -70,7 +93,7 @@ const VirtualTour = () => {
   const currentStructure =
     structures && structures.length > 0 ? structures[currentIndex] : null;
 
-  // Calculate the “raw” dot position relative to the full (scaled) map.
+  // Calculate the "raw" dot position relative to the full (scaled) map.
   // We assume the mapping table returns an object { x, y } in the original image's coordinates.
   const getRawDotPosition = () => {
     if (!currentStructure) return { x: 0, y: 0 };
@@ -83,8 +106,11 @@ const VirtualTour = () => {
     };
   };
 
-  // Calculate the vertical offset for the entire map container.
-  // The idea is to slide the full map (with the dot in its proper position) so that the dot appears at the vertical center.
+  /**
+   * Calculates the map offset needed to center the current structure
+   * Returns a vertical offset value that positions the structure dot
+   * in the center of the visible map area
+   */
   const computeSlidingOffset = () => {
     const rawDot = getRawDotPosition();
     // Desired position: center of container
@@ -108,11 +134,51 @@ const VirtualTour = () => {
     }).start();
   }, [currentStructure]);
 
-  // Handlers for next/previous buttons.
+  // Update the preloadImages function
+  const preloadImages = (indexes) => {
+    indexes.forEach((index) => {
+      if (structures[index]) {
+        const imageSource = getMainPhoto(structures[index].number);
+        // Only prefetch if it's a URL string, not a require'd asset
+        if (typeof imageSource === "string") {
+          RNImage.prefetch(imageSource);
+        }
+      }
+    });
+  };
+
+  // Preload adjacent images when current index changes
+  useEffect(() => {
+    if (structures && structures.length > 0) {
+      const nextIndex = (currentIndex + 1) % structures.length;
+      const prevIndex =
+        (currentIndex - 1 + structures.length) % structures.length;
+      preloadImages([nextIndex, prevIndex]);
+    }
+  }, [currentIndex, structures]);
+
+  // Update navigation functions to include fade transition
+  const navigateWithFade = (newIndex) => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setCurrentIndex(newIndex);
+  };
+
   const goNext = () => {
     if (structures && structures.length > 0) {
       const nextIndex = (currentIndex + 1) % structures.length;
-      setCurrentIndex(nextIndex);
+      navigateWithFade(nextIndex);
     }
   };
 
@@ -120,16 +186,15 @@ const VirtualTour = () => {
     if (structures && structures.length > 0) {
       const prevIndex =
         (currentIndex - 1 + structures.length) % structures.length;
-      setCurrentIndex(prevIndex);
+      navigateWithFade(prevIndex);
     }
   };
 
   // "Learn More" button navigates to full structure detail.
   const openStructureDetail = () => {
     if (currentStructure) {
-      navigation.navigate("StructureDetail", {
-        structureNumber: currentStructure.number,
-      });
+      setSelectedStructure(currentStructure.number);
+      navigation.navigate("StructureDetail");
     }
   };
 
@@ -142,8 +207,13 @@ const VirtualTour = () => {
   const rawDot = getRawDotPosition();
 
   return (
-    <View style={styles.container}>
-      {/* Top Map Section: A fixed-height (60% of screen) container with overflow hidden */}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? "#000" : "#fff" },
+      ]}
+    >
+      {/* Map Section */}
       <View
         style={[
           styles.mapWindow,
@@ -178,57 +248,113 @@ const VirtualTour = () => {
             <View style={styles.dot} />
           </View>
         </Animated.View>
-        {/* Overlay: Title and structure number on top of the map */}
+        {/* Updated title overlay with auto-scaling text */}
         {currentStructure && (
           <View style={styles.titleOverlay}>
-            <Text style={styles.titleText}>
+            <Text
+              style={[
+                styles.titleText,
+                { color: isDarkMode ? "#fff" : "#000" },
+              ]}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+            >
               #{currentStructure.number} {currentStructure.title}
             </Text>
           </View>
         )}
       </View>
 
-      {/* Bottom Information Bar (40% of screen) */}
-      <View style={styles.bottomBar}>
+      {/* Content Section */}
+      <View
+        style={[
+          styles.bottomBar,
+          { backgroundColor: isDarkMode ? "#111" : "#f5f5f5" },
+        ]}
+      >
         <View style={styles.infoContainer}>
-          {currentStructure &&
-            currentStructure.images &&
-            currentStructure.images[0] && (
-              <Image
-                source={{ uri: currentStructure.images[0] }}
-                style={styles.structureImage}
-              />
-            )}
-          <View style={styles.textContainer}>
+          {/* Structure Image */}
+          <View style={styles.imageSection}>
             {currentStructure && (
-              <>
-                <Text style={styles.structureTitle}>
-                  #{currentStructure.number} {currentStructure.title}
-                </Text>
-                <Text style={styles.funFact}>{currentStructure.funFact}</Text>
-              </>
+              <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
+                <Image
+                  source={getMainPhoto(currentStructure.number)}
+                  style={styles.structureImage}
+                  resizeMode="cover"
+                />
+              </Animated.View>
+            )}
+          </View>
+
+          {/* Fun Fact */}
+          <View style={styles.funFactSection}>
+            {currentStructure && (
+              <Text
+                style={[
+                  styles.funFact,
+                  { color: isDarkMode ? "#fff" : "#000" },
+                ]}
+              >
+                {currentStructure.funFact}
+              </Text>
             )}
           </View>
         </View>
+
+        {/* Navigation */}
         <View style={styles.navContainer}>
-          <TouchableOpacity onPress={goPrevious} style={styles.navButton}>
-            <Icon name="chevron-back" size={24} color="#fff" />
+          <TouchableOpacity
+            onPress={goPrevious}
+            style={[
+              styles.navButton,
+              { backgroundColor: isDarkMode ? "#333" : "#e0e0e0" },
+            ]}
+          >
+            <Icon
+              name="chevron-back"
+              size={24}
+              color={isDarkMode ? "#fff" : "#000"}
+            />
           </TouchableOpacity>
+
           <TouchableOpacity
             onPress={openStructureDetail}
-            style={[styles.navButton, styles.learnMoreButton]}
+            style={[
+              styles.learnMoreButton,
+              { backgroundColor: isDarkMode ? "#333" : "#e0e0e0" },
+            ]}
           >
-            <Text style={styles.learnMoreText}>Learn More</Text>
+            <Text
+              style={[
+                styles.learnMoreText,
+                { color: isDarkMode ? "#fff" : "#000" },
+              ]}
+            >
+              Learn More
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={goNext} style={styles.navButton}>
-            <Icon name="chevron-forward" size={24} color="#fff" />
+
+          <TouchableOpacity
+            onPress={goNext}
+            style={[
+              styles.navButton,
+              { backgroundColor: isDarkMode ? "#333" : "#e0e0e0" },
+            ]}
+          >
+            <Icon
+              name="chevron-forward"
+              size={24}
+              color={isDarkMode ? "#fff" : "#000"}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Close Button */}
+      {/* Perfectly centered close button */}
       <TouchableOpacity onPress={closeVirtualTour} style={styles.closeButton}>
-        <Icon name="close" size={28} color="#fff" />
+        <View style={styles.closeButtonInner}>
+          <Icon name="close" size={20} color="#000" />
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -237,21 +363,20 @@ const VirtualTour = () => {
 export default VirtualTour;
 
 const styles = StyleSheet.create({
+  // Core layout
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
-  // The visible window for the map (top 60% of screen)
   mapWindow: {
     overflow: "hidden",
   },
-  // The animated container that holds the full scaled map and the dot.
+
+  // Map components
   animatedMapContainer: {
     position: "absolute",
     left: 0,
     top: 0,
   },
-  // Dot container used to position the dot absolutely within the map.
   dotContainer: {
     position: "absolute",
     width: 20,
@@ -259,7 +384,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // The dot itself – you can later enhance this with pulsing animation if desired.
   dot: {
     width: 20,
     height: 20,
@@ -268,51 +392,78 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  // Overlay on top of the map: structure title/number
+
+  // Structure information overlay
   titleOverlay: {
     position: "absolute",
     bottom: 10,
-    left: 10,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    left: "50%",
+    transform: [{ translateX: -125 }],
+    backgroundColor: "#fff",
+    opacity: 0.95,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    width: 250,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   titleText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "800",
+    textAlign: "center",
+    includeFontPadding: false,
   },
-  // Bottom bar container (40% of screen)
   bottomBar: {
     flex: 1,
-    backgroundColor: "#111",
     padding: 15,
     justifyContent: "space-between",
   },
   infoContainer: {
+    flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 15,
+  },
+  imageSection: {
+    flex: 1,
+    marginRight: 15,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.1)",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   structureImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    marginRight: 10,
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
   },
-  textContainer: {
+  funFactSection: {
     flex: 1,
-  },
-  structureTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 5,
+    justifyContent: "center",
+    paddingLeft: 10,
   },
   funFact: {
-    color: "#ccc",
-    fontSize: 16,
+    fontSize: 22,
+    lineHeight: 30,
+    fontWeight: "500",
   },
+
   navContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -320,26 +471,67 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   navButton: {
-    backgroundColor: "#333",
-    padding: 10,
-    borderRadius: 10,
+    width: 45,
+    height: 45,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
   learnMoreButton: {
     flex: 1,
     marginHorizontal: 20,
+    height: 45,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
   learnMoreText: {
-    color: "#fff",
     fontSize: 18,
+    fontWeight: "600",
   },
+
+  // Utility components
   closeButton: {
     position: "absolute",
-    top: 40,
-    right: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 10,
+    top: 15,
+    right: 15,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  closeButtonInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

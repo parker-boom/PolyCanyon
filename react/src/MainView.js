@@ -29,8 +29,8 @@ const TabNavigator = () => {
         headerShown: false,
       }}
     >
-      <Tab.Screen name="Detail" component={DetailView} />
       <Tab.Screen name="Map" component={MapView} />
+      <Tab.Screen name="Detail" component={DetailView} />
       <Tab.Screen name="Settings" component={SettingsView} />
     </Tab.Navigator>
   );

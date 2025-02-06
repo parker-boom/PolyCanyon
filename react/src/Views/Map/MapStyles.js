@@ -200,6 +200,130 @@ const styles = StyleSheet.create({
   darkText: {
     color: "white",
   },
+  // Control button base styles
+  controlButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+  },
+  controlButtonDark: {
+    backgroundColor: "#121212",
+    shadowColor: "#fff",
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+
+  // Settings panel container
+  settingsPanel: {
+    marginBottom: 10,
+    alignItems: "center",
+  },
+
+  // Toggle buttons (satellite and numbers)
+  toggleButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
+  },
+  toggleButtonDark: {
+    backgroundColor: "#121212",
+    shadowColor: "#fff",
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+
+  // Bottom left container for settings
+  bottomLeftControls: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    alignItems: "center",
+  },
+
+  // Bottom right container for virtual tour
+  bottomRightControls: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+
+  // Text styles for the numbers toggle
+  toggleButtonText: {
+    fontSize: 18,
+    color: "#000000",
+    fontWeight: "bold",
+  },
+  toggleButtonTextDark: {
+    color: "#FFFFFF",
+  },
+
+  // Virtual Tour Info Popup styles
+  virtualTourPopup: {
+    position: "absolute",
+    bottom: 90,
+    right: 20,
+    backgroundColor: "white",
+    padding: 15,
+    borderRadius: 12,
+    maxWidth: 200,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  virtualTourPopupDark: {
+    backgroundColor: "#121212",
+    shadowColor: "#fff",
+  },
+  virtualTourPopupText: {
+    fontSize: 14,
+    color: "#000",
+    textAlign: "center",
+  },
+  virtualTourPopupTextDark: {
+    color: "#fff",
+  },
+  virtualTourPopupArrow: {
+    position: "absolute",
+    bottom: -10,
+    right: 20,
+    width: 0,
+    height: 0,
+    backgroundColor: "transparent",
+    borderStyle: "solid",
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 10,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "white",
+  },
+  virtualTourPopupArrowDark: {
+    borderTopColor: "#121212",
+  },
 });
 
 export default styles;

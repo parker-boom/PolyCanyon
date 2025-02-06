@@ -16,6 +16,7 @@ import { useLocationService } from "../../Core/Location/LocationService";
 import { useAppState } from "../../Core/States/AppState";
 import { useNavigation } from "@react-navigation/native"; // NEW import
 import styles from "./MapStyles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Map assets for regular (numbers) mode
 const MAP_ASSETS = {
@@ -98,6 +99,33 @@ const MapView = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Animated value for settings button scaling
   const settingsScale = useRef(new Animated.Value(1)).current;
+
+  // Add new state for virtual tour popup
+  const [showVirtualTourPopup, setShowVirtualTourPopup] = useState(false);
+
+  // Check if we should show the virtual tour popup
+  useEffect(() => {
+    const checkVirtualTourPopup = async () => {
+      try {
+        const hasShownPopup = await AsyncStorage.getItem(
+          "hasShownVirtualTourPopup"
+        );
+        if (!hasShownPopup && !adventureMode) {
+          setShowVirtualTourPopup(true);
+          await AsyncStorage.setItem("hasShownVirtualTourPopup", "true");
+        }
+      } catch (error) {
+        console.log("Error checking virtual tour popup state:", error);
+      }
+    };
+
+    checkVirtualTourPopup();
+  }, [adventureMode]);
+
+  // Add handler to dismiss popup
+  const dismissVirtualTourPopup = () => {
+    setShowVirtualTourPopup(false);
+  };
 
   // Animate settings button when toggling open/closed
   const toggleSettings = () => {
@@ -192,33 +220,16 @@ const MapView = () => {
       </View>
 
       {/* Bottom Left: Settings Button & Toggle Options */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: 20,
-          left: 20,
-          alignItems: "center",
-        }}
-      >
+      <View style={styles.bottomLeftControls}>
         {settingsOpen && (
-          <View style={{ marginBottom: 10, alignItems: "center" }}>
+          <View style={styles.settingsPanel}>
             {/* Satellite Toggle Button */}
             <TouchableOpacity
               onPress={toggleMapStyle}
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                backgroundColor: isDarkMode ? "#333" : "#fff",
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: 10,
-                shadowColor: isDarkMode ? "#fff" : "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-                elevation: 5,
-              }}
+              style={[
+                styles.toggleButton,
+                isDarkMode && styles.toggleButtonDark,
+              ]}
             >
               <Icon
                 name={mapStyle === "satellite" ? "map" : "globe"}
@@ -226,64 +237,36 @@ const MapView = () => {
                 color={isDarkMode ? "white" : "black"}
               />
             </TouchableOpacity>
+
             {/* Numbers Toggle Button */}
             <TouchableOpacity
               onPress={toggleMapNumbers}
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                backgroundColor: isDarkMode ? "#333" : "#fff",
-                justifyContent: "center",
-                alignItems: "center",
-                shadowColor: isDarkMode ? "#fff" : "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-                elevation: 5,
-              }}
+              style={[
+                styles.toggleButton,
+                isDarkMode && styles.toggleButtonDark,
+              ]}
             >
-              {mapShowNumbers ? (
-                <Text
-                  style={{
-                    fontSize: 18,
-                    color: isDarkMode ? "white" : "black",
-                  }}
-                >
-                  123
-                </Text>
-              ) : (
-                <Text
-                  style={{
-                    fontSize: 18,
-                    color: isDarkMode ? "white" : "black",
-                  }}
-                >
-                  NN
-                </Text>
-              )}
+              <Text
+                style={[
+                  styles.toggleButtonText,
+                  isDarkMode && styles.toggleButtonTextDark,
+                ]}
+              >
+                {mapShowNumbers ? "123" : "NN"}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
         <Animated.View style={{ transform: [{ scale: settingsScale }] }}>
           <TouchableOpacity
             onPress={toggleSettings}
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 15,
-              backgroundColor: isDarkMode ? "black" : "white",
-              justifyContent: "center",
-              alignItems: "center",
-              shadowColor: isDarkMode ? "#fff" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 1,
-              shadowRadius: 5,
-              elevation: 25,
-            }}
+            style={[
+              styles.controlButton,
+              isDarkMode && styles.controlButtonDark,
+            ]}
           >
             <Icon
-              name={settingsOpen ? "close" : "settings-outline"}
+              name={settingsOpen ? "close-sharp" : "settings"}
               size={24}
               color={isDarkMode ? "white" : "black"}
             />
@@ -291,29 +274,39 @@ const MapView = () => {
         </Animated.View>
       </View>
 
+      {/* Virtual Tour Popup */}
+      {showVirtualTourPopup && (
+        <TouchableOpacity
+          style={[
+            styles.virtualTourPopup,
+            isDarkMode && styles.virtualTourPopupDark,
+          ]}
+          onPress={dismissVirtualTourPopup}
+        >
+          <Text
+            style={[
+              styles.virtualTourPopupText,
+              isDarkMode && styles.virtualTourPopupTextDark,
+            ]}
+          >
+            Click the walking icon to start a virtual tour
+          </Text>
+          <View
+            style={[
+              styles.virtualTourPopupArrow,
+              isDarkMode && styles.virtualTourPopupArrowDark,
+            ]}
+          />
+        </TouchableOpacity>
+      )}
+
       {/* Bottom Right: Virtual Walkthrough Button */}
-      <View style={{ position: "absolute", bottom: 20, right: 20 }}>
+      <View style={styles.bottomRightControls}>
         <TouchableOpacity
           onPress={openVirtualTour}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 15,
-            backgroundColor: isDarkMode ? "black" : "white",
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: isDarkMode ? "#fff" : "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 1,
-            shadowRadius: 5,
-            elevation: 25,
-          }}
+          style={[styles.controlButton, isDarkMode && styles.controlButtonDark]}
         >
-          <Icon
-            name="walk-outline"
-            size={24}
-            color={isDarkMode ? "white" : "black"}
-          />
+          <Icon name="walk" size={24} color={isDarkMode ? "white" : "black"} />
         </TouchableOpacity>
       </View>
     </View>
