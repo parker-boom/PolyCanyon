@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     position: "relative",
+    zIndex: 2,
   },
   map: {
     width: "100%",
@@ -257,6 +258,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     alignItems: "center",
+    zIndex: 3,
   },
 
   // Bottom right container for virtual tour
@@ -264,6 +266,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
+    zIndex: 3,
   },
 
   // Text styles for the numbers toggle
@@ -293,6 +296,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    zIndex: 3,
   },
   virtualTourPopupDark: {
     backgroundColor: "#121212",
@@ -323,6 +327,22 @@ const styles = StyleSheet.create({
   },
   virtualTourPopupArrowDark: {
     borderTopColor: "#121212",
+  },
+  blurredBackgroundContainer: {
+    position: "absolute",
+    top: -20,
+    left: -20,
+    right: -20,
+    bottom: -20,
+    overflow: "hidden",
+    zIndex: 1,
+  },
+
+  blurredBackground: {
+    flex: 1,
+    width: "120%",
+    height: "120%",
+    transform: [{ scale: 1.2 }],
   },
 });
 

@@ -187,20 +187,27 @@ const MapView = () => {
 
   return (
     <View style={styles.container}>
-      {/* If satellite, render blurred background */}
-      {mapStyle === "satellite" && (
-        <Image
-          source={MAP_ASSETS.blurredSatellite}
-          style={RNStyleSheet.absoluteFill}
-          blurRadius={10}
-        />
-      )}
+      {/* Background color layer */}
       <View
         style={[
           RNStyleSheet.absoluteFill,
           { backgroundColor: isDarkMode ? "black" : "white" },
         ]}
       />
+
+      {/* Blurred satellite background */}
+      {mapStyle === "satellite" && (
+        <View style={styles.blurredBackgroundContainer}>
+          <Image
+            source={MAP_ASSETS.blurredSatellite}
+            style={styles.blurredBackground}
+            blurRadius={10}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+
+      {/* Map container */}
       <View style={styles.mapContainer} onLayout={onMapLayout}>
         <Image
           source={getMapSource()}
