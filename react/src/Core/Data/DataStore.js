@@ -111,11 +111,6 @@ export const DataStoreProvider = ({ children }) => {
       return;
     }
 
-    if (structure.isVisited) {
-      console.log(`DataStore - Structure ${number} already visited, skipping`);
-      return;
-    }
-
     const nextVisitCount = visitCounter + 1;
     setVisitCounter(nextVisitCount);
     updateStructure(number, {
