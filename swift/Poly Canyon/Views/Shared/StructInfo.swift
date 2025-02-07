@@ -149,7 +149,7 @@ fileprivate struct InfoSectionView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 15) {
                 // Top Row - Fixed size containers
-                HStack(spacing: 15) {
+                HStack(spacing: 10) {
                     // Image Container - Fixed size
                     ZStack(alignment: .bottomTrailing) {
                         if let firstImage = structure.images.first {
@@ -169,7 +169,7 @@ fileprivate struct InfoSectionView: View {
                                 .padding(6)
                                 .background(.ultraThinMaterial)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .padding(8)
+                                .padding(10)
                         }
                         
                         Image(systemName: "arrow.up.left.and.arrow.down.right")
@@ -178,9 +178,9 @@ fileprivate struct InfoSectionView: View {
                             .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
                             .shadow(color: .white.opacity(0.45), radius: 5, y: 2)
                             .padding(12)
-                            .position(x: 180, y: 20)
+                            .position(x: 175, y: 25)
                     }
-                    .frame(width: 200, height: 200)
+                    .frame(width: 180, height: 180)
                     .background(.thinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .shadow(color: .black.opacity(0.75), radius: 5, y: 2)
@@ -211,7 +211,7 @@ fileprivate struct InfoSectionView: View {
                             Spacer()
                         }
                         .padding(.horizontal, 12)
-                        .frame(maxWidth: .infinity, minHeight: 200)
+                        .frame(maxWidth: .infinity, maxHeight: 180)
                         .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .shadow(color: .black.opacity(0.35), radius: 5, y: 2)

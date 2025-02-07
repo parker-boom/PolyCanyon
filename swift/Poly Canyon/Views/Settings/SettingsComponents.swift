@@ -160,7 +160,7 @@ struct StatisticsSection: View {
             HStack(spacing: 12) {
                 StatBox(
                     title: "Visited",
-                    value: dataStore.visitedCount,
+                    value: dataStore.totalVisitedCount,
                     iconName: "checkmark.circle.fill"
                 )
                 
