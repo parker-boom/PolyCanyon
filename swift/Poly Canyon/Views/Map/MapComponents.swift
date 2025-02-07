@@ -700,8 +700,6 @@ struct FullScreenMapView: View {
     @EnvironmentObject var appState: AppState
     let mapImage: String
     let geometry: GeometryProxy
-    let currentStructureIndex: Int
-    let currentWalkthroughMapPoint: MapPoint?
     let onClose: () -> Void
     
     @ObservedObject var circlePositionStore: CirclePositionStore
@@ -713,7 +711,7 @@ struct FullScreenMapView: View {
             MapWithLocationDot(
                 mapImage: mapImage,
                 geometry: geometry,
-                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
+                currentWalkthroughMapPoint: nil,
                 circlePositionStore: circlePositionStore
             )
             .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
@@ -785,6 +783,65 @@ struct MapBottomBar: View {
     @EnvironmentObject var dataStore: DataStore
     @Binding var currentStructureIndex: Int
     
+    // Base width is iPhone 13/14 width (390)
+    private let baseWidth: CGFloat = 390
+    
+    private var scaleFactor: CGFloat {
+        let screenWidth = UIScreen.main.bounds.width
+        return min(max(screenWidth / baseWidth, 1.0), 1.3)
+    }
+    
+    private var contentPadding: CGFloat {
+        24 * scaleFactor
+    }
+    
+    private var emojiSize: CGFloat {
+        44 * scaleFactor
+    }
+    
+    private var titleSize: CGFloat {
+        20 * scaleFactor
+    }
+    
+    private var subtitleSize: CGFloat {
+        15 * scaleFactor
+    }
+    
+    private var circleSize: CGFloat {
+        45 * scaleFactor
+    }
+    
+    private var verticalPadding: CGFloat {
+        16 * scaleFactor
+    }
+    
+    private var nearbyTitleSize: CGFloat {
+        24 * scaleFactor
+    }
+    
+    private var nearbySubtitleSize: CGFloat {
+        20 * scaleFactor
+    }
+    
+    private var thumbnailBaseSize: CGFloat {
+        75 * scaleFactor
+    }
+    
+    private var thumbnailNumberSize: CGFloat {
+        14 * scaleFactor
+    }
+    
+    private func thumbnailSize(for index: Int) -> CGFloat {
+        let baseSize = thumbnailBaseSize
+        if index == 0 {
+            return baseSize
+        } else if index == 2 {
+            return baseSize * (55/75)
+        } else {
+            return baseSize * (65/75)
+        }
+    }
+    
     private func moveToNextStructure() {
         withAnimation {
             currentStructureIndex = (currentStructureIndex + 1) % dataStore.structures.count
@@ -799,83 +856,82 @@ struct MapBottomBar: View {
     
     var body: some View {
         GeometryReader { geometry in
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(
-                        appState.isDarkMode ? 
-                        Color.black.opacity(0.7) :
-                        Color(white: 0.93)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
-                                        Color.white.opacity(0.0)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+            RoundedRectangle(cornerRadius: 15)
+                .fill(
+                    appState.isDarkMode ? 
+                    Color.black.opacity(0.7) :
+                    Color(white: 0.93)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(appState.isDarkMode ? 0.15 : 0.95),
+                                    Color.white.opacity(0.0)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
-                                        Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.2
-                            )
-                    )
-                    .shadow(
-                        color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
-                        radius: 10,
-                        x: 0,
-                        y: 4
-                    )
-                    .overlay(
-                        Group { 
-                            if !appState.adventureModeEnabled {
-                                virtualTourInactiveContent
-                            } else {
-                                switch locationService.adventureLocationState {
-                                case .notVisiting:
-                                    notVisitingContent
-                                case .onTheWay:
-                                    onTheWayContent
-                                case .almostThere:
-                                    almostThereContent
-                                case .exploring:
-                                    if locationService.isLocationPermissionDenied {
-                                        permissionDeniedContent
-                                    } else {
-                                        nearbyStructuresContent
-                                    }
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
+                                    Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.2
+                        )
+                )
+                .shadow(
+                    color: (appState.isDarkMode ? Color.white : Color.black).opacity(0.25),
+                    radius: 10,
+                    x: 0,
+                    y: 4
+                )
+                .overlay(
+                    Group { 
+                        if !appState.adventureModeEnabled {
+                            virtualTourInactiveContent
+                        } else {
+                            switch locationService.adventureLocationState {
+                            case .notVisiting:
+                                notVisitingContent
+                            case .onTheWay:
+                                onTheWayContent
+                            case .almostThere:
+                                almostThereContent
+                            case .exploring:
+                                if locationService.isLocationPermissionDenied {
+                                    permissionDeniedContent
+                                } else {
+                                    nearbyStructuresContent
                                 }
                             }
                         }
-                    )
-            
+                    }
+                )
         }
     }
     
     private var virtualTourInactiveContent: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 10 * scaleFactor) {
             Text("🚶‍♂️")
-                .font(.system(size: 44))
+                .font(.system(size: emojiSize))
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 6 * scaleFactor) {
                 Text("Take a Virtual Tour")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: titleSize, weight: .bold))
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 
                 Text("Walk through virtually")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: subtitleSize, weight: .medium))
                     .foregroundColor(appState.isDarkMode ? .white.opacity(0.8) : .black.opacity(0.7))
             }
             
@@ -883,15 +939,15 @@ struct MapBottomBar: View {
             
             Circle()
                 .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
-                .frame(width: 45, height: 45)
+                .frame(width: circleSize, height: circleSize)
                 .overlay(
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 18, weight: .black))
+                        .font(.system(size: 18 * scaleFactor, weight: .black))
                         .foregroundColor(appState.isDarkMode ? .white : .black)
                 )
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
         .contentShape(Rectangle())
         .onTapGesture {
             appState.isVirtualWalkthrough.toggle()
@@ -899,27 +955,27 @@ struct MapBottomBar: View {
     }
 
     private var permissionDeniedContent: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 10 * scaleFactor) {
             Text("😕")
-                .font(.system(size: 44))
+                .font(.system(size: emojiSize))
             
             Text("Location access needed for live map")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: titleSize, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
             
             Spacer()
             
             Circle()
                 .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
-                .frame(width: 45, height: 45)
+                .frame(width: circleSize, height: circleSize)
                 .overlay(
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 18, weight: .black))
+                        .font(.system(size: 18 * scaleFactor, weight: .black))
                         .foregroundColor(appState.isDarkMode ? .white : .black)
                 )
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
         .contentShape(Rectangle())
         .onTapGesture {
             if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -929,27 +985,27 @@ struct MapBottomBar: View {
     }
     
     private var notVisitingContent: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 14 * scaleFactor) {
             Text("🗺️")
-                .font(.system(size: 44))
+                .font(.system(size: emojiSize))
             
             Text("Explore virtually before you visit?")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: titleSize, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
             
             Spacer()
             
             Circle()
                 .fill(appState.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.05))
-                .frame(width: 45, height: 45)
+                .frame(width: circleSize, height: circleSize)
                 .overlay(
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 18, weight: .black))
+                        .font(.system(size: 18 * scaleFactor, weight: .black))
                         .foregroundColor(appState.isDarkMode ? .white : .black)
                 )
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
         .contentShape(Rectangle())
         .onTapGesture {
             appState.isVirtualWalkthrough.toggle()
@@ -957,90 +1013,85 @@ struct MapBottomBar: View {
     }
 
     private var onTheWayContent: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 14 * scaleFactor) {
             Text("🚶‍♂️")
-                .font(.system(size: 44))
+                .font(.system(size: emojiSize))
             
             Text("On your way? We're getting everything ready!")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: titleSize, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
             
             Spacer()
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
     }
     
     private var almostThereContent: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 14 * scaleFactor) {
             Text("🎯")
-                .font(.system(size: 44))
+                .font(.system(size: emojiSize))
             
             Text("Almost there! Your live location will appear soon")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: titleSize, weight: .bold))
                 .foregroundColor(appState.isDarkMode ? .white : .black)
             
             Spacer()
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
     }
     
     private var nearbyStructuresContent: some View {
-    HStack(spacing: 12) {
-        // Two-line title with different emphasis
-        (Text("Nearby")
-            .font(.system(size: 24, weight: .bold))
-            + Text("\nStructures")
-            .font(.system(size: 20, weight: .medium))
-        )
-        .foregroundColor(appState.isDarkMode ? .white : .black)
-        .multilineTextAlignment(.leading)
-        .frame(width: 100, alignment: .leading)
-        
-        // Structure thumbnails
-        HStack(spacing: 10) {
-            ForEach(locationService.nearbyStructures) { nearby in
-                if let structure = dataStore.structures.first(where: { $0.number == nearby.structureNumber }) {
-                    Button {
-                        appState.activeFullScreenView = .structInfo
-                        appState.structInfoNum = structure.number
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(structure.images[0])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(
-                                    width: locationService.nearbyStructures.firstIndex(of: nearby) == 0 ? 75 :
-                                        locationService.nearbyStructures.firstIndex(of: nearby) == 2 ? 55 : 65,
-                                    height: locationService.nearbyStructures.firstIndex(of: nearby) == 0 ? 75 :
-                                            locationService.nearbyStructures.firstIndex(of: nearby) == 2 ? 55 : 65
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                .overlay(
-                                    Text("#\(structure.number)")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .shadow(color: .black, radius: 2)
-                                        .shadow(color: .white.opacity(0.3), radius: 1),
-                                    alignment: .bottomTrailing
-                                )
-                            
-                            // Visit status indicators
-                            if structure.isVisited {
-                                if structure.isOpened {
-                                    Image("Check")
-                                        .resizable()
-                                        .frame(width: 10, height: 10)
-                                        .padding(6)
-                                } else {
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.7))
-                                        .frame(width: 8, height: 8)
-                                        .shadow(color: .white.opacity(1), radius: 1)
-                                        .padding(6)
+        HStack(spacing: 12 * scaleFactor) {
+            (Text("Nearby")
+                .font(.system(size: nearbyTitleSize, weight: .bold))
+                + Text("\nStructures")
+                .font(.system(size: nearbySubtitleSize, weight: .medium)))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+                .multilineTextAlignment(.leading)
+                .frame(width: 100 * scaleFactor, alignment: .leading)
+            
+            HStack(spacing: 10 * scaleFactor) {
+                ForEach(locationService.nearbyStructures) { nearby in
+                    if let structure = dataStore.structures.first(where: { $0.number == nearby.structureNumber }) {
+                        Button {
+                            appState.activeFullScreenView = .structInfo
+                            appState.structInfoNum = structure.number
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(structure.images[0])
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(
+                                        width: thumbnailSize(for: locationService.nearbyStructures.firstIndex(of: nearby) ?? 0),
+                                        height: thumbnailSize(for: locationService.nearbyStructures.firstIndex(of: nearby) ?? 0)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    .overlay(
+                                        Text("#\(structure.number)")
+                                            .font(.system(size: thumbnailNumberSize, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(6 * scaleFactor)
+                                            .shadow(color: .black, radius: 2)
+                                            .shadow(color: .white.opacity(0.3), radius: 1),
+                                        alignment: .bottomTrailing
+                                    )
+                                
+                                if structure.isVisited {
+                                    if structure.isOpened {
+                                        Image("Check")
+                                            .resizable()
+                                            .frame(width: 10 * scaleFactor, height: 10 * scaleFactor)
+                                            .padding(6 * scaleFactor)
+                                    } else {
+                                        Circle()
+                                            .fill(Color.blue.opacity(0.7))
+                                            .frame(width: 8 * scaleFactor, height: 8 * scaleFactor)
+                                            .shadow(color: .white.opacity(1), radius: 1)
+                                            .padding(6 * scaleFactor)
+                                    }
                                 }
                             }
                         }
@@ -1048,442 +1099,8 @@ struct MapBottomBar: View {
                 }
             }
         }
-    }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 16)
-}
-}
-
-
-/// A specialized container for a 60% screen-height map in Virtual Tour mode,
-/// preserving the vertical offset to center the dot, while properly anchoring
-/// zooming at the dot's position. White space is clamped to prevent overshoot.
-struct VirtualTourMapContainer<Content: View>: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    @ObservedObject var circlePositionStore: CirclePositionStore
-    
-    private let content: Content
-    
-    init(
-        circlePositionStore: CirclePositionStore,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.circlePositionStore = circlePositionStore
-        self.content = content()
-    }
-    
-    var body: some View {
-        GeometryReader { containerGeometry in
-            VStack(spacing: 0) {
-                // Subtract toolbar height from the total container
-                let adjustedMapHeight = containerGeometry.size.height - 44
-                
-                // 1) Compute how much to shift map vertically so dot is near center
-                let verticalShift = computeVerticalDotShift(
-                    containerHeight: adjustedMapHeight
-                )
-                
-                // 2) Calculate the map's anchor point (0..1) based on dot location
-                let dotAnchorPoint = computeDotAnchor(
-                    geometry: containerGeometry
-                )
-                
-                // 3) Determine how to clamp X/Y after zoom to avoid white space
-                let zoomClamps = computeZoomClamp(
-                    scale: appState.mapScale,
-                    geometry: containerGeometry,
-                    anchor: dotAnchorPoint
-                )
-                
-                // The scrollable map content
-                ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                    content
-                        .frame(width: containerGeometry.size.width,
-                               height: adjustedMapHeight)
-                        .offset(
-                            x: zoomClamps.width * 0.4,
-                            y: verticalShift + zoomClamps.height
-                        )
-                        .scaleEffect(appState.mapScale, anchor: dotAnchorPoint)
-                        .animation(.easeInOut(duration: 0.4), value: verticalShift)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7),
-                                   value: appState.mapScale)
-                }
-                .clipped()
-                .overlay(alignment: .topTrailing) {
-                    // Close button overlay
-                    Button(action: {
-                        withAnimation {
-                            appState.isVirtualWalkthrough = false
-                            appState.configureMapSettings(forWalkthrough: false)
-                        }
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(appState.isDarkMode ? .white : .black)
-                            .frame(width: 36, height: 36)
-                            .glassButton()
-                    }
-                    .padding(16)
-                }
-            }
-            .background(appState.isDarkMode ? Color.black : Color.white)
-            .clipShape(
-                RoundedCorner2(radius: 24, corners: [.topLeft, .topRight])
-            )
-            .overlay(StructureMapOverlay(structure: dataStore.structures[appState.currentStructureIndex]))
-            .overlay(
-                Rectangle()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(appState.isDarkMode ? 0.4 : 0.8),
-                                Color(white: 0.6).opacity(appState.isDarkMode ? 0.15 : 0.3)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.2
-                    )
-                    .clipShape(
-                        RoundedCorner2(radius: 24, corners: [.topLeft, .topRight])
-                    )
-            )
-        }
-        .frame(height: UIScreen.main.bounds.height * 0.6 - 49)
-    }
-
-}
-
-// MARK: - Logic / Helper Methods
-extension VirtualTourMapContainer {
-    
-    /// Computes how much to shift the map up/down so that
-    /// the circle (dot) appears near the middle vertically.
-    private func computeVerticalDotShift(containerHeight: CGFloat) -> CGFloat {
-        // This is the maximum shift we allow from center
-        let maxVerticalMotion = containerHeight * 0.35
-        
-        guard
-            circlePositionStore.isDotVisible,
-            let dotY = circlePositionStore.circleY
-        else {
-            // If we have no dot, shift downward by default
-            return -maxVerticalMotion
-        }
-        
-        let midpoint = containerHeight / 2
-        let distance = dotY - midpoint
-        let ratio = distance / midpoint
-        
-        // Cap ratio so we don't overshoot
-        let clamped = max(-1, min(1, ratio))
-        
-        // Negative sign to move map upward if the dot is below center
-        return -clamped * maxVerticalMotion
-    }
-    
-    /// Derives a 0..1 anchor point for scaleEffect, so the map zooms around the circle position.
-    private func computeDotAnchor(geometry: GeometryProxy) -> UnitPoint {
-        guard
-            circlePositionStore.isDotVisible,
-            let dotX = circlePositionStore.circleX,
-            let dotY = circlePositionStore.circleY
-        else {
-            return .init(x: 0.5, y: 1.0)
-        }
-
-        let rawMapSize = determineMapSize(in: geometry)
-        let containerHeight = geometry.size.height - 44
-        
-        // Calculate basic relative X position
-        let xOffset = (geometry.size.width - rawMapSize.width) / 2
-        let relativeX = (dotX - xOffset) / rawMapSize.width
-        
-        // Calculate how far we are from the top as a percentage
-        let percentFromTop = dotY / geometry.size.height
-        
-        // Keep our existing damping logic
-        let dampingFactor = 1.0 - (percentFromTop * 0.5)
-        let relativeY = percentFromTop * dampingFactor
-        
-        // may need hardline addition instead 
-        let adjustedY = percentFromTop > 0.56 
-            ? relativeY + ((percentFromTop - 0.56) / 0.44) * 0.025
-            : relativeY
-
-            
-        let safeY = min(max(adjustedY, 0.1), 1)
-        
-        return UnitPoint(x: relativeX, y: safeY)
-    }
-    
-    /// Once we're scaling around the dot, we also need to offset/pan so we don't show white space.
-    /// This function clamps how far we can move in X and Y after zooming.
-    private func computeZoomClamp(
-        scale: CGFloat,
-        geometry: GeometryProxy,
-        anchor: UnitPoint
-    ) -> CGSize {
-        guard scale > 1.0 else { return .zero }
-        
-        let unscaledMap = determineMapSize(in: geometry)
-        
-        let scaledW = unscaledMap.width * scale
-        let scaledH = unscaledMap.height * scale
-        
-        let maxX = (scaledW - unscaledMap.width) / 2
-        let maxY = (scaledH - unscaledMap.height) / 2
-        
-        // Where the anchor tries to place the map
-        let desiredX = (scaledW - unscaledMap.width) * (0.5 - anchor.x)
-        let desiredY = (scaledH - unscaledMap.height) * (0.5 - anchor.y)
-        
-        // Clamp to avoid white space
-        let finalX = max(-maxX, min(maxX, desiredX))
-        let finalY = max(-maxY, min(maxY, desiredY))
-        
-        return CGSize(width: finalX, height: finalY)
-    }
-    
-    /// Figures out how large the map is before scaling in this container, preserving aspect ratio.
-    private func determineMapSize(in geometry: GeometryProxy) -> CGSize {
-        let originalWidth: CGFloat = 2000
-        let originalHeight: CGFloat = 4519
-        let aspectRatio = originalWidth / originalHeight
-        
-        let availableW = geometry.size.width
-        let availableH = geometry.size.height
-        
-        if availableW / availableH > aspectRatio {
-            // The map is height-constrained
-            let finalHeight = availableH
-            let finalWidth = finalHeight * aspectRatio
-            return CGSize(width: finalWidth, height: finalHeight)
-        } else {
-            // The map is width-constrained
-            let finalWidth = availableW
-            let finalHeight = finalWidth / aspectRatio
-            return CGSize(width: finalWidth, height: finalHeight)
-        }
-    }
-}
-
-struct VirtualTourBottomBar: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    @State private var isImageExpanded = false
-    @State private var showLearnMore = false
-    
-    private var currentStructure: Structure {
-        dataStore.structures[appState.currentStructureIndex]
-    }
-    
-    var body: some View {
-        GeometryReader { geo in
-            VStack(spacing: 0) {
-                // Main Content Section (80%)
-                HStack(spacing: 12) {
-                    // Image Container with enhanced styling
-                    Image(currentStructure.images[0])
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.65)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.7),
-                                            Color.white.opacity(0.3)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1.2
-                                )
-                        )
-                        .shadow(
-                            color: .black.opacity(0.25),
-                            radius: 12,
-                            x: 0,
-                            y: 6
-                        )
-                        .scaleEffect(isImageExpanded ? 1.02 : 1.0)
-                        .onHover { hovering in
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                isImageExpanded = hovering
-                            }
-                        }
-
-                    // Fun Fact Container with glowing effect
-                    ScrollView(.vertical, showsIndicators: false) {
-                        Text(currentStructure.funFact ?? "")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(appState.isDarkMode ? .white.opacity(0.9) : .black.opacity(0.8))
-                            .lineSpacing(3)
-                            .minimumScaleFactor(0.8)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                            .padding(.vertical, 10)
-                    }
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 8)
-                    .glowingContainer()
-                    .frame(width: geo.size.width * 0.5, height: geo.size.height * 0.65)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                
-                // Unified Navigation Bar
-                HStack(spacing: 0) {
-                    // Previous Button (20%)
-                    Button(action: goPrevious) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(Rectangle())
-                    }
-                    .frame(width: UIScreen.main.bounds.width * 0.15)
-                    .foregroundColor(appState.isDarkMode ? .white : .black)
-
-                    // Divider
-                    Divider()
-                        .frame(width: 1)
-                        .background(Color.black.opacity(0.7))
-
-                    // Learn More Button (60%)
-                    Button(action: {
-                        appState.activeFullScreenView = .structInfo
-                        appState.structInfoNum = currentStructure.number
-                    }) {
-                        HStack(spacing: 0) {
-                            Text("Learn More")
-                                .font(.system(size: 16, weight: .semibold))
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .contentShape(Rectangle())
-                            
-                            Image(systemName: "info.circle.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(appState.isDarkMode ? .white : .black)
-                                .padding(.trailing, 15)
-                        }
-                    }
-                    .frame(width: UIScreen.main.bounds.width * 0.4)
-                    .foregroundColor(appState.isDarkMode ? .white : .black)
-
-                    // Divider
-                    Divider()
-                        .frame(width: 1)
-                        .background(Color.black.opacity(0.7))
-
-                    // Next Button (20%)
-                    Button(action: goNext) {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 18, weight: .semibold))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(Rectangle())
-                    }
-                    .frame(width: UIScreen.main.bounds.width * 0.15)
-                    .foregroundColor(appState.isDarkMode ? .white : .black)
-                }
-                .frame(height: 40) // Unified bar height
-                .background(
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(Material.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                )
-                .padding(.horizontal, 12)
-                .padding(.bottom, 10)
-                .padding(.top, 5)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(
-                RoundedCorner2(radius: 24, corners: [.bottomLeft, .bottomRight])
-            )
-        }
-        .frame(maxHeight: UIScreen.main.bounds.height * 0.4 - 49 - 24)
-        .transition(.move(edge: .bottom))
-    }
-    
-    private func closeVirtualTour() {
-        withAnimation {
-            appState.isVirtualWalkthrough = false
-            appState.configureMapSettings(forWalkthrough: false)
-        }
-    }
-    
-    private func goNext() {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            let nextIndex = (appState.currentStructureIndex + 1) % dataStore.structures.count
-            appState.currentStructureIndex = nextIndex
-        }
-    }
-    
-    private func goPrevious() {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            let prevIndex = (appState.currentStructureIndex - 1 + dataStore.structures.count) 
-                % dataStore.structures.count
-            appState.currentStructureIndex = prevIndex
-        }
-    }
-}
-
-struct StructureMapOverlay: View {
-    @EnvironmentObject var appState: AppState
-    let structure: Structure
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Spacer()
-            HStack(spacing: 16) {
-                Text("#\(structure.number)")
-                    .font(.system(size: 28, weight: .black))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 2)
-                
-                Text(structure.title)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 2)
-                    .lineLimit(2)
-            }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 5)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(appState.isDarkMode ? 0.15 : 0.3),
-                                .white.opacity(0.05)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        .white.opacity(0.5),
-                                        .white.opacity(0.2)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.5
-                            )
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-        }
-        .padding(.bottom, 10)
-        .frame(maxWidth: 280, maxHeight: .infinity, alignment: .bottom)
+        .padding(.horizontal, contentPadding)
+        .padding(.vertical, verticalPadding)
     }
 }
 
@@ -1521,70 +1138,3 @@ extension View {
     }
 }
 
-struct RoundedCorner2: Shape {
-    var radius: CGFloat
-    var corners: UIRectCorner
-    
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
-    }
-}
-
-struct GlowingContainer: ViewModifier {
-    @EnvironmentObject var appState: AppState
-    @State private var rotation: Double = 0
-    
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Material.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(
-                        Color(red: 1, green: 0.84, blue: 0).opacity(0.2),
-                        lineWidth: 1.2
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .trim(from: 0.4, to: 0.6)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 1, green: 0.84, blue: 0).opacity(0),
-                                Color(red: 1, green: 0.84, blue: 0).opacity(0.8),
-                                Color(red: 1, green: 0.84, blue: 0).opacity(0)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(rotation))
-            )
-            .shadow(
-                color: Color(red: 1, green: 0.84, blue: 0).opacity(0.15),
-                radius: 8,
-                x: 0,
-                y: 0
-            )
-            .onAppear {
-                withAnimation(.linear(duration: 4).repeatForever(autoreverses: false)) {
-                    rotation = 360
-                }
-            }
-    }
-}
-
-extension View {
-    func glowingContainer() -> some View {
-        modifier(GlowingContainer())
-    }
-}

@@ -21,6 +21,9 @@ class AppState: ObservableObject {
         }
     }
     
+    // Virtual Tour full screen state
+    @Published var isVirtualTourFullScreen: Bool = false
+    
     // Adventure mode - effects the entire user experience and every view rendered differently
     // FALSE = Virtual tour mode - for non-in person use, viewing information only
     // TRUE = Adventure mode - for in person use, location and progress tracking

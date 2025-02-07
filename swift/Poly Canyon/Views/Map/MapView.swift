@@ -41,57 +41,13 @@ struct MapView: View {
             ZStack {
                 if appState.isVirtualWalkthrough {
                     // MARK: - Virtual Tour Layout
-                    VStack(spacing: 0) {
-                        VirtualTourMapContainer(
-                            circlePositionStore: circlePositionStore
-                        ) {
-                            MapWithLocationDot(
-                                mapImage: currentMapImage(),
-                                geometry: geometry,
-                                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
-                                circlePositionStore: circlePositionStore
-                            )
-                            .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
-                            .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
-                        }
-                        .onAppear {
-                            let structure = dataStore.structures[appState.currentStructureIndex]
-                            currentWalkthroughMapPoint = locationService.getMapPointForStructure(structure.number)
-                        }
-                        
-                        VirtualTourBottomBar()
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Material.ultraThinMaterial)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.7),
-                                        Color.white.opacity(0.3)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.8
-                            )
-                    )
-                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 5)
-                    .padding(.bottom, 20)
-                    .opacity(opacity)
+                    VirtualTour(geometry: geometry)
                 }
                 else if isFullScreen {
                     // MARK: - Fullscreen Adventure
                     FullScreenMapView(
                         mapImage: currentMapImage(),
                         geometry: geometry,
-                        currentStructureIndex: appState.currentStructureIndex,
-                        currentWalkthroughMapPoint: currentWalkthroughMapPoint,
                         onClose: {
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 opacity = 0

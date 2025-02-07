@@ -30,7 +30,7 @@ struct MainView: View {
                 default: EmptyView()
                 }
                 CustomTabBar(selectedTab: $selectedTab)
-                    .opacity(appState.activeFullScreenView == nil ? 1 : 0) // Hide tab bar during full-screen
+                    .opacity(appState.activeFullScreenView == nil && !appState.isVirtualTourFullScreen ? 1 : 0) // Hide tab bar during full-screen
             }
 
             // Full-Screen View Routing
