@@ -357,7 +357,7 @@ struct MapContainerView<Content: View>: View {
                 let mapHeight = containerGeometry.size.height - 44  // space for your toolbar
                 let midY = mapHeight / 2
                 let maxOffset = containerGeometry.size.height * 0.12  // ±10% is max shift
-                let defaultOffset = containerGeometry.size.height * -0.12  // always want 10% down if no dot
+                let defaultOffset = containerGeometry.size.height * -0.15  // always want 10% down if no dot
                 
                 let baseOffset: CGFloat = {
                     guard circlePositionStore.isDotVisible,

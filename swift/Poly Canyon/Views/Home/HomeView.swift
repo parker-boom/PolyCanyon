@@ -15,13 +15,6 @@ struct HomeView: View {
             }
             .padding()
             Spacer()
-            Button {
-                appState.activeFullScreenView = .tinderMode
-            } label: {
-                Image(systemName: "heart.fill")
-                    .font(.title2)
-                    .foregroundColor(.primary)
-            }
             .padding()
             Spacer()
         }

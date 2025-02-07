@@ -470,6 +470,7 @@ struct NavButton: View {
 
 struct StructureMapOverlay: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
     let structure: Structure
     
     var body: some View {
@@ -486,6 +487,16 @@ struct StructureMapOverlay: View {
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.3), radius: 2)
                     .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                
+                Button(action: {
+                    dataStore.toggleLike(for: structure.id)
+                }) {
+                    Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(dataStore.isLiked(for: structure.id) ? .red : .white)
+                        .shadow(color: .black.opacity(0.3), radius: 2)
+                }
             }
             .padding(.horizontal, 15)
             .padding(.vertical, 5)
@@ -520,7 +531,7 @@ struct StructureMapOverlay: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .padding(.bottom, 10)
-        .frame(maxWidth: 280, maxHeight: .infinity, alignment: .bottom)
+        .frame(maxWidth: 320, maxHeight: .infinity, alignment: .bottom)
     }
 }
 

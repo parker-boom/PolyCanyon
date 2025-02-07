@@ -40,9 +40,11 @@ struct StructInfo: View {
                     ZStack {
                         switch selectedTab {
                         case .info:
-                            InfoSectionView(structure: structure)
+                            InfoSectionView(structure: structure, onImageTap: {
+                                selectedTab = .images
+                            })
                         case .images:
-                            ImagesSectionView(structure: structure)
+                            ImagesSectionView(structure: structure, selectedTab: $selectedTab)
                         }
                     }
                     .frame(height: geo.size.height * 0.78)
@@ -140,6 +142,7 @@ fileprivate struct HeaderView: View {
 /// 4) Advisors row
 fileprivate struct InfoSectionView: View {
     let structure: Structure
+    let onImageTap: () -> Void 
     @State private var isDescriptionExpanded = true
     
     var body: some View {
@@ -153,7 +156,7 @@ fileprivate struct InfoSectionView: View {
                             Image(firstImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: 160, height: 160)
+                                .frame(width: 200, height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                         }
                         
@@ -168,11 +171,22 @@ fileprivate struct InfoSectionView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                                 .padding(8)
                         }
+                        
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
+                            .shadow(color: .white.opacity(0.45), radius: 5, y: 2)
+                            .padding(12)
+                            .position(x: 180, y: 20)
                     }
-                    .frame(width: 160, height: 160)
+                    .frame(width: 200, height: 200)
                     .background(.thinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .shadow(color: .black.opacity(0.75), radius: 5, y: 2)
+                    .onTapGesture {
+                        onImageTap()
+                    }
                     
                     // Fun Fact Container - Fixed size
                     if let fact = structure.funFact, !fact.isEmpty {
@@ -188,16 +202,16 @@ fileprivate struct InfoSectionView: View {
                             .padding(.top, 10)
                             
                             Text(fact)
-                                .font(.system(size: 18))
+                                .font(.system(size: 22))
                                 .padding(.top, 5)
                                 .lineSpacing(4)
-                                .minimumScaleFactor(0.7)
-                                .lineLimit(6)
+                                .minimumScaleFactor(0.5)
+                                .lineLimit(8)
                             
                             Spacer()
                         }
                         .padding(.horizontal, 12)
-                        .frame(maxWidth: .infinity, minHeight: 160)
+                        .frame(maxWidth: .infinity, minHeight: 200)
                         .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
@@ -214,14 +228,14 @@ fileprivate struct InfoSectionView: View {
                                 .font(.system(size: 20, weight: .bold))
                             Spacer()
                             Image(systemName: isDescriptionExpanded ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 16, weight: .bold))
                         }
                         .foregroundColor(.primary)
                     }
                     
                     if isDescriptionExpanded {
                         Text(structure.description)
-                            .font(.system(size: 18))
+                            .font(.system(size: 20))
                             .padding(.top, 4)
                             .lineSpacing(5)
                     }
@@ -242,7 +256,7 @@ fileprivate struct InfoSectionView: View {
                                 .font(.system(size: 18, weight: .bold))
                         }
                         Text(structure.builders.joined(separator: ", "))
-                            .font(.system(size: 17))
+                            .font(.system(size: 20))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
@@ -261,7 +275,7 @@ fileprivate struct InfoSectionView: View {
                                 .font(.system(size: 18, weight: .bold))
                         }
                         Text(structure.advisors.joined(separator: ", "))
-                            .font(.system(size: 17))
+                            .font(.system(size: 20))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
@@ -281,6 +295,7 @@ fileprivate struct InfoSectionView: View {
 /// plus a dot indicator at the bottom. The user can swipe horizontally through all structure images.
 fileprivate struct ImagesSectionView: View {
     let structure: Structure
+    @Binding var selectedTab: InfoTab
     @EnvironmentObject var dataStore: DataStore
     @State private var currentIndex: Int = 0
     
@@ -333,10 +348,20 @@ fileprivate struct ImagesSectionView: View {
                 VStack {
                     Spacer()
                     HStack {
+                        Button(action: { selectedTab = .info }) {
+                            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                .font(.system(size: 32, weight: .semibold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
+                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
+                        }
+                        .padding(25)
+                        
                         Spacer()
+                        
                         Button(action: { dataStore.toggleLike(for: structure.id) }) {
                             Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
-                                .font(.system(size: 28, weight: .semibold))
+                                .font(.system(size: 40, weight: .semibold))
                                 .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
                                 .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
                                 .shadow(color: .white.opacity(0.65), radius: 5, y: 2)

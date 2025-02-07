@@ -5,6 +5,7 @@ struct VisitNotificationView: View {
     @EnvironmentObject var dataStore: DataStore
     
     let structure: Structure
+    private let containerWidth: CGFloat = UIScreen.main.bounds.width - 80 // 40 padding on each side
     
     var body: some View {
         ZStack {
@@ -15,117 +16,142 @@ struct VisitNotificationView: View {
                     dataStore.dismissLastVisitedStructure()
                 }
             
-            // Glassmorphic popup container
-            VStack(spacing: 12) {  
-                    // "Just Visited!" in a bold modern style with a proper container
+            // Main Container
+            ZStack(alignment: .topTrailing) {
+                VStack(spacing: 12) {
+                    // "Just Visited!" container
                     HStack { 
-
                         Spacer()
-
                         HStack(spacing: 8) {
                             Text("🔥")
                                 .font(.system(size: 30))
                                 .padding(.top, -2) 
                             Text("Just Visited!")
-                                .font(.system(size: 28, weight: .semibold))
+                                .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(Color.black.opacity(0.8))
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
-                            
                         }
                         .padding(.vertical, 8)
-                        .padding(.trailing, 12)
-                        .padding(.leading, 10)
-
+                        .padding(.horizontal, 16)
                         Spacer()
                     }
                     .glassyBackground()
-                    .padding(.horizontal, 16)
-                    .padding(.top, 10)
-
-                
-                
-                // Image container
-                ZStack(alignment: .bottomTrailing) {
+                    
+                    // Image container
                     Image(structure.images[0])
                         .resizable()
-                        .scaledToFill() // Scale without stretching
-                        .frame(width: 270, height: 250)
-                        .clipped() // Ensure it fits the container
+                        .scaledToFill()
+                        .frame(width: containerWidth - 40, height: 250)
+                        .clipped()
                         .cornerRadius(12)
-                    
-                    // Overlay for structure number
-                    Text("#\(structure.number)")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.8))
+                        .shadow(color: .black.opacity(0.65), radius: 10, x: 0, y: 4)
+                        .overlay(
+                            Text("#\(structure.number)")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.gray.opacity(0.8))
+                                )
+                                .padding(8),
+                            alignment: .bottomTrailing
                         )
-                        .padding(8)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 0)
-                
-                HStack(spacing: 0) {
-                    // Left section with the X button
-                    Button(action: {
-                        // Close the popup
-                        dataStore.dismissLastVisitedStructure()
-                    }) {
-                        HStack {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(Color.black.opacity(0.6))
-                                .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
-                        }
-                        .frame(width: 60, height: 50) // Fixed size for the "X" button 
-                    }
-                    
-                    // Divider line
-                    Rectangle()
-                        .fill(Color(white: 0.7))
-                        .frame(width: 1)
 
-                    // Right section with "Learn More >"
+                    // Progress Bar container
+                    HStack {
+                        Spacer()
+                        ProgressBar(width: containerWidth - 40)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(Material.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(hex: "FF8C00").opacity(0.1),
+                                                Color(hex: "FFD700").opacity(0.05)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [
+                                                .white.opacity(0.5),
+                                                .white.opacity(0.2)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                    )
+                    
+                    // Learn More button
                     Button(action: {
-                        // Open StructInfo for the current structure
                         appState.activeFullScreenView = .structInfo
                         appState.structInfoNum = structure.id
                         dataStore.dismissLastVisitedStructure()
                     }) {
                         HStack {
+                            Spacer() 
                             Text("Learn More")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(Color.black.opacity(0.6))
-                                .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
-
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundColor(Color.black.opacity(0.8))
+                            
+                            Spacer()
+                            
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(Color.black.opacity(0.6))
-                                .padding(.leading, 15)
-                                .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                         }
-                        .padding(.vertical, 14)
+                        .padding(.horizontal, 20)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
+                        .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                     }
+                    .glassyBackground()
+                    .padding(.top, 20)
+                    .padding(.bottom, 20)
                 }
-                .frame(height: 50)
-                .glassyBackground()
+                .padding(.top, 25) // Reduced top padding to account for close button
                 .padding(.horizontal, 20)
-                .padding(.bottom, 10)
-
+                
+                // Close button
+                Button(action: {
+                    dataStore.dismissLastVisitedStructure()
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Color.black.opacity(0.6))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Material.ultraThinMaterial))
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.6), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 4)
+                }
+                .offset(x: 10, y: -10)
             }
-            .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Material.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white.opacity(0.6))
-                        )
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(
@@ -139,17 +165,14 @@ struct VisitNotificationView: View {
                     )
                     .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
             )
-            .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 2)
-            .shadow(color: .white.opacity(0.1), radius: 6, x: 0, y: 0)
-            .frame(maxHeight: UIScreen.main.bounds.height * 0.5) 
-            .padding(.horizontal, 40) 
+            .frame(maxWidth: containerWidth)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.7)
+            .padding(.horizontal, 40)
             .transition(.scale)
             .animation(.easeInOut(duration: 0.3), value: dataStore.lastVisitedStructure)
         }
     }
 }
-
-
 
 struct GlassyBackground: ViewModifier {
     @EnvironmentObject var appState: AppState
@@ -180,7 +203,6 @@ struct GlassyBackground: ViewModifier {
             )
     }
 }
-
 
 extension View {
     func glassyBackground() -> some View {

@@ -6,7 +6,7 @@ import SwiftUI
 enum FullScreenView {
     case structInfo
     case settings
-    case tinderMode
+    case ratings
 }
 
 // Main app routing:
@@ -65,8 +65,8 @@ struct MainView: View {
             SettingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
-        case .tinderMode:
-            StructureSwipingView()
+        case .ratings:
+            RatingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
         }
