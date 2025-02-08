@@ -1,47 +1,65 @@
-/*
- PolyCanyonApp serves as the main entry point for the Poly Canyon application. It initializes core services 
- including Firebase, AppState, DataStore, and LocationService. The app handles global state management and 
- dependency injection through environment objects. It follows a standard SwiftUI app structure with a 
- WindowGroup scene containing the root AppView.
-*/
-
+// PolyCanyonApp.swift
 import SwiftUI
 import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-    return true
-  }
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        return true
+    }
 }
 
 @main
 struct PolyCanyonApp: App {
-  // Register app delegate for Firebase setup
-  @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-  @StateObject private var appState = AppState()
-  @StateObject private var dataStore = DataStore.shared
-  @StateObject private var locationService = LocationService.shared
+    /// A state variable to track if the Design Village mode is enabled.
+    /// nil means “decision not made yet” (only possible for existing users during the event).
+    @State private var designVillageMode: Bool? = nil
 
-  init() {
-    // Configure LocationService
-    LocationService.shared.configure() 
-    
-    // Initialize LocationService mode from AppState's persisted value
-    let savedMode = UserDefaults.standard.bool(forKey: "adventureMode")
-    LocationService.shared.setMode(savedMode ? .adventure : .virtualTour)
-  }
+    // Event window: April 25 (00:00) to April 28 (00:00)
+    let eventStartDate: Date = {
+        var components = DateComponents()
+        components.year = 2025
+        components.month = 4
+        components.day = 25
+        return Calendar.current.date(from: components)!
+    }()
 
-  var body: some Scene {
-    WindowGroup {
-      AppView()
-        .environmentObject(appState)
-        .environmentObject(dataStore)
-        .environmentObject(locationService)
-        .preferredColorScheme(.light)
+    let eventEndDate: Date = {
+        var components = DateComponents()
+        components.year = 2025
+        components.month = 4
+        components.day = 28
+        return Calendar.current.date(from: components)!
+    }()
+
+    var body: some Scene {
+        WindowGroup {
+            RootRouter(designVillageMode: $designVillageMode,
+                       eventStartDate: eventStartDate,
+                       eventEndDate: eventEndDate)
+                .onAppear {
+                    let now = Date()
+                    // If it's before the event or after the event, force Poly Canyon mode.
+                    if now < eventStartDate || now >= eventEndDate {
+                        designVillageMode = false
+                        UserDefaults.standard.set(false, forKey: "designVillageModeOverride")
+                    } else {
+                        // We're in the event window (April 25-27).
+                        // If no decision has been made yet...
+                        if designVillageMode == nil {
+                            let onboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
+                            if !onboardingCompleted {
+                                // New user: auto-route to DV.
+                                designVillageMode = true
+                                UserDefaults.standard.set(true, forKey: "designVillageModeOverride")
+                            }
+                            // For existing users, leave designVillageMode as nil to trigger the prompt.
+                        }
+                    }
+                }
+        }
     }
-  }
 }
-
