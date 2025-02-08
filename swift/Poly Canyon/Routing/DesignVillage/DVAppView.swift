@@ -1,17 +1,15 @@
-// DVAppView.swift
 import SwiftUI
 
 struct DVAppView: View {
+    @AppStorage("DVOnboardingComplete") var onboardingComplete: Bool = false
+
     var body: some View {
         NavigationView {
-            VStack {
-                Text("Welcome to Design Village!")
-                    .font(.largeTitle)
-                    .padding()
-                // Additional static content for Design Village goes here.
-                Spacer()
+            if onboardingComplete {
+                DVMain()
+            } else {
+                DVOnboarding()
             }
-            .navigationTitle("Design Village")
         }
     }
 }
