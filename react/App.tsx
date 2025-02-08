@@ -1,11 +1,12 @@
+// App.js
 import React from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
-import AppView from "./src/AppView";
+import RootRouter from "./src/RootRouter";
 
 const App = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <AppView />
+      <RootRouter />
     </SafeAreaView>
   );
 };

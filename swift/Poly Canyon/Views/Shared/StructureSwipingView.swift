@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - StructureSwipingView (Top-Level Container)
 
-struct StructureSwipingView: View {
+struct RatingsView: View {
     // MARK: - Environment
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
@@ -268,7 +268,7 @@ private struct RatingContentView: View {
             Image(structure.images[0])
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: UIScreen.main.bounds.width - 40,
+                .frame(width: UIScreen.main.bounds.width - 60,
                        height: UIScreen.main.bounds.height * 0.50) // Reduced height
                 .clipped()
                 .cornerRadius(20)
@@ -281,8 +281,9 @@ private struct RatingContentView: View {
                 .font(.title)
                 .fontWeight(.bold)
                 .padding()
-                .frame(maxWidth: .infinity)
+                .frame(width: UIScreen.main.bounds.width - 60)
                 .background(Color.black.opacity(0.7))
+                .cornerRadius(20)
                 .foregroundColor(.white)
         }
         .shadow(radius: 10)
@@ -305,7 +306,7 @@ private struct RatingContentView: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.gray.opacity(0.5))
+                    .fill(Color.black.opacity(0.6))
                     .background(Material.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             )
@@ -473,7 +474,7 @@ private struct CompletionView: View {
                         .frame(width: 80, height: 30)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.gray.opacity(0.5))
+                                .fill(Color.black.opacity(0.6))
                                 .background(Material.ultraThinMaterial)
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                         )
@@ -700,7 +701,7 @@ public struct CardSwiperView<Content: View>: View {
 struct StructureSwipingView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            StructureSwipingView()
+            RatingsView()
                 .environmentObject({
                     let state = AppState()
                     state.isDarkMode = false
@@ -709,7 +710,7 @@ struct StructureSwipingView_Previews: PreviewProvider {
                 .environmentObject(DataStore.shared)
                 .previewDisplayName("Light Mode")
             
-            StructureSwipingView()
+            RatingsView()
                 .environmentObject({
                     let state = AppState()
                     state.isDarkMode = true
@@ -727,6 +728,8 @@ private struct StartingView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            Spacer()
+
             Text("🏛️💫")
                 .font(.system(size: 80))
                 .padding(.bottom, 0)
@@ -791,6 +794,39 @@ private struct StartingView: View {
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
             }
             .padding(.top, 10)
+            
+            Spacer()
+            
+            Button(action: {
+                appState.activeFullScreenView = nil
+            }) {
+                Text("Maybe Later")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 140, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(Color.black.opacity(0.6))
+                            .background(Material.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        .white.opacity(0.5),
+                                        .white.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            }
+            .padding(.bottom, 30)
         }
         .padding()
     }

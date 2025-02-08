@@ -17,9 +17,9 @@ class DataStore: ObservableObject {
     @Published private(set) var lastVisitedStructure: Structure?
     
     // MARK: - Statistics Properties
-    @Published private(set) var visitedCount: Int {
+    @Published private(set) var totalVisitedCount: Int {
         didSet {
-            UserDefaults.standard.set(visitedCount, forKey: "visitedCount")
+            UserDefaults.standard.set(totalVisitedCount, forKey: "totalVisitedCount")
         }
     }
     
@@ -49,10 +49,10 @@ class DataStore: ObservableObject {
     init() {
         print("📚 Initializing DataStore")
         // Load persisted stats
-        self.visitedCount = UserDefaults.standard.integer(forKey: "visitedCount")
+        self.totalVisitedCount = UserDefaults.standard.integer(forKey: "totalVisitedCount")
         self.dayCount = UserDefaults.standard.integer(forKey: "dayCount")
         self.previousDayVisited = UserDefaults.standard.string(forKey: "previousDayVisited")
-        print("📚 Loaded stats - Visited: \(visitedCount), Days: \(dayCount)")
+        print("📚 Loaded stats - Visited: \(totalVisitedCount), Days: \(dayCount)")
         
         loadInitialData()
         setupNotifications()
@@ -168,7 +168,7 @@ class DataStore: ObservableObject {
         structures[index].isVisited = true
         structures[index].recentlyVisited = Int(Date().timeIntervalSince1970)
         lastVisitedStructure = structures[index]
-        visitedCount += 1
+        totalVisitedCount += 1
         
         // Update day tracking
         let dateFormatter = DateFormatter()
@@ -233,6 +233,7 @@ class DataStore: ObservableObject {
             structures[index].recentlyVisited = -1
             structures[index].isLiked = false
         }
+        totalVisitedCount = 0
         saveStructures()
         
         // Reset ghost structures
@@ -320,6 +321,10 @@ class DataStore: ObservableObject {
     var hasVisitedStructures: Bool {
         return structures.contains { $0.isVisited }
     }
+
+    var visitedCount: Int {
+        return structures.filter { $0.isVisited }.count
+    }
     
     var hasLikedStructures: Bool {
         return structures.contains { $0.isLiked }
@@ -337,7 +342,7 @@ class DataStore: ObservableObject {
         print("  • Current Version: \(currentBundleVersion)")
         
         print("\n📚 Statistics:")
-        print("  • Visited Count: \(visitedCount)")
+        print("  • Visited Count: \(totalVisitedCount)")
         print("  • Days Active: \(dayCount)")
         print("  • Last Visit Date: \(previousDayVisited ?? "None")")
         

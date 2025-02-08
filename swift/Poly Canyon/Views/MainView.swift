@@ -6,7 +6,7 @@ import SwiftUI
 enum FullScreenView {
     case structInfo
     case settings
-    case tinderMode
+    case ratings
 }
 
 // Main app routing:
@@ -30,7 +30,7 @@ struct MainView: View {
                 default: EmptyView()
                 }
                 CustomTabBar(selectedTab: $selectedTab)
-                    .opacity(appState.activeFullScreenView == nil ? 1 : 0) // Hide tab bar during full-screen
+                    .opacity(appState.activeFullScreenView == nil && !appState.isVirtualTourFullScreen ? 1 : 0) // Hide tab bar during full-screen
             }
 
             // Full-Screen View Routing
@@ -65,8 +65,8 @@ struct MainView: View {
             SettingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
-        case .tinderMode:
-            StructureSwipingView()
+        case .ratings:
+            RatingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
         }

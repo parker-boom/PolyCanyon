@@ -25,7 +25,20 @@ struct DetailBody: View {
         ScrollView {
             // Display structures in selected view mode
             if isGridView {
-                gridView
+                VStack(spacing: 0) {
+                    if shouldShowLikePrompt {
+                        LikePromptView()
+                            .padding(.horizontal, 20)
+                            .padding(.top, 5)
+                            .padding(.bottom, 5)
+                    } else if appState.adventureModeEnabled && locationService.isInPolyCanyonArea {
+                        ProgressPromptView()
+                            .padding(.horizontal, 0)
+                            .padding(.top, 5)
+                            .padding(.bottom, 5)
+                    }
+                    gridView
+                }
             } else {
                 listView
             }
@@ -34,6 +47,11 @@ struct DetailBody: View {
         .onChange(of: locationService.isInPolyCanyonArea) { _ in
             dataStore.objectWillChange.send()
         }
+    }
+    
+    private var shouldShowLikePrompt: Bool {
+        !appState.adventureModeEnabled || 
+        (appState.adventureModeEnabled && !locationService.isInPolyCanyonArea)
     }
     
     // Grid layout with blur effects for unvisited structures
@@ -86,9 +104,6 @@ struct DetailBody: View {
             sortState: sortState
         )
     }
-    
-    // 
-    
 }
 
 /**
@@ -101,6 +116,7 @@ struct DetailBody: View {
 struct StructureGridItem: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject var dataStore: DataStore
     
     let structure: Structure
     private let imageLoader = ImageLoader()
@@ -129,6 +145,16 @@ struct StructureGridItem: View {
                         .shadow(color: .white.opacity(1), radius: 1, x: 0, y: 0)
                         .padding(12)
                 }
+            }
+            
+            // Heart overlay for liked structures in virtual tour mode
+            if !appState.adventureModeEnabled && structure.isLiked {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .white.opacity(0.5), radius: 2)
+                    .shadow(color: .black.opacity(0.5), radius: 2)
+                    .padding(12)
             }
         }
         // Additional overlay for number + title, if you want
@@ -306,6 +332,136 @@ class ImageLoader: ObservableObject {
     
     func cancel() {
         cancellable?.cancel()
+    }
+}
+
+struct LikePromptView: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        Button(action: {
+            appState.activeFullScreenView = .ratings
+        }) {
+            HStack(spacing: 12) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.red.opacity(0.9), .pink.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Pick your favorites")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.red.opacity(0.9), .pink.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundStyle(.red.opacity(0.9))
+                    .shadow(color: .white.opacity(0.5), radius: 2)
+                    //.shadow(color: .black.opacity(0.5), radius: 4)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    .red.opacity(0.15),
+                                    .pink.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.6),
+                                .white.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(
+                color: .red.opacity(0.15),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
+        }
+    }
+}
+
+struct ProgressPromptView: View {
+    private let horizontalPadding: CGFloat = 25 // Match grid padding
+    private let internalPadding: CGFloat = 15
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ProgressBar(width: UIScreen.main.bounds.width - (horizontalPadding * 2) - (internalPadding * 2))
+        }
+        .padding(.vertical, 15)
+        .padding(.horizontal, internalPadding)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "FF8C00").opacity(0.35),
+                                Color(hex: "FFD700").opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(0.6),
+                            .white.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+        )
+        .shadow(
+            color: Color(hex: "FF8C00").opacity(0.15),
+            radius: 8,
+            x: 0,
+            y: 4
+        )
+        .padding(.horizontal, horizontalPadding) 
     }
 }
 
