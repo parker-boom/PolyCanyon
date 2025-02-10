@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ContentView from "./AppView"; // This is your existing poly canyon flow with all providers.
-import DVAppView from "./DesignVillage/DVAppView";   // The static Design Village branch.
+import ContentView from "../AppView";
+import DVAppView from "./DesignVillage/DVAppView"; // The static Design Village branch.
 import DVDecisionPrompt from "./DVDecision";
 
 // Define the event window: April 25 (00:00) to April 28 (00:00)
@@ -11,7 +11,7 @@ const eventStartDate = new Date("2025-04-25T00:00:00");
 const eventEndDate = new Date("2025-04-28T00:00:00");
 
 const RootRouter = () => {
-  // designVillageMode: 
+  // designVillageMode:
   //    true  => DV mode,
   //    false => Poly Canyon,
   //    null  => decision pending (existing user during event window).
@@ -27,7 +27,9 @@ const RootRouter = () => {
         await AsyncStorage.setItem("designVillageModeOverride", "false");
       } else {
         // Within the event window.
-        const override = await AsyncStorage.getItem("designVillageModeOverride");
+        const override = await AsyncStorage.getItem(
+          "designVillageModeOverride"
+        );
         if (override !== null) {
           setDesignVillageMode(override === "true");
         } else {
@@ -64,7 +66,10 @@ const RootRouter = () => {
       <DVDecisionPrompt
         onDecision={(choice) => {
           setDesignVillageMode(choice);
-          AsyncStorage.setItem("designVillageModeOverride", choice ? "true" : "false");
+          AsyncStorage.setItem(
+            "designVillageModeOverride",
+            choice ? "true" : "false"
+          );
         }}
       />
     );

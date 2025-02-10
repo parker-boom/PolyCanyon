@@ -39,7 +39,7 @@ const OnboardingView = ({ onComplete }) => {
     requestLocationPermission,
     getDistanceToCanyon,
     isWithinCanyon,
-    currentLocation,
+    fetchCurrentLocation,
   } = useLocationService();
   const { updateAdventureMode } = useAdventureMode();
   const { setSelectedStructure } = useAppState();
@@ -55,29 +55,46 @@ const OnboardingView = ({ onComplete }) => {
 
   // Handle location permission and determine if Adventure Mode is recommended
   const handleLocationPermission = async () => {
-    const permissionGranted = await requestLocationPermission(true);
+    const permissionGranted = await requestLocationPermission(false);
     setHasLocationPermission(permissionGranted);
 
-    if (permissionGranted && currentLocation) {
-      console.log("Using LocationService position:", currentLocation);
-      if (isWithinCanyon(currentLocation.coords)) {
-        console.log("User is in canyon");
-        setLocationState(OnboardingLocationState.VISITING);
-      } else {
-        const distance = getDistanceToCanyon(currentLocation.coords);
-        console.log("Distance to canyon:", distance);
-        if (distance <= DISTANCE_THRESHOLDS.ONBOARDING_RECOMMENDATION) {
-          console.log("User is within 30 miles");
-          setLocationState(OnboardingLocationState.NOT_VISITING);
+    if (permissionGranted) {
+      try {
+        // Use the one‑off fetch function to get the location now:
+        const location = await fetchCurrentLocation();
+        console.log("Fetched location for onboarding:", location);
+        if (location && isWithinCanyon(location.coords)) {
+          console.log("User is in canyon");
+          setLocationState(OnboardingLocationState.VISITING);
+        } else if (location) {
+          const distance = getDistanceToCanyon(location.coords);
+          console.log("Distance to canyon:", distance);
+          if (distance <= DISTANCE_THRESHOLDS.ONBOARDING_RECOMMENDATION) {
+            console.log("User is within 30 miles");
+            setLocationState(OnboardingLocationState.NOT_VISITING);
+          } else {
+            console.log("User is far away");
+            setLocationState(OnboardingLocationState.NOT_COMING);
+          }
         } else {
-          console.log("User is far away");
-          setLocationState(OnboardingLocationState.NOT_COMING);
+          console.log("No location returned");
+          setLocationState(OnboardingLocationState.NO_LOCATION);
         }
+      } catch (error) {
+        console.error("Error fetching location during onboarding:", error);
+        setLocationState(OnboardingLocationState.NO_LOCATION);
       }
     } else {
-      console.log("No location available or permission denied");
+      console.log("Permission denied for location");
       setLocationState(OnboardingLocationState.NO_LOCATION);
     }
+  };
+
+  // Add a separate handler for background permission
+  const handleBackgroundPermission = async () => {
+    const backgroundPermissionGranted = await requestLocationPermission(true);
+    // You can handle the result if needed
+    return backgroundPermissionGranted;
   };
 
   // Complete onboarding and save Adventure Mode preference
@@ -95,13 +112,6 @@ const OnboardingView = ({ onComplete }) => {
     await AsyncStorage.setItem("isFirstLaunchV2", "false");
     onComplete();
   };
-
-  // Add this near the top of the component
-  useEffect(() => {
-    if (hasLocationPermission) {
-      handleLocationPermission(); // This will update the location state
-    }
-  }, [hasLocationPermission]);
 
   // Render individual slides
   const renderWelcomeSlide = () => (
@@ -126,10 +136,7 @@ const OnboardingView = ({ onComplete }) => {
       </Text>
       {!hasLocationPermission
         ? renderNavigationButton("Enable Location", handleLocationPermission)
-        : renderNavigationButton("Next", async () => {
-            await handleLocationPermission(); // Re-check location
-            setCurrentPage(2);
-          })}
+        : renderNavigationButton("Next", () => setCurrentPage(2))}
     </View>
   );
 
@@ -202,7 +209,7 @@ const OnboardingView = ({ onComplete }) => {
               styles.backgroundLocationButton,
               { backgroundColor: adventureModeColor },
             ]}
-            onPress={() => requestLocationPermission(true)}
+            onPress={handleBackgroundPermission}
           >
             <Ionicons
               name="location"

@@ -1,7 +1,7 @@
 // App.js
 import React from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
-import RootRouter from "./src/RootRouter";
+import RootRouter from "./src/routing/RootRouter";
 
 const App = () => {
   return (

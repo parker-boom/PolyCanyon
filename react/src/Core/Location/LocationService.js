@@ -85,14 +85,17 @@ export const LocationServiceProvider = ({ children }) => {
     loadMapPoints();
   }, []);
 
+  // *** CHANGED: Only start tracking if onboarding is complete ***
   useEffect(() => {
+    if (!isOnboardingCompleted) return; // do not auto-request permissions during onboarding
     if (!adventureMode) {
       stopLocationTracking();
       setTrackingState(TrackingState.INACTIVE);
     } else {
       startAppropriateTracking();
     }
-  }, [adventureMode]);
+  }, [adventureMode, isOnboardingCompleted]);
+  // *** END CHANGE ***
 
   // Maps structure numbers to their corresponding map points, adjusting for 0-based array indexing
   const getMapPointForStructure = (structureNumber) => {
@@ -149,26 +152,31 @@ export const LocationServiceProvider = ({ children }) => {
         return true;
       }
 
+      // Always request fine location first
       const fineLocation = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
           title: "Location Access Required",
-          message: "This app needs to access your location",
+          message: requestBackground
+            ? "Enable background location to auto-track your visited structures"
+            : "This app needs to access your location to show you nearby structures",
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
         }
       );
 
+      // Only request background location if specifically asked and fine location was granted
       if (
-        fineLocation === PermissionsAndroid.RESULTS.GRANTED &&
-        requestBackground
+        requestBackground &&
+        fineLocation === PermissionsAndroid.RESULTS.GRANTED
       ) {
         const backgroundLocation = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
           {
-            title: "Background Location Access Required",
-            message: "This app needs to access your location in the background",
+            title: "Background Location Access",
+            message:
+              "Enable background location to auto-track your visited structures while exploring the canyon",
             buttonNeutral: "Ask Me Later",
             buttonNegative: "Cancel",
             buttonPositive: "OK",
@@ -218,6 +226,22 @@ export const LocationServiceProvider = ({ children }) => {
     return inBounds;
   };
 
+  const fetchCurrentLocation = () => {
+    return new Promise((resolve, reject) => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation(position);
+          resolve(position);
+        },
+        (error) => {
+          console.error("Error fetching current location:", error);
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    });
+  };
+
   const getDistanceToCanyon = (coordinate) => {
     return calculateDistance(coordinate, CANYON_CENTER);
   };
@@ -259,7 +283,6 @@ export const LocationServiceProvider = ({ children }) => {
   };
 
   const startAppropriateTracking = async () => {
-    if (!adventureMode) return;
     if (!adventureMode) return;
 
     const hasPermission = await requestLocationPermission(false);
@@ -406,6 +429,7 @@ export const LocationServiceProvider = ({ children }) => {
     stopLocationTracking,
     isWithinCanyon,
     getDistanceToCanyon,
+    fetchCurrentLocation,
   };
 
   return (

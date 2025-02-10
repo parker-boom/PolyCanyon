@@ -14,20 +14,14 @@ const STORAGE_KEYS = {
 export const AppStateProvider = ({ children }) => {
   // Visited structures
   const [visitedStructures, setVisitedStructures] = useState([]);
-  const [mapStyle, setMapStyle] = useState("standard"); // "standard" or "satellite"
-
-  // New state for map numbers: true = show numbers, false = no numbers
+  const [mapStyle, setMapStyle] = useState("standard");
   const [mapShowNumbers, setMapShowNumbers] = useState(true);
 
   // Structure and popup management
   const [visitedPopupVisible, setVisitedPopupVisible] = useState(false);
   const [selectedStructure, setSelectedStructure] = useState(null);
-
-  // Mode selection popup management
   const [isModeSelectionVisible, setIsModeSelectionVisible] = useState(false);
-
-  // Onboarding management
-  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(true); // Default to true
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
 
   // Load saved state on mount
   useEffect(() => {
@@ -44,9 +38,9 @@ export const AppStateProvider = ({ children }) => {
       const savedMapStyle = await AsyncStorage.getItem(STORAGE_KEYS.MAP_STYLE);
       if (savedMapStyle) setMapStyle(savedMapStyle);
 
-      // (Optional: load mapShowNumbers if persisting)
-      // const savedMapNumbers = await AsyncStorage.getItem("mapNumbers");
-      // if (savedMapNumbers !== null) setMapShowNumbers(savedMapNumbers === "true");
+      const savedMapNumbers = await AsyncStorage.getItem("mapNumbers");
+      if (savedMapNumbers !== null)
+        setMapShowNumbers(savedMapNumbers === "true");
 
       // Load visited structures
       const savedVisitedStructures = await AsyncStorage.getItem(
@@ -61,7 +55,7 @@ export const AppStateProvider = ({ children }) => {
 
       // Load onboarding status
       const onboardingCompleted = await AsyncStorage.getItem("isFirstLaunchV2");
-      setIsOnboardingCompleted(onboardingCompleted === "false");
+      setIsOnboardingCompleted(onboardingCompleted === "true");
     } catch (error) {
       console.error("Error loading app state:", error);
     }
@@ -144,10 +138,14 @@ export const AppStateProvider = ({ children }) => {
     setIsModeSelectionVisible(false);
   };
 
+  // Updated onboarding setter that persists the new value.
   const handleSetIsOnboardingCompleted = async (value) => {
     setIsOnboardingCompleted(value);
     try {
-      await AsyncStorage.setItem("isFirstLaunchV2", value ? "false" : "true");
+      await AsyncStorage.setItem(
+        "onboardingCompleted",
+        value ? "true" : "false"
+      );
     } catch (error) {
       console.error("Error saving onboarding status:", error);
     }

@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import DetailView from "./Views/Detail/DetailView";
-import MapView from "./Views/Map/MapView";
-import SettingsView from "./Views/Settings/SettingView";
-import StructPopUp from "./Views/Shared/StructPopUp";
-import VisitedStructurePopup from "./Views/Shared/VisitedPopUp";
-import { useDarkMode } from "./Core/States/DarkMode";
-import { useDataStore } from "./Core/Data/DataStore";
-import { useAppState } from "./Core/States/AppState";
-import { useAdventureMode } from "./Core/States/AdventureMode";
-import ModeSelectionPopup from "./Views/Shared/ModeSelectionPopup";
+import DetailView from "./Detail/DetailView";
+import MapView from "./Map/MapView";
+import SettingsView from "./Settings/SettingView";
+import StructPopUp from "./Shared/StructPopUp";
+import VisitedStructurePopup from "./Shared/VisitedPopUp";
+import { useDarkMode } from "../Core/States/DarkMode";
+import { useDataStore } from "../Core/Data/DataStore";
+import { useAppState } from "../Core/States/AppState";
+import { useAdventureMode } from "../Core/States/AdventureMode";
+import ModeSelectionPopup from "./Shared/ModeSelectionPopup";
 import { useNavigation } from "@react-navigation/native";
-import TabBar from "./Views/Shared/TabBar";
-import VirtualTour from "./Views/Map/VirtualTour"; // NEW: Import VirtualTour
+import TabBar from "./Shared/TabBar";
+import VirtualTour from "./Map/VirtualTour";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
