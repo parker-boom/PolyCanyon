@@ -2,11 +2,12 @@ import SwiftUI
 
 struct DVAppView: View {
     @AppStorage("DVOnboardingComplete") var onboardingComplete: Bool = false
-
+    @Binding var designVillageMode: Bool
+    
     var body: some View {
         NavigationView {
             if onboardingComplete {
-                DVMain()
+                DVMain(designVillageMode: $designVillageMode)
             } else {
                 DVOnboarding()
             }
@@ -16,6 +17,6 @@ struct DVAppView: View {
 
 struct DVAppView_Previews: PreviewProvider {
     static var previews: some View {
-        DVAppView()
+        DVAppView(designVillageMode: .constant(true))
     }
 }

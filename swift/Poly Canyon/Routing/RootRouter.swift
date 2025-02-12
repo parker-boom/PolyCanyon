@@ -5,20 +5,27 @@ struct RootRouter: View {
     @Binding var designVillageMode: Bool?
     let eventStartDate: Date
     let eventEndDate: Date
+    
+    private var unwrappedDVMode: Binding<Bool> {
+        Binding(
+            get: { designVillageMode ?? true },
+            set: { designVillageMode = $0 }
+        )
+    }
 
     var body: some View {
         Group {
             if let dvMode = designVillageMode {
                 if dvMode {
                     // DV branch: Show the Design Village static app.
-                    DVAppView()
+                    DVAppView(designVillageMode: unwrappedDVMode)
                 } else {
                     // Poly Canyon branch: Use the container that instantiates heavy environment objects.
-                    PolyCanyonContainerView()
+                    PCContainerView()
                 }
             } else {
                 // For existing users during the event: Prompt them for their choice.
-                DVDecisionPromptView { userChoice in
+                DVPromptView { userChoice in
                     designVillageMode = userChoice
                     UserDefaults.standard.set(userChoice, forKey: "designVillageModeOverride")
                 }

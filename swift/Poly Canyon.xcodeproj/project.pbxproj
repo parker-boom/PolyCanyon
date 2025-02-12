@@ -37,6 +37,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB2EE6282D21E5EF0084365D /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
 		DB2EE64B2D21E6390084365D /* Core */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Core; sourceTree = "<group>"; };
+		DB697FF92D5C50D30005A847 /* Routing */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Routing; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 		D001C04C2BBE319100C532F2 /* Poly Canyon */ = {
 			isa = PBXGroup;
 			children = (
+				DB697FF92D5C50D30005A847 /* Routing */,
 				DB2EE64B2D21E6390084365D /* Core */,
 				DB2EE6282D21E5EF0084365D /* Views */,
 				D041D3172BC8A3870061E865 /* Poly-Canyon-Info.plist */,
@@ -119,6 +121,7 @@
 			fileSystemSynchronizedGroups = (
 				DB2EE6282D21E5EF0084365D /* Views */,
 				DB2EE64B2D21E6390084365D /* Core */,
+				DB697FF92D5C50D30005A847 /* Routing */,
 			);
 			name = "Poly Canyon";
 			packageProductDependencies = (

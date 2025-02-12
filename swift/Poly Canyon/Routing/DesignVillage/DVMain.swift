@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DVMain: View {
     @State private var selectedTab: Int = 0
+    @Binding var designVillageMode: Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -13,11 +14,9 @@ struct DVMain: View {
                 case 1:
                     DVMap()
                 case 2:
-                    DVPeople()
-                case 3:
                     DVSchedule()
-                case 4:
-                    DVSettings()
+                case 3:
+                    DVSettings(designVillageMode: $designVillageMode)
                 default:
                     DVInfo()
                 }
@@ -33,7 +32,7 @@ struct DVMain: View {
 
 struct DVMain_Previews: PreviewProvider {
     static var previews: some View {
-        DVMain()
+        DVMain(designVillageMode: .constant(true))
     }
 }
 
@@ -53,7 +52,7 @@ struct DVCustomTabBar: View {
                 .frame(height: 1)
             
             HStack(spacing: 0) {
-                ForEach(0..<5) { index in
+                ForEach(0..<4) { index in
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             selectedTab = index
@@ -101,9 +100,8 @@ struct DVCustomTabBar: View {
         switch index {
         case 0: return "info.circle.fill"
         case 1: return "map.fill"
-        case 2: return "person.3.fill"
-        case 3: return "clock.fill"
-        case 4: return "gearshape.fill"
+        case 2: return "clock.fill"
+        case 3: return "gearshape.fill"
         default: return ""
         }
     }
@@ -160,6 +158,7 @@ private struct DVTabIcon: View {
                 }
             }
             .scaleEffect(isSelected ? 1.15 : 1.0)
+            .padding(.bottom, 20)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 }
