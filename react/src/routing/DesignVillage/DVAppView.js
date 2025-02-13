@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DVOnboarding from "./DVOnboarding";
 import DVMain from "./DVMain";
 
-const DVAppView = () => {
+const DVAppView = ({ setDesignVillageMode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
@@ -12,9 +12,7 @@ const DVAppView = () => {
     const checkOnboardingStatus = async () => {
       try {
         const status = await AsyncStorage.getItem("DVOnboardingComplete");
-        if (status === "true") {
-          setOnboardingComplete(true);
-        }
+        setOnboardingComplete(status === "true");
       } catch (error) {
         console.error("Error fetching onboarding status:", error);
       } finally {
@@ -42,7 +40,7 @@ const DVAppView = () => {
   }
 
   return onboardingComplete ? (
-    <DVMain />
+    <DVMain setDesignVillageMode={setDesignVillageMode} />
   ) : (
     <DVOnboarding onComplete={handleOnboardingComplete} />
   );
