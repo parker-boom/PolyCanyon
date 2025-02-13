@@ -1,6 +1,6 @@
 # Poly Canyon App
 ## Explore Like Never Before
-![Poly Canyon Logo](path/to/logo.png)
+<img src="promotional/graphics/OGDefault.png" width="45%" />
 
 Welcome to the Poly Canyon App – a digital guide designed to help you experience Poly Canyon like never before. Whether you’re wandering through the canyon in person or exploring from afar, this app is your companion in uncovering the hidden stories behind these remarkable structures.
 
@@ -11,8 +11,7 @@ The app is avaliable for free on:
 ---
 
 ### What is Poly Canyon?
-
-![Poly Canyon Photo](path/to/logo.png)
+<img src="assets/photos/Main/M-10.jpg" width="35%" />
 
 Poly Canyon is a landmark of creativity and history at Cal Poly. Over the decades, student-built structures have turned this outdoor space into a living mosaic of art and architecture. However, as time has passed, many of these structures have faded away or fallen into disrepair, and with them, much of their story has become lost. The Poly Canyon App brings these stories back to life by guiding you through the canyon’s rich history. It’s built both to augment your on-site exploration and to provide a meaningful virtual experience if you’re not nearby.
 
@@ -26,11 +25,12 @@ Imagine stepping into Poly Canyon. In Adventure Mode, the app does the following
 - Notifies you when you do visit and allows you to learn more
 - Shows your location on a live up-to-date interactive map
 The app truly augments exploration of the canyon by providing navigational peace of mind and deep historical information.
-![In-Person Demo](path/to/in-person-demo.gif)
+<img src="promotional/appleGIF.gif" width="25%" />
 
 #### Virtual Visits
 Not in the canyon? The Virtual Tour Mode offers a guided digital walkthrough of Poly Canyon’s highlights. You can explore at your own pace, like your favorite spots, and dive into detailed narratives that bring the canyon’s legacy to life.
-![Virtual Tour Demo](path/to/virtual-tour-demo.gif)
+
+
 
 ---
 
