@@ -4,29 +4,33 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DVOnboarding from "./DVOnboarding";
 import DVMain from "./DVMain";
 
-const DVAppView = () => {
+const DVAppView = ({ setDesignVillageMode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const initializeApp = async () => {
       try {
-        const status = await AsyncStorage.getItem("DVOnboardingComplete");
-        if (status === "true") {
-          setOnboardingComplete(true);
-        }
+        const [status, role] = await Promise.all([
+          AsyncStorage.getItem("DVOnboardingComplete"),
+          AsyncStorage.getItem("DVUserRole"),
+        ]);
+        setOnboardingComplete(status === "true");
+        setUserRole(role || "visitor");
       } catch (error) {
-        console.error("Error fetching onboarding status:", error);
+        console.error("Error fetching app state:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    checkOnboardingStatus();
+    initializeApp();
   }, []);
 
-  const handleOnboardingComplete = async () => {
+  const handleOnboardingComplete = async (selectedRole) => {
     try {
       await AsyncStorage.setItem("DVOnboardingComplete", "true");
+      setUserRole(selectedRole);
       setOnboardingComplete(true);
     } catch (error) {
       console.error("Error setting onboarding complete:", error);
@@ -42,7 +46,11 @@ const DVAppView = () => {
   }
 
   return onboardingComplete ? (
-    <DVMain />
+    <DVMain
+      setDesignVillageMode={setDesignVillageMode}
+      userRole={userRole}
+      setUserRole={setUserRole}
+    />
   ) : (
     <DVOnboarding onComplete={handleOnboardingComplete} />
   );

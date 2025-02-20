@@ -1,27 +1,35 @@
 // src/DVDecisionPrompt.js
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 
 const DVDecisionPrompt = ({ onDecision }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Limited Time Event!</Text>
-      <Text style={styles.message}>
-        Design Village is live this weekend. Would you like to check it out?
-      </Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.noButton]}
-          onPress={() => onDecision(false)}
-        >
-          <Text style={styles.buttonText}>No</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.yesButton]}
-          onPress={() => onDecision(true)}
-        >
-          <Text style={styles.buttonText}>Yes</Text>
-        </TouchableOpacity>
+      <View style={styles.content}>
+        <Image
+          source={require("./DesignVillage/Images/DVLogo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Design Village Weekend</Text>
+        <Text style={styles.message}>Are you here celebrating?</Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.noButton]}
+            onPress={() => onDecision(false)}
+          >
+            <Text style={[styles.buttonText, styles.noButtonText]}>No</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.yesButton]}
+            onPress={() => onDecision(true)}
+          >
+            <Text style={styles.buttonText}>Yes</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.footnote}>
+          Selecting yes will transform your app, but you can switch back anytime
+        </Text>
       </View>
     </View>
   );
@@ -30,37 +38,68 @@ const DVDecisionPrompt = ({ onDecision }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  content: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
+    maxWidth: 500,
+    alignSelf: "center",
+    width: "100%",
+  },
+  logo: {
+    width: "70%",
+    height: 120,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: "800",
+    marginBottom: 24,
+    color: "#1a1a1a",
+    textAlign: "center",
   },
   message: {
-    fontSize: 16,
+    fontSize: 24,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 32,
+    color: "#333333",
   },
   buttonContainer: {
     flexDirection: "row",
+    gap: 16,
+    marginBottom: 32,
   },
   button: {
-    padding: 10,
-    borderRadius: 8,
-    marginHorizontal: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    minWidth: 120,
+    alignItems: "center",
   },
   noButton: {
-    backgroundColor: "gray",
+    backgroundColor: "#f5f5f5",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
   },
   yesButton: {
-    backgroundColor: "blue",
+    backgroundColor: "#007AFF",
   },
   buttonText: {
-    color: "white",
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
+  noButtonText: {
+    color: "#666666",
+  },
+  footnote: {
+    fontSize: 14,
+    textAlign: "center",
+    color: "#666666",
+    maxWidth: "80%",
   },
 });
 
