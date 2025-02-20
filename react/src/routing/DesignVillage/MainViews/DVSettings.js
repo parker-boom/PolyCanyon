@@ -67,22 +67,6 @@ const DVSettings = ({ setDesignVillageMode }) => {
           </View>
         </TouchableOpacity>
 
-        {/* Updated Rules Button */}
-        <TouchableOpacity
-          style={styles.rulesButton}
-          onPress={() => setShowRulesPopup(true)}
-        >
-          <View style={styles.rulesButtonContent}>
-            <Ionicons name="alert-circle" size={24} style={styles.rulesIcon} />
-            <Text style={styles.rulesText}>Revisit the Rules</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              style={styles.rulesChevron}
-            />
-          </View>
-        </TouchableOpacity>
-
         {/* Divider */}
         <View style={styles.divider} />
 

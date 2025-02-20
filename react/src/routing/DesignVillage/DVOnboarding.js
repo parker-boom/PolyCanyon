@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import images (using the images for slide 1 and 4)
 // Make sure these paths are correct in your project.
@@ -39,9 +40,14 @@ const DVOnboarding = ({ onComplete }) => {
     }
   };
 
-  const completeOnboarding = () => {
-    setOnboardingComplete(true);
-    onComplete();
+  const completeOnboarding = async () => {
+    try {
+      await AsyncStorage.setItem("DVUserRole", selectedRole);
+      setOnboardingComplete(true);
+      onComplete(selectedRole);
+    } catch (error) {
+      console.error("Error saving user role:", error);
+    }
   };
 
   if (onboardingComplete) {
@@ -154,6 +160,26 @@ const DVOverviewSlide = ({ onNext, onBack }) => {
   );
 };
 
+// A callout component for important messages
+const DVCallout = ({ text }) => {
+  return (
+    <View style={styles.calloutContainer}>
+      <Text style={styles.calloutIcon}>📋</Text>
+      <Text style={styles.calloutText}>{text}</Text>
+    </View>
+  );
+};
+
+// A compact rule row specifically for competitor rules
+const DVCompactRuleRow = ({ icon, text }) => {
+  return (
+    <View style={styles.compactRuleRow}>
+      <Text style={styles.compactRuleIcon}>{icon}</Text>
+      <Text style={styles.compactRuleText}>{text}</Text>
+    </View>
+  );
+};
+
 // Slide 3: Rules (with a two-stage experience)
 const DVRulesSlide = ({ selectedRole, setSelectedRole, onNext, onBack }) => {
   const [hasSelectedRole, setHasSelectedRole] = useState(false);
@@ -167,15 +193,18 @@ const DVRulesSlide = ({ selectedRole, setSelectedRole, onNext, onBack }) => {
   const getRoleRules = (role) => {
     if (role === DVRole.COMPETITOR) {
       return [
-        { icon: "⚠️", text: "Follow safety guidelines" },
-        { icon: "⏰", text: "Check in on time" },
-        { icon: "👥", text: "Stay with your team" },
+        { icon: "🏠", text: "Build a stable shelter" },
+        { icon: "🌿", text: "Preserve the site" },
+        { icon: "📝", text: "Submit documentation" },
+        { icon: "🌙", text: "Stay overnight" },
+        { icon: "⚠️", text: "Follow safety rules" },
       ];
     } else {
       return [
-        { icon: "✋", text: "Respect structures" },
-        { icon: "📸", text: "Photos welcome" },
-        { icon: "🚶‍♀️", text: "Stay on paths" },
+        { icon: "👥", text: "Follow event staff guidance" },
+        { icon: "🚶‍♂️", text: "Stay in visitor areas" },
+        { icon: "🏗️", text: "Respect competitor spaces" },
+        { icon: "✨", text: "Keep a safe distance" },
       ];
     }
   };
@@ -211,13 +240,35 @@ const DVRulesSlide = ({ selectedRole, setSelectedRole, onNext, onBack }) => {
         ) : (
           <>
             <Text style={styles.rulesSelected}>
-              As a{" "}
-              {selectedRole === DVRole.COMPETITOR ? "Competitor" : "Visitor"}
+              {selectedRole === DVRole.COMPETITOR
+                ? "Competitor Rules"
+                : "Visitor Guidelines"}
             </Text>
-            <View style={styles.featureList}>
-              {getRoleRules(selectedRole).map((rule, index) => (
-                <DVFeatureRow key={index} icon={rule.icon} text={rule.text} />
-              ))}
+            <View style={styles.rulesContainer}>
+              {selectedRole === DVRole.COMPETITOR ? (
+                <>
+                  <View style={styles.compactRulesList}>
+                    {getRoleRules(selectedRole).map((rule, index) => (
+                      <DVCompactRuleRow
+                        key={index}
+                        icon={rule.icon}
+                        text={rule.text}
+                      />
+                    ))}
+                  </View>
+                  <DVCallout text="Visit the Rules tab for complete competition guidelines. All rules must be followed to participate." />
+                </>
+              ) : (
+                <View style={styles.featureList}>
+                  {getRoleRules(selectedRole).map((rule, index) => (
+                    <DVFeatureRow
+                      key={index}
+                      icon={rule.icon}
+                      text={rule.text}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
           </>
         )}
@@ -444,33 +495,29 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   featureList: {
-    alignSelf: "stretch",
     width: "100%",
-    paddingHorizontal: 40,
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 15,
-    width: "90%",
-    alignSelf: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    marginVertical: 12,
+    width: "100%",
+    paddingHorizontal: 30,
   },
   featureIcon: {
     fontSize: 34,
-    opacity: 1,
     width: 45,
     textAlign: "center",
-    flexShrink: 0,
+    marginRight: 15,
   },
   featureText: {
-    fontSize: 26,
+    flex: 1,
+    fontSize: 24,
     fontWeight: "600",
     color: "black",
-    marginLeft: 15,
-    flex: 1,
-    flexShrink: 1,
-    maxWidth: "85%",
   },
   rulesQuestion: {
     fontSize: 32,
@@ -517,11 +564,38 @@ const styles = StyleSheet.create({
     color: "white",
   },
   rulesSelected: {
-    fontSize: 38,
+    fontSize: 32,
     fontWeight: "bold",
     color: "black",
-    marginBottom: 40,
+    marginBottom: 25,
     textAlign: "center",
+  },
+  rulesContainer: {
+    width: "100%",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  compactRulesList: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  compactRuleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+    width: "100%",
+  },
+  compactRuleIcon: {
+    fontSize: 24,
+    width: 40,
+    textAlign: "center",
+  },
+  compactRuleText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "black",
+    marginLeft: 12,
   },
   polyTitle: {
     fontSize: 38,
@@ -624,6 +698,27 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: "rgba(128,128,128,0.5)",
+  },
+  calloutContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.05)",
+    padding: 16,
+    borderRadius: 16,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.1)",
+  },
+  calloutIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  calloutText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "black",
+    lineHeight: 24,
   },
 });
 

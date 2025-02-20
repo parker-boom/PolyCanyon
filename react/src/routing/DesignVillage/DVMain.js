@@ -1,28 +1,40 @@
 // DVMain.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import DVInfo from "./MainViews/DVInfo";
 import DVMap from "./MainViews/DVMap";
 import DVSchedule from "./MainViews/DVSchedule";
 import DVSettings from "./MainViews/DVSettings";
+import DVRules from "./MainViews/DVRules";
 
-const DVMain = ({ setDesignVillageMode }) => {
+const DVMain = ({ setDesignVillageMode, userRole, setUserRole }) => {
   const [activeTab, setActiveTab] = useState("DVInfo");
 
-  // Removed DVPeople from the tabs.
+  // Handle role changes
+  const handleRoleChange = async (newRole) => {
+    try {
+      await AsyncStorage.setItem("DVUserRole", newRole);
+      setUserRole(newRole);
+    } catch (error) {
+      console.error("Error saving user role:", error);
+    }
+  };
+
   const tabs = [
     { name: "DVInfo", icon: "information-circle" },
     { name: "DVMap", icon: "map" },
     { name: "DVSchedule", icon: "calendar" },
+    { name: "DVRules", icon: "warning" },
     { name: "DVSettings", icon: "settings" },
   ];
 
-  // Header configuration for each tab (using the Info header design as inspiration)
   const headerConfig = {
     DVInfo: { title: "Info", icon: "information-circle" },
     DVMap: { title: "Map", icon: "map" },
     DVSchedule: { title: "Schedule", icon: "calendar" },
+    DVRules: { title: "Rules", icon: "warning" },
     DVSettings: { title: "Settings", icon: "settings" },
   };
 
@@ -34,6 +46,8 @@ const DVMain = ({ setDesignVillageMode }) => {
         return <DVMap />;
       case "DVSchedule":
         return <DVSchedule />;
+      case "DVRules":
+        return <DVRules userRole={userRole} setUserRole={handleRoleChange} />;
       case "DVSettings":
         return <DVSettings setDesignVillageMode={setDesignVillageMode} />;
       default:

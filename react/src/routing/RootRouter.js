@@ -76,10 +76,10 @@ const RootRouter = () => {
   }
 
   // Render the appropriate branch.
-  return designVillageMode ? (
+  return !designVillageMode ? (
     <DVAppView setDesignVillageMode={setDesignVillageMode} />
   ) : (
-    <DVAppView setDesignVillageMode={setDesignVillageMode} />
+    <ContentView />
   );
 };
 
