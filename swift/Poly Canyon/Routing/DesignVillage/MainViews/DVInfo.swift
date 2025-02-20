@@ -37,6 +37,8 @@ struct DVInfo: View {
             HStack {
                 Text("Info")
                     .font(.system(size: 32, weight: .bold))
+
+                Spacer()
                 Image(systemName: "info.circle.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(
@@ -50,7 +52,7 @@ struct DVInfo: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
             .padding(.top, 10)
-            .padding(.bottom, 5)
+            .padding(.bottom, 10)
         }
         .frame(height: 50)
         .padding(.bottom, 5)

@@ -3,6 +3,7 @@ import SwiftUI
 struct DVMain: View {
     @State private var selectedTab: Int = 0
     @Binding var designVillageMode: Bool
+    @Binding var userRole: DVRole
     
     var body: some View {
         VStack(spacing: 0) {
@@ -16,6 +17,8 @@ struct DVMain: View {
                 case 2:
                     DVSchedule()
                 case 3:
+                    DVRules(userRole: $userRole)
+                case 4:
                     DVSettings(designVillageMode: $designVillageMode)
                 default:
                     DVInfo()
@@ -32,7 +35,7 @@ struct DVMain: View {
 
 struct DVMain_Previews: PreviewProvider {
     static var previews: some View {
-        DVMain(designVillageMode: .constant(true))
+        DVMain(designVillageMode: .constant(true), userRole: .constant(.visitor))
     }
 }
 
@@ -52,7 +55,7 @@ struct DVCustomTabBar: View {
                 .frame(height: 1)
             
             HStack(spacing: 0) {
-                ForEach(0..<4) { index in
+                ForEach(0..<5) { index in
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             selectedTab = index
@@ -101,7 +104,8 @@ struct DVCustomTabBar: View {
         case 0: return "info.circle.fill"
         case 1: return "map.fill"
         case 2: return "clock.fill"
-        case 3: return "gearshape.fill"
+        case 3: return "list.bullet.clipboard.fill"
+        case 4: return "gearshape.fill"
         default: return ""
         }
     }

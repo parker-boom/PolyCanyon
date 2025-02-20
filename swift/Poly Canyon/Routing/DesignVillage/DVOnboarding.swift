@@ -3,7 +3,7 @@ import SwiftUI
 struct DVOnboarding: View {
     @AppStorage("DVOnboardingComplete") var onboardingComplete: Bool = false
     @State private var currentSlide: Int = 0
-    @State private var selectedRole: DVRole = .visitor
+    @Binding var userRole: DVRole
     
     private let totalSlides = 5
     
@@ -17,7 +17,7 @@ struct DVOnboarding: View {
                     .tag(1)
                 
                 DVRulesSlide(
-                    selectedRole: $selectedRole,
+                    selectedRole: $userRole,
                     onNext: goToNextSlide,
                     onBack: goToPreviousSlide
                 )
@@ -63,7 +63,7 @@ struct DVOnboarding: View {
     }
 }
 
-enum DVRole {
+enum DVRole: String {
     case visitor
     case competitor
 }
@@ -98,7 +98,7 @@ struct DVWelcomeSlide: View {
                 Image("DVLogo")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 200, height: 200)
+                    .frame(width: 250, height: 150)
                     .cornerRadius(40)
                     .padding(.bottom, 30)
                     .shadow(color: .black.opacity(0.4), radius: 15)
@@ -131,12 +131,30 @@ struct DVOverviewSlide: View {
                     .padding(.bottom, 50)
                 
                 VStack(alignment: .leading, spacing: 30) {
-                    DVFeatureRow(icon: "map", text: "A Map of the area")
-                    DVFeatureRow(icon: "calendar", text: "Schedule for events")
-                    DVFeatureRow(icon: "info.circle", text: "Info on the history")
+                    OnboardingOverviewRow(icon: "map", text: "A Map of the area")
+                    OnboardingOverviewRow(icon: "calendar", text: "Schedule for events")
+                    OnboardingOverviewRow(icon: "info.circle", text: "Info on the history")
                 }
                 .padding(.horizontal)
             }
+        }
+    }
+}
+
+private struct OnboardingOverviewRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            Image(systemName: icon)
+                .font(.system(size: 30, weight: .bold))
+                .frame(width: 40)
+                .foregroundColor(.black)
+            
+            Text(text)
+                .font(.system(size: 24, weight: .medium))
+                .foregroundColor(.black)
         }
     }
 }
@@ -147,6 +165,34 @@ struct DVRulesSlide: View {
     let onBack: () -> Void
     
     @State private var hasSelectedRole = false
+    
+    private func competitorRules() -> [(emoji: String, text: String)] {
+        [
+            (emoji: "🏠", text: "Build a stable shelter"),
+            (emoji: "🌿", text: "Preserve the site"),
+            (emoji: "📝", text: "Submit documentation"),
+            (emoji: "🌙", text: "Stay overnight"),
+            (emoji: "⚠️", text: "Follow safety rules")
+        ]
+    }
+    
+    private func visitorRules() -> [(emoji: String, text: String)] {
+        [
+            (emoji: "👥", text: "Follow staff guidance"),
+            (emoji: "🚶‍♂️", text: "Stay in visitor areas"),
+            (emoji: "🏗️", text: "Respect competitor spaces"),
+            (emoji: "✨", text: "Keep a safe distance")
+        ]
+    }
+    
+    private func welcomeMessage(for role: DVRole) -> String {
+        switch role {
+        case .competitor:
+            return "Time to build something amazing!"
+        case .visitor:
+            return "Get ready to be inspired!"
+        }
+    }
     
     var body: some View {
         DVBaseSlide(
@@ -165,47 +211,151 @@ struct DVRulesSlide: View {
                         .padding(.bottom, 20)
                     
                     HStack(spacing: 20) {
-                        DVRoleButton(
+                        OnboardingRoleButton(
                             title: "Competitor",
-                            icon: "figure.walk",
+                            emoji: "🏃‍♂️",
                             isSelected: selectedRole == .competitor
                         ) {
-                            selectedRole = .competitor
-                            hasSelectedRole = true
+                            withAnimation {
+                                selectedRole = .competitor
+                                hasSelectedRole = true
+                            }
                         }
                         
-                        DVRoleButton(
+                        OnboardingRoleButton(
                             title: "Visitor",
-                            icon: "person.2",
+                            emoji: "👥",
                             isSelected: selectedRole == .visitor
                         ) {
-                            selectedRole = .visitor
-                            hasSelectedRole = true
+                            withAnimation {
+                                selectedRole = .visitor
+                                hasSelectedRole = true
+                            }
                         }
                     }
                     .padding(.horizontal)
                 } else {
-                    Text("As a \(selectedRole == .competitor ? "Competitor" : "Visitor")")
-                        .font(.system(size: 38))
-                        .foregroundColor(.black)
-                        .fontWeight(.bold)
-                        .padding(.bottom, 40)
+                    VStack(spacing: 16) {
+                        Text(selectedRole == .competitor ? "Competitor Rules" : "Visitor Guidelines")
+                            .font(.system(size: 38))
+                            .foregroundColor(.black)
+                            .fontWeight(.bold)
+                        
+                        Text(welcomeMessage(for: selectedRole))
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                            .padding(.bottom, 20)
+                    }
                     
-                    VStack(alignment: .leading, spacing: 30) {
-                        if selectedRole == .competitor {
-                            DVFeatureRow(icon: "exclamationmark.triangle", text: "Follow safety guidelines")
-                            DVFeatureRow(icon: "clock", text: "Check in on time")
-                            DVFeatureRow(icon: "person.2", text: "Stay with your team")
-                        } else {
-                            DVFeatureRow(icon: "hand.raised", text: "Respect structures")
-                            DVFeatureRow(icon: "camera", text: "Photos welcome")
-                            DVFeatureRow(icon: "figure.walk", text: "Stay on paths")
+                    if selectedRole == .competitor {
+                        VStack(spacing: 16) {
+                            ForEach(competitorRules(), id: \.text) { rule in
+                                OnboardingCompactRuleRow(emoji: rule.emoji, text: rule.text)
+                            }
+                            
+                            OnboardingCallout(text: "Visit Rules tab for complete guidelines.")
+                                .padding(.top, 20)
+                        }
+                    } else {
+                        VStack(spacing: 24) {
+                            ForEach(visitorRules(), id: \.text) { rule in
+                                OnboardingFeatureRow(emoji: rule.emoji, text: rule.text)
+                            }
                         }
                     }
-                    .padding(.horizontal)
                 }
             }
+            .padding(.horizontal)
         }
+    }
+}
+
+// MARK: - Onboarding-specific Components
+
+private struct OnboardingRoleButton: View {
+    let title: String
+    let emoji: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 20) {
+                Text(emoji)
+                    .font(.system(size: 50))
+                
+                Text(title)
+                    .font(.system(size: 22, weight: .bold))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 160)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(isSelected ? Color.black : Color.gray.opacity(0.2))
+            )
+            .foregroundColor(isSelected ? .white : .black)
+        }
+    }
+}
+
+private struct OnboardingCompactRuleRow: View {
+    let emoji: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(emoji)
+                .font(.system(size: 24))
+                .frame(width: 32)
+            
+            Text(text)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(.black)
+            
+            Spacer()
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(0.1))
+        )
+    }
+}
+
+private struct OnboardingFeatureRow: View {
+    let emoji: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            Text(emoji)
+                .font(.system(size: 32))
+                .frame(width: 40)
+            
+            Text(text)
+                .font(.system(size: 24, weight: .medium))
+                .foregroundColor(.black)
+        }
+    }
+}
+
+private struct OnboardingCallout: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(.black.opacity(0.8))
+            .multilineTextAlignment(.center)
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.yellow.opacity(0.2))
+            )
     }
 }
 
@@ -228,10 +378,10 @@ struct DVPolyCanyonSlide: View {
                     .lineSpacing(2)
                     .padding(.bottom, 10)
                 
-                Image("M-25")
+                Image("PCOverview")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 300, height: 200)
+                    .frame(minHeight: 200)
                     .cornerRadius(20)
                     .padding(.bottom, 20)
                 
@@ -312,6 +462,6 @@ struct DVFinalSlide: View {
 
 struct DVOnboarding_Previews: PreviewProvider {
     static var previews: some View {
-        DVOnboarding()
+        DVOnboarding(userRole: .constant(.visitor))
     }
 }

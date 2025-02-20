@@ -12,7 +12,6 @@ struct DVSettings: View {
             ScrollView {
                 VStack(spacing: 24) {
                     exploreButton
-                    rulesButton
                     
                     Divider()
                         .padding(.horizontal)
@@ -48,6 +47,8 @@ struct DVSettings: View {
             HStack {
                 Text("Settings")
                     .font(.system(size: 32, weight: .bold))
+
+                Spacer()
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(
@@ -61,7 +62,7 @@ struct DVSettings: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
             .padding(.top, 10)
-            .padding(.bottom, 5)
+            .padding(.bottom, 10)
         }
         .frame(height: 50)
         .padding(.bottom, 5)
@@ -72,7 +73,7 @@ struct DVSettings: View {
             showSwitchConfirmation = true
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                Image("M-25")
+                Image("PCOverview")
                     .resizable()
                     .scaledToFill()
                     .frame(height: 160)
@@ -94,30 +95,6 @@ struct DVSettings: View {
             .padding(.horizontal)
         }
     }
-    
-    private var rulesButton: some View {
-        Button {
-            showRulesPopup = true
-        } label: {
-            HStack {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 20, weight: .semibold))
-                Text("Revisit the Rules")
-                    .font(.system(size: 20, weight: .semibold))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 16, weight: .semibold))
-            }
-            .foregroundColor(.black)
-            .padding()
-            .frame(height: 72)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-            .padding(.horizontal)
-        }
-    }
-    
     private var socialSection: some View {
         HStack(spacing: 16) {
             Link(destination: URL(string: "https://www.instagram.com/designvillage.dwg/")!) {

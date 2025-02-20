@@ -119,15 +119,14 @@ struct DVOnboardingIndicator: View {
 }
 
 struct DVFeatureRow: View {
-    let icon: String
+    let emoji: String
     let text: String
     
     var body: some View {
         HStack(spacing: 15) {
-            Image(systemName: icon)
-                .font(.system(size: 30, weight: .bold))
+            Text(emoji)
+                .font(.system(size: 32))
                 .frame(width: 40)
-                .foregroundColor(.black)
             
             Text(text)
                 .font(.system(size: 24, weight: .medium))
@@ -138,16 +137,15 @@ struct DVFeatureRow: View {
 
 struct DVRoleButton: View {
     let title: String
-    let icon: String
+    let emoji: String
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 20) {
-                Image(systemName: icon)
-                    .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(isSelected ? .white : .black)
+                Text(emoji)
+                    .font(.system(size: 50))
                 
                 Text(title)
                     .font(.system(size: 22, weight: .bold))

@@ -31,7 +31,9 @@ struct DVSchedule: View {
             HStack {
                 Text("Schedule")
                     .font(.system(size: 32, weight: .bold))
-                Image(systemName: "calendar.circle.fill")
+
+                Spacer()
+                Image(systemName: "clock.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(
                         LinearGradient(
@@ -44,7 +46,7 @@ struct DVSchedule: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
             .padding(.top, 10)
-            .padding(.bottom, 5)
+            .padding(.bottom, 10)
         }
         .frame(height: 50)
         .padding(.bottom, 5)

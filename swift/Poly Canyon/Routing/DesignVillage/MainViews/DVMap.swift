@@ -31,6 +31,8 @@ struct DVMap: View {
             HStack {
                 Text("Map")
                     .font(.system(size: 32, weight: .bold))
+
+                Spacer()
                 Image(systemName: "map.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(
@@ -44,7 +46,7 @@ struct DVMap: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
             .padding(.top, 10)
-            .padding(.bottom, 5)
+            .padding(.bottom, 10)
         }
         .frame(height: 50)
         .padding(.bottom, 5)
