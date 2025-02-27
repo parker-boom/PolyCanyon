@@ -4,26 +4,26 @@ struct DVSettings: View {
     @Binding var designVillageMode: Bool
     @State private var showSwitchConfirmation = false
     @State private var showRulesPopup = false
+    @State private var showResetConfirmation = false
+    @State private var isChangeModeButtonPressed = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            
-            ScrollView {
-                VStack(spacing: 24) {
-                    exploreButton
-                    
-                    Divider()
-                        .padding(.horizontal)
-                    
-                    socialSection
-                    creditsSection
-                }
-                .padding(.top, 15)
-                .padding(.bottom, 40)
+        ScrollView {
+            VStack(spacing: 24) {
+                exploreButton
+                
+                Divider()
+                    .background(DVDesignSystem.Colors.divider)
+                    .padding(.horizontal)
+                
+                socialSection
+                creditsSection
+                
+                resetButton
             }
+            .padding(.top, 15)
+            .padding(.bottom, 40)
         }
-        .background(Color(white: 0.98))
         .sheet(isPresented: $showRulesPopup) {
             rulesPopupContent
         }
@@ -36,36 +36,15 @@ struct DVSettings: View {
         } message: {
             Text("Are you sure you want to switch? This will make your app the Poly Canyon experience. You can switch back in settings any time.")
         }
-    }
-    
-    private var header: some View {
-        ZStack(alignment: .bottom) {
-            Color.white
-                .ignoresSafeArea(edges: .top)
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-            
-            HStack {
-                Text("Settings")
-                    .font(.system(size: 32, weight: .bold))
-
-                Spacer()
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.black, Color.gray],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+        .alert("Reset Onboarding?", isPresented: $showResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Reset", role: .destructive) {
+                UserDefaults.standard.set(false, forKey: "DVOnboardingComplete")
+                UserDefaults.standard.set("visitor", forKey: "DVUserRole")
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
+        } message: {
+            Text("This will reset your onboarding progress and role selection. You'll need to go through the onboarding process again.")
         }
-        .frame(height: 50)
-        .padding(.bottom, 5)
     }
     
     private var exploreButton: some View {
@@ -73,64 +52,148 @@ struct DVSettings: View {
             showSwitchConfirmation = true
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                Image("PCOverview")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 160)
-                    .clipped()
+                ZStack(alignment: .bottom) {
+                    Image("PCOverview")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 160)
+                        .clipped()
+                        .overlay(
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    DVDesignSystem.Colors.text.opacity(0.5)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    
+                    Text("Poly Canyon")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 
                 HStack {
-                    Text("Explore the Canyon")
-                        .font(.system(size: 24, weight: .bold))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Explore the Canyon")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(DVDesignSystem.Colors.text)
+                        
+                        Text("Switch to the Poly Canyon experience")
+                            .font(.system(size: 14))
+                            .foregroundColor(DVDesignSystem.Colors.textSecondary)
+                    }
+                    
                     Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 20, weight: .semibold))
+                    
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    DVDesignSystem.Colors.orange,
+                                    DVDesignSystem.Colors.teal
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                 }
-                .foregroundColor(.black)
                 .padding()
             }
-            .background(Color.white)
+            .background(DVDesignSystem.Components.card())
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+            .scaleEffect(isChangeModeButtonPressed ? 0.98 : 1.0)
             .padding(.horizontal)
         }
-    }
-    private var socialSection: some View {
-        HStack(spacing: 16) {
-            Link(destination: URL(string: "https://www.instagram.com/designvillage.dwg/")!) {
-                HStack {
-                    Image("InstaIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                    Text("Instagram")
-                        .font(.system(size: 16, weight: .medium))
-                }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .frame(height: 60)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .pressAction {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isChangeModeButtonPressed = true
             }
-            
-            Link(destination: URL(string: "https://cpdesignvillage.wixstudio.com/designvillage/about")!) {
-                HStack {
-                    Image(systemName: "link")
-                        .font(.system(size: 20))
-                    Text("Website")
-                        .font(.system(size: 16, weight: .medium))
-                }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .frame(height: 60)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+        } onRelease: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isChangeModeButtonPressed = false
             }
         }
-        .padding(.horizontal)
-        .padding(.bottom, -8)
+    }
+    
+    private var socialSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            DVTitleWithShadow(
+                text: "Connect With Us",
+                font: .system(size: 20, weight: .bold)
+            )
+            .padding(.horizontal)
+            
+            HStack(spacing: 16) {
+                Link(destination: URL(string: "https://www.instagram.com/designvillage.dwg/")!) {
+                    HStack {
+                        Image("InstaIcon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Instagram")
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                    .foregroundColor(DVDesignSystem.Colors.text)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(DVDesignSystem.Colors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        DVDesignSystem.Colors.orange,
+                                        DVDesignSystem.Colors.teal
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 4, x: 0, y: 2)
+                }
+                
+                Link(destination: URL(string: "https://cpdesignvillage.wixstudio.com/designvillage/about")!) {
+                    HStack {
+                        Image(systemName: "link")
+                            .font(.system(size: 20))
+                        
+                        Text("Website")
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                    .foregroundColor(DVDesignSystem.Colors.text)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(DVDesignSystem.Colors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        DVDesignSystem.Colors.teal,
+                                        DVDesignSystem.Colors.orange
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 4, x: 0, y: 2)
+                }
+            }
+            .padding(.horizontal)
+        }
     }
     
     private var creditsSection: some View {
@@ -148,27 +211,29 @@ struct DVSettings: View {
             }
             
             VStack(spacing: 8) {
-                Text("Developed by Parker Jones")
-                    .font(.system(size: 16, weight: .medium))
+                DVTitleWithShadow(
+                    text: "Developed by Parker Jones",
+                    font: .system(size: 16, weight: .medium)
+                )
                 
                 Text("For CAED & Design Village")
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .foregroundColor(DVDesignSystem.Colors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+        .background(DVDesignSystem.Components.card())
         .padding(.horizontal)
     }
     
     private var rulesPopupContent: some View {
         VStack {
-            Text("Rules")
-                .font(.system(size: 28, weight: .bold))
-                .padding(.top, 40)
+            DVTitleWithShadow(
+                text: "Rules",
+                font: .system(size: 28, weight: .bold)
+            )
+            .padding(.top, 40)
             
             Spacer()
             
@@ -177,13 +242,58 @@ struct DVSettings: View {
             } label: {
                 Text("Close")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(DVDesignSystem.Colors.text)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(DVDesignSystem.Colors.yellow.opacity(0.2))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        DVDesignSystem.Colors.orange,
+                                        DVDesignSystem.Colors.teal
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
                     .padding()
             }
+        }
+        .nexusStyle()
+    }
+    
+    private var resetButton: some View {
+        Button {
+            showResetConfirmation = true
+        } label: {
+            HStack {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 20))
+                
+                Text("Reset Onboarding")
+                    .font(.system(size: 16, weight: .medium))
+            }
+            .foregroundColor(DVDesignSystem.Colors.red)
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+            .background(DVDesignSystem.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(
+                        DVDesignSystem.Colors.red.opacity(0.7),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 4, x: 0, y: 2)
+            .padding(.horizontal)
         }
     }
 }
@@ -191,5 +301,6 @@ struct DVSettings: View {
 struct DVSettings_Previews: PreviewProvider {
     static var previews: some View {
         DVSettings(designVillageMode: .constant(true))
+            .nexusStyle()
     }
 }

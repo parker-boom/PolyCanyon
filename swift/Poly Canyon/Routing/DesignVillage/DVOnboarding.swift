@@ -5,55 +5,49 @@ struct DVOnboarding: View {
     @State private var currentSlide: Int = 0
     @Binding var userRole: DVRole
     
-    private let totalSlides = 5
-    
     var body: some View {
-        ZStack(alignment: .top) {
-            TabView(selection: $currentSlide) {
-                DVWelcomeSlide(onNext: goToNextSlide)
-                    .tag(0)
-                
-                DVOverviewSlide(onNext: goToNextSlide, onBack: goToPreviousSlide)
-                    .tag(1)
-                
+        ZStack {
+            // Content slides
+            if currentSlide == 0 {
+                DVWelcomeSlide {
+                    currentSlide = 1
+                }
+            } else if currentSlide == 1 {
+                DVOverviewSlide(
+                    onNext: { currentSlide = 2 },
+                    onBack: { currentSlide = 0 }
+                )
+            } else if currentSlide == 2 {
                 DVRulesSlide(
                     selectedRole: $userRole,
-                    onNext: goToNextSlide,
-                    onBack: goToPreviousSlide
+                    onNext: { currentSlide = 3 },
+                    onBack: { currentSlide = 1 }
                 )
-                .tag(2)
-                
-                DVPolyCanyonSlide(onNext: goToNextSlide, onBack: goToPreviousSlide)
-                    .tag(3)
-                
+            } else if currentSlide == 3 {
+                DVPolyCanyonSlide(
+                    onNext: { currentSlide = 4 },
+                    onBack: { currentSlide = 2 }
+                )
+            } else if currentSlide == 4 {
                 DVFinalSlide(onComplete: completeOnboarding)
-                    .tag(4)
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .animation(.easeInOut, value: currentSlide)
-            .gesture(DragGesture().onChanged { _ in }.onEnded { _ in })
             
+            // Progress indicator
             if currentSlide < 4 {
-                DVOnboardingIndicator(
-                    totalStages: 5,
-                    currentStage: currentSlide
-                )
-                .padding(.top, 20)
+                VStack {
+                    DVOnboardingIndicator(
+                        totalStages: 5,
+                        currentStage: currentSlide
+                    )
+                    .padding(.top, 20)
+                    
+                    Spacer()
+                }
             }
         }
-        .ignoresSafeArea()
-    }
-    
-    private func goToNextSlide() {
-        withAnimation {
-            currentSlide += 1
-        }
-    }
-    
-    private func goToPreviousSlide() {
-        withAnimation {
-            currentSlide -= 1
-        }
+        .animation(.easeInOut, value: currentSlide)
+        .transition(.opacity)
+        .nexusStyle()
     }
     
     private func completeOnboarding() {
@@ -80,32 +74,43 @@ struct DVWelcomeSlide: View {
             VStack {
                 Text("Welcome to")
                     .font(.system(size: 32))
-                    .foregroundColor(.black)
+                    .foregroundColor(DVDesignSystem.Colors.text)
                     .fontWeight(.bold)
                 
                 Text("Design Village!")
-                    .font(.system(size: 50))
+                    .font(.system(size: 40, weight: .black))
+                    .tracking(1)
                     .foregroundStyle(
                         LinearGradient(
-                            gradient: Gradient(colors: [Color.black, Color.gray]),
+                            colors: [DVDesignSystem.Colors.text, DVDesignSystem.Colors.textSecondary],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .fontWeight(.bold)
                     .padding(.bottom, 15)
                 
                 Image("DVLogo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 250, height: 150)
-                    .cornerRadius(40)
-                    .padding(.bottom, 30)
-                    .shadow(color: .black.opacity(0.4), radius: 15)
+                    .cornerRadius(20)
+                    .padding(.bottom, 0)
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 15)
+                
+                VStack(spacing: 15) {
+                    Text("NEXUS")
+                        .font(.system(size: 34, weight: .black))
+                        .tracking(8)
+                        .foregroundColor(DVDesignSystem.Colors.text)
+                    
+                    DVDesignSystem.Effects.accentLine()
+                        .frame(width: 200)
+                }
+                .padding(.bottom, 30)
                 
                 Text("Let's get you oriented.")
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.black.opacity(0.8))
+                    .foregroundColor(DVDesignSystem.Colors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 30)
             }
@@ -124,37 +129,19 @@ struct DVOverviewSlide: View {
             onBack: onBack
         ) {
             VStack {
-                Text("The DV app has:")
-                    .font(.system(size: 38))
-                    .foregroundColor(.black)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 50)
+                DVTitleWithShadow(
+                    text: "The DV app has:",
+                    font: .system(size: 38, weight: .bold)
+                )
+                .padding(.bottom, 50)
                 
                 VStack(alignment: .leading, spacing: 30) {
-                    OnboardingOverviewRow(icon: "map", text: "A Map of the area")
-                    OnboardingOverviewRow(icon: "calendar", text: "Schedule for events")
-                    OnboardingOverviewRow(icon: "info.circle", text: "Info on the history")
+                    DVIconFeatureRow(icon: "map.fill", text: "A Map of the area")
+                    DVIconFeatureRow(icon: "calendar", text: "Schedule for events")
+                    DVIconFeatureRow(icon: "info.circle.fill", text: "Info on the history")
                 }
                 .padding(.horizontal)
             }
-        }
-    }
-}
-
-private struct OnboardingOverviewRow: View {
-    let icon: String
-    let text: String
-    
-    var body: some View {
-        HStack(spacing: 15) {
-            Image(systemName: icon)
-                .font(.system(size: 30, weight: .bold))
-                .frame(width: 40)
-                .foregroundColor(.black)
-            
-            Text(text)
-                .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.black)
         }
     }
 }
@@ -203,15 +190,15 @@ struct DVRulesSlide: View {
         ) {
             VStack(spacing: 30) {
                 if !hasSelectedRole {
-                    Text("How are you experiencing Design Village?")
-                        .font(.system(size: 32))
-                        .foregroundColor(.black)
-                        .fontWeight(.bold)
-                        .multilineTextAlignment(.center)
-                        .padding(.bottom, 20)
+                    DVTitleWithShadow(
+                        text: "How are you experiencing Design Village?",
+                        font: .system(size: 32, weight: .bold)
+                    )
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 20)
                     
                     HStack(spacing: 20) {
-                        OnboardingRoleButton(
+                        DVRoleButton(
                             title: "Competitor",
                             emoji: "🏃‍♂️",
                             isSelected: selectedRole == .competitor
@@ -222,7 +209,7 @@ struct DVRulesSlide: View {
                             }
                         }
                         
-                        OnboardingRoleButton(
+                        DVRoleButton(
                             title: "Visitor",
                             emoji: "👥",
                             isSelected: selectedRole == .visitor
@@ -236,14 +223,14 @@ struct DVRulesSlide: View {
                     .padding(.horizontal)
                 } else {
                     VStack(spacing: 16) {
-                        Text(selectedRole == .competitor ? "Competitor Rules" : "Visitor Guidelines")
-                            .font(.system(size: 38))
-                            .foregroundColor(.black)
-                            .fontWeight(.bold)
+                        DVTitleWithShadow(
+                            text: selectedRole == .competitor ? "Competitor Rules" : "Visitor Guidelines",
+                            font: .system(size: 38, weight: .bold)
+                        )
                         
                         Text(welcomeMessage(for: selectedRole))
                             .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(DVDesignSystem.Colors.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                             .padding(.bottom, 20)
@@ -261,7 +248,7 @@ struct DVRulesSlide: View {
                     } else {
                         VStack(spacing: 24) {
                             ForEach(visitorRules(), id: \.text) { rule in
-                                OnboardingFeatureRow(emoji: rule.emoji, text: rule.text)
+                                DVFeatureRow(emoji: rule.emoji, text: rule.text)
                             }
                         }
                     }
@@ -273,32 +260,6 @@ struct DVRulesSlide: View {
 }
 
 // MARK: - Onboarding-specific Components
-
-private struct OnboardingRoleButton: View {
-    let title: String
-    let emoji: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 20) {
-                Text(emoji)
-                    .font(.system(size: 50))
-                
-                Text(title)
-                    .font(.system(size: 22, weight: .bold))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 160)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? Color.black : Color.gray.opacity(0.2))
-            )
-            .foregroundColor(isSelected ? .white : .black)
-        }
-    }
-}
 
 private struct OnboardingCompactRuleRow: View {
     let emoji: String
@@ -312,33 +273,21 @@ private struct OnboardingCompactRuleRow: View {
             
             Text(text)
                 .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(DVDesignSystem.Colors.text)
             
             Spacer()
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.1))
+                .fill(DVDesignSystem.Colors.surface)
+                .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 2, x: 0, y: 1)
         )
-    }
-}
-
-private struct OnboardingFeatureRow: View {
-    let emoji: String
-    let text: String
-    
-    var body: some View {
-        HStack(spacing: 15) {
-            Text(emoji)
-                .font(.system(size: 32))
-                .frame(width: 40)
-            
-            Text(text)
-                .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.black)
-        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(DVDesignSystem.Colors.divider, lineWidth: 1)
+        )
     }
 }
 
@@ -348,13 +297,17 @@ private struct OnboardingCallout: View {
     var body: some View {
         Text(text)
             .font(.system(size: 16, weight: .medium))
-            .foregroundColor(.black.opacity(0.8))
+            .foregroundColor(DVDesignSystem.Colors.text)
             .multilineTextAlignment(.center)
             .padding(16)
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.yellow.opacity(0.2))
+                    .fill(DVDesignSystem.Colors.yellow.opacity(0.2))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(DVDesignSystem.Colors.yellow.opacity(0.5), lineWidth: 1)
             )
     }
 }
@@ -370,13 +323,13 @@ struct DVPolyCanyonSlide: View {
             onBack: onBack
         ) {
             VStack {
-                Text("Curious about\nthe canyon?")
-                    .font(.system(size: 38))
-                    .foregroundColor(.black)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(2)
-                    .padding(.bottom, 10)
+                DVTitleWithShadow(
+                    text: "Curious about\nthe canyon?",
+                    font: .system(size: 38, weight: .bold)
+                )
+                .multilineTextAlignment(.center)
+                .lineSpacing(2)
+                .padding(.bottom, 10)
                 
                 Image("PCOverview")
                     .resizable()
@@ -384,6 +337,7 @@ struct DVPolyCanyonSlide: View {
                     .frame(minHeight: 200)
                     .cornerRadius(20)
                     .padding(.bottom, 20)
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 8, x: 0, y: 4)
                 
                 DVSettingsPrompt(text: "Switch to 'Poly Canyon' to explore the structures!")
                     .padding(.horizontal)
@@ -396,11 +350,12 @@ struct DVFinalSlide: View {
     let onComplete: () -> Void
     @State private var isAnimating = false
     @State private var shouldComplete = false
+    @State private var isButtonPressed = false
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.black.opacity(0.05)
+                DVDesignSystem.Colors.background
                     .ignoresSafeArea()
                 
                 VStack(spacing: 30) {
@@ -409,19 +364,24 @@ struct DVFinalSlide: View {
                     Image("DVNexus")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 200)
+                        .frame(height: 350)
                         .scaleEffect(shouldComplete ? 12 : 1)
                         .opacity(shouldComplete ? 0 : 1)
                     
-                    VStack(spacing: 15) {
-                        Text("It takes a village.")
-                            .font(.system(size: 36, weight: .bold))
-                        Text("Welcome to the nexus of creative connections!")
+                    VStack(spacing: 0) {
+                        DVTitleWithShadow(
+                            text: "It takes a village.",
+                            font: .system(size: 36, weight: .bold)
+                        )
+                        .padding(.top, 15)
+                        
+                        Text("Welcome to the nexus\n of creative connections!")
                             .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(DVDesignSystem.Colors.textSecondary)
                             .multilineTextAlignment(.center)
+                            .padding(.top, 5)
                     }
                     .opacity(shouldComplete ? 0 : 1)
-                    .foregroundColor(.black)
                     
                     Spacer()
                     
@@ -436,13 +396,44 @@ struct DVFinalSlide: View {
                     } label: {
                         Text("Enter Design Village")
                             .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(DVDesignSystem.Colors.text)
                             .frame(width: 250)
                             .padding(.vertical, 16)
                             .background(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .fill(Color.black)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .fill(DVDesignSystem.Colors.yellow)
+                                    
+                                    // Pulsing animation
+                                    if !shouldComplete {
+                                        RoundedRectangle(cornerRadius: 30)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [
+                                                        DVDesignSystem.Colors.orange,
+                                                        DVDesignSystem.Colors.teal
+                                                    ],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                ),
+                                                lineWidth: 3
+                                            )
+                                            .scaleEffect(isAnimating ? 1.1 : 1.0)
+                                            .opacity(isAnimating ? 0.5 : 1.0)
+                                    }
+                                }
                             )
+                            .scaleEffect(isButtonPressed ? 0.96 : 1.0)
+                            .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 4, x: 0, y: 2)
+                    }
+                    .pressAction {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                            isButtonPressed = true
+                        }
+                    } onRelease: {
+                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                            isButtonPressed = false
+                        }
                     }
                     .opacity(shouldComplete ? 0 : 1)
                     .padding(.bottom, 50)

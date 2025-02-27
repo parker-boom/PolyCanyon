@@ -9,8 +9,6 @@ struct DVRules: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            header
-            
             roleSelector
 
             ScrollView {
@@ -20,43 +18,14 @@ struct DVRules: View {
                 .padding(.bottom, 40)
             }
         }
-        .background(Color(white: 0.98))
-    }
-    
-    private var header: some View {
-        ZStack(alignment: .bottom) {
-            Color.white
-                .ignoresSafeArea(edges: .top)
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-            
-            HStack {
-                Text("Rules")
-                    .font(.system(size: 32, weight: .bold))
-
-                Spacer()
-                Image(systemName: "list.bullet.clipboard.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.black, Color.gray],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-        }
-        .frame(height: 50)
-        .padding(.bottom, 5)
     }
     
     private var roleSelector: some View {
         HStack(spacing: 10) {
             Button {
-                userRole = .competitor
+                withAnimation {
+                    userRole = .competitor
+                }
             } label: {
                 Text("Competitor")
                     .font(.system(size: 18, weight: .semibold))
@@ -65,13 +34,30 @@ struct DVRules: View {
                     .frame(minWidth: 140)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(userRole == .competitor ? Color.black : Color(white: 0.95))
+                            .fill(userRole == .competitor ? 
+                                  DVDesignSystem.Colors.orange.opacity(0.8) : 
+                                  DVDesignSystem.Colors.surface)
                     )
-                    .foregroundColor(userRole == .competitor ? .white : .black)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(
+                                userRole == .competitor ?
+                                DVDesignSystem.Colors.orange :
+                                DVDesignSystem.Colors.divider,
+                                lineWidth: 1.5
+                            )
+                    )
+                    .foregroundColor(DVDesignSystem.Colors.text)
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, 
+                            radius: userRole == .competitor ? 4 : 2, 
+                            x: 0, y: 2)
             }
+            .scaleEffect(userRole == .competitor ? 1.05 : 1.0)
             
             Button {
-                userRole = .visitor
+                withAnimation {
+                    userRole = .visitor
+                }
             } label: {
                 Text("Visitor")
                     .font(.system(size: 18, weight: .semibold))
@@ -80,14 +66,28 @@ struct DVRules: View {
                     .frame(minWidth: 140)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(userRole == .visitor ? Color.black : Color(white: 0.95))
+                            .fill(userRole == .visitor ? 
+                                  DVDesignSystem.Colors.teal.opacity(0.8) : 
+                                  DVDesignSystem.Colors.surface)
                     )
-                    .foregroundColor(userRole == .visitor ? .white : .black)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(
+                                userRole == .visitor ?
+                                DVDesignSystem.Colors.teal :
+                                DVDesignSystem.Colors.divider,
+                                lineWidth: 1.5
+                            )
+                    )
+                    .foregroundColor(DVDesignSystem.Colors.text)
+                    .shadow(color: DVDesignSystem.Colors.shadowColor, 
+                            radius: userRole == .visitor ? 4 : 2, 
+                            x: 0, y: 2)
             }
+            .scaleEffect(userRole == .visitor ? 1.05 : 1.0)
         }
         .padding(.vertical, 15)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: userRole)
     }
     
     private var rulesContent: some View {
@@ -123,19 +123,22 @@ struct DVRules: View {
             )
             
             expandableSection(
-                title: "Housekeepnig",
+                title: "Housekeeping",
                 isExpanded: $isRequirementsExpanded,
                 content: {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Poster Requirements:")
-                            .font(.system(size: 18, weight: .semibold))
-                            .padding(.bottom, 4)
+                        DVTitleWithShadow(
+                            text: "Poster Requirements:",
+                            font: .system(size: 18, weight: .semibold)
+                        )
+                        .padding(.bottom, 4)
                         
                         bulletPoint("Competitor names and home college")
                         bulletPoint("Group name and faculty advisor (if applicable)")
                         bulletPoint("Optional: concept statement and technical drawings")
                         
                         Divider()
+                            .background(DVDesignSystem.Colors.divider)
                             .padding(.vertical, 8)
                         
                         bulletPoint("Must be present at designated call times")
@@ -151,7 +154,7 @@ struct DVRules: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Disqualification will result from:")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.red)
+                            .foregroundColor(DVDesignSystem.Colors.red)
                             .padding(.bottom, 4)
                         
                         bulletPoint("Using unaltered pre-manufactured structures")
@@ -193,21 +196,21 @@ struct DVRules: View {
             Text(emoji)
                 .font(.system(size: 40))
             
-            Text(title)
-                .font(.system(size: 24, weight: .bold))
-                .multilineTextAlignment(.center)
+            DVTitleWithShadow(
+                text: title,
+                font: .system(size: 24, weight: .bold)
+            )
+            .multilineTextAlignment(.center)
             
             Text(description)
                 .font(.system(size: 16))
-                .foregroundColor(.secondary)
+                .foregroundColor(DVDesignSystem.Colors.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .background(DVDesignSystem.Components.card())
     }
     
     private func expandableSection<Content: View>(
@@ -222,38 +225,47 @@ struct DVRules: View {
                 }
             } label: {
                 HStack {
-                    Text(title)
-                        .font(.system(size: 24, weight: .bold))
+                    DVTitleWithShadow(
+                        text: title,
+                        font: .system(size: 24, weight: .bold)
+                    )
                     
                     Spacer()
                     
                     Image(systemName: "chevron.down")
                         .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(DVDesignSystem.Colors.text)
                         .rotationEffect(.degrees(isExpanded.wrappedValue ? -180 : 0))
+                        .background(
+                            Circle()
+                                .fill(DVDesignSystem.Colors.yellow.opacity(0.3))
+                                .frame(width: 32, height: 32)
+                                .opacity(isExpanded.wrappedValue ? 1 : 0)
+                        )
                 }
-                .foregroundColor(.black)
             }
+            .buttonStyle(PlainButtonStyle())
             
             if isExpanded.wrappedValue {
                 content()
                     .padding(.leading, 4)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(20)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        .background(DVDesignSystem.Components.card())
     }
     
     private func bulletPoint(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
-            Text("•")
-                .font(.system(size: 16))
-                .foregroundColor(.black)
+            Circle()
+                .fill(DVDesignSystem.Colors.yellow)
+                .frame(width: 8, height: 8)
+                .padding(.top, 6)
             
             Text(text)
                 .font(.system(size: 16))
-                .foregroundColor(.black.opacity(0.8))
+                .foregroundColor(DVDesignSystem.Colors.text)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -261,6 +273,7 @@ struct DVRules: View {
 
 struct DVRules_Previews: PreviewProvider {
     static var previews: some View {
-        DVRules(userRole: .constant(.visitor))
+        DVRules(userRole: .constant(.competitor))
+            .nexusStyle()
     }
 }

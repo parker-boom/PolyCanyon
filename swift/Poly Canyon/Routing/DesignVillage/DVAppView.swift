@@ -14,6 +14,8 @@ struct DVAppView: View {
                 DVOnboarding(userRole: $userRole)
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .preferredColorScheme(.light)
     }
 }
 
