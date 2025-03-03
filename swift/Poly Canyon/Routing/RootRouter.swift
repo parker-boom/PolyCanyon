@@ -5,6 +5,14 @@ struct RootRouter: View {
     @Binding var designVillageMode: Bool?
     let eventStartDate: Date
     let eventEndDate: Date
+    @AppStorage("PCOnboardingComplete") private var pcOnboardingComplete: Bool = false
+    @State private var currentDate = Date()
+    
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    
+    private var isDesignVillageWeekend: Bool {
+        return currentDate >= eventStartDate && currentDate <= eventEndDate
+    }
     
     private var unwrappedDVMode: Binding<Bool> {
         Binding(
@@ -15,28 +23,42 @@ struct RootRouter: View {
 
     var body: some View {
         Group {
-            if let dvMode = designVillageMode {
-                if dvMode {
-                    // DV branch: Show the Design Village static app.
-                    DVAppView(designVillageMode: unwrappedDVMode)
+            if isDesignVillageWeekend {
+                if !pcOnboardingComplete {
+                    DVAppView(designVillageMode: .constant(true))
+                } else if let dvMode = designVillageMode {
+                    if dvMode {
+                        DVAppView(designVillageMode: unwrappedDVMode)
+                    } else {
+                        PCContainerView()
+                    }
                 } else {
-                    // Poly Canyon branch: Use the container that instantiates heavy environment objects.
-                    PCContainerView()
+                    DVPromptView { userChoice in
+                        designVillageMode = userChoice
+                        UserDefaults.standard.set(userChoice, forKey: "designVillageModeOverride")
+                    }
                 }
             } else {
-                // For existing users during the event: Prompt them for their choice.
-                DVPromptView { userChoice in
-                    designVillageMode = userChoice
-                    UserDefaults.standard.set(userChoice, forKey: "designVillageModeOverride")
-                }
+                PCContainerView()
             }
+        }
+        .onAppear {
+            currentDate = Date()
+        }
+        .onReceive(timer) { _ in
+            currentDate = Date()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            currentDate = Date()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            currentDate = Date()
         }
     }
 }
 
 struct RootRouter_Previews: PreviewProvider {
     static var previews: some View {
-        // Preview the prompt state (designVillageMode == nil)
         RootRouter(designVillageMode: .constant(nil),
                    eventStartDate: Date(),
                    eventEndDate: Date().addingTimeInterval(86400))

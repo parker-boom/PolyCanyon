@@ -20,8 +20,7 @@
       "C-1",
       "entryArch1",
       "entryArch2",
-      "entryArch3",
-      "entryArch4"
+      "entryArch3"
     ]
   },
   {
@@ -142,8 +141,7 @@
       "C-6",
       "tensile1",
       "tensile2",
-      "tensile3",
-      "tensile4"
+      "tensile3"
     ]
   },
   {
@@ -169,8 +167,7 @@
       "C-7",
       "geodesicDome1",
       "geodesicDome2",
-      "geodesicDome3",
-      "geodesicDome4"
+      "geodesicDome3"
     ]
   },
   {
@@ -229,8 +226,7 @@
       "M-9",
       "C-9",
       "restrooms1",
-      "restrooms2",
-      "restrooms3"
+      "restrooms2"
     ]
   },
   {
@@ -334,8 +330,8 @@
       "Richard Saylor (ARCE)",
       "John Ulloa (ARCE)"
     ],
-    "Description": "The Gunite Bridge explored how to build using the least material possible. Starting with a steel skeleton and metal mesh, the team used temporary cables to hold the shape while they sprayed on a thin layer of gunite concrete. Once it cured, they cut the cables, letting the structure settle into its final form. A finish coat of white sand and cement completed the bridge, which has quietly stood its ground since 1965, proving that sometimes less really is more.",
-    "Fun Fact": "The gunite shell of this bridge is the same material used in swimming pools.",
+    "Description": "The Gunite Bridge was built with a simple goal: use the least material possible. A steel frame was shaped using tension cables, then coated in gunite—a spray-applied concrete that hardened into a thin yet incredibly strong shell. Once cured, the cables were cut, and the structure settled into compression, making it entirely self-supporting. Every calculation was done by hand, the funding was raised by students, and the design was a bold experiment in efficiency. Nearly six decades later, it still hasn’t needed repairs.",
+    "Fun Fact": "The bridge originally had railings—until one of the builders came back after graduation and cut them off.",
     "Images": [
       "M-12",
       "C-12",
@@ -609,8 +605,7 @@
     "Fun Fact": "Three concrete legs and tension cables hold this soaring deck aloft.",
     "Images": [
       "M-22",
-      "C-22",
-      "fratessaTower1"
+      "C-22"
     ]
   },
   {
@@ -709,8 +704,7 @@
       "M-25",
       "C-25",
       "greenHouse1",
-      "greenHouse2",
-      "greenHouse3"
+      "greenHouse2"
     ]
   },
   {
@@ -811,8 +805,7 @@
       "C-27",
       "centeringCenter1",
       "centeringCenter2",
-      "centeringCenter3",
-      "centeringCenter4"
+      "centeringCenter3"
     ]
   },
   {
@@ -856,9 +849,7 @@
       "M-29",
       "electric1",
       "electric2",
-      "electric3",
-      "electric4",
-      "electric5"
+      "electric3"
     ]
   },
   {
@@ -900,8 +891,7 @@
       "C-31",
       "momentMonument1",
       "momentMonument2",
-      "momentMonument3",
-      "momentMonument4"
+      "momentMonument3"
     ]
   }
 ]
