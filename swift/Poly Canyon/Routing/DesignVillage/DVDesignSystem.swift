@@ -4,7 +4,7 @@ import SwiftUI
 
 struct DVDesignSystem {
     // MARK: - Color Scheme
-    enum ColorScheme {
+    enum ColorScheme: Equatable {
         case light
         case dark
         
@@ -22,9 +22,9 @@ struct DVDesignSystem {
                 return .dark
             } else {
                 // Auto mode - could be based on sunset time
-                // For now using a simple time check (7:00 PM to 6:00 AM = dark mode)
+                // For now using a simple time check (8:00 PM to 7:00 AM = dark mode)
                 let hour = Calendar.current.component(.hour, from: Date())
-                return (hour >= 19 || hour < 6) ? .dark : .light
+                return (hour >= 20 || hour < 7) ? .dark : .light
             }
         }
     }
@@ -168,12 +168,17 @@ struct DVDesignSystem {
 // MARK: - View Extensions
 
 extension View {
-    func nexusStyle(scheme: DVDesignSystem.ColorScheme = .light) -> some View {
-        DVDesignSystem.Colors.scheme = scheme
+    func nexusStyle(scheme: DVDesignSystem.ColorScheme? = nil) -> some View {
+        // If a scheme is explicitly provided, use it
+        // Otherwise, use the globally set scheme (don't override)
+        if let scheme = scheme {
+            DVDesignSystem.Colors.scheme = scheme
+        }
+        
         return self
             .background(DVDesignSystem.Colors.background)
             .foregroundColor(DVDesignSystem.Colors.text)
-            .preferredColorScheme(scheme.swiftUIColorScheme)
+            .preferredColorScheme(DVDesignSystem.Colors.scheme.swiftUIColorScheme)
     }
 }
 

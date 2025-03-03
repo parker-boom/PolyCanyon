@@ -4,6 +4,7 @@ struct DVMain: View {
     @State private var selectedTab: Int = 0
     @Binding var designVillageMode: Bool
     @Binding var userRole: DVRole
+    @State private var refreshKey: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -30,11 +31,18 @@ struct DVMain: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // Custom tab bar.
+            // Custom tab bar with refresh key to force redraw
             DVCustomTabBar(selectedTab: $selectedTab)
+                .id(refreshKey)
         }
         .edgesIgnoringSafeArea(.bottom)
         .nexusStyle()
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("DVColorSchemeChanged"))) { _ in
+            print("🔄 DVMain received color scheme change notification - Refreshing tab bar")
+            withAnimation {
+                refreshKey.toggle()
+            }
+        }
     }
     
     private func tabTitle() -> String {
@@ -86,14 +94,14 @@ struct DVCustomTabBar: View {
     var body: some View {
         ZStack {
             // Background layer
-            Color(hex: "FFF4E4")
+            DVCustomTabBar.backgroundView
                 .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 8, y: -4)
                 .ignoresSafeArea(.all, edges: .bottom)
             
             VStack(spacing: 0) {
                 // Divider at the top
                 Rectangle()
-                    .fill(Color.gray.opacity(0.2))
+                    .fill(DVDesignSystem.Colors.divider)
                     .frame(height: 1)
                 
                 // Tab buttons
@@ -118,6 +126,13 @@ struct DVCustomTabBar: View {
             }
         }
         .frame(height: 70)
+    }
+    
+    // Dynamic background view that adapts to dark/light mode
+    private static var backgroundView: some View {
+        DVDesignSystem.Colors.scheme == .light ? 
+            Color(hex: "FFF4E4") : 
+            Color(hex: "1A1A1A")
     }
     
     private func dvTabIcon(for index: Int) -> String {
@@ -148,19 +163,8 @@ private struct DVTabIcon: View {
             .font(.system(size: 24))
             .foregroundStyle(
                 isSelected ? 
-                LinearGradient(
-                    colors: [
-                        DVDesignSystem.Colors.orange,
-                        DVDesignSystem.Colors.teal
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ) : 
-                LinearGradient(
-                    colors: [DVDesignSystem.Colors.textSecondary, DVDesignSystem.Colors.textSecondary],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                DVDesignSystem.Colors.text :
+                DVDesignSystem.Colors.textSecondary
             )
             .shadow(
                 color: DVDesignSystem.Colors.shadowColor,

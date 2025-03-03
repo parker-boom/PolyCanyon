@@ -35,7 +35,7 @@ struct DVRules: View {
                     .background(
                         RoundedRectangle(cornerRadius: 20)
                             .fill(userRole == .competitor ? 
-                                  DVDesignSystem.Colors.orange.opacity(0.8) : 
+                                  DVDesignSystem.Colors.orange.opacity(0.3) : 
                                   DVDesignSystem.Colors.surface)
                     )
                     .overlay(
@@ -52,7 +52,6 @@ struct DVRules: View {
                             radius: userRole == .competitor ? 4 : 2, 
                             x: 0, y: 2)
             }
-            .scaleEffect(userRole == .competitor ? 1.05 : 1.0)
             
             Button {
                 withAnimation {
@@ -67,7 +66,7 @@ struct DVRules: View {
                     .background(
                         RoundedRectangle(cornerRadius: 20)
                             .fill(userRole == .visitor ? 
-                                  DVDesignSystem.Colors.teal.opacity(0.8) : 
+                                  DVDesignSystem.Colors.teal.opacity(0.3) : 
                                   DVDesignSystem.Colors.surface)
                     )
                     .overlay(
@@ -84,7 +83,6 @@ struct DVRules: View {
                             radius: userRole == .visitor ? 4 : 2, 
                             x: 0, y: 2)
             }
-            .scaleEffect(userRole == .visitor ? 1.05 : 1.0)
         }
         .padding(.vertical, 15)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: userRole)

@@ -9,7 +9,7 @@ struct DVSettings: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 15) {
                 exploreButton
                 
                 Divider()
@@ -68,13 +68,7 @@ struct DVSettings: View {
                                 endPoint: .bottom
                             )
                         )
-                    
-                    Text("Poly Canyon")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+
                 }
                 
                 HStack {
@@ -92,21 +86,30 @@ struct DVSettings: View {
                     
                     Image(systemName: "arrow.right.circle.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    DVDesignSystem.Colors.orange,
-                                    DVDesignSystem.Colors.teal
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                        .foregroundColor(
+                            DVDesignSystem.Colors.yellow
                         )
                 }
                 .padding()
             }
-            .background(DVDesignSystem.Components.card())
+            .background(DVDesignSystem.Colors.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                DVDesignSystem.Colors.teal,
+                                DVDesignSystem.Colors.yellow,
+                                DVDesignSystem.Colors.orange
+                            ],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 6, x: 0, y: 3)
             .scaleEffect(isChangeModeButtonPressed ? 0.98 : 1.0)
             .padding(.horizontal)
         }
@@ -122,7 +125,7 @@ struct DVSettings: View {
     }
     
     private var socialSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 10) {
             DVTitleWithShadow(
                 text: "Connect With Us",
                 font: .system(size: 20, weight: .bold)
@@ -223,7 +226,24 @@ struct DVSettings: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(DVDesignSystem.Components.card())
+        .background(DVDesignSystem.Colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            DVDesignSystem.Colors.yellow,
+                            DVDesignSystem.Colors.orange,
+                            DVDesignSystem.Colors.yellow
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+        )
+        .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 4, x: 0, y: 2)
         .padding(.horizontal)
     }
     
