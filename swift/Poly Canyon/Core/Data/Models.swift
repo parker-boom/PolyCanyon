@@ -69,7 +69,7 @@ struct Structure: Codable, Identifiable, Equatable {
 /// IMPORTANT NOTE: Ghost structures have int values of 101,102... because this is how we will manage their pings from map point marking as visited
 struct GhostStructure: Codable, Identifiable, Equatable {
     // Static properties from JSON
-    let number: Int
+    let number: String
     let name: String
     let year: String
     let advisors: [String]
@@ -78,40 +78,42 @@ struct GhostStructure: Codable, Identifiable, Equatable {
     let images: [String]
     
     // Only dynamic property needed
-    var isVisited: Bool
+    var isVisited: Bool = false
     
     // Conform to Identifiable
-    var id: Int { number }
+    var id: Int { 
+        return Int(number) ?? 0
+    }
     
-    // Conform to Equatable
     static func == (lhs: GhostStructure, rhs: GhostStructure) -> Bool {
         return lhs.number == rhs.number
     }
     
+    mutating func markAsVisited() {
+        isVisited = true
+    }
+    
     private enum CodingKeys: String, CodingKey {
-        case number = "Number"
-        case name = "Name"
-        case year = "Year"
-        case advisors = "Advisors"
-        case builders = "Builders"
-        case description = "Description"
-        case images = "Images"
+        case number
+        case name
+        case year
+        case advisors
+        case builders
+        case description
+        case images
         case isVisited
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let numberString = try container.decode(String.self, forKey: .number)
-        number = Int(numberString) ?? 0
+        number = numberString
         name = try container.decode(String.self, forKey: .name)
         year = try container.decode(String.self, forKey: .year)
         advisors = try container.decode([String].self, forKey: .advisors)
         builders = try container.decode([String].self, forKey: .builders)
         description = try container.decode(String.self, forKey: .description)
         images = try container.decode([String].self, forKey: .images)
-        
-        // Set dynamic property with default
-        isVisited = try container.decodeIfPresent(Bool.self, forKey: .isVisited) ?? false
     }
 }
 

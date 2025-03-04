@@ -32,8 +32,14 @@ struct DetailView: View {
                             sortState: sortState,
                             isGridView: isGridView,
                             onStructureSelected: { structure in
-                                appState.activeFullScreenView = .structInfo
-                                appState.structInfoNum = structure.id
+                                // Special handling for Ghost Structures entry
+                                if structure.number == 999 {
+                                    // Open the ghost structures view
+                                    appState.activeFullScreenView = .ghostStructInfo
+                                } else {
+                                    appState.activeFullScreenView = .structInfo
+                                    appState.structInfoNum = structure.id
+                                }
                             }
                         )
                         .padding(.top, 110)

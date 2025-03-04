@@ -7,6 +7,7 @@ enum FullScreenView {
     case structInfo
     case settings
     case ratings
+    case ghostStructInfo
 }
 
 // Main app routing:
@@ -40,8 +41,8 @@ struct MainView: View {
             }
 
             // Popup Overlay (Visit Notification)
-            if let structure = dataStore.lastVisitedStructure {
-                VisitNotificationView(structure: structure)
+            if dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil {
+                VisitNotificationView()
             }
 
             if let alert = appState.activeAlert {
@@ -69,7 +70,21 @@ struct MainView: View {
             RatingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
+        case .ghostStructInfo:
+            // Show GhostInfo view with the appropriate ghost structure
+            GhostInfo(initialGhostIndex: findGhostStructureIndex())
+                .environmentObject(appState)
+                .environmentObject(dataStore)
         }
+    }
+    
+    // Helper to find the ghost structure index based on the appState.ghostStructInfoNum
+    private func findGhostStructureIndex() -> Int? {
+        // If ghostStructInfoNum is set, find the corresponding ghost structure
+        if appState.ghostStructInfoNum > 0 {
+            return dataStore.ghostStructures.firstIndex(where: { Int($0.number) == appState.ghostStructInfoNum })
+        }
+        return nil
     }
 }
 

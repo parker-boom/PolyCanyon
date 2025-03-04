@@ -85,6 +85,9 @@ class AppState: ObservableObject {
     // Tracks which struct being displayed in struct info
     @Published var structInfoNum: Int = 0
     
+    // Tracks which ghost structure is being displayed in ghost struct info
+    @Published var ghostStructInfoNum: Int = 0
+    
     // Tracks which structure is being displayed in tinder mode
     @Published var tinderModeStructureNum: Int = -1 // -1 is starting msg, 31 is end msg
 
