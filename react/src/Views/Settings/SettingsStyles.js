@@ -144,6 +144,23 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 10,
   },
+  dvButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 5,
+    marginBottom: 5,
+  },
+  darkDvButton: {
+    backgroundColor: "#388E3C",
+  },
+  dvButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });
 
 export default styles;

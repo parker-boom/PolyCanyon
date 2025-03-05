@@ -12,10 +12,29 @@ import { useAdventureMode } from "../../Core/States/AdventureMode";
 import { useDataStore } from "../../Core/Data/DataStore";
 import { useAppState } from "../../Core/States/AppState";
 import { useLocationService } from "../../Core/Location/LocationService";
+import { useRoute } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "./SettingsStyles";
 
+// Helper to check if we're in Design Village event window
+const isInEventWindow = () => {
+  const createLocalDate = (dateString) => {
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year, month - 1, day, 0, 0, 0);
+  };
+
+  const eventStartDate = createLocalDate("2025-04-25");
+  const eventEndDate = createLocalDate("2025-04-28");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today >= eventStartDate && today < eventEndDate;
+};
+
 const SettingsView = () => {
+  const route = useRoute();
+  const { setDesignVillageMode } = route.params || {};
+
   // Context hooks
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
@@ -60,11 +79,57 @@ const SettingsView = () => {
     }
   };
 
+  const handleDesignVillageSwitch = () => {
+    Alert.alert(
+      "Switch to Design Village?",
+      "Would you like to switch to the Design Village experience?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Switch",
+          onPress: async () => {
+            try {
+              // Just remove the override - RootRouter will handle the switch
+              await AsyncStorage.removeItem("designVillageModeOverride");
+            } catch (error) {
+              console.error("Error switching app mode:", error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView
       style={[styles.container, isDarkMode && styles.darkContainer]}
       contentContainerStyle={styles.contentContainer}
     >
+      {/* Design Village Switch - Only shown during event window */}
+      {isInEventWindow() && (
+        <View style={[styles.section, isDarkMode && styles.darkSection]}>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={[styles.sectionHeader, isDarkMode && styles.darkText]}>
+              Design Village 2025
+            </Text>
+            <Ionicons
+              name="home"
+              size={24}
+              color={isDarkMode ? "#F5F5F5" : "#333"}
+              style={styles.sectionIcon}
+            />
+          </View>
+          <TouchableOpacity
+            style={[styles.dvButton, isDarkMode && styles.darkDvButton]}
+            onPress={handleDesignVillageSwitch}
+          >
+            <Text style={[styles.dvButtonText, isDarkMode && styles.darkText]}>
+              Switch to Design Village Mode
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* General Settings Section */}
       <View style={[styles.section, isDarkMode && styles.darkSection]}>
         <View style={styles.sectionHeaderContainer}>

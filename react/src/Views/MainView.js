@@ -19,7 +19,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // TabNavigator component for main app tabs
-const TabNavigator = () => {
+const TabNavigator = ({ setDesignVillageMode }) => {
   const { isDarkMode } = useDarkMode();
 
   return (
@@ -31,12 +31,16 @@ const TabNavigator = () => {
     >
       <Tab.Screen name="Map" component={MapView} />
       <Tab.Screen name="Detail" component={DetailView} />
-      <Tab.Screen name="Settings" component={SettingsView} />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsView}
+        initialParams={{ setDesignVillageMode }}
+      />
     </Tab.Navigator>
   );
 };
 
-const MainView = () => {
+const MainView = ({ setDesignVillageMode }) => {
   const { isDarkMode } = useDarkMode();
   const { adventureMode, updateAdventureMode } = useAdventureMode();
   const {
@@ -70,7 +74,13 @@ const MainView = () => {
           presentation: "modal",
         }}
       >
-        <Stack.Screen name="TabNavigator" component={TabNavigator} />
+        <Stack.Screen
+          name="TabNavigator"
+          children={() => (
+            <TabNavigator setDesignVillageMode={setDesignVillageMode} />
+          )}
+          initialParams={{ setDesignVillageMode }}
+        />
         <Stack.Screen
           name="StructureDetail"
           component={StructPopUp}
