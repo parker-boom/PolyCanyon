@@ -13,37 +13,26 @@ struct SettingsView: View {
     @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
     
+    // Get the value from UserDefaults that's set by the RootRouter
+    // This avoids recalculating the same logic
+    private var isDesignVillageWeekend: Bool {
+        // Get from UserDefaults directly
+        UserDefaults.standard.bool(forKey: "isDesignVillageWeekend")
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-
-            // *** Hiding header for now
-            /*
-            // Header
-            HStack {
-                HStack {
-                    Image(systemName: "gear")
-                        .font(.title2)
-                    Text("Settings")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                }
-                
-                Spacer()
-                
-                Button {
-                    appState.activeFullScreenView = nil
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.title2)
-                        .foregroundColor(.primary)
-                }
-            }
-            .padding()
-            */
-            
-            // Existing ScrollView content
             ScrollView {
-                VStack(spacing: 20) {
+                    
+                VStack(spacing: 30) {
+
+                    // Only show during DV weekend
+                    if isDesignVillageWeekend {
+                        DesignVillageModeSection(
+                            onSwitchToDV: switchToDesignVillageMode
+                        )
+                    }
+
                     GeneralSettingsSection(
                         onModeSwitch: {
                             appState.showAlert(.modePicker(currentMode: !appState.adventureModeEnabled))
@@ -57,31 +46,24 @@ struct SettingsView: View {
                     if appState.adventureModeEnabled {
                         StatisticsSection()
                     }
+
                     
                     CreditsSection()
-                    
-                    // *** DEV ONLY
-                    
-                    /*
-                    Button(action: {
-                        appState.resetAllSettings()
-                    }) {
-                        Text("Reset App")
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.red, lineWidth: 1)
-                            )
-                    }
-                    .padding(.top, 20)
-                    */
-                    
                 }
                 .padding()
             }
         }
         .background(appState.isDarkMode ? Color.black : Color.white)
+    }
+    
+    // Switch to Design Village mode
+    private func switchToDesignVillageMode() {
+        // Set UserDefaults to indicate DV mode
+        UserDefaults.standard.set(true, forKey: "designVillageModeOverride")
+        
+        // Post notification to trigger mode switch
+        NotificationCenter.default.post(name: Notification.Name("ModeSwitched"), object: nil)
+        
     }
 }
 

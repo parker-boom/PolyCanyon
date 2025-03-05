@@ -183,7 +183,7 @@ struct CreditsSection: View {
             HStack(spacing: 12) {
                 Image(systemName: "info.circle.fill")
                     .font(.system(size: 24))
-                    .foregroundColor(.orange)
+                    .foregroundColor(.black.opacity(0.8))
                 
                 Text("Credits")
                     .font(.system(size: 24, weight: .bold))
@@ -362,5 +362,88 @@ struct CreditItem: View {
                 .padding(.trailing, 5)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+
+
+// MARK: - Design Village Mode Section
+struct DesignVillageModeSection: View {
+    @EnvironmentObject var appState: AppState
+    let onSwitchToDV: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Design Village")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(appState.isDarkMode ? .white : .black)
+                
+                Spacer()
+                
+                Image(systemName: "tent.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.black.opacity(0.8))
+            }
+            .padding(.bottom, 5)
+            
+            VStack(spacing: 15) {
+                designVillageInfoRow
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(appState.isDarkMode ? 
+                        Color.gray.opacity(0.15) : 
+                        Color.white.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(
+                                appState.isDarkMode ? 
+                                    Color.white.opacity(0.1) : 
+                                    Color.black.opacity(0.05),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(
+                        color: appState.isDarkMode ? 
+                            .black.opacity(0.3) : 
+                            .gray.opacity(0.2),
+                        radius: 10, x: 0, y: 5
+                    )
+            )
+        }
+    }
+    
+    // Design Village info and switch button
+    private var designVillageInfoRow: some View {
+        VStack(spacing: 10) {
+            // Design Village icon
+            Image(systemName: "tent.2.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.orange)
+            
+            // Title
+            Text("Design Village Weekend")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(appState.isDarkMode ? .white : .black)
+            
+            // Description
+            Text("Switch to access event-specific features")
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+            
+            // Switch button
+            Button(action: onSwitchToDV) {
+                Text("Switch to Design Village")
+                    .padding(.horizontal, 15)
+                    .padding(.vertical, 10)
+                    .background(Color.orange)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
     }
 }

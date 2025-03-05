@@ -17,9 +17,9 @@ struct DVPromptView: View {
                         Image("DVLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(maxWidth: 280)
-                            .frame(height: 120)
-                            .padding(.bottom, 32)
+                            .frame(maxWidth: 320)
+                            .frame(height: 160)
+                            .padding(.bottom, 12)
                         
                         Text("Design Village Weekend")
                             .font(.system(size: 28, weight: .heavy))

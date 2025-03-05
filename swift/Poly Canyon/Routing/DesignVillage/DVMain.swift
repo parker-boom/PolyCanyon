@@ -37,8 +37,18 @@ struct DVMain: View {
         }
         .edgesIgnoringSafeArea(.bottom)
         .nexusStyle()
+        .onAppear {
+            print("🔍 [DVMain] onAppear with designVillageMode: \(designVillageMode)")
+        }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("DVColorSchemeChanged"))) { _ in
-            print("🔄 DVMain received color scheme change notification - Refreshing tab bar")
+            print("🔄 [DVMain] received color scheme change notification - Refreshing tab bar")
+            withAnimation {
+                refreshKey.toggle()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ModeSwitched"))) { _ in
+            print("⚡️ [DVMain] received ModeSwitched notification - designVillageMode: \(designVillageMode)")
+            // Force view to update and potentially respond to the mode change
             withAnimation {
                 refreshKey.toggle()
             }

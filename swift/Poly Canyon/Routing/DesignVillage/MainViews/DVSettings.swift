@@ -24,14 +24,34 @@ struct DVSettings: View {
             .padding(.top, 15)
             .padding(.bottom, 40)
         }
+        .onAppear {
+            print("🔍 [DVSettings] onAppear with designVillageMode: \(designVillageMode)")
+        }
         .sheet(isPresented: $showRulesPopup) {
             rulesPopupContent
         }
         .alert("Switch to Poly Canyon?", isPresented: $showSwitchConfirmation) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) { 
+                print("❌ [DVSettings] Switch to PC canceled")
+            }
             Button("Switch") {
-                designVillageMode = false
+                print("✅ [DVSettings] User confirmed switch to PC")
+                print("⏩ [DVSettings] Before switch - designVillageMode: \(designVillageMode)")
+                
+                // First set the UserDefaults value to ensure it's saved
                 UserDefaults.standard.set(false, forKey: "designVillageModeOverride")
+                print("💾 [DVSettings] Updated UserDefaults to false")
+                
+                // Then update the binding
+                designVillageMode = false
+                
+                print("⏩ [DVSettings] After switch - designVillageMode: \(designVillageMode)")
+                
+                // Force a UI update
+                DispatchQueue.main.async {
+                    print("🔄 [DVSettings] Dispatching async UI update")
+                    NotificationCenter.default.post(name: Notification.Name("ModeSwitched"), object: nil)
+                }
             }
         } message: {
             Text("Are you sure you want to switch? This will make your app the Poly Canyon experience. You can switch back in settings any time.")
@@ -49,6 +69,7 @@ struct DVSettings: View {
     
     private var exploreButton: some View {
         Button {
+            print("👆 [DVSettings] Explore button tapped")
             showSwitchConfirmation = true
         } label: {
             VStack(alignment: .leading, spacing: 0) {
@@ -111,7 +132,15 @@ struct DVSettings: View {
             )
             .shadow(color: DVDesignSystem.Colors.shadowColor, radius: 6, x: 0, y: 3)
             .scaleEffect(isChangeModeButtonPressed ? 0.98 : 1.0)
-            .padding(.horizontal)
+            .pressAction {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isChangeModeButtonPressed = true
+                }
+            } onRelease: {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isChangeModeButtonPressed = false
+                }
+            }
         }
         .pressAction {
             withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
@@ -122,6 +151,7 @@ struct DVSettings: View {
                 isChangeModeButtonPressed = false
             }
         }
+        .padding(.horizontal)
     }
     
     private var socialSection: some View {
