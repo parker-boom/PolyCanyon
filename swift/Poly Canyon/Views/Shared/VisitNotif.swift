@@ -4,8 +4,29 @@ struct VisitNotificationView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     
+    var body: some View {
+        if let structure = dataStore.lastVisitedStructure {
+            VisitNotificationContent(structure: structure)
+        } else if let ghostStructure = dataStore.lastVisitedGhostStructure {
+            // Convert ghost structure to a display structure
+            let displayStructure = dataStore.ghostStructureToDisplayStructure(ghostStructure)
+            VisitNotificationContent(structure: displayStructure, isGhostStructure: true)
+        }
+    }
+}
+
+struct VisitNotificationContent: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    
     let structure: Structure
+    let isGhostStructure: Bool
     private let containerWidth: CGFloat = UIScreen.main.bounds.width - 80 // 40 padding on each side
+    
+    init(structure: Structure, isGhostStructure: Bool = false) {
+        self.structure = structure
+        self.isGhostStructure = isGhostStructure
+    }
     
     var body: some View {
         ZStack {
@@ -23,11 +44,12 @@ struct VisitNotificationView: View {
                     HStack { 
                         Spacer()
                         HStack(spacing: 8) {
-                            Text("🔥")
+                            // Different icon for ghost structures
+                            Text(isGhostStructure ? "👻" : "🔥")
                                 .font(.system(size: 30))
                                 .padding(.top, -2) 
-                            Text("Just Visited!")
-                                .font(.system(size: 28, weight: .bold))
+                            Text(isGhostStructure ? "Ghost Structure!" : "Just Visited!")
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(Color.black.opacity(0.8))
                                 .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 4)
                         }
@@ -46,7 +68,7 @@ struct VisitNotificationView: View {
                         .cornerRadius(12)
                         .shadow(color: .black.opacity(0.65), radius: 10, x: 0, y: 4)
                         .overlay(
-                            Text("#\(structure.number)")
+                            Text(isGhostStructure ? "HISTORICAL" : "#\(structure.number)")
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 10)
@@ -100,8 +122,15 @@ struct VisitNotificationView: View {
                     
                     // Learn More button
                     Button(action: {
-                        appState.activeFullScreenView = .structInfo
-                        appState.structInfoNum = structure.id
+                        if isGhostStructure {
+                            // For ghost structures, we'll implement this in Phase 2
+                            appState.activeFullScreenView = .ghostStructInfo
+                            appState.ghostStructInfoNum = Int(structure.number) ?? 0
+                        } else {
+                            // Regular structure
+                            appState.activeFullScreenView = .structInfo
+                            appState.structInfoNum = structure.id
+                        }
                         dataStore.dismissLastVisitedStructure()
                     }) {
                         HStack {
@@ -215,32 +244,19 @@ struct VisitNotificationView_Previews: PreviewProvider {
         let appState = AppState()
         let dataStore = DataStore.shared // Replace with your actual shared instance
         
-        // Create a mock random structure for preview
-        let randomStructure = dataStore.structures.randomElement() ?? Structure(
-            number: 42,
-            title: "Poly Canyon Experimental House",
-            year: "1968",
-            advisors: ["John Doe"],
-            builders: ["Jane Smith", "Alice Johnson"],
-            description: "An innovative structure built for architectural experimentation.",
-            funFact: "This structure uses recycled materials!",
-            images: ["example_image"], // Replace with actual asset name
-            isVisited: true,
-            isOpened: false,
-            recentlyVisited: 0,
-            isLiked: false
-        )
+        // Create a mock structure for preview and set it as lastVisitedStructure
+        dataStore.markStructureAsVisited(1) // This will set lastVisitedStructure
         
         return Group {
             // Light Mode Preview
-            VisitNotificationView(structure: randomStructure)
+            VisitNotificationView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
                 .previewLayout(.sizeThatFits)
                 .previewDisplayName("Light Mode")
             
             // Dark Mode Preview
-            VisitNotificationView(structure: randomStructure)
+            VisitNotificationView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
                 .previewLayout(.sizeThatFits)

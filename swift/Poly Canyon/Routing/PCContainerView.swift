@@ -16,6 +16,7 @@ struct PCContainerView: View {
             .environmentObject(appState)
             .environmentObject(dataStore)
             .environmentObject(locationService)
+            .preferredColorScheme(.light)
     }
 }
 
