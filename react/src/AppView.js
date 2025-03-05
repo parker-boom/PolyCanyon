@@ -11,7 +11,7 @@ import { LocationServiceProvider } from "./Core/Location/LocationService";
 import { AppStateProvider, useAppState } from "./Core/States/AppState";
 
 // Separate component for app content that uses AppState
-const AppContent = () => {
+const AppContent = ({ setDesignVillageMode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
   const { setIsOnboardingCompleted } = useAppState();
@@ -25,7 +25,7 @@ const AppContent = () => {
       // Look for a key that indicates the user finished onboarding.
       const value = await AsyncStorage.getItem("onboardingCompleted");
       const onboardingCompleted = value === "true";
-      // If not completed, it’s the first launch (or incomplete onboarding).
+      // If not completed, it's the first launch (or incomplete onboarding).
       setIsFirstLaunch(!onboardingCompleted);
       setIsOnboardingCompleted(onboardingCompleted);
       setIsLoading(false);
@@ -52,7 +52,7 @@ const AppContent = () => {
         <OnboardingView onComplete={handleOnboardingComplete} />
       ) : (
         <NavigationContainer>
-          <MainView />
+          <MainView setDesignVillageMode={setDesignVillageMode} />
         </NavigationContainer>
       )}
     </View>
@@ -60,14 +60,14 @@ const AppContent = () => {
 };
 
 // Main ContentView that provides context
-const ContentView = () => {
+const ContentView = ({ setDesignVillageMode }) => {
   return (
     <AppStateProvider>
       <DarkModeProvider>
         <DataStoreProvider>
           <AdventureModeProvider>
             <LocationServiceProvider>
-              <AppContent />
+              <AppContent setDesignVillageMode={setDesignVillageMode} />
             </LocationServiceProvider>
           </AdventureModeProvider>
         </DataStoreProvider>

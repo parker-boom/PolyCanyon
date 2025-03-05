@@ -171,9 +171,9 @@ const DVInfo = () => {
             {showFullHistory && (
               <>
                 <Text style={[styles.bodyText, { marginTop: 8 }]}>
-                  By 1974, a group of students formally pitched and executed the
-                  first Design Village, transforming the canyon into a live
-                  construction site. Early projects were simple and
+                  Starting in 1974, a group of students formally pitched and
+                  executed the first Design Village, transforming the canyon
+                  into a live construction site. Early projects were simple and
                   experimental, designed to be built quickly and then
                   dismantled, embodying the full lifecycle of a construction
                   project. As the event matured, formal judging categories and
