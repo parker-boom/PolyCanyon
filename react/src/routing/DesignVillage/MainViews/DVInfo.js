@@ -21,12 +21,12 @@ const DVInfo = () => {
   const [showFullHistory, setShowFullHistory] = useState(false);
 
   const images = [
-    require("../Images/DV1.jpg"),
-    require("../Images/DV2.jpg"),
-    require("../Images/DV3.jpg"),
-    require("../Images/DV4.jpg"),
-    require("../Images/DV5.jpg"),
-    require("../Images/DV6.jpg"),
+    require("../Images/dv1.webp"),
+    require("../Images/dv2.webp"),
+    require("../Images/dv3.webp"),
+    require("../Images/dv4.webp"),
+    require("../Images/dv5.webp"),
+    require("../Images/dv6.webp"),
   ];
 
   const scrollRef = useRef(null);

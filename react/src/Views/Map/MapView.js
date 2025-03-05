@@ -20,17 +20,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Map assets for regular (numbers) mode
 const MAP_ASSETS = {
-  light: require("../../assets/map/Normal/LightMap.jpg"),
-  dark: require("../../assets/map/Normal/DarkMap.jpg"),
-  satellite: require("../../assets/map/Normal/SatelliteMap.jpg"),
-  blurredSatellite: require("../../assets/map/Normal/BlurredSatellite.jpg"),
+  light: require("../../assets/map/Normal/LightMap.webp"),
+  dark: require("../../assets/map/Normal/DarkMap.webp"),
+  satellite: require("../../assets/map/Normal/SatelliteMap.webp"),
+  blurredSatellite: require("../../assets/map/Normal/BlurredSatellite.webp"),
 };
 
 // Map assets for no numbers mode
 const MAP_ASSETS_NO_NUMBERS = {
-  light: require("../../assets/map/NoNumbers/LightMapNN.jpg"),
-  dark: require("../../assets/map/NoNumbers/DarkMapNN.jpg"),
-  satellite: require("../../assets/map/NoNumbers/SatelliteMapNN.jpg"),
+  light: require("../../assets/map/NoNumbers/LightMapNN.webp"),
+  dark: require("../../assets/map/NoNumbers/DarkMapNN.webp"),
+  satellite: require("../../assets/map/NoNumbers/SatelliteMapNN.webp"),
 };
 
 const MAP_ORIGINAL_WIDTH = 1843;

@@ -15,10 +15,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import your images (ensure the paths are correct)
-import OGDefault from "../Images/OGDefault.png";
-import InstaIcon from "../Images/InstaIcon.png";
-import CAEDLogo from "../Images/CAEDLogo.png";
-import DVLogo from "../Images/DVLogo.png";
+import OGDefault from "../Images/OGDefault.webp";
+import InstaIcon from "../Images/InstaIcon.webp";
+import CAEDLogo from "../Images/CAEDLogo.webp";
+import DVLogo from "../Images/DVLogo.webp";
 
 const DVSettings = ({ setDesignVillageMode }) => {
   const [showRulesPopup, setShowRulesPopup] = useState(false);

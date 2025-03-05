@@ -11,9 +11,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import images (using the images for slide 1 and 4)
 // Make sure these paths are correct in your project.
-import DVLogo from "./Images/DVLogo.png";
-import OGDefault from "./Images/OGDefault.png";
-// import DVNexus from './Images/DVNexus.png'; // Final slide image is commented out per instructions
+import DVLogo from "./Images/DVLogo.webp";
+import OGDefault from "./Images/OGDefault.webp";
+// import DVNexus from './Images/DVNexus.webp'; // Final slide image is commented out per instructions
 
 // A simple role "enum"
 const DVRole = {
