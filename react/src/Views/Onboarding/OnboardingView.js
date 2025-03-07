@@ -116,7 +116,7 @@ const OnboardingView = ({ onComplete }) => {
   // Render individual slides
   const renderWelcomeSlide = () => (
     <View style={styles.slide}>
-      <Image source={require("../../assets/icon.jpg")} style={styles.icon} />
+      <Image source={require("../../assets/icon.webp")} style={styles.icon} />
       <Text style={styles.title}>Time to discover</Text>
       <Text style={[styles.title, styles.greenTitle]}>Poly Canyon</Text>
       <Text style={styles.subtitle}>

@@ -36,7 +36,7 @@ const ORIGINAL_WIDTH = 1843;
 const ORIGINAL_HEIGHT = 4164;
 
 // Base map image without structure numbers
-const MAP_IMAGE = require("../../assets/map/NoNumbers/SatelliteMapNN.jpg");
+const MAP_IMAGE = require("../../assets/map/NoNumbers/SatelliteMapNN.webp");
 
 // Storage key for saving tour progress
 const CURRENT_STRUCTURE_INDEX_KEY = "virtualTourCurrentStructureIndex";

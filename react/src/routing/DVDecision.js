@@ -1,16 +1,13 @@
 // src/DVDecisionPrompt.js
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import DVLogo from "./DesignVillage/Images/DVLogo.webp";
 
 const DVDecisionPrompt = ({ onDecision }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Image
-          source={require("./DesignVillage/Images/DVLogo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Image source={DVLogo} style={styles.logo} resizeMode="contain" />
         <Text style={styles.title}>Design Village Weekend</Text>
         <Text style={styles.message}>Are you here celebrating?</Text>
         <View style={styles.buttonContainer}>
