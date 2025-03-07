@@ -442,7 +442,7 @@ private struct UnrequestedView: View {
             Button(action: requestLocation) {
                 HStack {
                     Image(systemName: "location")
-                    Text("Enable Location")
+                    Text("Continue")
                 }
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
@@ -632,7 +632,7 @@ private struct ModeFollowUpSlide: View {
                     } label: {
                         HStack {
                             Image(systemName: "location.fill")
-                            Text("Enable Location")
+                            Text("Continue")
                         }
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)

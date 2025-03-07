@@ -39,9 +39,11 @@ struct DVOnboarding: View {
                         totalStages: 5,
                         currentStage: currentSlide
                     )
-                    .padding(.top, 20)
+                    .padding(.top, 0)
                     
                     Spacer()
+                    
+                    
                 }
             }
         }
@@ -233,17 +235,17 @@ struct DVRulesSlide: View {
                             .foregroundColor(DVDesignSystem.Colors.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                            .padding(.bottom, 20)
+                            .padding(.bottom, 10)
                     }
                     
                     if selectedRole == .competitor {
-                        VStack(spacing: 16) {
+                        VStack(spacing: 12) {
                             ForEach(competitorRules(), id: \.text) { rule in
                                 OnboardingCompactRuleRow(emoji: rule.emoji, text: rule.text)
                             }
                             
                             OnboardingCallout(text: "Visit Rules tab for complete guidelines.")
-                                .padding(.top, 20)
+                                .padding(.top, 15)
                         }
                     } else {
                         VStack(spacing: 24) {
