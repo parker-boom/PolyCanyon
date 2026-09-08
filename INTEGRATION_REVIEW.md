@@ -1,5 +1,21 @@
 # Final combined review candidate
 
+## Current validated source: Glur removed
+
+Exact source commit: **`8155917468c1a1a8154b59808018bc82d9270d99`**, on `maintenance/security-lts`, following combined merge `ab69240808406b2af7a9b4fad060111910d1625b`. Subsequent report-only commits do not change this validated app source.
+
+Glur had no Swift imports or calls after the final UI pass. Removed its framework build entry, target product dependency, remote package reference/product object and resolved pin. Xcode regenerated `Package.resolved`; the only package is Zoomable at unchanged revision `27463744a1c82e550959703153bd6f3c62fef906`, still an exact project requirement. Its historical `branch: main` resolution metadata does not change that revision requirement. Existing Glur license/credit remains as historical attribution. No UI, source assets or other dependency was changed.
+
+**Incremental unsigned Release archive: PASS.** Archive inspection confirms no Glur resource bundle, Metal library or Glur Swift symbols. Version remains 6.0 (1), foreground-only permission, with no Android archive, legacy Firebase/signing files or scoped credential-pattern matches. Only warning: skipped AppIntents metadata extraction (no AppIntents framework dependency). Package resolution and diff checks passed.
+
+- Current archive: `/Volumes/SSK Drive/Developer/SecurityLTS/Archives/PolyCanyon-integrated-no-glur.xcarchive`.
+- Resolution log: `/Volumes/SSK Drive/Developer/SecurityLTS-without-glur-resolve.log`.
+- Release/archive log: `/Volumes/SSK Drive/Developer/SecurityLTS-without-glur-archive.log`.
+
+All temporary/cache/build paths stayed external. The prior passing data/model/preservation checks below remain applicable: none of their inputs changed, so identical checks were not repeated. No push, publishing, signing or account action occurred.
+
+## Combined source before dependency removal
+
 8 September 2026. Final source for this round combines:
 
 - Security cleanup: `4262b50be81772d2c57937a7848780af30a69a00`.
@@ -8,7 +24,7 @@
 
 Both merges were conflict-free in `/Volumes/SSK Drive/Projects/PolyCanyon-security-lts`, branch `maintenance/security-lts`. All incoming app files match upstream byte for byte. Android cleanup, original assets and the 166-file archive remain intact. The app checkout was never edited or switched. Recovery tag `archive/android-before-retirement-20260908` remains at `80e12df9fca6b44b688ff27581cdc16442253264`.
 
-## Final verification
+## Pre-removal combined verification
 
 - **Data/preservation: PASS.** 31 structures, six historical structures, 231 map points, all iOS image references, and all 166 archived files' original SHA-256 checksums.
 - **Existing model/store/location checks: PASS.** Persistence/migration, reset/save failure paths and foreground-only replay including all 35 discoverable structures. Historical structures 105/106 still lack discovery coordinates; none were invented.
@@ -20,7 +36,7 @@ Only archive warning: AppIntents metadata extraction skipped because the app has
 
 All final temporary files, package caches, source packages, DerivedData and archive outputs were explicitly directed to `/Volumes/SSK Drive/Developer/SecurityLTS`. No simulator was created, booted, installed to or controlled; no storage cleanup/deletion was performed.
 
-## Exact artifacts and logs
+## Preserved pre-removal artifacts and logs
 
 - Archive: `/Volumes/SSK Drive/Developer/SecurityLTS/Archives/PolyCanyon-integrated-8b2f9eb.xcarchive`.
 - Data: `/Volumes/SSK Drive/Developer/SecurityLTS-final-8b2f9eb-data.log`.
@@ -33,6 +49,6 @@ Prior b31dc14 combined Debug build, models and data also passed. Their logs rema
 
 [Second-pass evidence](swift/SECOND_PASS_REVIEW.md) records the app task's visual verification and remaining hands-on gesture/VoiceOver checks. This task adds integration/build validation, not physical GPS testing, signing, release approval or new visual claims. No push, publication, account changes or remote alert updates occurred.
 
-[Security cleanup](SECURITY_CLEANUP.md) records the earlier 4262b50 audit. Its statement that both Swift packages were actively used predates this UI merge: the new Tour removes the last Glur import/call, while the project still retains Glur. Project settings were preserved; unused Glur remains a non-blocking coordinator review item. Zoomable remains used.
+[Security cleanup](SECURITY_CLEANUP.md) records the earlier 4262b50 audit. Its statement that both Swift packages were actively used predates this UI merge: the new Tour removes the last Glur import/call, while the project still retains Glur. The authorized follow-up above removes Glur coherently; this review item is closed. Zoomable remains used.
 
 Historical Android signing exposure, old-client/backend review and eventual default-branch alert refresh remain separate owner actions. The final combined branch is a review candidate for the coordinator.
