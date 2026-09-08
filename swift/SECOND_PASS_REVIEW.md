@@ -41,3 +41,9 @@ Review captures and build logs live on the external drive:
 [Open the visual review and 56-second transition study](</Volumes/SSK Drive/Developer/Redesign/SecondPass/Review/README.md>).
 
 The `Review` folder contains the native simulator captures; `Work` retains comparison source and build logs. Candidate screenshots are review material, not final App Store assets. First-pass media remains in `/Volumes/SSK Drive/Developer/Redesign/Media/`.
+
+## Coordinator refinement after the reviewed candidate
+
+Tour now uses a quiet current-stop/total indicator, a native chevron on its story action, and a map symbol on the Canyon map control. The repeated onboarding brand kicker is removed on every page; headings already establish the place. No location, navigation, or discovery behavior changed.
+
+The refinement passes a Debug simulator build and diff whitespace checks. Its build log is `SecondPass/Work/build-chrome-refinement.log`. Live visual review is pending because the Mac was locked when Simulator access was attempted. Existing screenshots, transition study, Release build, and unsigned archive document the preceding `30f83cb` candidate, not this follow-up. Final media remains on hold.

@@ -25,7 +25,7 @@ struct VirtualWalkthrough: View {
                             TourMapCanvas(number: structure.number)
                                 .frame(height: 160)
                                 .overlay(alignment: .bottomTrailing) {
-                                    Label("Canyon map", systemImage: "arrow.up.right")
+                                    Label("Canyon map", systemImage: "map")
                                         .font(.caption.weight(.semibold)).padding(10)
                                         .background(.white, in: Capsule()).padding(12)
                                 }
@@ -78,7 +78,7 @@ struct VirtualWalkthrough: View {
     private func heading(_ structure: Structure) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
-                Text(typeSize.isAccessibilitySize ? "\(structure.number) / \(dataStore.structures.count)" : "\(String(format: "%02d", structure.number))   /   THE CANYON TOUR")
+                Text("\(appState.currentStructureIndex + 1) / \(dataStore.structures.count)")
                     .font(.caption.monospaced().weight(.medium)).tracking(1).foregroundStyle(.secondary)
                 Spacer(minLength: 8)
                 Button { move(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
@@ -91,7 +91,7 @@ struct VirtualWalkthrough: View {
                     Text(structure.title).font(typeSize.isAccessibilitySize ? .title2 : .largeTitle).fontWeight(.medium)
                         .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
-                    Image(systemName: "arrow.up.right").font(.title3)
+                    Image(systemName: "chevron.right").font(.body.weight(.medium)).foregroundStyle(.secondary)
                 }.foregroundStyle(CanyonStyle.ink)
             }.buttonStyle(.plain).accessibilityLabel("Read the story of \(structure.title)")
         }.padding(.horizontal, 22).padding(.top, 6).padding(.bottom, 24)

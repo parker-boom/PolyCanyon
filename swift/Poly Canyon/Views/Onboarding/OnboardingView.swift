@@ -22,10 +22,6 @@ struct OnboardingView: View {
                             .clipped()
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("POLY CANYON")
-                                .font(.caption.weight(.semibold))
-                                .tracking(2)
-                                .foregroundStyle(ink)
                             Text(page == 0 ? "Explore Poly Canyon" : heading(at: context.date))
                                 .font(.largeTitle.weight(.bold))
                                 .fixedSize(horizontal: false, vertical: true)
