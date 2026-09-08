@@ -12,6 +12,23 @@
 import CoreLocation
 import Combine
 
+/// The service owns decisions; this boundary contains only Core Location hardware operations.
+@MainActor
+protocol LocationManaging: AnyObject {
+    var delegate: CLLocationManagerDelegate? { get set }
+    var authorizationStatus: CLAuthorizationStatus { get }
+    var desiredAccuracy: CLLocationAccuracy { get set }
+    var distanceFilter: CLLocationDistance { get set }
+    var pausesLocationUpdatesAutomatically: Bool { get set }
+    var allowsBackgroundLocationUpdates: Bool { get set }
+    func requestWhenInUseAuthorization()
+    func requestAlwaysAuthorization()
+    func startUpdatingLocation()
+    func stopUpdatingLocation()
+}
+
+extension CLLocationManager: LocationManaging {}
+
 // MARK: - Notifications
 // These notifications can be used throughout the app to listen for location-related events.
 extension Notification.Name {
@@ -49,20 +66,25 @@ final class LocationService: NSObject, ObservableObject {
     
     // MARK: - Dependencies
     /// CoreLocation manager responsible for handling location updates.
-    private let locationManager = CLLocationManager()
+    private let locationManager: LocationManaging
+    private let defaults: UserDefaults
+    private let notifications: NotificationCenter
+    private let now: () -> Date
     
     
     // MARK: - Map Points (Static Data)
     /// Loaded at initialization, these are all the map points from `mapPoints.json`.
-    public private(set) var mapPoints: [MapPoint] = {
-        guard let url = Bundle.main.url(forResource: "mapPoints", withExtension: "json"),
+    public private(set) var mapPoints: [MapPoint]
+
+    private static func loadMapPoints(bundle: Bundle) -> [MapPoint] {
+        guard let url = bundle.url(forResource: "mapPoints", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let mapPointData = try? JSONDecoder().decode([MapPointData].self, from: data) else {
             print("⚠️ Failed to load mapPoints.json")
             return []
         }
         return mapPointData.map { MapPoint(from: $0) }
-    }()
+    }
     
     // MARK: - Published States (For UI Binding)
     @Published private(set) var locationStatus: CLAuthorizationStatus?
@@ -159,14 +181,20 @@ final class LocationService: NSObject, ObservableObject {
     private let minimumUpdateInterval: TimeInterval = 1.5
     
     // MARK: - Initialization
-    private override init() {
+    init(manager: LocationManaging = CLLocationManager(), bundle: Bundle = .main,
+         defaults: UserDefaults = .standard, notifications: NotificationCenter = .default,
+         now: @escaping () -> Date = Date.init) {
+        locationManager = manager
+        self.defaults = defaults
+        self.notifications = notifications
+        self.now = now
+        mapPoints = Self.loadMapPoints(bundle: bundle)
         super.init()
         setupLocationManager()
     }
     
     /// Call this once the rest of the app is set up (e.g., from AppState) to finalize configs if needed.
     func configure() {
-        let defaults = UserDefaults.standard
         if defaults.bool(forKey: "onboardingProcess") {
             setMode(defaults.bool(forKey: "adventureMode") ? .adventure : .virtualTour)
         } else if locationManager.authorizationStatus == .authorizedWhenInUse ||
@@ -211,7 +239,7 @@ final class LocationService: NSObject, ObservableObject {
         isAppActive = active
         if active {
             locationStatus = locationManager.authorizationStatus
-            if !hasLocationPermission || lastLocation.map({ !LocationSamplePolicy.isUsable($0) }) == true {
+            if !hasLocationPermission || lastLocation.map({ !LocationSamplePolicy.isUsable($0, now: now()) }) == true {
                 clearLocation()
             }
         }
@@ -220,7 +248,7 @@ final class LocationService: NSObject, ObservableObject {
 
     private func updateTrackingState() {
         let canTrackInBackground = currentMode == .adventure &&
-            lastLocation.map { LocationSamplePolicy.isUsable($0) && isWithinBackgroundRange($0) } == true
+            lastLocation.map { LocationSamplePolicy.isUsable($0, now: now()) && isWithinBackgroundRange($0) } == true
         let shouldRun = wantsUpdates && hasLocationPermission && (isAppActive || canTrackInBackground)
         let background = shouldRun && canTrackInBackground
         if locationManager.allowsBackgroundLocationUpdates != background {
@@ -303,7 +331,7 @@ final class LocationService: NSObject, ObservableObject {
     
     /// Determines if the user can actually use location inside the canyon.
     var canUseLocation: Bool {
-        guard let location = lastLocation, LocationSamplePolicy.isUsable(location) else { return false }
+        guard let location = lastLocation, LocationSamplePolicy.isUsable(location, now: now()) else { return false }
         return hasLocationPermission && isWithinCanyon(location)
     }
     
@@ -330,7 +358,7 @@ final class LocationService: NSObject, ObservableObject {
     
     /// Checks if the user is within the canyon bounding box.
     var isInPolyCanyonArea: Bool {
-        guard let location = lastLocation, LocationSamplePolicy.isUsable(location) else {
+        guard let location = lastLocation, LocationSamplePolicy.isUsable(location, now: now()) else {
             return false
         }
         let result = isWithinCanyon(location)
@@ -431,7 +459,11 @@ extension LocationService {
 extension LocationService: @preconcurrency CLLocationManagerDelegate {
     /// Called when the authorization status changes (e.g., user grants or denies permission).
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        locationStatus = manager.authorizationStatus
+        refreshAuthorization()
+    }
+
+    func refreshAuthorization() {
+        locationStatus = locationManager.authorizationStatus
         if !hasLocationPermission { clearLocation() }
         updateTrackingState()
     }
@@ -446,17 +478,21 @@ extension LocationService: @preconcurrency CLLocationManagerDelegate {
 
     /// Called whenever there are new location updates from CoreLocation.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        receiveLocations(locations)
+    }
+
+    func receiveLocations(_ locations: [CLLocation]) {
         guard isUpdatingLocation, currentMode != .virtualTour, hasLocationPermission,
               let location = locations.last,
-              LocationSamplePolicy.isUsable(location) else { return }
+              LocationSamplePolicy.isUsable(location, now: now()) else { return }
         
-        let now = Date()
+        let receiptTime = now()
         if let lastUpdate = lastLocationUpdate, 
-           now.timeIntervalSince(lastUpdate) < minimumUpdateInterval {
+           receiptTime.timeIntervalSince(lastUpdate) < minimumUpdateInterval {
             return
         }
         
-        lastLocationUpdate = now
+        lastLocationUpdate = receiptTime
         lastLocation = location
         
         recommendedMode = isWithinRecommendationRange(location)
@@ -467,7 +503,7 @@ extension LocationService: @preconcurrency CLLocationManagerDelegate {
         updateAdventureState(location)
         updateTrackingState()
         
-        if isWithinCanyon(location) && LocationSamplePolicy.canAwardVisit(location) {
+        if isWithinCanyon(location) && LocationSamplePolicy.canAwardVisit(location, now: now()) {
             checkForNearbyStructures(at: location)
             updateNearbyStructures()
         } else {
@@ -479,7 +515,7 @@ extension LocationService: @preconcurrency CLLocationManagerDelegate {
     private func checkForNearbyStructures(at location: CLLocation) {
         if let nearestPoint = findNearestMapPoint(to: location.coordinate),
            nearestPoint.structure != -1 {  // Only notify for valid structure points
-            NotificationCenter.default.post(
+            notifications.post(
                 name: .structureVisited,
                 object: nil,
                 userInfo: ["structureNumber": nearestPoint.structure]

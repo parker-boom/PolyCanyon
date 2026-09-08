@@ -1,0 +1,59 @@
+[
+  {
+    "Name": "Entry Arch",
+    "Number": 1,
+    "Year": "1976",
+    "Advisors": [
+      "Nelse Greene"
+    ],
+    "Builders": [
+      "Paul Miller (ARCH)",
+      "Lynn Noah (ARCH)",
+      "Greg Lomax (ARCH)",
+      "Andrew Low (ARCH)",
+      "Gwin Stumbaugh (ARCH)"
+    ],
+    "Description": "The Entry Arch stands as a testament to thoughtful design meeting practical needs. A steel frame wrapped in serpentinite stone forms its core, with the stone's natural asbestos lending unexpected durability. The true ingenuity lies in its three-fingered stone walls, which guide visitors while keeping wandering cattle at bay. The builders left subtle signatures in the walls - terracotta impressions of their faces nestled within the stonework. Though their planned ceramic fountain never materialized, the arch remains a quiet guardian of the canyon's entrance, its very stones telling stories of adaptation and purpose.",
+    "Fun Fact": "The arch channels rain through recessed stone joints, hidden in plain sight.",
+    "Images": [
+      "M-1",
+      "C-1",
+      "entryArch1",
+      "entryArch2",
+      "entryArch3"
+    ],
+    "isVisited": true,
+    "isLiked": true,
+    "isOpened": true,
+    "recentlyVisited": 1750000000
+  },
+  {
+    "Name": "Techite Bridge",
+    "Number": 2,
+    "Year": "1973",
+    "Advisors": [
+      "Al Mager",
+      "Albert Draves"
+    ],
+    "Builders": [
+      "Robert Purdy (CE)",
+      "Merrilee Amy (CE)",
+      "Robert Mac Ewan (CE)",
+      "Glen Jackson",
+      "Richard Anatablin (ARCE)",
+      "Sara Engmyr (ARCE)",
+      "Michelle Griffith (ARCE)",
+      "Jora Leigh (ARCE)",
+      "Jesse Rainsdon (ARCE)"
+    ],
+    "Description": "The Techite Bridge was born from a simple question: could plastic pipe be more than just plumbing? Built for just $1,300, this 46-foot span uses hollow fiber-reinforced plastic tubes drilled with precision to house steel rebar, anchored into concrete at each end. The result was a lightweight crossing that proved plastic's potential in structural design. Time tested its resilience through vandalism and weather, leading to a careful ecological restoration in 2024 that preserved both the bridge and the river below.",
+    "Fun Fact": "This bridge\u2019s calculations had errors no bigger than a fingernail.",
+    "Images": [
+      "M-2",
+      "C-2",
+      "techiteBridge1",
+      "techiteBridge2",
+      "techiteBridge3"
+    ]
+  }
+]

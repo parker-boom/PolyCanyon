@@ -19,7 +19,7 @@ The script writes DerivedData, package checkouts, build results, and launch logs
 bash swift/scripts/check-models.sh
 ```
 
-Compiles the production models, persistence, store, settings, and location-sample policy into isolated macOS checks. Tests use temporary files and defaults rather than simulator/user progress. See [REFACTOR.md](REFACTOR.md) for coverage and release limitations.
+Compiles the production models, persistence, store, settings, and location service into isolated macOS checks, including deterministic replay of the actual bundled map coordinates. Tests use temporary files and defaults rather than simulator/user progress. See [REFACTOR.md](REFACTOR.md) for coverage and release limitations.
 
 ## Verification and release preparation
 
@@ -40,3 +40,5 @@ DEVELOPER_DIR='/Volumes/SSK Drive/Applications/Xcode.app/Contents/Developer' xco
 ```
 
 For distribution, first resolve the source/listing version mismatch and select the next marketing/build version in the authorized developer account. Then configure valid signing and archive without `CODE_SIGNING_ALLOWED=NO`; validate through Xcode Organizer. Upload and submission are separate release actions.
+
+Release-preparation audit, replay-test boundaries, draft metadata and exact account-dependent Xcode/App Store Connect steps: [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md). The shared scheme has no XCTest target; use the script above for regression checks.

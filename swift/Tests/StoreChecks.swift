@@ -105,14 +105,19 @@ struct StoreChecks {
         // Legacy migration is read-only until an edit, and preserves both catalogs and days.
         let legacyDirectory = root.appendingPathComponent("Legacy")
         let legacyDisk = CatalogPersistence(directory: legacyDirectory)
-        try legacyDisk.save(afterFailure.structures, to: "structures.json")
-        try legacyDisk.save(afterFailure.ghostStructures, to: "ghostStructures.json")
+        try FileManager.default.createDirectory(at: legacyDirectory, withIntermediateDirectories: true)
+        let fixtures = URL(fileURLWithPath: CommandLine.arguments[2])
+        for name in ["structures.json", "ghostStructures.json"] {
+            try FileManager.default.copyItem(at: fixtures.appendingPathComponent(name), to: legacyDirectory.appendingPathComponent(name))
+        }
         defaults.set(7, forKey: "dayCount")
         let migration = DataStore(directory: legacyDirectory, defaults: defaults, bundle: bundle)
         precondition(migration.dayCount == 7 && migration.ghostStructures[0].isVisited)
-        migration.toggleLike(for: 1)
+        precondition(migration.isLiked(for: 1) && migration.structures[0].isOpened && migration.totalVisitedCount == 2)
+        precondition(!FileManager.default.fileExists(atPath: legacyDirectory.appendingPathComponent("progress.json").path))
+        migration.toggleLike(for: 2)
         let migrated = DataStore(directory: legacyDirectory, defaults: defaults, bundle: bundle)
-        precondition(migrated.isLiked(for: 1) && migrated.dayCount == 7 && migrated.ghostStructures[0].isVisited)
+        precondition(migrated.isLiked(for: 1) && migrated.isLiked(for: 2) && migrated.dayCount == 7 && migrated.ghostStructures[0].isVisited)
         // Unknown future schema must never be overwritten by an older app.
         var future = try legacyDisk.load(CatalogSnapshot.self, from: "progress.json")!
         future.schemaVersion = 99

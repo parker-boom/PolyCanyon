@@ -21,12 +21,15 @@ final class DataStore: ObservableObject {
     private var automaticVisitsPaused = false
     private let persistence: CatalogPersistence
     private let bundle: Bundle
+    private let notifications: NotificationCenter
     private let now: () -> Date
 
     init(directory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0],
          defaults: UserDefaults = .standard, bundle: Bundle = .main,
+         notifications: NotificationCenter = .default,
          now: @escaping () -> Date = Date.init) {
         persistence = CatalogPersistence(directory: directory)
+        self.notifications = notifications
         self.bundle = bundle
         self.now = now
         let saved: CatalogSnapshot
@@ -47,7 +50,7 @@ final class DataStore: ObservableObject {
                                                saved: saved.ghosts)
         dayCount = max(0, saved.dayCount)
         previousDayVisited = saved.previousDayVisited
-        NotificationCenter.default.addObserver(self, selector: #selector(handleStructureVisit), name: .structureVisited, object: nil)
+        notifications.addObserver(self, selector: #selector(handleStructureVisit), name: .structureVisited, object: nil)
     }
 
     @objc private func handleStructureVisit(_ notification: Notification) {
