@@ -1,9 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Volumes/SSK Drive/Applications/Xcode.app/Contents/Developer}"
-checks='/Volumes/SSK Drive/Developer/Checks/PolyCanyon'
-cache='/Volumes/SSK Drive/Developer/DerivedData/PolyCanyon/ModuleCache.noindex'
+# xcrun respects DEVELOPER_DIR when supplied, otherwise the selected Xcode.
+build_root="${POLYCANYON_BUILD_ROOT:-$repo/swift/.build}"
+checks="$build_root/Checks/PolyCanyon"
+cache="$build_root/DerivedData/PolyCanyon/ModuleCache.noindex"
 mkdir -p "$checks"
 data="$repo/swift/Poly Canyon/Core/Data"
 xcrun swiftc -module-cache-path "$cache" "$data/Models.swift" "$data/CatalogPersistence.swift" \

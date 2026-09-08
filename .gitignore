@@ -40,3 +40,6 @@ swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
 !swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 !swift/Poly Canyon.xcodeproj/xcshareddata/
 !swift/Poly Canyon.xcodeproj/xcshareddata/xcschemes/
+
+# Portable local iOS build/check outputs.
+/swift/.build/

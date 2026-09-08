@@ -2,16 +2,35 @@
 
 Use the existing `Poly Canyon.xcodeproj` and `Poly Canyon` scheme. The app remains in Swift 5 language mode with an iOS 16 deployment target. No Firebase setup is required.
 
+On a clean checkout with Xcode selected:
+
+```bash
+python3 swift/scripts/check-data.py
+bash swift/scripts/check-models.sh
+bash swift/scripts/run-simulator.sh build
+bash swift/scripts/run-simulator.sh run
+```
+
+Outputs default to ignored `swift/.build/`. Run mode selects an available iPhone simulator; pass a UUID or set `POLYCANYON_SIMULATOR_ID` to choose one. Build-only mode uses a generic simulator destination. Set `DEVELOPER_DIR` to override the selected Xcode and `POLYCANYON_BUILD_ROOT` to choose the output root.
+
+On Parker's Mac, keep all subsequent script outputs on the external drive:
+
+```bash
+export DEVELOPER_DIR='/Volumes/SSK Drive/Applications/Xcode.app/Contents/Developer'
+export POLYCANYON_BUILD_ROOT='/Volumes/SSK Drive/Developer'
+```
+
 With the installed external Xcode and iOS 26.5 runtime:
 
 ```bash
 DEVELOPER_DIR='/Volumes/SSK Drive/Applications/Xcode.app/Contents/Developer' \
+POLYCANYON_BUILD_ROOT='/Volumes/SSK Drive/Developer' \
   bash swift/scripts/run-simulator.sh run A94E4457-3DC6-496A-8F51-4B13D52DD557
 ```
 
 That device is the existing iPhone 17 Pro running iOS 26.5. Substitute another installed simulator UUID as needed. Set `DEVELOPER_DIR` explicitly because the system selection may still point to internal Xcode. Use `build` instead of `run` to skip simulator boot, app installation, and launch.
 
-The script writes DerivedData, package checkouts, build results, and launch logs under `/Volumes/SSK Drive/Developer`. It preserves the simulator's existing app data and does not install Xcode or runtimes. Signing is disabled for the simulator build only; project signing settings are unchanged.
+With those overrides, the script writes DerivedData, package checkouts, build results, and launch logs under `/Volumes/SSK Drive/Developer`. It preserves the simulator's existing app data and does not install Xcode or runtimes. Signing is disabled for the simulator build only; project signing settings are unchanged.
 
 ## Focused regression checks
 

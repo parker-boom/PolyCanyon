@@ -2,6 +2,10 @@
 
 Local preparation only. No push, upload, App Store metadata changes or submission occurred. The refactor baseline is commit `881c41d` on `maintenance/revive-ios`; subsequent preparation is on `maintenance/release-preparation`.
 
+## Product decisions before a three-year freeze
+
+Read [THREE_YEAR_REVIEW.md](THREE_YEAR_REVIEW.md). A deeper production probe confirmed that the current visit rule can award a structure from 316.7m away. Virtual touring can retain Adventure GPS, and reset wording does not describe its effects on favorites. Builds and existing replay tests pass, but these product findings must be resolved deliberately before treating the app as ready to leave unchanged for three years. No substantive feature removal has been made from that review.
+
 ## Confidence from existing data
 
 Run `bash swift/scripts/check-models.sh`. Three executables check production models/persistence, store/settings, and the location service. The replay replaces only location hardware and supplies a clock, isolated notification center, temporary save directory and the actual bundled JSON. It exercises the same permission, lifecycle, geometry, throttle, notification and save decisions used by the app.
@@ -30,7 +34,7 @@ Inspected project settings, resolved Release build settings, source, dependencie
 | Dependencies | Glur 1.1.0, Zoomable revision `27463744a1c82e550959703153bd6f3c62fef906`; resolved lockfile shared. Firebase/Shimmer removed; Shiny replaced by local code. All three applicable MIT notices bundled under Core/Licenses. |
 | Privacy | Manifest declares UserDefaults reason CA92.1, no tracking or collected data. App and pinned library source audit found no networking/upload client, analytics or advertising integration. Coordinates are used locally; save files contain visit/favorite state, not a GPS trail. |
 | Export compliance | No app encryption implementation or network client found; `ITSAppUsesNonExemptEncryption` remains unset. Account owner must confirm the export answers for the final signed binary before making that declaration. |
-| Support | In-app contact opens `pjones15@calpoly.edu`; confirm that mailbox remains monitored. The setup task verified App Store support URL https://polycanyon.com/support, marketing URL https://polycanyon.com/download, and privacy URL https://bit.ly/3xJY4VQ. Their content/reachability remains unverified here: the browser fetch could not open support/privacy, and download exposed only a JavaScript shell. |
+| Support | In-app contact now opens `parker.jones@live.com`, as approved by Parker. The setup task verified App Store support URL https://polycanyon.com/support, marketing URL https://polycanyon.com/download, and privacy URL https://bit.ly/3xJY4VQ. Their content/reachability remains unverified here: the browser fetch could not open support/privacy, and download exposed only a JavaScript shell. |
 
 The privacy manifest is a binary declaration, not a replacement for the App Store privacy questionnaire. Based on this binary's source, “Data Not Collected” is the proposed answer; review the pinned SDKs and any release changes before updating the account. Apple defines collection in relation to data transmitted off-device. [Apple privacy guidance](https://developer.apple.com/app-store/app-privacy-details/).
 

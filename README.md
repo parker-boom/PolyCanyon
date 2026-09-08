@@ -1,4 +1,17 @@
 # Poly Canyon App
+
+## Current maintenance status
+
+The maintained app is the offline SwiftUI iOS project in [`swift/`](swift/BUILDING.md). Rate Structures and the past Design Village event have been removed there. The architecture is intentionally small: bundled research/map/photos, local progress snapshots, and on-device location decisions. Visual redesign is separate work.
+
+`react/` is the legacy React Native/Android implementation. It has not received this refactor or a current build/privacy audit; its source still includes Firebase packages and a location-logging implementation. Do not apply the iOS “Data Not Collected” conclusion to Android or assume feature parity. Historical screenshots and store links below may describe older releases.
+
+- [Build and test iOS](swift/BUILDING.md)
+- [Content ownership, catalog differences and asset audit](swift/MAINTENANCE.md)
+- [Release preparation and account steps](swift/RELEASE_PREPARATION.md)
+
+Portable content check: `python3 swift/scripts/check-data.py`. Swift regression checks require macOS/Xcode: `bash swift/scripts/check-models.sh`. Neither needs signing or a physical phone.
+
 ## Explore Like Never Before
 <img src="promotional/graphics/OGDefault.png" width="45%" />
 
@@ -36,7 +49,7 @@ Not in the canyon? The Virtual Tour Mode offers a guided digital walkthrough of 
 
 ### How was it developed?
 
-Behind the scenes, the Poly Canyon App runs on two codebases—one built with SwiftUI and another with React Native. Both platforms deliver the same smooth, unified experience by relying on three core components:
+The original project used SwiftUI and React Native codebases with similar concepts. They now have different maintenance status and behavior; this section describes the original design, not current cross-platform parity:
 
 - **LocationService:**  
   This service handles location permissions and continuously updates a user's position. It loads a set of map points from a JSON file—each with a pixel position and coordinates—and links some of these points to specific structures. When you get close enough, the service triggers actions like marking a structure as visited. This is the core process behind live location features.

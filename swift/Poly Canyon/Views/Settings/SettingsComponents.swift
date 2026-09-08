@@ -213,13 +213,13 @@ struct CreditsSection: View {
                     .foregroundColor(appState.isDarkMode ? .white : .black)
                 
                 Button(action: {
-                    if let url = URL(string: "mailto:pjones15@calpoly.edu") {
+                    if let url = URL(string: "mailto:parker.jones@live.com") {
                         UIApplication.shared.open(url)
                     }
                 }) {
                     HStack {
                         Image(systemName: "envelope.fill")
-                        Text("pjones15@calpoly.edu")
+                        Text("parker.jones@live.com")
                     }
                     .foregroundColor(.blue)
                 }
