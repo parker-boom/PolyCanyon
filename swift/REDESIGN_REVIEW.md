@@ -71,3 +71,13 @@ The catalog now uses one consistent two-column photographic grid, with one colum
 Independent read-only review of the integrated diff and v2 captures reported **No findings**. The coordinator accepted the grid, hero contrast and visual direction, then requested direct onboarding copy and shorter settings explanations. Final captures must reflect that refinement. Production data, model/migration/replay checks remain passing; no core or catalog changes were made.
 
 The final copy refinement is implemented: welcome uses “Explore Poly Canyon”, the direct offline explanation and “Continue”; settings keeps a short recording/privacy footer and modest links. Debug, Release simulator, and unsigned archive passed after those edits. `v3-your-visit.png` verifies denied permission leaves recording off with the explicit Settings action. The compact welcome is updated but obscured by the retained system prompt; relaunch did not dismiss it. Direct approval is still pending, and no substitute footage or permission bypass was used.
+
+### Appearance and compact follow-up
+
+The coordinator accepted `v3-your-visit.png` and approved the existing map plus v2 catalog/story/walkthrough stills for website use. No distribution or upload was authorized.
+
+Both baseline and current `Routing/PCContainerView.swift:16` force light appearance for the app. `StructureGallery.swift` intentionally presents a dark gallery with white controls on black. The story scrim therefore belongs to the light presentation. No partial dark-mode support was added; source remains identical to the validated app commit. Actual behavior under system-dark settings is not newly verified, because computer use reported the Mac locked before that check.
+
+For the remaining compact fallback check, the pending-permission task-created iOS18.6 simulator was shut down with its data preserved. The existing iPhone SE (3rd generation), iOS18.2, `CD9C41A1-FFD1-4197-B6BE-2F2130B35DDB`, booted successfully, received the final Debug app, and launched successfully. It was not erased or reset. This verifies installation/launch only: the final legacy navigation appearance, dismissal, and compact accessibility interaction were not rechecked because the Mac locked. Prior compact observations above remain prior-version evidence. No alternate UI-control route or permission workaround was used.
+
+The requested interaction promo and near/far permission journeys are incomplete. Approved stills are useful independent website media; no slideshow is being represented as an interaction walkthrough. The unlock request and direct permission question remain pending without repeated requests. Signing/provisioning and final App Store-size captures also remain outstanding.
