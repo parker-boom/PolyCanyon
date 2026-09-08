@@ -1,94 +1,117 @@
 import SwiftUI
 import CoreLocation
 
-/// Two steps, with the existing location recommendation kept behind the presentation.
+/// Location remains a choice; its response is visible before entering the guide.
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var page = 0
-
-    private let forest = Color(red: 0.16, green: 0.30, blue: 0.23)
-    private var paper: Color { colorScheme == .dark ? Color(red: 0.09, green: 0.11, blue: 0.10) : Color(red: 0.97, green: 0.96, blue: 0.92) }
+    private let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    Image("M-1")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geometry.size.width, height: max(190, min(geometry.size.height * 0.40, 370)))
-                        .clipped()
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("POLY CANYON")
-                            .font(.caption.weight(.semibold))
-                            .tracking(2)
-                            .foregroundStyle(.secondary)
-                        Text(page == 0 ? "Explore Poly Canyon" : "Discover as\nyou walk.")
-                            .font(.largeTitle.weight(.bold))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                        Text(page == 0
-                             ? "Follow the map, explore student-built structures, and read their stories. Available offline."
-                             : "Your location puts you on the map and records the structures you visit, only while the app is active. Everything stays on your device.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if page == 1 {
-                            Text(locationExplanation)
-                                .font(.callout)
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Image("M-1")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: typeSize.isAccessibilitySize ? 180 : max(190, min(geometry.size.height * 0.43, 390)))
+                            .clipped()
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("POLY CANYON")
+                                .font(.caption.weight(.semibold))
+                                .tracking(2)
+                                .foregroundStyle(ink)
+                            Text(page == 0 ? "Explore Poly Canyon" : heading(at: context.date))
+                                .font(.largeTitle.weight(.bold))
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityAddTraits(.isHeader)
+                            Text(page == 0
+                                 ? "Follow the map, explore student-built structures, and read their stories. Available offline."
+                                 : explanation(at: context.date))
+                                .font(.body)
                                 .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                            if page == 1 && locationService.hasLocationPermission {
+                                Label("Location stays on your device", systemImage: "location")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    .padding(.horizontal, 28)
-                    Spacer(minLength: 0)
-                }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack(spacing: 10) {
-                    Button(action: primaryAction) {
-                        Text(primaryTitle)
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(forest)
-                    if page == 1 && !locationService.isLocationPermissionDenied {
-                        Button("Explore without location") { finish(useLocation: false) }
-                            .font(.callout.weight(.medium))
-                            .frame(minHeight: 44)
-                            .tint(colorScheme == .dark ? .white : forest)
+                        .padding(28)
+                        .id(page)
+                        .transition(reduceMotion ? .identity : .opacity)
+                        if typeSize.isAccessibilitySize { actions }
                     }
                 }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 16)
-                .background(paper)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if !typeSize.isAccessibilitySize { actions }
+                }
+                .background(.white)
             }
-            .background(paper.ignoresSafeArea())
         }
+        .preferredColorScheme(.light)
     }
 
-    private var locationExplanation: String {
+    private var actions: some View {
+        VStack(spacing: 8) {
+            Button(action: primaryAction) {
+                Text(primaryTitle)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(ink)
+            if page == 1 && !locationService.isLocationPermissionDenied {
+                Button("Explore without location") { finish(useLocation: false) }
+                    .font(.callout.weight(.medium))
+                    .frame(minHeight: 44)
+                    .tint(ink)
+            }
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 16)
+        .background(.white)
+    }
+
+    private func usableLocation(at date: Date) -> CLLocation? {
+        guard locationService.hasLocationPermission,
+              let location = locationService.lastLocation,
+              LocationSamplePolicy.isUsable(location, now: date) else { return nil }
+        return location
+    }
+
+    private func heading(at date: Date) -> String {
+        if locationService.isLocationPermissionDenied { return "Explore from anywhere" }
+        guard locationService.hasLocationPermission else { return "Find yourself on the map" }
+        guard let location = usableLocation(at: date) else { return "Location is enabled" }
+        if locationService.isWithinCanyon(location) { return "You’re in Poly Canyon" }
+        if locationService.isWithinNearbyRange(location) { return "You’re near Poly Canyon" }
+        if locationService.getRecommendedMode(location) { return "Ready for a canyon visit" }
+        return "Explore from wherever you are"
+    }
+
+    private func explanation(at date: Date) -> String {
         if locationService.isLocationPermissionDenied {
-            return "You can explore every photo and story without location. Enable it later in Your visit."
+            return "The map, photos, and walkthrough are all yours to explore. You can enable location later in Info."
         }
-        if locationService.hasLocationPermission, let location = locationService.lastLocation {
-            if locationService.isInPolyCanyonArea {
-                return "You’re in Poly Canyon. Visits will be recorded as you explore."
-            }
-            if locationService.getRecommendedMode(location) {
-                return "You’re near Poly Canyon. Visits will be recorded when you explore the canyon."
-            }
-            return "Explore from wherever you are. Start with the map or take a walkthrough."
+        guard locationService.hasLocationPermission else {
+            return "Use your location to see where you are and record the structures you visit while the app is open. Or explore without it."
         }
-        if locationService.hasLocationPermission {
-            return "You’re ready to explore. Your position will appear when a location is available."
+        guard let location = usableLocation(at: date) else {
+            return "Finding your position. You can continue now; visits can be recorded when you reach the canyon and a location is available."
         }
-        return "Just looking around? The map, photos, and virtual walkthrough work without location, too."
+        if locationService.isWithinCanyon(location) || locationService.isWithinNearbyRange(location) {
+            return "Follow the canyon map. Structures you visit can be recorded while the app is open."
+        }
+        if locationService.getRecommendedMode(location) {
+            return "Browse the map now. Visit recording will be ready when you explore the canyon with the app open."
+        }
+        return "Start with the illustrated map or take a walkthrough. You can enable visit recording in Info when you visit."
     }
 
     private var primaryTitle: String {
@@ -99,7 +122,7 @@ struct OnboardingView: View {
 
     private func primaryAction() {
         if page == 0 {
-            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { page = 1 }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) { page = 1 }
         } else if locationService.isLocationPermissionDenied {
             finish(useLocation: false)
         } else if locationService.hasLocationPermission {
@@ -110,13 +133,13 @@ struct OnboardingView: View {
     }
 
     private func finish(useLocation: Bool) {
-        // Preserve the field-tested recommendation and its no-fix fallback.
         let recording: Bool
         if !useLocation || !locationService.hasLocationPermission {
             recording = false
-        } else if let location = locationService.lastLocation {
-            recording = locationService.isInPolyCanyonArea || locationService.getRecommendedMode(location)
+        } else if let location = usableLocation(at: Date()) {
+            recording = locationService.isWithinCanyon(location) || locationService.getRecommendedMode(location)
         } else {
+            // Preserve the existing authorized/no-fix recording default, without claiming proximity.
             recording = true
         }
         appState.adventureModeEnabled = recording

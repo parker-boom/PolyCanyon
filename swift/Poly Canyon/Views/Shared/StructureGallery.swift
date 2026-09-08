@@ -5,11 +5,15 @@ import Zoomable
 struct StructureGallery: View {
     let structure: Structure
     let onClose: () -> Void
+    let transitionNamespace: Namespace.ID?
+    let visibleSourceIndices: Set<Int>
     @State private var currentIndex: Int
 
-    init(structure: Structure, initialIndex: Int = 0, onClose: @escaping () -> Void) {
+    init(structure: Structure, initialIndex: Int = 0, transitionNamespace: Namespace.ID? = nil, visibleSourceIndices: Set<Int> = [], onClose: @escaping () -> Void) {
         self.structure = structure
         self.onClose = onClose
+        self.transitionNamespace = transitionNamespace
+        self.visibleSourceIndices = visibleSourceIndices
         _currentIndex = State(initialValue: min(max(initialIndex, 0), max(structure.images.count - 1, 0)))
     }
 
@@ -61,6 +65,9 @@ struct StructureGallery: View {
         .tint(.white)
         .preferredColorScheme(.dark)
         .onChange(of: structure.number) { _ in currentIndex = 0 }
+        .modifier(StoryPhotoDestination(id: StoryPhotoID(structure: structure.number, index: currentIndex),
+                                        namespace: transitionNamespace,
+                                        hasVisibleSource: visibleSourceIndices.contains(currentIndex)))
     }
 
     @ViewBuilder
@@ -79,5 +86,28 @@ struct StructureGallery: View {
             .buttonStyle(.plain)
             .accessibilityLabel(label)
         }
+    }
+}
+
+/// Index distinguishes repeated assets while structure scopes each story's photographs.
+struct StoryPhotoID: Hashable {
+    let structure: Int
+    let index: Int
+}
+
+private struct StoryPhotoDestination: ViewModifier {
+    let id: StoryPhotoID
+    let namespace: Namespace.ID?
+    let hasVisibleSource: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            if let namespace, hasVisibleSource, !reduceMotion {
+                content.navigationTransition(.zoom(sourceID: id, in: namespace))
+            } else {
+                content.navigationTransition(.automatic)
+            }
+        } else { content }
     }
 }
