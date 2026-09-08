@@ -10,7 +10,7 @@ enum CanyonEdition { case fieldGuide, ramble, archive
             if value == "archive" { return .archive }
         }
         #endif
-        return .fieldGuide
+        return .archive
     }
 }
 
