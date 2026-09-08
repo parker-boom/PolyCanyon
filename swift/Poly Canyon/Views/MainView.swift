@@ -45,11 +45,9 @@ struct MainView: View {
     @ViewBuilder private var destinations: some View {
         if #available(iOS 26.0, *) {
             TabView(selection: $destination) {
-                Tab(value: .map) { map } label: { Label("Map", systemImage: "map").labelStyle(.iconOnly) }.accessibilityLabel("Map")
-                Tab(value: .tour) { tour } label: { Label("Tour", systemImage: "figure.walk").labelStyle(.iconOnly) }.accessibilityLabel("Tour")
-                Tab(value: .collection) { collection(searching: false) } label: {
-                    Label("Collection", systemImage: "square.grid.2x2").labelStyle(.iconOnly)
-                }.accessibilityLabel("Collection")
+                Tab("Map", systemImage: "map", value: .map) { map }
+                Tab("Tour", systemImage: "figure.walk", value: .tour) { tour }
+                Tab("Collection", systemImage: "square.grid.2x2", value: .collection) { collection(searching: false) }
                 Tab(value: .search, role: .search) { collection(searching: true) }
             }
             .tabViewSearchActivation(.searchTabSelection)
