@@ -36,7 +36,7 @@ The privacy manifest is a binary declaration, not a replacement for the App Stor
 
 ## Account-dependent steps — no publication
 
-The setup task verified Parker Jones, team `8AMGSY9U5K`, active membership (renewal 9 August 2027), and the Program License Agreement accepted on 8 September 2026. The earlier “PLA Update available” blocker is resolved; refresh Xcode signing services. A Paid Apps agreement-expired banner also appeared, but this audit does not establish it as a blocker for this free app. New social-media age-rating questions remain to review.
+The setup task verified Parker Jones, team `8AMGSY9U5K`, active membership (renewal 9 August 2027), and the Program License Agreement accepted on 8 September 2026. The earlier “PLA Update available” blocker is resolved. The setup task reopened Manage Certificates successfully: the error is gone, the certificate table is empty, and no certificates were created. A Paid Apps agreement-expired banner also appeared, but this audit does not establish it as a blocker for this free app. New social-media age-rating questions remain to review.
 
 1. In Xcode → Settings → Apple Accounts, refresh the existing team after the agreement update. Any new agreement or legal declaration remains the authorized account holder's decision.
 2. In Xcode → Settings → Apple Accounts → Parker Jones → team → Manage Certificates, refresh and confirm signing certificates after the agreement is resolved. Do not revoke existing certificates. In the project navigator, select the blue Poly Canyon project → TARGETS Poly Canyon → Signing & Capabilities. Confirm Automatic signing and the existing team/bundle identity. A lack of registered test devices can block development provisioning; it does not mean a physical iPhone is required to prepare App Store distribution.
@@ -45,6 +45,10 @@ The setup task verified Parker Jones, team `8AMGSY9U5K`, active membership (rene
 5. Review App Store Connect fields separately: General → App Information (name/subtitle/category/age rating), App Privacy (questionnaire/privacy policy URL), the iOS version page (description, keywords, support URL, screenshots, What's New, review contact/notes and build), Pricing and Availability (including Mac/Vision availability), and export compliance. These values are not controlled by Xcode's display name, category or privacy manifest. [Apple app-information reference](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [export compliance](https://developer.apple.com/help/app-store-connect/manage-app-information/overview-of-export-compliance/).
 
 ## Live metadata differences
+
+The setup task verified the current subtitle as “Explore like never before!”, primary/secondary categories Navigation/Education, age rating 4+, standard Apple EULA and DSA non-trader status. The content-rights answer currently says the app does not contain, show or access third-party content. Review that answer against the actual research and photo provenance before release; this audit does not establish ownership or authorize changing a legal declaration. The current age rating is an observed listing value, not a replacement for answering the new questionnaire.
+
+A proposed next release is **5.5, build 1**, subject to checking all uploaded versions/builds in TestFlight for availability. It is a proposal only; source version/build remain 5.2/6 until that check is complete.
 
 The setup task read the current What's New as “- Design village schedule fix”; it must be replaced for the next version. Existing review notes reference a prior location-button rejection and discuss Continue, virtual tour and no notifications. The revised review notes below explain the current flow. The old version uses automatic release; a future version's release option should be reviewed explicitly before submission.
 
