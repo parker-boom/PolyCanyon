@@ -1,28 +1,38 @@
-# Combined app and security review candidate
+# Final combined review candidate
 
-8 September 2026. Merged committed `redesign/visual-ios` **82114ed** into the isolated `maintenance/security-lts` worktree, starting from cleanup **4262b50**. This is a coordinator review candidate, not approval to release or publish.
+8 September 2026. Final source for this round combines:
 
-The upstream changes are `30f83cb` (navigation, Tour and onboarding) and `82114ed` (Tour controls and onboarding headings). The merge had no conflicts. All nine upstream files match that revision byte for byte; the Android removal and all preserved content survive. The app checkout was neither edited nor switched. The local recovery tag `archive/android-before-retirement-20260908` remains at **80e12df**.
+- Security cleanup: `4262b50be81772d2c57937a7848780af30a69a00`.
+- Initial combined merge: `b31dc149989c8c60a5ab00d0d30ac947a6c9fe66` (app source `82114edbf1032af756fb3a7fbd73fb62168de7f1`).
+- Final coordinator-selected app source: **`8b2f9eb415ddccaa67f3d2bf424a108b8b939f1b`** — remote onboarding action and accessible Tour locator fixes.
 
-## Combined verification
+Both merges were conflict-free in `/Volumes/SSK Drive/Projects/PolyCanyon-security-lts`, branch `maintenance/security-lts`. All incoming app files match upstream byte for byte. Android cleanup, original assets and the 166-file archive remain intact. The app checkout was never edited or switched. Recovery tag `archive/android-before-retirement-20260908` remains at `80e12df9fca6b44b688ff27581cdc16442253264`.
 
-- Data check passed: 31 structures, six historical structures, 231 map points and all iOS image references.
-- All 166 archived Android files match their original SHA-256 checksums.
-- Existing model, persistence, store and foreground-location replay checks passed, including all 35 discoverable structures. Historical structures 105/106 still have no discovery coordinates.
-- Generic Debug simulator build passed with Xcode 26.6 and the iOS 26.5 SDK. Only warning: skipped AppIntents metadata extraction because there is no AppIntents framework dependency.
-- Built bundle remains version 6.0 (1), with When In Use location permission and no background/Always keys. No archived Android files, Firebase configuration, signing containers, npm manifests or matches for the scoped credential-pattern scan were found. This is not proof that every possible secret format is absent.
-- Diff whitespace check passed. No simulator was created, booted, installed to or controlled; no signing, account, remote or publishing action was performed.
+## Final verification
 
-Artifacts use `/Volumes/SSK Drive/Developer/SecurityLTS`. Logs:
+- **Data/preservation: PASS.** 31 structures, six historical structures, 231 map points, all iOS image references, and all 166 archived files' original SHA-256 checksums.
+- **Existing model/store/location checks: PASS.** Persistence/migration, reset/save failure paths and foreground-only replay including all 35 discoverable structures. Historical structures 105/106 still lack discovery coordinates; none were invented.
+- **Release device archive: PASS**, unsigned, Xcode 26.6 / iOS 26.5 SDK, `generic/platform=iOS`, `CODE_SIGNING_ALLOWED=NO`. The archive contains the final merged 8b2f9eb app source plus cleanup.
+- **Archive inspection: PASS.** Version 6.0 (1); When In Use location only; no background or Always keys, Android archive, Firebase configuration, signing containers, npm manifests or provisioning profile. A scoped credential-pattern scan of app-bundle files found no matches; this is not an exhaustive secret-detection guarantee.
+- **Diff check: PASS.** No whitespace errors. Cleanup/archive files unchanged from 4262b50; final app changes preserved exactly.
 
-- `/Volumes/SSK Drive/Developer/SecurityLTS-integration-data.log`
-- `/Volumes/SSK Drive/Developer/SecurityLTS-integration-checks.log`
-- `/Volumes/SSK Drive/Developer/SecurityLTS-integration-build.log`
+Only archive warning: AppIntents metadata extraction skipped because the app has no AppIntents framework dependency. No build errors. Archive payload: 643,998,147 bytes (not an App Store download-size estimate).
 
-## Review boundaries
+All final temporary files, package caches, source packages, DerivedData and archive outputs were explicitly directed to `/Volumes/SSK Drive/Developer/SecurityLTS`. No simulator was created, booted, installed to or controlled; no storage cleanup/deletion was performed.
 
-[Second-pass evidence](swift/SECOND_PASS_REVIEW.md) describes the UI task's verification and remaining hands-on checks. This integration adds build/data/regression validation, not a new visual or physical-device review.
+## Exact artifacts and logs
 
-[Security cleanup](SECURITY_CLEANUP.md) records the earlier 4262b50 audit. Its finding that both Swift packages were actively used applied before the new UI merge: the new Tour removes the last Glur import/call, while the project still retains the Glur dependency. This merge preserves upstream project settings; coordinator can review unused Glur separately. Zoomable remains used. No dependency change was folded into integration.
+- Archive: `/Volumes/SSK Drive/Developer/SecurityLTS/Archives/PolyCanyon-integrated-8b2f9eb.xcarchive`.
+- Data: `/Volumes/SSK Drive/Developer/SecurityLTS-final-8b2f9eb-data.log`.
+- Models/location: `/Volumes/SSK Drive/Developer/SecurityLTS-final-8b2f9eb-checks.log`.
+- Release/archive: `/Volumes/SSK Drive/Developer/SecurityLTS-final-8b2f9eb-archive.log`.
 
-Exposed historical Android signing material and old-client/backend review remain owner actions. The earlier verified 95 GitHub alerts have not been rescanned or changed by this local merge. Publication, default-branch integration, signing and final approval remain separate.
+Prior b31dc14 combined Debug build, models and data also passed. Their logs remain `/Volumes/SSK Drive/Developer/SecurityLTS-integration-{build,checks,data}.log`. That Debug evidence predates 8b2f9eb; the final source is verified by the new Release archive and regression checks above. No identical extra build was repeated.
+
+## Remaining boundaries
+
+[Second-pass evidence](swift/SECOND_PASS_REVIEW.md) records the app task's visual verification and remaining hands-on gesture/VoiceOver checks. This task adds integration/build validation, not physical GPS testing, signing, release approval or new visual claims. No push, publication, account changes or remote alert updates occurred.
+
+[Security cleanup](SECURITY_CLEANUP.md) records the earlier 4262b50 audit. Its statement that both Swift packages were actively used predates this UI merge: the new Tour removes the last Glur import/call, while the project still retains Glur. Project settings were preserved; unused Glur remains a non-blocking coordinator review item. Zoomable remains used.
+
+Historical Android signing exposure, old-client/backend review and eventual default-branch alert refresh remain separate owner actions. The final combined branch is a review candidate for the coordinator.

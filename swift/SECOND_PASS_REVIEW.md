@@ -47,3 +47,11 @@ The `Review` folder contains the native simulator captures; `Work` retains compa
 Tour now uses a quiet current-stop/total indicator, a native chevron on its story action, and a map symbol on the Canyon map control. The repeated onboarding brand kicker is removed on every page; headings already establish the place. No location, navigation, or discovery behavior changed.
 
 The refinement passes a Debug simulator build and diff whitespace checks. Its build log is `SecondPass/Work/build-chrome-refinement.log`. Live visual review is pending because the Mac was locked when Simulator access was attempted. Existing screenshots, transition study, Release build, and unsigned archive document the preceding `30f83cb` candidate, not this follow-up. Final media remains on hold.
+
+## Live follow-up verification
+
+Simulator access became available and the refined candidate was reviewed on the existing iPhone 17 Pro Max / iOS 26.5 device. Current Tour, Map, Collection, Entry Arch story, and onboarding introduction/outcome screenshots are in `SecondPass/Review/current-*.png`.
+
+Two coordinator-requested defects were corrected: a confirmed remote outcome now has one entry action, while canyon and no-fix states retain the meaningful opt-out; at accessibility text sizes the Canyon map action sits below the locator. The locator marker now scales with its number, fixing clipping found during the largest-text check. Synthetic Washington showed the single action and entered with recording paused (verified in Info); the canyon response retained both actions. No new permission grant was needed. Onboarding was previewed with a launch-only override and no saved progress was erased.
+
+The final Debug build passes (`Work/build-outcome-accessibility-refinement.log`), as does diff whitespace validation. Normal-size and largest-text Tour captures were inspected after the marker correction; text size was restored to large. Earlier Release/archive/model evidence remains for the pre-refinement candidate; combined-build verification belongs to the integration task. The existing transition study is still the earlier 30f83cb capture. Gesture/VoiceOver limitations and the hold on final media remain.
