@@ -2,6 +2,8 @@
 
 Integrated baseline: `55a9a50` (app source `8155917`, UI `8b2f9eb`). Android retirement and Glur dependency removal remain inherited. This is a local design branch; no discovery algorithm, persistence format, location policy, publication, or signing change is intended.
 
+Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. Both simulators still have the reviewed `706052c` build.
+
 ## First comparison round
 
 Three functioning compositions were compiled in one Debug binary and selected with launch-only `-CanyonEdition` arguments to avoid repeated asset builds and installation churn. Their view code is shared; isolated source checkpoints select the same compositions by default:
@@ -82,8 +84,27 @@ Independent coordinator review is still required for distant selections, actual 
 - [Motion](https://developer.apple.com/design/human-interface-guidelines/motion): brief feedback should follow the user’s action and clarify spatial change.
 - [Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility): reduce camera/depth movement, preserve large text, and keep controls understandable without color alone.
 
-## Reproduce comparisons
+## Offline cleanup after round-three review
 
-Build with external Xcode, scheme `Poly Canyon`, Debug, an iOS Simulator destination, external DerivedData and package cache. Current arm64 comparison output is `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/DerivedData/Build/Products/Debug-iphonesimulator/Poly Canyon.app`. Logs remain alongside it.
+The coordinator requested source cleanup while the Mac remains locked. No simulator interaction or unlock attempt was made during this work.
 
-Use existing disposable simulator `EDC62B4C-7EB2-41B4-B997-7660D21504C7`, bundle `Parker-Jones.Arch-Graveyard`. Launch-only arguments: `-CanyonEdition fieldGuide`, `-CanyonEdition ramble`, or `-CanyonEdition archive`. Add `-onboardingProcess NO` to replay onboarding without deleting saved progress. Normal launch selects the evolving remix. Do not treat old `A/Poly Canyon.app` as the remix: it preserves the first round.
+- Verified and preserved `design/field-guide` (`66eea5a`), `design/canyon-ramble` (`73d9beb`), and `design/archive-atlas` (`a837743`) before removing the A/B/C switches, old compositions, numbered-marker mode, overview control, and unused Tour-to-Map callback from shipping views. The selected editorial introduction, continuous Tour, native tabs, stories, data, and discovery policy remain.
+- The scroll view previously owned a hosting controller whose view was added without controller containment. It now uses `UIViewControllerRepresentable`, adds the hosting controller as a child, and explicitly detaches the child/clears its SwiftUI root when dismantled. This avoids relying on an orphaned controller for lifecycle and trait propagation.
+- Reduce Motion is passed explicitly from the parent SwiftUI environment into both the native camera and the hosted atlas; it no longer depends on a separate hosting root independently resolving that value. Enabling Reduce Motion also stops a camera animation in progress and snaps to the target. Live motion verification remains open.
+- Extracted `CanyonAtlasGeometry` as the shared illustration/marker/scroll transform. The existing 2000×4519 dimensions, 1.09 calibration, fit/focus scales, and focus anchor are preserved. Native scrolling now uses the same marker position as drawing, including on resize. A corrected bound prevents an inverted scroll range when the viewport is taller than the entire canvas. Changes to a selected place's resolved point also request recentering.
+- The hosted canvas explicitly ignores its own safe-area inset; the enclosing scroll surface still clips to the page's safe area. This keeps its drawing coordinates equal to the native scroll calculations after adding controller containment. Needs a fresh live comparison against round-three stills.
+- At the smallest text sizes, the scaled 130-point card could become shorter than the fixed 84-point photo plus 36 points of padding. It now has a 120-point minimum. The normal-size composition remains 130 points. Onboarding artwork already has a positive 240-point minimum (194 for comparison imagery after picker allowance) and scrolls when content cannot fit; no speculative layout rewrite was made. Actual compact/landscape layout remains unverified.
+
+The new `swift/scripts/check-atlas.sh` checks 75 combinations of viewport and selected point: focused anchors, selected-point visibility, interior recentering, and end/tall-viewport bounds. It passes; log: `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/offline-atlas-checks.log`. These are geometry checks, not gesture, controller-lifecycle, or visual tests. The established data/location checks passed at `706052c`, and no Core/Data, Core/Location, persistence, or catalog files changed in this cleanup.
+
+Offline cleanup validation: Debug (`debug-final-build.log`) and Release (`release-build.log`) arm64 simulator builds both pass. `git diff --check` passes. Core and bundled assets have no diff from `706052c`.
+
+New build output: `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/OfflineCleanup/DerivedData/Build/Products/Debug-iphonesimulator/Poly Canyon.app`. Build logs and source/binary manifest are in `ThirdPass/OfflineCleanup/`. The original round-three output and captures are retained separately. **Do not describe the cleanup binary as installed or its UI as verified.**
+
+Still required when unlocked: install this exact cleanup build; check host re-entry after tab switches and large-text changes, selections 1/17/31 after resize, manual map scroll and card swipe, Reduce Motion (including changing it during movement), normal/compact/large-text and contrast layouts, remaining canyon/near/denied/no-fix flows, gallery gestures, and independent coordinator approval. Earlier keyboard/zoom checks belong to round three and do not substitute for the changed host's live QA.
+
+## Reproduce preserved comparisons
+
+Use the preserved candidate branches/checkouts listed above, with external Xcode, scheme `Poly Canyon`, Debug, an iOS Simulator destination, external DerivedData and the existing external package cache. The `66eea5a` comparison source supports launch-only `-CanyonEdition fieldGuide`, `-CanyonEdition ramble`, or `-CanyonEdition archive`. The isolated B/C checkpoints select their respective composition by default. The current shipping source intentionally has no such switch.
+
+For current-source onboarding replay, `-onboardingProcess NO` remains a launch-only override of the existing onboarding preference; it does not erase saved progress. Use only the existing disposable devices, one at a time. Do not treat old `A/Poly Canyon.app` as the selected or cleanup build.

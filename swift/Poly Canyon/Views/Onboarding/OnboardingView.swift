@@ -23,7 +23,7 @@ struct OnboardingView: View {
                         if page < 2 {
                             introduction(width: geometry.size.width, height: geometry.size.height)
                         } else {
-                            SpatialAtlas(selected: 7, overview: false, showAllMarkers: false, showsMarkers: false).frame(height: typeSize.isAccessibilitySize ? 160 : min(260, geometry.size.height * 0.35))
+                            SpatialAtlas(selected: 7, overview: false, reduceMotion: reduceMotion, showsMarkers: false).frame(height: typeSize.isAccessibilitySize ? 160 : min(260, geometry.size.height * 0.35))
                                 .allowsHitTesting(false).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 16) {
                                 Text(heading(at: context.date)).font(.largeTitle.weight(.semibold))
@@ -65,81 +65,54 @@ struct OnboardingView: View {
     }
 
     @ViewBuilder private func introduction(width: CGFloat, height: CGFloat) -> some View {
-        switch CanyonEdition.selected {
-        case .fieldGuide:
-            VStack(alignment: .leading, spacing: 0) {
-                if page == 0 {
-                    SpatialAtlas(selected: 7, overview: true).frame(height: typeSize.isAccessibilitySize ? 160 : height * 0.40)
-                        .allowsHitTesting(false).accessibilityHidden(true)
-                } else {
-                    HStack(alignment: .bottom, spacing: 12) {
-                        Image("M-7").resizable().scaledToFill().frame(width: width * 0.52, height: 220).clipped()
-                        Image("M-6").resizable().scaledToFill().frame(width: width * 0.30, height: 165).clipped()
-                    }.padding(.horizontal, 24).padding(.top, 24).accessibilityHidden(true)
-                }
-                introductionText.padding(28)
-            }
-        case .ramble:
-            VStack(alignment: .leading, spacing: 0) {
-                Image(page == 0 ? "M-7" : "M-24").resizable().scaledToFill()
-                    .frame(width: width, height: typeSize.isAccessibilitySize ? 180 : height * 0.48).clipped()
-                    .overlay(alignment: .bottomLeading) {
-                        Text("Poly Canyon").font(.title3.weight(.medium)).foregroundStyle(.white)
-                            .padding(24).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
-                    }.accessibilityHidden(true)
-                introductionText.padding(28)
-            }
-        case .archive, .remix:
-            VStack(alignment: .leading, spacing: 22) {
-                introductionText
-                    .background(GeometryReader { text in
-                        Color.clear
-                            .onAppear { textHeight = text.size.height }
-                            .onChange(of: text.size.height) { textHeight = $0 }
-                    })
-                if page == 1 && CanyonEdition.selected == .remix {
-                    VStack(spacing: 14) {
-                        Button { enlargedArtwork = true } label: {
-                            Group {
+        VStack(alignment: .leading, spacing: 22) {
+            introductionText
+                .background(GeometryReader { text in
+                    Color.clear
+                        .onAppear { textHeight = text.size.height }
+                        .onChange(of: text.size.height) { textHeight = $0 }
+                })
+            if page == 1 {
+                VStack(spacing: 14) {
+                    Button { enlargedArtwork = true } label: {
+                        Group {
                             if showsDrawing {
                                 Image("geodesicDome1").resizable().scaledToFit()
                             } else {
                                 Image("M-7").resizable().scaledToFill()
                             }
-                            }.frame(width: max(1, width - 56), height: artworkHeight(height) - 46).clipped()
-                                .id(showsDrawing).transition(.opacity)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.body)
-                                        .frame(width: 44, height: 44).canyonControl().padding(8)
-                                }
-                        }.buttonStyle(.plain).foregroundStyle(ink)
-                            .accessibilityLabel(showsDrawing ? "Geodesic Dome drawing from the archive" : "Geodesic Dome photograph")
-                            .accessibilityHint("Open full screen to zoom")
-                        Picker("Dome view", selection: $showsDrawing) {
-                            Text("Photograph").tag(false)
-                            Text("Drawing").tag(true)
-                        }.pickerStyle(.segmented)
-                    }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
-                } else {
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(page == 0 ? "M-6" : "M-7").resizable().scaledToFill()
-                            .frame(width: (width - 68) * 0.56, height: artworkHeight(height)).clipped()
-                        VStack(alignment: .leading, spacing: 12) {
-                            Image(page == 0 ? "M-5" : "geodesicDome1").resizable().scaledToFill()
-                                .frame(width: (width - 68) * 0.44, height: artworkHeight(height) * 0.67).clipped()
-                            Text(page == 0 ? "Cal Poly\nSan Luis Obispo" : "From the archive")
-                                .font(.caption).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
-                        }
-                    }.accessibilityHidden(true)
-                        .opacity(artworkVisible ? 1 : 0)
-                        .offset(y: artworkVisible || reduceMotion ? 0 : 18)
-                        .onAppear {
-                            withAnimation(.easeOut(duration: reduceMotion ? 0.15 : 0.65)) { artworkVisible = true }
-                        }
-                }
-            }.padding(28)
-        }
+                        }.frame(width: max(1, width - 56), height: artworkHeight(height) - 46).clipped()
+                            .id(showsDrawing).transition(.opacity)
+                            .overlay(alignment: .bottomTrailing) {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right").font(.body)
+                                    .frame(width: 44, height: 44).canyonControl().padding(8)
+                            }
+                    }.buttonStyle(.plain).foregroundStyle(ink)
+                        .accessibilityLabel(showsDrawing ? "Geodesic Dome drawing from the archive" : "Geodesic Dome photograph")
+                        .accessibilityHint("Open full screen to zoom")
+                    Picker("Dome view", selection: $showsDrawing) {
+                        Text("Photograph").tag(false)
+                        Text("Drawing").tag(true)
+                    }.pickerStyle(.segmented)
+                }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
+            } else {
+                HStack(alignment: .top, spacing: 12) {
+                    Image("M-6").resizable().scaledToFill()
+                        .frame(width: (width - 68) * 0.56, height: artworkHeight(height)).clipped()
+                    VStack(alignment: .leading, spacing: 12) {
+                        Image("M-5").resizable().scaledToFill()
+                            .frame(width: (width - 68) * 0.44, height: artworkHeight(height) * 0.67).clipped()
+                        Text("Cal Poly\nSan Luis Obispo")
+                            .font(.caption).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
+                    }
+                }.accessibilityHidden(true)
+                    .opacity(artworkVisible ? 1 : 0)
+                    .offset(y: artworkVisible || reduceMotion ? 0 : 18)
+                    .onAppear {
+                        withAnimation(.easeOut(duration: reduceMotion ? 0.15 : 0.65)) { artworkVisible = true }
+                    }
+            }
+        }.padding(28)
     }
 
     private func artworkHeight(_ height: CGFloat) -> CGFloat {
@@ -151,12 +124,12 @@ struct OnboardingView: View {
     private var introductionText: some View {
         VStack(alignment: .leading, spacing: 16) {
             Rectangle().fill(FieldPalette.gold).frame(width: 42, height: 3).accessibilityHidden(true)
-            Text(page == 0 ? "A canyon built by students." : (CanyonEdition.selected == .remix ? "A dome, 19,000 bolts." : "Every structure has a story."))
-                .font(.system(.largeTitle, design: (CanyonEdition.selected == .archive || CanyonEdition.selected == .remix) ? .serif : .default).weight(.semibold))
+            Text(page == 0 ? "A canyon built by students." : "A dome, 19,000 bolts.")
+                .font(.system(.largeTitle, design: .serif).weight(.semibold))
                 .foregroundStyle(ink).accessibilityAddTraits(.isHeader)
             Text(page == 0
                  ? "In the hills behind Cal Poly, students turned architectural ideas into full-scale experiments. Poly Canyon is where you can walk among them."
-                 : (CanyonEdition.selected == .remix ? "Hundreds of students assembled the Geodesic Dome. Explore the drawings, photographs, and research behind this and the canyon’s other experiments." : "Find your way through the canyon, open the research, and explore the photographs that connect these places to their past."))
+                 : "Hundreds of students assembled the Geodesic Dome. Explore the drawings, photographs, and research behind this and the canyon’s other experiments.")
                 .font(.body).foregroundStyle(ink.opacity(0.85))
         }.fixedSize(horizontal: false, vertical: true)
     }

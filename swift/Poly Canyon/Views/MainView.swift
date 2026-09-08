@@ -67,11 +67,7 @@ struct MainView: View {
     }
     private var tour: some View {
         NavigationStack {
-            VirtualWalkthrough { number in
-                mapFocus = number
-                mapRequest = UUID()
-                destination = .map
-            }
+            VirtualWalkthrough()
         }
     }
     private func collection(searching: Bool) -> some View {
