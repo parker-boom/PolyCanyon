@@ -54,6 +54,14 @@ The setup task read the current What's New as “- Design village schedule fix�
 
 Current App Privacy declares precise location, not linked to identity, used for Analytics and Other Purposes. That conflicts with the refactored source's local-only behavior. App Store Connect warns that non-policy privacy changes become publicly available immediately, so **leave live privacy unchanged during this preparation** and coordinate any correction with the actual release. The existing privacy policy content also needs review before asserting it matches the new binary.
 
+## Approved metadata for the upcoming version
+
+Parker approved the website privacy policy `https://polycanyon.com/privacy`, the website support/contact page for Support URL (retain `https://polycanyon.com/support`), and removal of location-collection declarations for the new binary. Prepare App Privacy as **Data Not Collected**, with no location category declared as collected. Coordinate those live changes with the new release; do not replace the labels describing still-published 5.4 during this preparation. The approved privacy URL replaces the old bit.ly policy URL. The text-only web fetch exposed a JavaScript shell for `/privacy`; it did not verify the rendered policy content. Support/contact content also remains unverified by that fetch.
+
+On-device location remains required for Adventure Mode's map position and visit detection, including nearby background operation. Keep the two iOS permission prompts and background capability. “Data Not Collected” describes the absence of developer/third-party off-device collection; it does not mean the app never accesses GPS. No permission removal is proposed.
+
+Rechecked the archived Release binary's linked libraries and undefined symbols, the app source and the pinned Glur/Zoomable source: no Firebase, analytics SDK, telemetry URL/client or networking calls found. The binary links only Apple/system frameworks; the UI libraries are statically included. This is source/binary evidence, not packet-capture certification of operating-system services. The release archive contains the no-collection privacy manifest and no Firebase configuration/resource.
+
 ## Proposed store copy — draft, not submitted
 
 **Subtitle:** Explore Cal Poly's canyon
@@ -71,3 +79,5 @@ Confirm support/privacy URLs, contact details, content rights, screenshots, age-
 All three regression executables passed after the final test changes. Debug and Release simulator builds passed, and the final Debug app installed/launched on iOS 26.5. The separate unsigned device archive passed at `/Volumes/SSK Drive/Developer/Archives/PolyCanyon-release-preparation-20260908.xcarchive`. Its arm64 binary, iPhone/portrait/iOS 16 settings, updated permission text, location background mode, data, privacy manifest and all license notices were verified. Test fixtures/executables and Firebase resources are absent. The 1024×1024 marketing icon is opaque; asset references and project/privacy plists pass. No app-source compiler warnings; only the expected skipped AppIntents metadata message.
 
 Logs: `/Volumes/SSK Drive/Developer/PolyCanyon-release-preparation-{checks,debug,release,archive}.log`. Signing and Apple validation remain separate from these unsigned checks. Nothing in this audit verifies real GPS/battery behavior or publishes the app.
+
+Final runtime follow-up: the current iOS 26.5 preview runs in virtual mode with its legacy files read successfully; schema migration occurs on its next successful edit. The dedicated iOS 18.6 test device ran the final Debug build with an actual simulator location callback at the bundled Entry Arch coordinate, saved structure 1 into schema 1, preserved ghosts 101–104, and advanced the day count to 2 across the date change. Relaunch into virtual mode preserved that save and ignored the bundled Techite Bridge coordinate. The test device was cleared of simulated location and shut down afterward. This supplements, rather than replaces, the deterministic replay results.
