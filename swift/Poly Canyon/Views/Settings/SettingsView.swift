@@ -24,7 +24,7 @@ struct SettingsView: View {
                         if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                     }
                 } else {
-                    Button(recording ? "Pause visit recording" : "Enable visit recording") {
+                    Button(recording ? "Stop marking my visits" : "Mark places I visit") {
                         setRecording(!recording)
                     }
                 }
@@ -67,17 +67,17 @@ struct SettingsView: View {
     private var locationTitle: String {
         if locationService.isLocationPermissionDenied { return "Explore without location" }
         if pendingPermission { return "Choose location access" }
-        return recording ? "Visit recording is on" : "Visit recording is paused"
+        return recording ? "Your visits appear on the map" : "Explore at your own pace"
     }
 
     private var locationDescription: String {
         if locationService.isLocationPermissionDenied {
-            return "The map, photos, and walkthrough work without location. Allow location in Settings to record visits."
+            return "Explore the map and stories from anywhere. Allow location in Settings to see your position and mark the places you visit."
         }
         if recording {
-            return "Visits are recorded while the app is open. Your progress stays on this device."
+            return "As you reach a structure, it is marked visited. Location is used only while the app is open; your progress stays on this device."
         }
-        return "Browse freely, or enable location to record structures as you visit. Your existing progress is saved."
+        return "Use location to see where you are and mark the structures you visit. Or explore the map and stories from anywhere."
     }
 
     private func setRecording(_ enabled: Bool) {
