@@ -62,7 +62,7 @@ struct OnboardingView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(ink)
-            if page == 1 && !locationService.isLocationPermissionDenied {
+            if page == 1 && !locationService.isLocationPermissionDenied && !hasConfirmedRemoteLocation {
                 Button("Explore without location") { finish(useLocation: false) }
                     .font(.callout.weight(.medium))
                     .frame(minHeight: 44)
@@ -108,6 +108,11 @@ struct OnboardingView: View {
             return "Browse the map now. Visit recording will be ready when you explore the canyon with the app open."
         }
         return "Start with the illustrated map or take a walkthrough. You can enable visit recording in Info when you visit."
+    }
+
+    private var hasConfirmedRemoteLocation: Bool {
+        guard let location = usableLocation(at: Date()) else { return false }
+        return !locationService.isWithinCanyon(location) && !locationService.getRecommendedMode(location)
     }
 
     private var primaryTitle: String {

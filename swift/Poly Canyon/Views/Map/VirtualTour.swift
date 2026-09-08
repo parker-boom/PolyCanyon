@@ -22,13 +22,14 @@ struct VirtualWalkthrough: View {
                         photograph(width: geometry.size.width, height: photoHeight(available: geometry.size.height))
                         heading(structure)
                         Button { showOnMap(structure.number) } label: {
-                            TourMapCanvas(number: structure.number)
-                                .frame(height: 160)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Label("Canyon map", systemImage: "map")
-                                        .font(.caption.weight(.semibold)).padding(10)
-                                        .background(.white, in: Capsule()).padding(12)
-                                }
+                            VStack(alignment: .trailing, spacing: 0) {
+                                TourMapCanvas(number: structure.number)
+                                    .frame(height: 160)
+                                    .overlay(alignment: .bottomTrailing) {
+                                        if !typeSize.isAccessibilitySize { mapLabel }
+                                    }
+                                if typeSize.isAccessibilitySize { mapLabel }
+                            }
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Show \(structure.title) on the canyon map")
@@ -51,6 +52,11 @@ struct VirtualWalkthrough: View {
         .onAppear {
             if !dataStore.structures.indices.contains(appState.currentStructureIndex) { appState.currentStructureIndex = 0 }
         }
+    }
+    private var mapLabel: some View {
+        Label("Canyon map", systemImage: "map")
+            .font(.caption.weight(.semibold)).padding(10)
+            .background(.white, in: Capsule()).padding(12)
     }
     private func photoHeight(available: CGFloat) -> CGFloat {
         if typeSize.isAccessibilitySize { return max(180, available * 0.38) }
@@ -106,6 +112,7 @@ struct VirtualWalkthrough: View {
 
 /// The camera moves over one continuous map; no route or walking directions are invented.
 struct TourMapCanvas: View {
+    @ScaledMetric(relativeTo: .caption) private var markerSize = 30.0
     @EnvironmentObject private var locationService: LocationService
     let number: Int
     var body: some View {
@@ -120,7 +127,7 @@ struct TourMapCanvas: View {
                     .frame(width: 2000 * scale, height: 4519 * scale)
                     .offset(x: geometry.size.width / 2 - x, y: geometry.size.height / 2 - y)
                 Text(String(number)).font(.caption.weight(.bold).monospacedDigit())
-                    .foregroundStyle(.white).frame(width: 30, height: 30)
+                    .foregroundStyle(.white).frame(width: markerSize, height: markerSize)
                     .background(CanyonStyle.ink, in: Circle())
                     .overlay { Circle().stroke(.white, lineWidth: 3) }
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
