@@ -58,6 +58,6 @@ DEVELOPER_DIR='/Volumes/SSK Drive/Applications/Xcode.app/Contents/Developer' xco
   CODE_SIGNING_ALLOWED=NO archive
 ```
 
-For distribution, first resolve the source/listing version mismatch and select the next marketing/build version in the authorized developer account. Then configure valid signing and archive without `CODE_SIGNING_ALLOWED=NO`; validate through Xcode Organizer. Upload and submission are separate release actions.
+For distribution, verify the committed marketing/build version against App Store Connect and the [current release handoff](REDESIGN_RELEASE.md). Earlier version-mismatch notes describe a historical checkout. Then configure valid signing and archive without `CODE_SIGNING_ALLOWED=NO`; validate through Xcode Organizer. Upload and submission are separate release actions.
 
 Release-preparation audit, replay-test boundaries, draft metadata and exact account-dependent Xcode/App Store Connect steps: [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md). The shared scheme has no XCTest target; use the script above for regression checks.

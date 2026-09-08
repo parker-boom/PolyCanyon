@@ -1,0 +1,835 @@
+{
+  "source_commit": "80e12df9fca6b44b688ff27581cdc16442253264",
+  "files": [
+    {
+      "original": "react/android/app/src/main/res/mipmap-hdpi/circle.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-hdpi/circle.png",
+      "sha256": "99673ae1a8b6f3824bb187e90148b42435de5d3c9b2293688e24e4280842db10"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-hdpi/normal.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-hdpi/normal.png",
+      "sha256": "d55617da107d364ddaccd24c9f0ce608e76595fe5e5cf5b1373fdfba6ba6cf3f"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-mdpi/circle.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-mdpi/circle.png",
+      "sha256": "2d3810e02df8b442d930ccaba9410a12baf90da75cb1029534354b25b76b8759"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-mdpi/normal.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-mdpi/normal.png",
+      "sha256": "7ffe7c6e2bb5835575519a3890374abec170e13bbb0684d2938b64826d594c67"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xhdpi/circle.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xhdpi/circle.png",
+      "sha256": "fd5d6b9c3bc5735f0d72d7ab1505580f5e1c4c7228819cab6a5ce9ed12a5e072"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xhdpi/normal.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xhdpi/normal.png",
+      "sha256": "2e6c8ab7c5a6a6f7e5d027e4468faad7311f20e422248de16d0de86f6e2b8a13"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xxhdpi/circle.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xxhdpi/circle.png",
+      "sha256": "01eb9bae8a7b557fd736a7c21519e7aac196e69707f4d068db58c2e8babc71bd"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xxhdpi/normal.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xxhdpi/normal.png",
+      "sha256": "04af1fa56f31eb7b220c079dee1b8833850c8cb2308394de81b45d053cb45b12"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xxxhdpi/circle.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xxxhdpi/circle.png",
+      "sha256": "a14c175011e5a050743be35efc91409f0840dc6add98d989bc4fdd0e6d9620fd"
+    },
+    {
+      "original": "react/android/app/src/main/res/mipmap-xxxhdpi/normal.png",
+      "preserved": "assets/retired-android/android/app/src/main/res/mipmap-xxxhdpi/normal.png",
+      "sha256": "d0e0f836559b80fcaa39966c5d5e0da3c9cbc9f5f867005a33d99ecf1999ce23"
+    },
+    {
+      "original": "react/src/Core/Data/structuresList.json",
+      "preserved": "assets/retired-android/src/Core/Data/structuresList.json",
+      "sha256": "414883185e6691e964bc7a93928a102d5603ce7b11b4d47b0c272b5297356c05"
+    },
+    {
+      "original": "react/src/Core/Location/mapPoints.json",
+      "preserved": "assets/retired-android/src/Core/Location/mapPoints.json",
+      "sha256": "fdc8d685206880f45a92c94e19548293aaf329a7edf707ed7d95176c7d0e4648"
+    },
+    {
+      "original": "react/src/assets/icon.webp",
+      "preserved": "assets/retired-android/src/assets/icon.webp",
+      "sha256": "2d352db23b282bd9f470188b4935c88f49b70e1b40541ab3673f585855b22ed0"
+    },
+    {
+      "original": "react/src/assets/map/NoNumbers/DarkMapNN.webp",
+      "preserved": "assets/retired-android/src/assets/map/NoNumbers/DarkMapNN.webp",
+      "sha256": "fdc79bac135ae91e9d73fa6768be3bd3ff28333cc4bf64952799a526ad242c7b"
+    },
+    {
+      "original": "react/src/assets/map/NoNumbers/LightMapNN.webp",
+      "preserved": "assets/retired-android/src/assets/map/NoNumbers/LightMapNN.webp",
+      "sha256": "c4cdd8a2b916b42f86aa1e23b7bf3b635627b820f86843037ec701f232656971"
+    },
+    {
+      "original": "react/src/assets/map/NoNumbers/SatelliteMapNN.webp",
+      "preserved": "assets/retired-android/src/assets/map/NoNumbers/SatelliteMapNN.webp",
+      "sha256": "b428b9183c68136e4283f454ad9d8665ee38921a3efb3b1406dbf8e2a1b04ece"
+    },
+    {
+      "original": "react/src/assets/map/Normal/BlurredSatellite.webp",
+      "preserved": "assets/retired-android/src/assets/map/Normal/BlurredSatellite.webp",
+      "sha256": "2ab41c3d5107876d93739af9b4a5e83311cf0697ace8fe1a1ac18df40faabd20"
+    },
+    {
+      "original": "react/src/assets/map/Normal/DarkMap.webp",
+      "preserved": "assets/retired-android/src/assets/map/Normal/DarkMap.webp",
+      "sha256": "2b5a88f4d299df94a94bc4124272acf33018cb35a1bd88f837c7f2cc4038b9a2"
+    },
+    {
+      "original": "react/src/assets/map/Normal/LightMap.webp",
+      "preserved": "assets/retired-android/src/assets/map/Normal/LightMap.webp",
+      "sha256": "475e1e6dc4b5bf688270a273ed5cedb2c7a6367157ad578fb6db63e7fcf30e61"
+    },
+    {
+      "original": "react/src/assets/map/Normal/SatelliteMap.webp",
+      "preserved": "assets/retired-android/src/assets/map/Normal/SatelliteMap.webp",
+      "sha256": "59d0e2f7557fa0220194dfc3f6e64fb74132652a3553cf5077f29fcc2db063ef"
+    },
+    {
+      "original": "react/src/assets/photos/ImageKey.txt",
+      "preserved": "assets/retired-android/src/assets/photos/ImageKey.txt",
+      "sha256": "1b29ae13d9ef5258cd6986f5f67ce06f22825c42e6a26ccf8ed81e7a952e733c"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-1.webp",
+      "sha256": "5ad80c53667dc78285584a22ce2363a2f52f415211ac6acb14607b5d9d8cf5e0"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-10.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-10.webp",
+      "sha256": "d8eed779702f28743eb992165e765c91d38ba2df953d106260a2a0b7827be4e1"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-11.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-11.webp",
+      "sha256": "9a201f5a8676bdf5d315ab394e432b0ad914bcdc73b742af1348674288ba2e35"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-12.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-12.webp",
+      "sha256": "644a44f46a0fbadabeb0006938435a531bac28e210ce6390230e72b23a254f49"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-13.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-13.webp",
+      "sha256": "20a610c4d71e5bb2a78d05d9818505a49f828f7426b854b24f6f061067c78698"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-14.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-14.webp",
+      "sha256": "aa7079e269fe684f1f61b16de9ad036a529959b4ed87a67e412bec62273d65ad"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-15.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-15.webp",
+      "sha256": "95a193b4efe6a07e0ba3c662e91d7b029c77a7bc16c29cc03c31bd98183885eb"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-16.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-16.webp",
+      "sha256": "6e03a6063305d77df2d7c284a6e343be4c5676db2990414443404870cb959781"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-17.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-17.webp",
+      "sha256": "5ba46f9f4417ac103144d3bd1b7a13f99ff9e576d0dfec25c90cb53909adb51c"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-18.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-18.webp",
+      "sha256": "25a0eb984afda6d2ea41c5db239c7743842f67b1cc9555398d79df240ccb08f6"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-19.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-19.webp",
+      "sha256": "31d5f5ae464c6773de69e19ea9f554767bdc5ef87ba8ad3b027e41088d2edd85"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-2.webp",
+      "sha256": "2260a4ca490fe7152deb9703e561c47fdc55ebc3cc694054df13246615b14ef3"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-20.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-20.webp",
+      "sha256": "04991eb9920ab2e10b55db82c5bf003a760776602e0edb9d508cde55475cbb7c"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-21.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-21.webp",
+      "sha256": "ed2a9e3bff72b9bed3872aa151edf38940e41d3f3b874eb570f802cd35b05e82"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-22.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-22.webp",
+      "sha256": "3bd9f074a376772a21c1b9d174cf360d405d68035d7b11a2b75fecd9f7584df1"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-23.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-23.webp",
+      "sha256": "4bb4adbfa972830ff3a5bd32310bd74d305c3860ff60be741a41961c7a3fff9e"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-24.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-24.webp",
+      "sha256": "73371143b423899dd42bab96441b2eca1b46c58da34a75968ebeaaf2f9a3baef"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-25.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-25.webp",
+      "sha256": "853f366865f451763e980eda3727dbd67f742b0360d968560ac6d1f4d174f9e7"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-26.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-26.webp",
+      "sha256": "f93064aca924a859879fb405aea8108ddc7b56f7e0ecd9e24edde818181f54b4"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-27.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-27.webp",
+      "sha256": "83f7ed0f2216c769cfb1748aec469981916c04cdf8418698d732e9a532c3f774"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-28.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-28.webp",
+      "sha256": "d4421b2596fab8813a595c235095f0698c3830f3959a90943c8417a486cdd497"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-29.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-29.webp",
+      "sha256": "270305026de01ce42e25a3df508ad9229e0f93538f3ed6236672ea7041bca3fb"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-3.webp",
+      "sha256": "c2728d57fc7eba875be51b50c6f96515f6784202e54e1949574fadddecbf9463"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-30.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-30.webp",
+      "sha256": "d8d90e91a4e098f0a24c10446ed644f636ae76878c1a5e300595da8ec53c93c7"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-31.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-31.webp",
+      "sha256": "4dbaf5f6aca93657eca2d37893cd01a641e18854a5ddc195c36863988e8d98cd"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-4.webp",
+      "sha256": "1a27add0b299faa4becb453ff82397a2b6478db1565df48e0e0378d368e8b636"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-5.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-5.webp",
+      "sha256": "a17651c4c14f7b65ca9c84a268c93199306a612a71f7238c5708339a4b25d7fd"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-6.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-6.webp",
+      "sha256": "8989cd816d598705b80f4ebb94b18aa7908df530e80a854dc9f57378e1d98716"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-7.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-7.webp",
+      "sha256": "047bdbf9c63224ad966e96c82a5a4adfb0d61359995e8cd7bf9e1d7090cc7c00"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-8.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-8.webp",
+      "sha256": "2c85bd1ceb18929f3b97e4e4c3cc1134b9aaa7ab09bf598bff2807e326d90da2"
+    },
+    {
+      "original": "react/src/assets/photos/close/C-9.webp",
+      "preserved": "assets/retired-android/src/assets/photos/close/C-9.webp",
+      "sha256": "4792172b5d9b9af37c65fc205d05f5327851630456429f40e94864223682a396"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-1.webp",
+      "sha256": "4f14b01e31919efaa66acfde5d4c180c410a9654439a28b0791af3be38bd6fa7"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-10.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-10.webp",
+      "sha256": "d8eec780053fcc73612386b4659a62784d844dc3320dd46ebd568e9c48ca55b1"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-11.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-11.webp",
+      "sha256": "5e4235d2cecc2d7e9d78f5f069ba3dbc1f8a2fcd47aa392a55ef4f113f94e45f"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-12.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-12.webp",
+      "sha256": "bb548cf183623defbbfe8607e9d8d35fc1f41fe594b0bb2b5a1660586aeeacf4"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-13.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-13.webp",
+      "sha256": "96c7a7f5ab5392db3a498d1eb4f063f5cddb499795dfe4c15b112440028152e4"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-14.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-14.webp",
+      "sha256": "1232dc487438a6172861d6e280b9c55d9083eae6d3d846691cfad94ce60bb916"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-15.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-15.webp",
+      "sha256": "c517c0a76b9a4301814e492ec931e24ce227f61f7161d818596727bf8b735be5"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-16.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-16.webp",
+      "sha256": "1ab893dbec44a07e358c07fa256526d4faef41efb1d6f1ed8b3aae346304a0a2"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-17.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-17.webp",
+      "sha256": "9723485747424803c4cb7bdaf970cc3ae14d5a49fbc7fa24c99dd416951d4836"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-18.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-18.webp",
+      "sha256": "9796ac7244ae5e29479328dad44947d2d125ccb845f1980ec3cc93e2d82aa7ba"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-19.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-19.webp",
+      "sha256": "32c3870f38c06cff098b4d81fa46b96eb576773759ffd00ff214e725a3fd2c63"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-2.webp",
+      "sha256": "8cf144c16762247f0abbf65446cb16efd9fd4e6f97fd25d6c243f6c2999a1094"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-20.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-20.webp",
+      "sha256": "e67ce584048636d22235c262390ae5314acd5e782dc26c2839a8c13594eaa9a0"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-21.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-21.webp",
+      "sha256": "7af23ce9bd2a8034c55e19166270d29aeb55a7bcbedcc0ce9f76aea79731a269"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-22.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-22.webp",
+      "sha256": "0451d1baaf3658df4690e53a92d9d2eddad6223dd5426ad52fcf873bafd270f9"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-23.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-23.webp",
+      "sha256": "516d86a0974a30a3ec5ef33b9ff897fd3024999ace77d406e5d938e0a59621ea"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-24.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-24.webp",
+      "sha256": "ccc1fc61203848f9ff5e08b17028d292df1b4b20b595b5f6f23c3757d226762e"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-25.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-25.webp",
+      "sha256": "570117fd565021a5181d1d8bde5c15688b31b9ccc59c7ab9790a06d0e4b59f30"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-26.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-26.webp",
+      "sha256": "8e936cf8e0be90b036bcd18fdef52c522d211f90260c5f4f04b990461a055ee3"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-27.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-27.webp",
+      "sha256": "61f78c9b74aa3c70b8366ab40761c9a500681ef0c2df851833dca9b7de8808d2"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-28.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-28.webp",
+      "sha256": "e9de92ce400af62c308ebe1bd9d664ecb6a70097120ad47e4571496a987735d6"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-29.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-29.webp",
+      "sha256": "d46957db9fa9e3e1b2e55e7d460deaa39f3257e06dd72b91e28bb689bc579fc3"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-3.webp",
+      "sha256": "0ae1cc9ea73efd6384d459253a227e3cad149b174d6af62b4ebb11d9fb6db952"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-30.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-30.webp",
+      "sha256": "232c6547ec3e24236b018ece30760666dfff14f75725bb5a54475ce906442d39"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-31.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-31.webp",
+      "sha256": "cf22c3d4de6c7d381c963d7ad69dfe07606e27459772c7ea36bcc4bd51df109c"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-4.webp",
+      "sha256": "f43285a136a7016e1af2f089c4149df377d77bd29c3f5bdc8b0c500a247f0dda"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-5.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-5.webp",
+      "sha256": "a6c63b87fcc094d8dbb89510f56f4bb123a59737e4af0bfb80597efa6e4b3237"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-6.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-6.webp",
+      "sha256": "b0062130eb6555867c63d723acb036fea4f91e9541bac62192cf513f5d797f76"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-7.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-7.webp",
+      "sha256": "697b68e94155aae8744e45636d2b653bfa896348c24c904650ca519d10f60af5"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-8.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-8.webp",
+      "sha256": "63c8f45a5c13430ee4dbe40804e2456f260e8f36ad28ab26e576e2c7a3a7eca4"
+    },
+    {
+      "original": "react/src/assets/photos/main/M-9.webp",
+      "preserved": "assets/retired-android/src/assets/photos/main/M-9.webp",
+      "sha256": "20d7f11736ed87c37f47ae57e7f1c7a7f23e16d55b26f5f2da908bcd59a0fc2f"
+    },
+    {
+      "original": "react/src/assets/photos/other/bbqPit1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bbqPit1.webp",
+      "sha256": "59eeeef92eedd6b27c8013cf7ecbc9899b0ce73c1d131745e845a94efc5babf4"
+    },
+    {
+      "original": "react/src/assets/photos/other/bbqPit2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bbqPit2.webp",
+      "sha256": "dbd4ff234d395711992a8fd6a760102db7fd72f624fb5eb28c0525f22edee485"
+    },
+    {
+      "original": "react/src/assets/photos/other/blade1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/blade1.webp",
+      "sha256": "8b51c6702c25b08d58090277814670be0b04d7ceac0b3f9ff2a5ed824744be68"
+    },
+    {
+      "original": "react/src/assets/photos/other/blade2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/blade2.webp",
+      "sha256": "986a2bab8a010b73c94af1d7ff897193e2d07495bf9cbddcdc1ba92fe173a09f"
+    },
+    {
+      "original": "react/src/assets/photos/other/bridgeHouse1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bridgeHouse1.webp",
+      "sha256": "84ff18e0074b7f2a371462dd9f94c460a403d20932efffa4091df3cc14f95865"
+    },
+    {
+      "original": "react/src/assets/photos/other/bridgeHouse2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bridgeHouse2.webp",
+      "sha256": "2c8d21c057af5e724e1d35e880f7096400ba12a0a90b32ad35cd58086f6bae96"
+    },
+    {
+      "original": "react/src/assets/photos/other/bridgeHouse3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bridgeHouse3.webp",
+      "sha256": "abe1be471e9ce440dd4ea98cde26e15dd47a935eae72505bf5e93097f117b86d"
+    },
+    {
+      "original": "react/src/assets/photos/other/bridgeHouse4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/bridgeHouse4.webp",
+      "sha256": "6a82ff28548007820feabe01fc83ac1e8bf5c00207d84ee3f37a283b2c2917ea"
+    },
+    {
+      "original": "react/src/assets/photos/other/cantileverDeck1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/cantileverDeck1.webp",
+      "sha256": "6c806ffcfbb98949fcfd687377a5e63c8f23f7df181c98a7375ea82ec2a6dbda"
+    },
+    {
+      "original": "react/src/assets/photos/other/cantileverDeck2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/cantileverDeck2.webp",
+      "sha256": "ff8c4ef97dfbf5e747a8e7caf19994e93fa721db9a6ce0b40f2aaab582619618"
+    },
+    {
+      "original": "react/src/assets/photos/other/cantileverDeck3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/cantileverDeck3.webp",
+      "sha256": "30dd468d138f04f6638bd9a8af1f7ff3c3dead3f98d7707ece243a1b31148cef"
+    },
+    {
+      "original": "react/src/assets/photos/other/cantileverDeck4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/cantileverDeck4.webp",
+      "sha256": "4ff757321ef09028915cdcc9bf9210b733aa87244afbba53b38b1313399bb72f"
+    },
+    {
+      "original": "react/src/assets/photos/other/cantileverDeck5.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/cantileverDeck5.webp",
+      "sha256": "ce92bc61797d41b1a45bb9cceccfdd168a0e6da9e7a15202a015dde2c8a3da6a"
+    },
+    {
+      "original": "react/src/assets/photos/other/centeringCenter1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/centeringCenter1.webp",
+      "sha256": "44d48e73ed5e87bf474c79599d9e0925513bfd69d8fd78f61c9968b43ebb6124"
+    },
+    {
+      "original": "react/src/assets/photos/other/centeringCenter2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/centeringCenter2.webp",
+      "sha256": "4e9435a084a5d67e35875477891eeb6e7d6f5ee75a0a1a27cea19406b1456f32"
+    },
+    {
+      "original": "react/src/assets/photos/other/centeringCenter3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/centeringCenter3.webp",
+      "sha256": "7935dbefd7330433a100b4d08fad534b3d91a8c5158f70215b415d282f7daa43"
+    },
+    {
+      "original": "react/src/assets/photos/other/electric1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/electric1.webp",
+      "sha256": "21e73f54d290ad2bfcc61d14ecfb9986acd01cde174d2fa1fba04be8f327a97e"
+    },
+    {
+      "original": "react/src/assets/photos/other/electric2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/electric2.webp",
+      "sha256": "7bbe2c07e29702286b604f41030839ff75bd48bd9b4b70e72d70a976e27e8b0d"
+    },
+    {
+      "original": "react/src/assets/photos/other/electric3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/electric3.webp",
+      "sha256": "582acb71e458494dfff9ba9033c531cea5a68bdec5779379f4381f67edc28e91"
+    },
+    {
+      "original": "react/src/assets/photos/other/electric4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/electric4.webp",
+      "sha256": "9410ee01df286709b22749c90467af9e0ff5f290a60b3f3c1f12f8b69a39e452"
+    },
+    {
+      "original": "react/src/assets/photos/other/entryArch1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/entryArch1.webp",
+      "sha256": "c70b7bc8a2222f94b39fbc02b098040fc7c16c93ae3fefbe6604d6f6317878ed"
+    },
+    {
+      "original": "react/src/assets/photos/other/entryArch2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/entryArch2.webp",
+      "sha256": "d077cce231b53150a3012d5e2c96ea3d8599db4a2d8ae8544f9b01a225cf8d1e"
+    },
+    {
+      "original": "react/src/assets/photos/other/entryArch3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/entryArch3.webp",
+      "sha256": "8d4b2964b25906d5247b8684bfccd93ab851efc53ea2dcf21534938f42e21b4c"
+    },
+    {
+      "original": "react/src/assets/photos/other/geodesicDome1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/geodesicDome1.webp",
+      "sha256": "3b8316f878f12190eabfdb49d7f993e8c1c2f0218e62d1ab43930c1deedb09e6"
+    },
+    {
+      "original": "react/src/assets/photos/other/geodesicDome2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/geodesicDome2.webp",
+      "sha256": "d6dce2df453990ae7d5d63cc222e48310c69ee03c802b551b977d59e4523543d"
+    },
+    {
+      "original": "react/src/assets/photos/other/geodesicDome3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/geodesicDome3.webp",
+      "sha256": "fbce46957fc41539c916b2f50645ef4907f39ffc9c6717e7643540583844d24b"
+    },
+    {
+      "original": "react/src/assets/photos/other/greenHouse1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/greenHouse1.webp",
+      "sha256": "39bc505bafe1faacdf07b775885dd7c4c42534814b50dc8ea9aa4498760a7a83"
+    },
+    {
+      "original": "react/src/assets/photos/other/greenHouse2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/greenHouse2.webp",
+      "sha256": "61e2a2b6a4ede68227bed2104f787f96894191a893f0cac93a652adadfbb92c9"
+    },
+    {
+      "original": "react/src/assets/photos/other/greenHouse3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/greenHouse3.webp",
+      "sha256": "83eedf44649405c1a9ac8f2806caa79282fcb0a429b31a974acb4f5fc3ec7e60"
+    },
+    {
+      "original": "react/src/assets/photos/other/guniteBridge1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/guniteBridge1.webp",
+      "sha256": "3bf2ad267dda99847a1dee5f7a48a20f97268f6fd34227b515745cc3ba03a77d"
+    },
+    {
+      "original": "react/src/assets/photos/other/modularHouse1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/modularHouse1.webp",
+      "sha256": "aa862832ddcd5fcb7e87d229c1568795abada3f1d9fb52c3c5f401c924a9d35f"
+    },
+    {
+      "original": "react/src/assets/photos/other/modularHouse2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/modularHouse2.webp",
+      "sha256": "60704fa24b2ad5abad9713476638229c74a617e101abae97ed2262a5968e921d"
+    },
+    {
+      "original": "react/src/assets/photos/other/modularHouse3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/modularHouse3.webp",
+      "sha256": "64f5b0f1c3bc86fe92122f03118a7408fcd2ed1fa7cf823af34282c6b217b4d1"
+    },
+    {
+      "original": "react/src/assets/photos/other/modularHouse4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/modularHouse4.webp",
+      "sha256": "3a8e1f021b5f3be2e17e6f1d75641899ced29b912ee27368b8041cc3de1d35d0"
+    },
+    {
+      "original": "react/src/assets/photos/other/modularHouse5.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/modularHouse5.webp",
+      "sha256": "39ec1e7402d9fcedef5c34038e95ef95f0360339d839bd875c0ea4d8a1befc85"
+    },
+    {
+      "original": "react/src/assets/photos/other/momentMonument1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/momentMonument1.webp",
+      "sha256": "544fafee14a065c0496b600cc57114b90d2817c417b3371f2db39f9cebea03d1"
+    },
+    {
+      "original": "react/src/assets/photos/other/momentMonument2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/momentMonument2.webp",
+      "sha256": "dbb8883bbcea73b991309b2bcf38b98be9131628339b75862edef024c1ac14cd"
+    },
+    {
+      "original": "react/src/assets/photos/other/momentMonument3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/momentMonument3.webp",
+      "sha256": "b690ae0b842921ac1bed53f0b390a292ca87f3a19ad19df4fbf2e4af599e1a57"
+    },
+    {
+      "original": "react/src/assets/photos/other/momentMonument4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/momentMonument4.webp",
+      "sha256": "ec0a7352d48b3e6e5ae0ad0360c7e6587259c5941e333fcc96d23174862bebc4"
+    },
+    {
+      "original": "react/src/assets/photos/other/observationDeck1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/observationDeck1.webp",
+      "sha256": "133bf01d180fc19e8e7beb4b38b6a70e4a96736918914b005e5852c64faa8276"
+    },
+    {
+      "original": "react/src/assets/photos/other/polyPavilion1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/polyPavilion1.webp",
+      "sha256": "116795c48e7fcf84dacd4db30b716de70fa356517cc1e9dfa48c9f78d5646fd0"
+    },
+    {
+      "original": "react/src/assets/photos/other/polyPavilion2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/polyPavilion2.webp",
+      "sha256": "ac95ec7992b284a40f6fa841925a20c7137f03b37496e4c70c67c898c697c086"
+    },
+    {
+      "original": "react/src/assets/photos/other/restrooms1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/restrooms1.webp",
+      "sha256": "900523e09fb445ab962931123ea47b94f296baf6790a5f77f4b1408eb6f806a9"
+    },
+    {
+      "original": "react/src/assets/photos/other/restrooms2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/restrooms2.webp",
+      "sha256": "ac2d4ffcb5d72df05eea75ee8d06dfa51239d1d6892ea3404cc4f83e497e0bb2"
+    },
+    {
+      "original": "react/src/assets/photos/other/restrooms3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/restrooms3.webp",
+      "sha256": "097ca7039ccd73149a9e3586f2ac5ffbaafb469ce184c8f6554bf03c375e4d80"
+    },
+    {
+      "original": "react/src/assets/photos/other/serenityWall1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/serenityWall1.webp",
+      "sha256": "dd2b25b4a4265c8f2a0bfc50b30f048064d6a0d3b1553d123dd5c20ed96124e3"
+    },
+    {
+      "original": "react/src/assets/photos/other/shellHouse1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/shellHouse1.webp",
+      "sha256": "eb92fc85795499cbc48883e29acf8e1799280c60e69c32dc49656836f363de13"
+    },
+    {
+      "original": "react/src/assets/photos/other/shellHouse2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/shellHouse2.webp",
+      "sha256": "d15e24bd22dd8feb12825900764394544f9e3761c7d77563492bddfe39816c41"
+    },
+    {
+      "original": "react/src/assets/photos/other/shellHouse3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/shellHouse3.webp",
+      "sha256": "c66d4f04de947c8d09e20af8cff11a088e65ae13168547cd99aa2d73969fa150"
+    },
+    {
+      "original": "react/src/assets/photos/other/spireArray1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/spireArray1.webp",
+      "sha256": "fe3dcac371a453892ae9cd590edc636c10c9b1c17b7a377823d7b55485ef015f"
+    },
+    {
+      "original": "react/src/assets/photos/other/spireArray2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/spireArray2.webp",
+      "sha256": "f5beabbae11b7ee936985d1beec362383fd35f778fde4523f7b01cf9293b84a8"
+    },
+    {
+      "original": "react/src/assets/photos/other/stickStructure1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/stickStructure1.webp",
+      "sha256": "daf238ed3b1ca1484f86e5d1d072ca02a9cf3ece4ec2c7e9ab8aa502a5f70def"
+    },
+    {
+      "original": "react/src/assets/photos/other/stickStructure2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/stickStructure2.webp",
+      "sha256": "1bcf9d33a444e86701d6030e1c9442c08042172e6c8931b3a391621b13213e8e"
+    },
+    {
+      "original": "react/src/assets/photos/other/stickStructure3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/stickStructure3.webp",
+      "sha256": "6bc74a1ecb17b5311298db1bcfa7511096830f02fe78e8371aa5d6beacbd461e"
+    },
+    {
+      "original": "react/src/assets/photos/other/stickStructure4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/stickStructure4.webp",
+      "sha256": "df4768d3138dbd47b69afb26b096e85424195250213fa5fdea6048f1cc63ac2d"
+    },
+    {
+      "original": "react/src/assets/photos/other/sunDial1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/sunDial1.webp",
+      "sha256": "e35e99a4db2135851d350a61d25b5fdc22196a0920067972f7dcef182e176085"
+    },
+    {
+      "original": "react/src/assets/photos/other/sunDial2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/sunDial2.webp",
+      "sha256": "3717bf3f981d2c77f7a03acf1ed5e5034f4433186f3626d377bebe6931149f7c"
+    },
+    {
+      "original": "react/src/assets/photos/other/techiteBridge1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/techiteBridge1.webp",
+      "sha256": "e919672b32f71b4e46e88349e71f686ee9a89e8fc785752b00e227234dfd06f3"
+    },
+    {
+      "original": "react/src/assets/photos/other/techiteBridge2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/techiteBridge2.webp",
+      "sha256": "cfc09313835578b30dcf8bea9245e001aac11d3caf41d531a40425c2eed23d6c"
+    },
+    {
+      "original": "react/src/assets/photos/other/techiteBridge3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/techiteBridge3.webp",
+      "sha256": "538461bbefce6f02f029905edd0f362a673b47ae04900d1c7701671f86ace105"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensegrity1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensegrity1.webp",
+      "sha256": "b4f556c7251672386db61cfcffb9bbe1a1405f08ec3e84269c14bffe249985ee"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensegrity2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensegrity2.webp",
+      "sha256": "b3eaeda5a1693cb5b93edcb5d95be6137e474385efc47b627afcf22cf88fa181"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensile1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensile1.webp",
+      "sha256": "2e44c40ec1fa3042fea0ac3969cde757f42319efce8f3265b39f6446a8543ee8"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensile2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensile2.webp",
+      "sha256": "04e9bfb7dfdffce26765deae7a2ffbccddb50a0578b672eb4134a468a40ce09b"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensile3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensile3.webp",
+      "sha256": "37e53e1f43a8d6dd0cd7ab2ac6e085ba992bf37f1472c6e928bad111a4f410ab"
+    },
+    {
+      "original": "react/src/assets/photos/other/tensile4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/tensile4.webp",
+      "sha256": "4641579ee8fc4c108060b86e5b2317c4ba84d4464bdf2dfbc9c85759a208e023"
+    },
+    {
+      "original": "react/src/assets/photos/other/undergroundHouse1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/undergroundHouse1.webp",
+      "sha256": "240e1bf22f5393b592a306c1d9848b804a3ceab3659773a4bcc48f9e6dc3f9e6"
+    },
+    {
+      "original": "react/src/assets/photos/other/undergroundHouse2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/undergroundHouse2.webp",
+      "sha256": "0a568935248510ae6d1827e0c0bf59a2e1a82cf5d58cc2c2c7beb4847e9948e2"
+    },
+    {
+      "original": "react/src/assets/photos/other/water1.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/water1.webp",
+      "sha256": "c7c95f7a20e45404b31d684ad8f4252c955a792b735eed5cd56e8e311b9640e7"
+    },
+    {
+      "original": "react/src/assets/photos/other/water2.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/water2.webp",
+      "sha256": "6452b49baccf31b7d1dc3712183f8fa4f67c43f3e4b43b73c8528c97981618ad"
+    },
+    {
+      "original": "react/src/assets/photos/other/water3.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/water3.webp",
+      "sha256": "a7917458e77315f1e6f448dcdf67c4e4d0d00739845f45dd7e77b37a289ba3aa"
+    },
+    {
+      "original": "react/src/assets/photos/other/water4.webp",
+      "preserved": "assets/retired-android/src/assets/photos/other/water4.webp",
+      "sha256": "2c262d2087570a2af13f298551a0b7752e469741bab6b2a765798c7d7aed5293"
+    },
+    {
+      "original": "react/src/assets/photos/partyHatEmoji.png",
+      "preserved": "assets/retired-android/src/assets/photos/partyHatEmoji.png",
+      "sha256": "bf8a303815a0f20a589d399195a50e9136b22b0ed9feb91017d087d9151c78d8"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/CAEDLogo.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/CAEDLogo.webp",
+      "sha256": "24c94972a0566408c59b63da6fa4a08367a027ab538078992b25e9938ea03579"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/DVLogo.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/DVLogo.webp",
+      "sha256": "e409fe58731cd90b941ad9b35c6ad0ea126bb744db2f0a0cea9fd06af4d14241"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/InstaIcon.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/InstaIcon.webp",
+      "sha256": "152407dac1363df971c736e32874d1826ad4b854df9b1b8c1d524199a735f9be"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/OGDefault.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/OGDefault.webp",
+      "sha256": "6b01782145f7e1fd5f5bf80fd044b9e409cdf2b62de0bedf92f04337b649bda6"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv1.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv1.webp",
+      "sha256": "1791a122d1333889d132ef52f7eeca392603e41e86429ba0625f8bfe4ac3fba1"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv2.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv2.webp",
+      "sha256": "05822cb625bf37c5b6d3c52f7eea99e096d0d1e196cf48df950078ec11236aac"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv3.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv3.webp",
+      "sha256": "8bbc06aa2c6910e3dfe87b7923ee9e804fea47c2ca2348dc0eb8a29c6ef618b7"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv4.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv4.webp",
+      "sha256": "4c48588488a1ad642ed30834283183afeab9c028c79fc2888b2e4a5495a36fce"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv5.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv5.webp",
+      "sha256": "537326007a82f99a22e583ae98fdcca59560ef2d20a58fd13933492e83ef9aeb"
+    },
+    {
+      "original": "react/src/routing/DesignVillage/Images/dv6.webp",
+      "preserved": "assets/retired-android/src/routing/DesignVillage/Images/dv6.webp",
+      "sha256": "f6092625988f55c6aa6223e819eeee51f7a9baecdd1f785a67f9c43bc2c8ea47"
+    }
+  ]
+}

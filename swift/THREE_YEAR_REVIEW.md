@@ -1,5 +1,7 @@
 # Historical product review: superseded decisions
 
+> Historical review/release evidence. Some feature proposals, favorites references, version details and build paths below predate the current foreground-only, no-favorites app. Preserve this record; use [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release handoff and [SECURITY_CLEANUP.md](../SECURITY_CLEANUP.md) for Android retirement.
+
 **Parker's subsequent direction is authoritative:** remove background tracking entirely, preserve nearby/permission-based mode recommendations, and preserve the field-tested nearest-point discovery, thresholds, map tags and completion behavior. Do not implement this review's proposed discovery radius, replacement session model or removal of automatic recommendations. The current scope and verification are in [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md). This document records the earlier analysis, not outstanding release blockers.
 
 # Product review: ship it, then leave it alone for three years

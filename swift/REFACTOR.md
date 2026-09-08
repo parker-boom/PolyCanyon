@@ -1,5 +1,7 @@
 # Poly Canyon refactor
 
+> Historical review/release evidence. Some feature proposals, favorites references, version details and build paths below predate the current foreground-only, no-favorites app. Preserve this record; use [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release handoff and [SECURITY_CLEANUP.md](../SECURITY_CLEANUP.md) for Android retirement.
+
 Current behavior: location runs only while the app is active. Background tracking and Always requests were subsequently removed; older background-test rows below are historical evidence of the previous implementation, not current behavior. Automatic nearby/permission mode recommendations and the tested discovery rules remain unchanged. See [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md).
 
 ## Changes

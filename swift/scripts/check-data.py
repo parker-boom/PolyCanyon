@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Dependency-free catalog/asset checks, runnable on macOS or Linux (including CI)."""
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -46,12 +47,21 @@ print('Catalog entries without discovery coordinates:', sorted(set(ids) - tagged
 
 # Differences are reported, not automatically overwritten: platform image selections differ intentionally.
 original = {x['Number']: x for x in read(ROOT / 'assets/data/structuresList.json')}
-for label, path in [('iOS', DATA / 'structuresList.json'), ('React Native', ROOT / 'react/src/Core/Data/structuresList.json')]:
+for label, path in [('iOS', DATA / 'structuresList.json'), ('Archived Android', ROOT / 'assets/retired-android/src/Core/Data/structuresList.json')]:
     catalog = {x['Number']: x for x in read(path)}
     differences = {str(n): sorted(k for k in set(original[n]) | set(catalog[n]) if original[n].get(k) != catalog[n].get(k))
                    for n in original.keys() & catalog.keys() if original[n] != catalog[n]}
     print(label + ' differences from assets/data:', json.dumps(differences, sort_keys=True))
     print(label + ' identity differences:', sorted(original.keys() ^ catalog.keys()))
-for path in [DATA / 'mapPoints.json', ROOT / 'react/src/Core/Location/mapPoints.json', DATA / 'ghostStructures.json']:
+for path in [DATA / 'mapPoints.json', ROOT / 'assets/retired-android/src/Core/Location/mapPoints.json', DATA / 'ghostStructures.json']:
     source = ROOT / 'assets/data' / path.name
     print(str(path.relative_to(ROOT)) + ': ' + ('matches assets/data' if read(path) == read(source) else 'DIFFERS from assets/data; review before syncing'))
+
+# Retired content is deliberately retained outside the executable app; detect accidental loss.
+archive_manifest = read(ROOT / 'assets/retired-android/preservation.json')
+for entry in archive_manifest['files']:
+    path = ROOT / entry['preserved']
+    require(path.is_file(), 'missing preserved content: ' + entry['preserved'])
+    require(hashlib.sha256(path.read_bytes()).hexdigest() == entry['sha256'],
+            'preserved content changed: ' + entry['preserved'])
+print(f"PASS: {len(archive_manifest['files'])} archived Android content files match their original checksums")

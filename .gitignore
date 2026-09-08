@@ -43,3 +43,10 @@ swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
 
 # Portable local iOS build/check outputs.
 /swift/.build/
+
+# Local signing credentials; never commit private key containers.
+*.jks
+*.keystore
+*.p12
+*.p8
+*.mobileprovision
