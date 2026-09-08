@@ -2,7 +2,16 @@ import SwiftUI
 
 // Each isolated candidate selects a different working composition at build time.
 enum CanyonEdition { case fieldGuide, ramble, archive
-    static let selected: CanyonEdition = .fieldGuide
+    static var selected: CanyonEdition {
+        #if DEBUG
+        // Launch-only comparison switch; no settings or test controls enter the visitor UI.
+        if let value = UserDefaults.standard.string(forKey: "CanyonEdition") {
+            if value == "ramble" { return .ramble }
+            if value == "archive" { return .archive }
+        }
+        #endif
+        return .fieldGuide
+    }
 }
 
 enum FieldPalette {
@@ -34,7 +43,7 @@ struct VirtualWalkthrough: View {
                 }
             }
         }
-        .background(FieldPalette.wash)
+        .background(.white)
         .toolbar(.hidden, for: .navigationBar)
         .fullScreenCover(isPresented: $story) {
             if let structure {
@@ -193,7 +202,7 @@ struct SpatialAtlas: View {
             let originY: CGFloat = overview ? (size.height - 4519.0 * scale) / 2.0 : focusedY
             let origin = CGPoint(x: originX, y: originY)
             ZStack(alignment: .topLeading) {
-                FieldPalette.wash
+                Color.white
                 Image("LightMapNN").resizable().frame(width: 2000 * scale, height: 4519 * scale)
                     .offset(x: origin.x, y: origin.y).accessibilityHidden(true)
                 ForEach(dataStore.structures, id: \.number) { item in
