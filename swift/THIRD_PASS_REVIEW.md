@@ -2,7 +2,9 @@
 
 Integrated baseline: `55a9a50` (app source `8155917`, UI `8b2f9eb`). Android retirement and Glur dependency removal remain inherited. This is a local design branch; no discovery algorithm, persistence format, location policy, publication, or signing change is intended.
 
-Latest review revision after `3df3ae6`: accurate opening copy, uncropped Tensile photograph, and content-sized Tour cards. This revision has its own `ThirdPass/ReviewRevision/` output and has not been installed or reviewed live.
+Latest opening alternative after `eb577ac`: a three-structure preview with bounded photographs and selectable thumbnails, pending live inspection. The coordinator rejected the `eb577ac` opening as generic; it is not an accepted design. Its content-sized Tour correction is retained. The new opening has separate output under `ThirdPass/OpeningAlternative/`.
+
+Previous review revision after `3df3ae6`: accurate opening copy, uncropped Tensile photograph, and content-sized Tour cards. This revision has its own `ThirdPass/ReviewRevision/` output and has not been installed or reviewed live.
 
 Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. Both simulators still have the reviewed `706052c` build.
 
@@ -141,6 +143,39 @@ Long catalog cases explicitly covered by this shared sizing path include Electri
 This is source-level sizing analysis, **not** live verification of every Dynamic Type size. Coordinator review must still check XS through XXXL on compact width, actual pager/gesture behavior, remaining map height, and the two longest titles with their multi-year metadata. Also inspect the opening's whitespace/framing and transition in the real app.
 
 Debug and Release arm64 simulator builds both pass (`debug-build.log`, `release-build.log`); `git diff --check` passes. Builds and source/binary mapping for this revision are in `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/ReviewRevision/`. No Core, assets, discovery, permission policy, or native tab behavior changes are included. Prior geometry/data test results remain associated with their respective commits and are not presented as text-layout or interaction tests.
+
+## One considered opening alternative after `eb577ac`
+
+This is one implemented alternative for the next live review, not a sequence of additional speculative rewrites or a visual approval. The locked simulator has not been accessed. `eb577ac` and `3df3ae6` binaries remain preserved in their own output directories.
+
+### Composition and purpose
+
+Title: **Poly Canyon**
+
+Explanation: **A collection of student-built architectural experiments in the hills behind Cal Poly.**
+
+A bounded photograph and its catalog name/year sit between that introduction and a row of three selectable photographic thumbnails. The choices are Tensile (6), Geodesic Dome (7), and Shell House (24), resolved from the existing catalog, including their first image and year. Selecting a thumbnail changes the photograph and caption with a short fade; the selected thumbnail gains a gold outline and accessibility selected trait. There is no autoplay. This introduces the variety of structures through a visitor's choice before the next page demonstrates the archive photograph/drawing comparison. The “Discover their stories” action remains.
+
+The full Tensile and Dome sources were inspected in the previous review. The Shell House source was inspected for this alternative and shows its roof form, base, vegetation, and hill in a landscape composition. All three remain aspect-fit in both the main view and thumbnails; no narrow crop, generated image, fabricated date, or duplicate location caption is introduced.
+
+The older `167b634` welcome source used a distinctive motion-responsive logo (`WelcomeLogo.swift`). That history reinforces the value of a responsive opening. This alternative's response is attached to choosing actual structures. No sensor loop or permission is added.
+
+### Whole-layout budget
+
+The first page no longer uses the previous unbounded `artworkHeight` region. It accounts for the measured heading/explanation height, measured caption height, 40 points of vertical padding, 64-point thumbnail controls, an 8-point photo/caption gap, two 16-point minimum flexible gaps, and the normal footer allowance. The image stage is bounded by a 4:3 proportion and can shrink to 150 points high before scrolling takes over. Accessibility sizes use the natural proportion in the existing vertical scroll flow with inline actions.
+
+| Page width | Image region width | Maximum image-stage height | Thumbnail control height |
+| --- | --- | --- | --- |
+| 375 pt | 319 pt | 239.25 pt | 64 pt |
+| 440 pt | 384 pt | 288 pt | 64 pt |
+
+These are source geometry bounds, **not** measured simulator layouts. The available image height can be smaller after actual text layout. M-6 and M-24 are approximately 3:2 photographs, so their full images occupy less height than the 4:3 stage; M-7 is 4:3. At the maximum stage size the landscape letterbox space is modest, rather than the previous tall image allocation. Remaining screen height is distributed by the two explicit flexible gaps, with thumbnail controls above the footer. Whether that balance feels considered must be judged on the device.
+
+### Validation and handoff limits
+
+Debug and Release arm64 simulator builds pass (`debug-build.log`, `release-build.log`), and `git diff --check` passes. Builds and commit/binary mapping are under `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/OpeningAlternative/`. Only onboarding and this review note change from `eb577ac`; the content-sized Tour is unchanged. Source-photo inspection copies are not app screenshots. No first-page selection, transition, accessibility behavior, or compact layout is marked passed live.
+
+Next live review: inspect the full page at compact and Pro Max sizes; tap all three thumbnails and confirm complete structure framing, caption/year, selection indication, stable footer and spacing; inspect normal and Reduce Motion fades; check large text and scroll reachability; then advance to the existing archive interaction and location stage. Keep the prior Tour, gesture, host, and location QA gaps open. Await coordinator inspection before further design revision.
 
 ## Reproduce preserved comparisons
 

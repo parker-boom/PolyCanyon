@@ -6,12 +6,14 @@ import Zoomable
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject private var dataStore: DataStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var page = 0
     @State private var showsDrawing = false
     @State private var textHeight: CGFloat = 240
-    @State private var artworkVisible = false
+    @State private var openingSelection = 6
+    @State private var openingCaptionHeight: CGFloat = 22
     @State private var enlargedArtwork = false
     private let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
 
@@ -20,7 +22,9 @@ struct OnboardingView: View {
             GeometryReader { geometry in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        if page < 2 {
+                        if page == 0 {
+                            opening(width: geometry.size.width, height: geometry.size.height)
+                        } else if page == 1 {
                             introduction(width: geometry.size.width, height: geometry.size.height)
                         } else {
                             SpatialAtlas(selected: 7, overview: false, reduceMotion: reduceMotion, showsMarkers: false).frame(height: typeSize.isAccessibilitySize ? 160 : min(260, geometry.size.height * 0.35))
@@ -64,6 +68,86 @@ struct OnboardingView: View {
             }
     }
 
+    private var openingStops: [Structure] {
+        [6, 7, 24].compactMap { number in dataStore.structures.first { $0.number == number } }
+    }
+
+    private var openingStop: Structure? {
+        openingStops.first { $0.number == openingSelection } ?? openingStops.first
+    }
+
+    /// One composition: context, a bounded full photograph, then selectable previews.
+    /// Extra screen height is distributed between these elements, never inside a tall crop.
+    private func opening(width: CGFloat, height: CGFloat) -> some View {
+        let imageWidth = max(1, width - 56)
+        let imageHeight = openingImageHeight(width: imageWidth, height: height)
+        return VStack(alignment: .leading, spacing: 0) {
+            introductionText
+                .background(GeometryReader { text in
+                    Color.clear
+                        .onAppear { textHeight = text.size.height }
+                        .onChange(of: text.size.height) { textHeight = $0 }
+                })
+            Spacer(minLength: 16)
+            if let stop = openingStop {
+                VStack(spacing: 8) {
+                    Image(stop.images.first ?? "M-6").resizable().scaledToFit()
+                        .frame(width: imageWidth, height: imageHeight)
+                        .accessibilityLabel(stop.title)
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        Text(stop.title).font(.headline).foregroundStyle(ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                        Text(stop.year).font(.caption.monospaced()).foregroundStyle(FieldPalette.gold)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .background(GeometryReader { caption in
+                        Color.clear
+                            .onAppear { openingCaptionHeight = caption.size.height }
+                            .onChange(of: caption.size.height) { openingCaptionHeight = $0 }
+                    })
+                }
+                .id(stop.number)
+                .transition(.opacity)
+            }
+            Spacer(minLength: 16)
+            HStack(spacing: 12) {
+                ForEach(openingStops, id: \.number) { stop in
+                    Button {
+                        withAnimation(.easeInOut(duration: reduceMotion ? 0.15 : 0.25)) {
+                            openingSelection = stop.number
+                        }
+                    } label: {
+                        Image(stop.images.first ?? "M-6").resizable().scaledToFit()
+                            .frame(width: max(1, (imageWidth - 24) / 3 - 8), height: 56)
+                            .padding(4)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 6))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(stop.number == openingStop?.number ? FieldPalette.gold : .clear, lineWidth: 2)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Show \(stop.title), \(stop.year)")
+                    .accessibilityAddTraits(stop.number == openingStop?.number ? .isSelected : [])
+                }
+            }
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+        .frame(minHeight: typeSize.isAccessibilitySize ? 0 : max(0, height - 96))
+    }
+
+    private func openingImageHeight(width: CGFloat, height: CGFloat) -> CGFloat {
+        let proportionedHeight = width * 0.75
+        if typeSize.isAccessibilitySize { return proportionedHeight }
+        // Reserve actual text/caption heights, footer, padding, previews, and gaps.
+        // The outer ScrollView takes over if large text exceeds the compact allocation.
+        let available = height - 96 - textHeight - openingCaptionHeight - 40 - 64 - 8 - 32
+        return min(proportionedHeight, max(150, available))
+    }
+
     @ViewBuilder private func introduction(width: CGFloat, height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 22) {
             introductionText
@@ -72,41 +156,28 @@ struct OnboardingView: View {
                         .onAppear { textHeight = text.size.height }
                         .onChange(of: text.size.height) { textHeight = $0 }
                 })
-            if page == 1 {
-                VStack(spacing: 14) {
-                    Button { enlargedArtwork = true } label: {
-                        Group {
-                            if showsDrawing {
-                                Image("geodesicDome1").resizable().scaledToFit()
-                            } else {
-                                Image("M-7").resizable().scaledToFill()
-                            }
-                        }.frame(width: max(1, width - 56), height: artworkHeight(height) - 46).clipped()
-                            .id(showsDrawing).transition(.opacity)
-                            .overlay(alignment: .bottomTrailing) {
-                                Image(systemName: "arrow.up.left.and.arrow.down.right").font(.body)
-                                    .frame(width: 44, height: 44).canyonControl().padding(8)
-                            }
-                    }.buttonStyle(.plain).foregroundStyle(ink)
-                        .accessibilityLabel(showsDrawing ? "Geodesic Dome drawing from the archive" : "Geodesic Dome photograph")
-                        .accessibilityHint("Open full screen to zoom")
-                    Picker("Dome view", selection: $showsDrawing) {
-                        Text("Photograph").tag(false)
-                        Text("Drawing").tag(true)
-                    }.pickerStyle(.segmented)
-                }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
-            } else {
-                Image("M-6").resizable().scaledToFit()
-                    // Preserve the full landscape photograph; extra height is breathing room,
-                    // not a crop that hides the supporting poles and fabric geometry.
-                    .frame(width: max(1, width - 56), height: artworkHeight(height))
-                    .accessibilityLabel("Tensile, a fabric canopy stretched between poles in Poly Canyon")
-                    .opacity(artworkVisible ? 1 : 0)
-                    .offset(y: artworkVisible || reduceMotion ? 0 : 18)
-                    .onAppear {
-                        withAnimation(.easeOut(duration: reduceMotion ? 0.15 : 0.65)) { artworkVisible = true }
-                    }
-            }
+            VStack(spacing: 14) {
+                Button { enlargedArtwork = true } label: {
+                    Group {
+                        if showsDrawing {
+                            Image("geodesicDome1").resizable().scaledToFit()
+                        } else {
+                            Image("M-7").resizable().scaledToFill()
+                        }
+                    }.frame(width: max(1, width - 56), height: artworkHeight(height) - 46).clipped()
+                        .id(showsDrawing).transition(.opacity)
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right").font(.body)
+                                .frame(width: 44, height: 44).canyonControl().padding(8)
+                        }
+                }.buttonStyle(.plain).foregroundStyle(ink)
+                    .accessibilityLabel(showsDrawing ? "Geodesic Dome drawing from the archive" : "Geodesic Dome photograph")
+                    .accessibilityHint("Open full screen to zoom")
+                Picker("Dome view", selection: $showsDrawing) {
+                    Text("Photograph").tag(false)
+                    Text("Drawing").tag(true)
+                }.pickerStyle(.segmented)
+            }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
         }.padding(28)
     }
 
@@ -119,11 +190,11 @@ struct OnboardingView: View {
     private var introductionText: some View {
         VStack(alignment: .leading, spacing: 16) {
             Rectangle().fill(FieldPalette.gold).frame(width: 42, height: 3).accessibilityHidden(true)
-            Text(page == 0 ? "Explore Poly Canyon." : "A dome, 19,000 bolts.")
+            Text(page == 0 ? "Poly Canyon" : "A dome, 19,000 bolts.")
                 .font(.system(.largeTitle, design: .serif).weight(.semibold))
                 .foregroundStyle(ink).accessibilityAddTraits(.isHeader)
             Text(page == 0
-                 ? "Walk among student-built architectural experiments in the hills behind Cal Poly."
+                 ? "A collection of student-built architectural experiments in the hills behind Cal Poly."
                  : "Hundreds of students assembled the Geodesic Dome. Explore the drawings, photographs, and research behind this and the canyon’s other experiments.")
                 .font(.body).foregroundStyle(ink.opacity(0.85))
         }.fixedSize(horizontal: false, vertical: true)
