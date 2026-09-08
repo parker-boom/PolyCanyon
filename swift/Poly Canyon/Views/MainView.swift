@@ -4,33 +4,91 @@ enum FullScreenView: String, Identifiable {
     case structInfo, settings, ghostStructInfo
     var id: String { rawValue }
 }
+private enum CanyonDestination: Hashable { case map, tour, collection, search }
+
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
+    @State private var destination = CanyonDestination.map
+    @State private var searchText = ""
+    @State private var onlyUnvisited = false
+    @State private var showInfo = false
+    @State private var mapFocus: Int?
+    @State private var mapRequest = UUID()
     var body: some View {
-        TabView {
-            NavigationStack { MapView() }.tabItem { Label("Map", systemImage: "map") }
-            NavigationStack { DetailView() }.tabItem { Label("Structures", systemImage: "square.grid.2x2") }
-            NavigationStack { SettingsView() }.tabItem { Label("Your visit", systemImage: "figure.walk") }
-        }
-        .tint(CanyonStyle.ink)
-        .fullScreenCover(item: $appState.activeFullScreenView) { view in
-            switch view {
-            case .structInfo: StructInfo()
-            case .ghostStructInfo:
-                GhostInfo(initialGhostIndex: dataStore.ghostStructures.firstIndex { Int($0.number) == appState.ghostStructInfoNum })
-            case .settings: NavigationStack { SettingsView() }
+        destinations
+            .tint(CanyonStyle.ink)
+            .onAppear {
+                // Migrate a restored modal tour into the stable Tour destination.
+                if appState.isVirtualWalkthrough {
+                    destination = .tour
+                    appState.isVirtualWalkthrough = false
+                }
             }
-        }
-        .overlay(alignment: .top) {
-            if dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil {
-                VisitNotificationView().padding(.horizontal, 16).padding(.top, 8)
+            .sheet(isPresented: $showInfo) {
+                NavigationStack { SettingsView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            }
+            .fullScreenCover(item: $appState.activeFullScreenView) { view in
+                switch view {
+                case .structInfo: StructInfo()
+                case .ghostStructInfo:
+                    GhostInfo(initialGhostIndex: dataStore.ghostStructures.firstIndex { Int($0.number) == appState.ghostStructInfoNum })
+                case .settings: NavigationStack { SettingsView() }
+                }
+            }
+            .overlay(alignment: .top) {
+                if dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil {
+                    VisitNotificationView().padding(.horizontal, 16).padding(.top, 8)
+                }
+            }
+    }
+    @ViewBuilder private var destinations: some View {
+        if #available(iOS 26.0, *) {
+            TabView(selection: $destination) {
+                Tab(value: .map) { map } label: { Image(systemName: "map") }.accessibilityLabel("Map")
+                Tab(value: .tour) { tour } label: { Image(systemName: "figure.walk") }.accessibilityLabel("Tour")
+                Tab(value: .collection) { collection(searching: false) } label: {
+                    Image(systemName: "square.grid.2x2")
+                }.accessibilityLabel("Collection")
+                Tab(value: .search, role: .search) { collection(searching: true) }
+            }
+            .tabViewSearchActivation(.searchTabSelection)
+        } else {
+            TabView(selection: $destination) {
+                map.tag(CanyonDestination.map).tabItem { Label("Map", systemImage: "map") }
+                tour.tag(CanyonDestination.tour).tabItem { Label("Tour", systemImage: "figure.walk") }
+                collection(searching: true).tag(CanyonDestination.collection).tabItem { Label("Collection", systemImage: "square.grid.2x2") }
             }
         }
     }
+    private var map: some View {
+        NavigationStack {
+            MapView(focusStructure: $mapFocus, focusRequest: mapRequest)
+                .toolbar { ToolbarItem(placement: .navigationBarLeading) { infoButton } }
+        }
+    }
+    private var tour: some View {
+        NavigationStack {
+            VirtualWalkthrough { number in
+                mapFocus = number
+                mapRequest = UUID()
+                destination = .map
+            }
+        }
+    }
+    private func collection(searching: Bool) -> some View {
+        NavigationStack {
+            DetailView(searchText: $searchText, onlyUnvisited: $onlyUnvisited, searching: searching)
+                .toolbar { ToolbarItem(placement: .navigationBarLeading) { infoButton } }
+        }
+    }
+    private var infoButton: some View {
+        Button { showInfo = true } label: { Image(systemName: "info.circle") }
+            .accessibilityLabel("About Poly Canyon and location settings")
+    }
 }
 enum CanyonStyle {
-    static let paper = Color(red: 0.97, green: 0.965, blue: 0.945)
+    static let paper = Color.white
     static let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
 }
 /// Glass is reserved for controls floating above the content.

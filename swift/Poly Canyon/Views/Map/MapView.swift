@@ -12,21 +12,43 @@ struct MapView: View {
     @EnvironmentObject var locationService: LocationService
     @StateObject private var position = CirclePositionStore()
     @State private var canvasID = UUID()
+    @Binding var focusStructure: Int?
+    let focusRequest: UUID
     var body: some View {
         GeometryReader { geometry in
+            let point = focusStructure.flatMap { locationService.getMapPointForStructure($0) }
+            let scale = min(geometry.size.width / 2000, geometry.size.height / 4519)
+            let x = (point?.pixelPosition.x ?? 0) * scale * 1.09 + (geometry.size.width - 2000 * scale) / 2
+            let y = (point?.pixelPosition.y ?? 0) * scale * 1.09 + (geometry.size.height - 4519 * scale) / 2
             MapWithLocationDot(mapImage: mapImage, geometry: geometry,
                                currentWalkthroughMapPoint: nil, circlePositionStore: position)
                 .overlay { MapStructureTargets(size: geometry.size) }
+                .overlay(alignment: .topLeading) {
+                    if let number = focusStructure, point != nil {
+                        Text(String(number)).font(.caption.bold().monospacedDigit())
+                            .foregroundStyle(.white).frame(width: 32, height: 32)
+                            .background(CanyonStyle.ink, in: Circle())
+                            .overlay { Circle().stroke(.white, lineWidth: 3) }
+                            .scaleEffect(1 / 2.4).position(x: x, y: y)
+                            .allowsHitTesting(false).accessibilityHidden(true)
+                    }
+                }
+                .scaleEffect(point == nil ? 1 : 2.4, anchor: .topLeading)
+                .offset(x: point == nil ? 0 : geometry.size.width / 2 - x * 2.4,
+                        y: point == nil ? 0 : geometry.size.height / 2 - y * 2.4)
                 .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
                 .id(canvasID).clipped()
 
         }
         .background(Color.white)
-        .navigationTitle("Poly Canyon").navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationTitle("").navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { appState.isVirtualWalkthrough = true } label: { Label("Tour", systemImage: "play.fill") }
-                    .accessibilityLabel("Take a walkthrough")
+            if focusStructure != nil {
+                ToolbarItem(placement: .principal) {
+                    Button("Whole canyon") { focusStructure = nil; canvasID = UUID() }
+                        .font(.subheadline.weight(.medium))
+                }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
@@ -35,13 +57,11 @@ struct MapView: View {
                         Text("Satellite").tag(true)
                     }
                     Toggle("Structure numbers", isOn: $appState.mapShowNumbers)
-                    Button("Reset zoom") { canvasID = UUID() }
+                    Button("Show whole canyon") { focusStructure = nil; canvasID = UUID() }
                 } label: { Label("Map options", systemImage: "square.3.layers.3d") }
             }
         }
-        .fullScreenCover(isPresented: $appState.isVirtualWalkthrough) {
-            NavigationStack { VirtualWalkthrough() }
-        }
+.onChange(of: focusRequest) { _ in canvasID = UUID() }
         .onAppear { appState.configureMapSettings() }
         .onChange(of: locationService.isInPolyCanyonArea) { nearby in
             if appState.adventureModeEnabled { appState.configureMapSettings(inCanyon: nearby) }

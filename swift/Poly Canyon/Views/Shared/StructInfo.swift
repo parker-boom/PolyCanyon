@@ -34,9 +34,7 @@ struct UnavailableStructureView: View {
 }
 
 enum StoryPalette {
-    static let paper = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark ? UIColor(red: 0.08, green: 0.10, blue: 0.09, alpha: 1) : UIColor(red: 0.97, green: 0.96, blue: 0.93, alpha: 1)
-    })
+    static let paper = Color.white
     static let ink = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark ? UIColor(red: 0.83, green: 0.90, blue: 0.81, alpha: 1) : UIColor(red: 0.13, green: 0.23, blue: 0.18, alpha: 1)
     })
@@ -48,6 +46,9 @@ struct StructureStory: View {
     @State private var showGallery = false
     @State private var photoIndex = 0
     @State private var showResearch = false
+    @Namespace private var photoNamespace
+    @State private var visiblePhotoIndices: Set<Int> = []
+    @State private var gallerySourceIndices: Set<Int> = []
 
     private var introduction: String {
         if let summary = Self.introductions[structure.number] { return summary }
@@ -138,12 +139,25 @@ struct StructureStory: View {
                 }
             }
             .background(StoryPalette.paper)
+            .coordinateSpace(name: photoNamespace)
+            .onPreferenceChange(StoryPhotoFrames.self) { frames in
+                guard !showGallery else { return }
+                let viewport = CGRect(origin: .zero, size: geometry.size)
+                visiblePhotoIndices = Set(frames.compactMap { index, frame in
+                    let intersection = viewport.intersection(frame)
+                    return !intersection.isNull && intersection.width > 1 && intersection.height > 1 ? index : nil
+                })
+            }
+            .onChange(of: geometry.size) { _ in
+                // A presentation-time resize invalidates the saved return viewport.
+                if showGallery { gallerySourceIndices = [] }
+            }
         }
         .modifier(StoryCanvasNavigation())
         .navigationBarTitleDisplayMode(.inline)
         .tint(StoryPalette.ink)
         .fullScreenCover(isPresented: $showGallery) {
-            StructureGallery(structure: structure, initialIndex: photoIndex) { showGallery = false }
+            StructureGallery(structure: structure, initialIndex: photoIndex, transitionNamespace: photoNamespace, visibleSourceIndices: gallerySourceIndices) { showGallery = false }
         }
         .onAppear {
             if structure.number < 100 && structure.isVisited && !structure.isOpened {
@@ -155,6 +169,7 @@ struct StructureStory: View {
     private func photo(_ index: Int, height: CGFloat, width: CGFloat) -> some View {
         Button {
             photoIndex = index
+            gallerySourceIndices = visiblePhotoIndices.union([index])
             showGallery = true
         } label: {
             Image(structure.images[index]).resizable().scaledToFill()
@@ -171,6 +186,12 @@ struct StructureStory: View {
                 }
         }
         .buttonStyle(.plain)
+        .modifier(StoryPhotoSource(id: StoryPhotoID(structure: structure.number, index: index), namespace: photoNamespace))
+        .background {
+            GeometryReader { photoGeometry in
+                Color.clear.preference(key: StoryPhotoFrames.self, value: [index: photoGeometry.frame(in: .named(photoNamespace))])
+            }
+        }
         .accessibilityLabel("View \(structure.title), photo \(index + 1) of \(structure.images.count)")
     }
 
@@ -238,5 +259,22 @@ private struct StoryCanvasNavigation: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+private struct StoryPhotoFrames: PreferenceKey {
+    static var defaultValue: [Int: CGRect] { [:] }
+    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+private struct StoryPhotoSource: ViewModifier {
+    let id: StoryPhotoID
+    let namespace: Namespace.ID
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.matchedTransitionSource(id: id, in: namespace)
+        } else { content }
     }
 }
