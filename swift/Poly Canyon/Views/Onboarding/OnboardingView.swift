@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import Zoomable
 
 /// Location remains a choice; its response is visible before entering the guide.
 struct OnboardingView: View {
@@ -8,6 +9,10 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var page = 0
+    @State private var showsDrawing = false
+    @State private var textHeight: CGFloat = 240
+    @State private var artworkVisible = false
+    @State private var enlargedArtwork = false
     private let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
 
     var body: some View {
@@ -18,25 +23,45 @@ struct OnboardingView: View {
                         if page < 2 {
                             introduction(width: geometry.size.width, height: geometry.size.height)
                         } else {
-                            SpatialAtlas(selected: 1, overview: true).frame(height: typeSize.isAccessibilitySize ? 160 : min(260, geometry.size.height * 0.35))
+                            SpatialAtlas(selected: 7, overview: false, showAllMarkers: false, showsMarkers: false).frame(height: typeSize.isAccessibilitySize ? 160 : min(260, geometry.size.height * 0.35))
                                 .allowsHitTesting(false).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 16) {
                                 Text(heading(at: context.date)).font(.largeTitle.weight(.semibold))
                                     .foregroundStyle(ink).accessibilityAddTraits(.isHeader)
-                                Text(explanation(at: context.date)).font(.body).foregroundStyle(.secondary)
+                                Text(explanation(at: context.date)).font(.body).foregroundStyle(ink.opacity(0.85))
                             }.fixedSize(horizontal: false, vertical: true).padding(28)
                         }
                         if typeSize.isAccessibilitySize { actions }
                     }
-                    .id(page)
                     .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
                 }
+                .id(page)
+                .clipped()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if !typeSize.isAccessibilitySize { actions }
                 }
-                .background(FieldPalette.wash)
+                .background(page == 2 ? Color.white : FieldPalette.wash)
             }
         }.preferredColorScheme(.light)
+            .fullScreenCover(isPresented: $enlargedArtwork) {
+                GeometryReader { geometry in
+                    Image(showsDrawing ? "geodesicDome1" : "M-7").resizable().scaledToFit()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .zoomable()
+                        .accessibilityLabel(showsDrawing ? "Geodesic Dome archive drawing" : "Geodesic Dome photograph")
+                        .accessibilityHint("Pinch or double-tap to zoom")
+                }
+                .background(.black)
+                .safeAreaInset(edge: .top) {
+                    HStack {
+                        Text(showsDrawing ? "Geodesic Dome drawing" : "Geodesic Dome").font(.headline)
+                        Spacer()
+                        Button { enlargedArtwork = false } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
+                            .accessibilityLabel("Close image")
+                    }.foregroundStyle(.white).padding(.horizontal, 20).background(.black)
+                }
+                .preferredColorScheme(.dark)
+            }
     }
 
     @ViewBuilder private func introduction(width: CGFloat, height: CGFloat) -> some View {
@@ -65,33 +90,74 @@ struct OnboardingView: View {
                     }.accessibilityHidden(true)
                 introductionText.padding(28)
             }
-        case .archive:
+        case .archive, .remix:
             VStack(alignment: .leading, spacing: 22) {
                 introductionText
-                HStack(alignment: .top, spacing: 12) {
-                    Image(page == 0 ? "M-6" : "M-7").resizable().scaledToFill()
-                        .frame(width: (width - 68) * 0.56, height: 240).clipped()
-                    VStack(alignment: .leading, spacing: 12) {
-                        Image(page == 0 ? "M-5" : "M-24").resizable().scaledToFill()
-                            .frame(width: (width - 68) * 0.44, height: 150).clipped()
-                        Text(page == 0 ? "Cal Poly\nSan Luis Obispo" : "Ideas, materials,\nand the people\nwho built them.")
-                            .font(.caption).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
-                    }
-                }.accessibilityHidden(true)
+                    .background(GeometryReader { text in
+                        Color.clear
+                            .onAppear { textHeight = text.size.height }
+                            .onChange(of: text.size.height) { textHeight = $0 }
+                    })
+                if page == 1 && CanyonEdition.selected == .remix {
+                    VStack(spacing: 14) {
+                        Button { enlargedArtwork = true } label: {
+                            Group {
+                            if showsDrawing {
+                                Image("geodesicDome1").resizable().scaledToFit()
+                            } else {
+                                Image("M-7").resizable().scaledToFill()
+                            }
+                            }.frame(width: max(1, width - 56), height: artworkHeight(height) - 46).clipped()
+                                .id(showsDrawing).transition(.opacity)
+                                .overlay(alignment: .bottomTrailing) {
+                                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.body)
+                                        .frame(width: 44, height: 44).canyonControl().padding(8)
+                                }
+                        }.buttonStyle(.plain).foregroundStyle(ink)
+                            .accessibilityLabel(showsDrawing ? "Geodesic Dome drawing from the archive" : "Geodesic Dome photograph")
+                            .accessibilityHint("Open full screen to zoom")
+                        Picker("Dome view", selection: $showsDrawing) {
+                            Text("Photograph").tag(false)
+                            Text("Drawing").tag(true)
+                        }.pickerStyle(.segmented)
+                    }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
+                } else {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(page == 0 ? "M-6" : "M-7").resizable().scaledToFill()
+                            .frame(width: (width - 68) * 0.56, height: artworkHeight(height)).clipped()
+                        VStack(alignment: .leading, spacing: 12) {
+                            Image(page == 0 ? "M-5" : "geodesicDome1").resizable().scaledToFill()
+                                .frame(width: (width - 68) * 0.44, height: artworkHeight(height) * 0.67).clipped()
+                            Text(page == 0 ? "Cal Poly\nSan Luis Obispo" : "From the archive")
+                                .font(.caption).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }.accessibilityHidden(true)
+                        .opacity(artworkVisible ? 1 : 0)
+                        .offset(y: artworkVisible || reduceMotion ? 0 : 18)
+                        .onAppear {
+                            withAnimation(.easeOut(duration: reduceMotion ? 0.15 : 0.65)) { artworkVisible = true }
+                        }
+                }
             }.padding(28)
         }
+    }
+
+    private func artworkHeight(_ height: CGFloat) -> CGFloat {
+        if typeSize.isAccessibilitySize { return 280 }
+        // Allow the text to grow naturally; compact screens scroll instead of clipping.
+        return max(240, height - textHeight - 56 - 22 - 96)
     }
 
     private var introductionText: some View {
         VStack(alignment: .leading, spacing: 16) {
             Rectangle().fill(FieldPalette.gold).frame(width: 42, height: 3).accessibilityHidden(true)
-            Text(page == 0 ? "A canyon built by students." : "Every structure has a story.")
-                .font(.system(.largeTitle, design: CanyonEdition.selected == .archive ? .serif : .default).weight(.semibold))
+            Text(page == 0 ? "A canyon built by students." : (CanyonEdition.selected == .remix ? "A dome, 19,000 bolts." : "Every structure has a story."))
+                .font(.system(.largeTitle, design: (CanyonEdition.selected == .archive || CanyonEdition.selected == .remix) ? .serif : .default).weight(.semibold))
                 .foregroundStyle(ink).accessibilityAddTraits(.isHeader)
             Text(page == 0
                  ? "In the hills behind Cal Poly, students turned architectural ideas into full-scale experiments. Poly Canyon is where you can walk among them."
-                 : "Find your way through the canyon, open the research, and explore the photographs that connect these places to their past.")
-                .font(.body).foregroundStyle(.secondary)
+                 : (CanyonEdition.selected == .remix ? "Hundreds of students assembled the Geodesic Dome. Explore the drawings, photographs, and research behind this and the canyon’s other experiments." : "Find your way through the canyon, open the research, and explore the photographs that connect these places to their past."))
+                .font(.body).foregroundStyle(ink.opacity(0.85))
         }.fixedSize(horizontal: false, vertical: true)
     }
 
@@ -113,7 +179,7 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 28)
         .padding(.vertical, 16)
-        .background(FieldPalette.wash)
+        .background(page == 2 ? Color.white : FieldPalette.wash)
     }
 
     private func usableLocation(at date: Date) -> CLLocation? {

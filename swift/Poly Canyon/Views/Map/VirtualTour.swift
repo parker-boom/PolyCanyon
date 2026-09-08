@@ -1,22 +1,24 @@
 import SwiftUI
+import UIKit
 
 // Each isolated candidate selects a different working composition at build time.
-enum CanyonEdition { case fieldGuide, ramble, archive
+enum CanyonEdition { case fieldGuide, ramble, archive, remix
     static var selected: CanyonEdition {
         #if DEBUG
         // Launch-only comparison switch; no settings or test controls enter the visitor UI.
         if let value = UserDefaults.standard.string(forKey: "CanyonEdition") {
+            if value == "fieldGuide" { return .fieldGuide }
             if value == "ramble" { return .ramble }
             if value == "archive" { return .archive }
         }
         #endif
-        return .fieldGuide
+        return .remix
     }
 }
 
 enum FieldPalette {
     static let green = CanyonStyle.ink
-    static let gold = Color(red: 0.62, green: 0.43, blue: 0.12)
+    static let gold = Color(red: 0.55, green: 0.36, blue: 0.08)
     static let wash = Color(red: 0.98, green: 0.97, blue: 0.94)
 }
 
@@ -25,6 +27,7 @@ struct VirtualWalkthrough: View {
     @EnvironmentObject private var dataStore: DataStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .title2) private var cardHeight = 130.0
     @State private var overview = true
     @State private var story = false
     @Namespace private var photos
@@ -36,10 +39,18 @@ struct VirtualWalkthrough: View {
     var body: some View {
         Group {
             if let structure {
-                switch CanyonEdition.selected {
-                case .fieldGuide: fieldGuide(structure)
-                case .ramble: ramble(structure)
-                case .archive: archive(structure)
+                if typeSize.isAccessibilitySize {
+                    ScrollView {
+                        SpatialAtlas(selected: structure.number, overview: false, showAllMarkers: false, select: select).frame(height: 230)
+                        inspector(structure).padding(20)
+                        navigation.padding(.horizontal, 20)
+                    }
+                } else {
+                    switch CanyonEdition.selected {
+                    case .fieldGuide: fieldGuide(structure)
+                    case .ramble, .remix: ramble(structure)
+                    case .archive: archive(structure)
+                    }
                 }
             }
         }
@@ -49,7 +60,7 @@ struct VirtualWalkthrough: View {
             if let structure {
                 NavigationStack {
                     StructureStory(structure: structure)
-                        .modifier(StructureZoomDestination(id: structure.number, namespace: photos))
+                        .modifier(StructureZoomDestination(id: structure.number, namespace: photos, isEnabled: !typeSize.isAccessibilitySize))
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { story = false } } }
                 }.tint(FieldPalette.green)
             }
@@ -68,16 +79,9 @@ struct VirtualWalkthrough: View {
 
     private func ramble(_ item: Structure) -> some View {
         VStack(spacing: 0) {
-            ScrollViewReader { reader in
-                ScrollView {
-                    SpatialAtlas(selected: item.number, overview: true, scrollAnchors: true, select: select)
-                        .frame(height: 1550)
-                }
-                .onAppear { reader.scrollTo(item.number, anchor: .center) }
-                .onChange(of: item.number) { number in
-                    withAnimation(movement) { reader.scrollTo(number, anchor: .center) }
-                }
-            }
+            CanyonMapScroll(selected: item.number, showAllMarkers: CanyonEdition.selected != .remix, select: select)
+                .clipped()
+                .padding(.top, 8)
             if typeSize.isAccessibilitySize {
                 inspector(item).padding(18)
             } else {
@@ -85,7 +89,7 @@ struct VirtualWalkthrough: View {
                     ForEach(dataStore.structures.indices, id: \.self) { position in
                         inspector(dataStore.structures[position]).padding(18).tag(position)
                     }
-                }.tabViewStyle(.page(indexDisplayMode: .never)).frame(height: 130)
+                }.tabViewStyle(.page(indexDisplayMode: .never)).frame(height: cardHeight)
             }
             navigation.padding(.horizontal, 18).padding(.bottom, 12)
         }.background(.white)
@@ -189,7 +193,8 @@ struct SpatialAtlas: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let selected: Int
     let overview: Bool
-    var scrollAnchors = false
+    var showAllMarkers = true
+    var showsMarkers = true
     var select: (Int) -> Void = { _ in }
     var body: some View {
         GeometryReader { geometry in
@@ -205,15 +210,16 @@ struct SpatialAtlas: View {
                 Color.white
                 Image("LightMapNN").resizable().frame(width: 2000 * scale, height: 4519 * scale)
                     .offset(x: origin.x, y: origin.y).accessibilityHidden(true)
-                ForEach(dataStore.structures, id: \.number) { item in
+                ForEach(showsMarkers ? dataStore.structures : [], id: \.number) { item in
                     if let point = locationService.getMapPointForStructure(item.number)?.pixelPosition {
                         Button { select(item.number) } label: {
-                            Text(String(item.number)).font(.system(size: item.number == selected ? 16 : 11, weight: .semibold, design: .rounded))
+                            Text(showAllMarkers || item.number == selected ? String(item.number) : "").font(.system(size: item.number == selected ? 16 : 11, weight: .semibold, design: .rounded))
                                 .foregroundStyle(item.number == selected ? .white : FieldPalette.green)
-                                .frame(width: item.number == selected ? 36 : 23, height: item.number == selected ? 36 : 23)
+                                .frame(width: item.number == selected ? 36 : (showAllMarkers ? 23 : 6), height: item.number == selected ? 36 : (showAllMarkers ? 23 : 6))
                                 .background(item.number == selected ? FieldPalette.green : .white, in: Circle())
                                 .overlay { Circle().stroke(FieldPalette.gold, lineWidth: item.number == selected ? 3 : 1) }
                                 .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }.buttonStyle(.plain)
                             .accessibilityLabel("\(item.title), map number \(item.number)")
                             .accessibilityAddTraits(item.number == selected ? .isSelected : [])
@@ -221,9 +227,78 @@ struct SpatialAtlas: View {
                             .position(x: origin.x + point.x * 1.09 * scale, y: origin.y + point.y * 1.09 * scale)
                     }
                 }
-            }.clipped()
+            }.frame(width: size.width, height: size.height, alignment: .topLeading).clipped()
                 .animation(reduceMotion ? nil : .spring(response: 0.65, dampingFraction: 0.92), value: selected)
                 .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: overview)
+        }
+    }
+}
+
+/// A real scroll surface: recenter using calibrated map coordinates, rather than
+/// ScrollViewReader IDs on positioned children (which resolve to their parent rect).
+private struct CanyonMapScroll: UIViewRepresentable {
+    @EnvironmentObject private var locationService: LocationService
+    @EnvironmentObject private var dataStore: DataStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let selected: Int
+    let showAllMarkers: Bool
+    let select: (Int) -> Void
+
+    func makeUIView(context: Context) -> AtlasScrollView {
+        let view = AtlasScrollView()
+        view.backgroundColor = .white
+        view.contentInsetAdjustmentBehavior = .never
+        view.showsHorizontalScrollIndicator = false
+        view.alwaysBounceVertical = true
+        return view
+    }
+
+    func updateUIView(_ view: AtlasScrollView, context: Context) {
+        let atlas = SpatialAtlas(selected: selected, overview: true, showAllMarkers: showAllMarkers, select: select)
+            .environmentObject(locationService).environmentObject(dataStore)
+        view.host.rootView = AnyView(atlas)
+        view.focus = locationService.getMapPointForStructure(selected)?.pixelPosition
+        view.animateSelection = !reduceMotion
+        if view.selected != selected {
+            view.selected = selected
+            view.needsCentering = true
+        }
+        view.setNeedsLayout()
+    }
+}
+
+private final class AtlasScrollView: UIScrollView {
+    let host = UIHostingController(rootView: AnyView(EmptyView()))
+    var selected: Int?
+    var focus: CGPoint?
+    var needsCentering = true
+    var animateSelection = false
+    private var previousSize = CGSize.zero
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        host.view.backgroundColor = .white
+        addSubview(host.view)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let size = bounds.size
+        guard size.width > 0, size.height > 0 else { return }
+        let resized = size != previousSize
+        let height = size.width * 4519 / 2000
+        host.view.frame = CGRect(x: 0, y: 0, width: size.width, height: height)
+        contentSize = CGSize(width: size.width, height: height)
+        // Keep end stops visible without scrolling into half a screen of blank canvas.
+        contentInset = UIEdgeInsets(top: 24, left: 0, bottom: 24, right: 0)
+        if needsCentering || resized {
+            needsCentering = false
+            previousSize = size
+            let scale = size.width / 2000 * 0.93
+            let y = height * 0.035 + (focus?.y ?? 2200) * 1.09 * scale
+            let offset = min(max(y - size.height / 2, -contentInset.top), height - size.height + contentInset.bottom)
+            setContentOffset(CGPoint(x: 0, y: offset), animated: animateSelection && !resized && window != nil)
         }
     }
 }

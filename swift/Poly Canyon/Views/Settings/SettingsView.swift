@@ -33,7 +33,6 @@ struct SettingsView: View {
                 Button("Credits & licenses") { showsCredits = true }
                 Link("Poly Canyon website", destination: URL(string: "https://polycanyon.com")!)
                 Link("Help & support", destination: URL(string: "https://polycanyon.com/support")!)
-                Link("Email Parker", destination: URL(string: "mailto:parker.jones@live.com")!)
                 Link("Privacy", destination: URL(string: "https://polycanyon.com/privacy")!)
             } footer: {
                 Text("Poly Canyon \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
@@ -67,7 +66,7 @@ struct SettingsView: View {
     private var locationTitle: String {
         if locationService.isLocationPermissionDenied { return "Explore without location" }
         if pendingPermission { return "Choose location access" }
-        return recording ? "Your visits appear on the map" : "Explore at your own pace"
+        return recording ? "Your visits appear on the map" : "Mark the places you visit"
     }
 
     private var locationDescription: String {
