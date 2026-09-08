@@ -2,6 +2,8 @@
 
 Integrated baseline: `55a9a50` (app source `8155917`, UI `8b2f9eb`). Android retirement and Glur dependency removal remain inherited. This is a local design branch; no discovery algorithm, persistence format, location policy, publication, or signing change is intended.
 
+Latest review revision after `3df3ae6`: accurate opening copy, uncropped Tensile photograph, and content-sized Tour cards. This revision has its own `ThirdPass/ReviewRevision/` output and has not been installed or reviewed live.
+
 Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. Both simulators still have the reviewed `706052c` build.
 
 ## First comparison round
@@ -102,6 +104,43 @@ Offline cleanup validation: Debug (`debug-final-build.log`) and Release (`releas
 New build output: `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/OfflineCleanup/DerivedData/Build/Products/Debug-iphonesimulator/Poly Canyon.app`. Build logs and source/binary manifest are in `ThirdPass/OfflineCleanup/`. The original round-three output and captures are retained separately. **Do not describe the cleanup binary as installed or its UI as verified.**
 
 Still required when unlocked: install this exact cleanup build; check host re-entry after tab switches and large-text changes, selections 1/17/31 after resize, manual map scroll and card swipe, Reduce Motion (including changing it during movement), normal/compact/large-text and contrast layouts, remaining canyon/near/denied/no-fix flows, gallery gestures, and independent coordinator approval. Earlier keyboard/zoom checks belong to round three and do not substitute for the changed host's live QA.
+
+## Focused review revision after `3df3ae6`
+
+The coordinator requested two separate refinements while the Mac remains locked. No simulator interaction, unlock attempt, generated app screenshot, or live-layout measurement was performed for this revision. The `3df3ae6` Debug/Release apps remain intact under `ThirdPass/OfflineCleanup/`.
+
+### Opening copy and source-photo review
+
+Opening heading: **Explore Poly Canyon.**
+
+Opening explanation: **Walk among student-built architectural experiments in the hills behind Cal Poly.**
+
+This identifies the destination and what is there without attributing construction of the canyon itself to students. The repeated Cal Poly/San Luis Obispo caption is removed. The green/gold typography, restrained reveal, and subsequent photograph/drawing research interaction remain.
+
+Compared the actual bundled `M-6`, `M-5`, `M-7`, and `tensile2` photos, decoded to external inspection copies in `ThirdPass/ReviewRevision/SourcePhotos/` because the image viewer could not directly read HEIC. These are source-photo inspection copies, not app screenshots or modified bundled assets.
+
+- `M-6` (2200×1467): the full landscape composition shows the tensile canopy, its supporting poles, cables, and hill. Selected for the opening; `scaledToFit` preserves the whole source. Its allocated region can include whitespace; the photograph is not enlarged/cropped vertically just to consume space.
+- `M-5` (1467×2200): a slender individual structure with substantial sky; pairing it with a narrow Tensile crop weakened explanation of both. Removed from the opening composition, retained in the catalog.
+- `M-7` (2200×1650): clearly shows the dome; retained for its existing research comparison on the next page rather than repeating it in the introduction.
+- `tensile2` (2200×1644): shows construction activity and equipment; useful story evidence, less immediately legible as the finished structure on the opening screen. Retained unchanged.
+
+### Tour height: source analysis and sizing contract
+
+The prior `max(120, scaled130)` fixed the photo's minimum space but did not account for text wrapping. At a fixed Dynamic Type size it allocated the same height regardless of width, title, or year. The title and metadata can wrap independently, so that budget was not sufficient evidence of fit. This review does **not** claim a measured iOS clipping threshold while the simulator is unavailable.
+
+The fixed card-height metric is removed. The sizing stack contains all 31 actual catalog entries, using the same `inspectorContent` function as the visible pages. For each entry the layout is:
+
+- Same proposed page width, 18-point padding on each side, 88×84 photo footprint, and 16-point horizontal gap.
+- Same title2/medium title, subheadline year plus “Photos & story,” and 6-point vertical gap.
+- Unlimited text lines and natural vertical size. The sizing copy substitutes a fixed clear rectangle for the image; it contains no button, image loading, or matched zoom source and is hidden from accessibility/hit testing.
+
+Consequently, the pager's proposed height comes from the tallest natural card at the current width and font environment: `max(84, title-and-metadata natural height) + 36`, maximized across all entries. The visible native page view is an overlay and does not determine or constrain that height. A wider or narrower viewport and each non-accessibility Dynamic Type size trigger normal SwiftUI re-layout. Using all entries keeps the map's available height stable during a swipe between a short and long name.
+
+Long catalog cases explicitly covered by this shared sizing path include Electric Infra-Structure (1965 / 1977), Water Infra-Structure (1965 / 1998), Centering for Center (2022), and Cantilever Deck (1990 / 2024). There is no truncation, fixed line count, reduced font scale, or speculative numerical font table. The existing separate accessibility-size scroll layout remains.
+
+This is source-level sizing analysis, **not** live verification of every Dynamic Type size. Coordinator review must still check XS through XXXL on compact width, actual pager/gesture behavior, remaining map height, and the two longest titles with their multi-year metadata. Also inspect the opening's whitespace/framing and transition in the real app.
+
+Debug and Release arm64 simulator builds both pass (`debug-build.log`, `release-build.log`); `git diff --check` passes. Builds and source/binary mapping for this revision are in `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/ReviewRevision/`. No Core, assets, discovery, permission policy, or native tab behavior changes are included. Prior geometry/data test results remain associated with their respective commits and are not presented as text-layout or interaction tests.
 
 ## Reproduce preserved comparisons
 

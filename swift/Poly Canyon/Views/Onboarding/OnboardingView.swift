@@ -96,16 +96,11 @@ struct OnboardingView: View {
                     }.pickerStyle(.segmented)
                 }.animation(.easeInOut(duration: reduceMotion ? 0.15 : 0.3), value: showsDrawing)
             } else {
-                HStack(alignment: .top, spacing: 12) {
-                    Image("M-6").resizable().scaledToFill()
-                        .frame(width: (width - 68) * 0.56, height: artworkHeight(height)).clipped()
-                    VStack(alignment: .leading, spacing: 12) {
-                        Image("M-5").resizable().scaledToFill()
-                            .frame(width: (width - 68) * 0.44, height: artworkHeight(height) * 0.67).clipped()
-                        Text("Cal Poly\nSan Luis Obispo")
-                            .font(.caption).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
-                    }
-                }.accessibilityHidden(true)
+                Image("M-6").resizable().scaledToFit()
+                    // Preserve the full landscape photograph; extra height is breathing room,
+                    // not a crop that hides the supporting poles and fabric geometry.
+                    .frame(width: max(1, width - 56), height: artworkHeight(height))
+                    .accessibilityLabel("Tensile, a fabric canopy stretched between poles in Poly Canyon")
                     .opacity(artworkVisible ? 1 : 0)
                     .offset(y: artworkVisible || reduceMotion ? 0 : 18)
                     .onAppear {
@@ -124,11 +119,11 @@ struct OnboardingView: View {
     private var introductionText: some View {
         VStack(alignment: .leading, spacing: 16) {
             Rectangle().fill(FieldPalette.gold).frame(width: 42, height: 3).accessibilityHidden(true)
-            Text(page == 0 ? "A canyon built by students." : "A dome, 19,000 bolts.")
+            Text(page == 0 ? "Explore Poly Canyon." : "A dome, 19,000 bolts.")
                 .font(.system(.largeTitle, design: .serif).weight(.semibold))
                 .foregroundStyle(ink).accessibilityAddTraits(.isHeader)
             Text(page == 0
-                 ? "In the hills behind Cal Poly, students turned architectural ideas into full-scale experiments. Poly Canyon is where you can walk among them."
+                 ? "Walk among student-built architectural experiments in the hills behind Cal Poly."
                  : "Hundreds of students assembled the Geodesic Dome. Explore the drawings, photographs, and research behind this and the canyon’s other experiments.")
                 .font(.body).foregroundStyle(ink.opacity(0.85))
         }.fixedSize(horizontal: false, vertical: true)

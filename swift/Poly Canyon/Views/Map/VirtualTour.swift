@@ -12,7 +12,6 @@ struct VirtualWalkthrough: View {
     @EnvironmentObject private var dataStore: DataStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .title2) private var cardHeight = 130.0
     @State private var story = false
     @Namespace private var photos
     private var index: Int { min(max(0, appState.currentStructureIndex), max(0, dataStore.structures.count - 1)) }
@@ -52,34 +51,58 @@ struct VirtualWalkthrough: View {
             CanyonMapScroll(selected: item.number, select: select)
                 .clipped()
                 .padding(.top, 8)
-            TabView(selection: $appState.currentStructureIndex) {
-                ForEach(dataStore.structures.indices, id: \.self) { position in
-                    inspector(dataStore.structures[position]).padding(18).tag(position)
+            // The overlay receives the natural height of the tallest actual card at this
+            // width and Dynamic Type size. Measuring every stop keeps swipes from resizing
+            // the map halfway through a page transition. No fixed text-height budget.
+            ZStack {
+                ForEach(dataStore.structures, id: \.number) { stop in
+                    inspectorContent(stop, photograph: false).padding(18)
+                        .hidden().accessibilityHidden(true).allowsHitTesting(false)
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            // The fixed photo is 84 points tall, plus 18 points of padding per side.
-            .frame(height: max(120, cardHeight))
+            .fixedSize(horizontal: false, vertical: true)
+            .overlay {
+                TabView(selection: $appState.currentStructureIndex) {
+                    ForEach(dataStore.structures.indices, id: \.self) { position in
+                        inspector(dataStore.structures[position]).padding(18).tag(position)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+            }
             navigation.padding(.horizontal, 18).padding(.bottom, 12)
         }.background(.white)
     }
 
     private func inspector(_ item: Structure) -> some View {
         Button { story = true } label: {
-            HStack(alignment: .center, spacing: 16) {
-                if !typeSize.isAccessibilitySize {
+            inspectorContent(item, photograph: true)
+        }.buttonStyle(.plain).accessibilityLabel("Read the story of \(item.title)")
+    }
+
+    /// Live cards and sizing cards use the same text, spacing, and width proposal.
+    /// The sizing copy has a placeholder, avoiding duplicate zoom sources or image loads.
+    private func inspectorContent(_ item: Structure, photograph: Bool) -> some View {
+        HStack(alignment: .center, spacing: 16) {
+            if !typeSize.isAccessibilitySize {
+                if photograph {
                     Image(item.images.first ?? "M-1").resizable().scaledToFill().frame(width: 88, height: 84).clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .modifier(StructureZoomSource(id: item.number, namespace: photos))
+                } else {
+                    Color.clear.frame(width: 88, height: 84)
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(item.title).font(.title2.weight(.medium)).foregroundStyle(FieldPalette.green)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text("\(item.year) · Photos & story").font(.subheadline).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 0)
-            }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityLabel("Read the story of \(item.title)")
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title).font(.title2.weight(.medium)).foregroundStyle(FieldPalette.green)
+                Text("\(item.year) · Photos & story").font(.subheadline).foregroundStyle(.secondary)
+            }
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .contentShape(Rectangle())
     }
 
     private var navigation: some View {
