@@ -74,7 +74,7 @@ final class AppState: ObservableObject {
         activeAlert = nil
     }
 
-    // Add property to track if background alert was shown
+    // Tracks whether the canyon welcome has been shown
     @Published var hasVisitedCanyon: Bool {
         didSet {
             defaults.set(hasVisitedCanyon, forKey: "hasVisitedCanyon")

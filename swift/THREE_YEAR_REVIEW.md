@@ -1,3 +1,7 @@
+# Historical product review: superseded decisions
+
+**Parker's subsequent direction is authoritative:** remove background tracking entirely, preserve nearby/permission-based mode recommendations, and preserve the field-tested nearest-point discovery, thresholds, map tags and completion behavior. Do not implement this review's proposed discovery radius, replacement session model or removal of automatic recommendations. The current scope and verification are in [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md). This document records the earlier analysis, not outstanding release blockers.
+
 # Product review: ship it, then leave it alone for three years
 
 This is a decision review, not permission to remove features. No substantive feature changes below have been implemented. The useful existing work remains: offline content, safer local saves, deterministic location tests, removed retired event/rating features, and the approved support-email change.

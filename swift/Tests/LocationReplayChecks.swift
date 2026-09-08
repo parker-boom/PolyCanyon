@@ -9,13 +9,11 @@ final class ReplayLocationManager: LocationManaging {
     var desiredAccuracy: CLLocationAccuracy = 0
     var distanceFilter: CLLocationDistance = 0
     var pausesLocationUpdatesAutomatically = true
-    var allowsBackgroundLocationUpdates = false
     var running = false
     var starts = 0
     var stops = 0
     var requests = 0
     func requestWhenInUseAuthorization() { requests += 1 }
-    func requestAlwaysAuthorization() { }
     func startUpdatingLocation() { running = true; starts += 1 }
     func stopUpdatingLocation() { running = false; stops += 1 }
 }
@@ -67,6 +65,7 @@ struct LocationReplayChecks {
         }
         // No permission, pending onboarding and a permission grant never award a visit by themselves.
         service.configure()
+        service.setAppActive(true)
         send(1)
         precondition(!manager.running && store.totalVisitedCount == 0)
         service.requestInitialPermission()
@@ -75,7 +74,7 @@ struct LocationReplayChecks {
         send(1)
         precondition(manager.running && store.totalVisitedCount == 0)
         service.setAppActive(false)
-        precondition(!manager.running && !manager.allowsBackgroundLocationUpdates)
+        precondition(!manager.running && service.trackingState == .inactive)
         service.setAppActive(true)
         service.setMode(.adventure)
         send(1)
@@ -111,24 +110,40 @@ struct LocationReplayChecks {
         precondition(!manager.running && service.lastLocation == nil && store.totalVisitedCount == 4)
         service.setMode(.adventure)
         send(101)
-        precondition(manager.allowsBackgroundLocationUpdates)
+        precondition(manager.running && service.trackingState == .inAppOnly)
+        // Both inactive and background scenes stop GPS, even nearby with an existing Always grant.
+        let startsBeforePause = manager.starts
         service.setAppActive(false)
+        precondition(!manager.running && service.lastLocation == nil)
+        send(102)
+        precondition(!store.ghostStructures.first { $0.number == "102" }!.isVisited)
+        service.setAppActive(false)
+        precondition(manager.starts == startsBeforePause)
+        service.setAppActive(true)
+        precondition(manager.running && manager.starts == startsBeforePause + 1)
         send(102)
         precondition(store.ghostStructures.first { $0.number == "102" }!.isVisited)
-        // An outside fix stops background updates; another queued callback cannot award a visit.
-        let far = CLLocationCoordinate2D(latitude: point(1).latitude - 0.02, longitude: point(1).longitude)
-        time.addTimeInterval(2)
-        service.receiveLocations([sample(far)])
-        precondition(!manager.running && service.trackingState == .inactive)
+        service.setAppActive(false)
+        // Permission changes while away are reconciled on return, not just through a delegate callback.
+        manager.authorizationStatus = .denied
+        service.setAppActive(true)
         send(103)
-        precondition(!store.ghostStructures.first { $0.number == "103" }!.isVisited)
+        precondition(!manager.running && !store.ghostStructures.first { $0.number == "103" }!.isVisited)
+        service.setAppActive(false)
+        manager.authorizationStatus = .authorizedAlways
         service.setAppActive(true)
         send(103)
         precondition(store.ghostStructures.first { $0.number == "103" }!.isVisited)
+        service.setMode(.virtualTour)
+        service.setAppActive(false)
+        service.setAppActive(true)
+        send(104)
+        precondition(!manager.running && !store.ghostStructures.first { $0.number == "104" }!.isVisited)
+        service.setMode(.adventure)
         service.setAppActive(false)
         time.addTimeInterval(31)
         service.setAppActive(true)
-        precondition(service.lastLocation == nil && !manager.allowsBackgroundLocationUpdates && manager.running)
+        precondition(service.lastLocation == nil && manager.running)
         // A failed GPS save preserves progress and does not repeat alerts on every callback.
         let savedURL = directory.appendingPathComponent("progress.json")
         let savedBytes = try Data(contentsOf: savedURL)
@@ -165,7 +180,7 @@ struct LocationReplayChecks {
         precondition(restored.totalVisitedCount == 35 && restored.dayCount == 1)
         service.reset()
         precondition(!manager.running && service.currentMode == .initial && service.lastLocation == nil)
-        print("PASS: production location replay: permissions, lifecycle, stale/inaccurate fixes, throttling, virtual mode")
+        print("PASS: production foreground-only replay: inactive/background stop, return, denied/Always permissions, virtual mode, stale fixes and throttling")
         print("PASS: all 231 map points, 35 discoverable structures, untagged trails, notification-to-save integration and relaunch")
         print("DATA LIMIT: ghost structures 105/106 have no tagged coordinates; no coordinates fabricated")
     }

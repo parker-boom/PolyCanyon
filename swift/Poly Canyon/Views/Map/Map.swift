@@ -28,7 +28,7 @@ struct MapWithLocationDot: View {
         } else {
             guard appState.adventureModeEnabled else { return false }
             guard let userLoc = locationService.lastLocation else { return false }
-            return locationService.isWithinBackgroundRange(userLoc)
+            return locationService.isWithinNearbyRange(userLoc)
         }
     }
     

@@ -300,8 +300,7 @@
 				INFOPLIST_FILE = "Poly-Canyon-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Poly Canyon";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location lets Poly Canyon mark structures during your visit while the app is in the background.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location shows where you are on the canyon map and marks structures you visit.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "While Poly Canyon is open, your location shows where you are on the map and marks structures you visit.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -338,8 +337,7 @@
 				INFOPLIST_FILE = "Poly-Canyon-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Poly Canyon";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location lets Poly Canyon mark structures during your visit while the app is in the background.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your location shows where you are on the canyon map and marks structures you visit.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "While Poly Canyon is open, your location shows where you are on the map and marks structures you visit.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

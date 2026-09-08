@@ -222,7 +222,7 @@ struct ModePickerAlert: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(selectedMode ? 
                         ["Explore structures in person",
-                         "Track your progress",
+                         "Track visits while using the app",
                          "Use live location"] :
                         ["Browse remotely",
                          "Learn about all structures",

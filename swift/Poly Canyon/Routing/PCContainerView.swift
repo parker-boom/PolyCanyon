@@ -15,11 +15,11 @@ struct PCContainerView: View {
             .environmentObject(locationService)
             .preferredColorScheme(.light)
             .task {
+                locationService.setAppActive(scenePhase == .active)
                 locationService.configure()
-                locationService.setAppActive(scenePhase != .background)
             }
             .onChange(of: scenePhase) { phase in
-                locationService.setAppActive(phase != .background)
+                locationService.setAppActive(phase == .active)
                 if phase == .active { dataStore.resumeAutomaticVisits() }
             }
     }

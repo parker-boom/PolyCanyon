@@ -2,7 +2,7 @@
 
 ## Current maintenance status
 
-The maintained app is the offline SwiftUI iOS project in [`swift/`](swift/BUILDING.md). Rate Structures and the past Design Village event have been removed there. The architecture is intentionally small: bundled research/map/photos, local progress snapshots, and on-device location decisions. Visual redesign is separate work.
+The maintained app is the offline SwiftUI iOS project in [`swift/`](swift/BUILDING.md). Rate Structures and the past Design Village event have been removed there. The architecture is intentionally small: bundled research/map/photos, local progress snapshots, and on-device location decisions only while the app is active. Visual redesign is separate work.
 
 `react/` is the legacy React Native/Android implementation. It has not received this refactor or a current build/privacy audit; its source still includes Firebase packages and a location-logging implementation. Do not apply the iOS “Data Not Collected” conclusion to Android or assume feature parity. Historical screenshots and store links below may describe older releases.
 

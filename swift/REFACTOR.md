@@ -1,5 +1,7 @@
 # Poly Canyon refactor
 
+Current behavior: location runs only while the app is active. Background tracking and Always requests were subsequently removed; older background-test rows below are historical evidence of the previous implementation, not current behavior. Automatic nearby/permission mode recommendations and the tested discovery rules remain unchanged. See [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md).
+
 ## Changes
 
 - Removed Rate Structures: its card deck, route, state, and browsing prompt. Favorites remain available through the existing heart controls. Gallery swiping and virtual-tour navigation remain.
@@ -14,7 +16,7 @@
 - Fixed detail routing that assumed structure number minus one was always a valid array index. Empty ghost catalogs have a recoverable screen.
 - Removed duplicate image decoding whose result was never displayed. Restored three missing photo assets from original project photos.
 - Added descriptive tab and grid accessibility labels and larger tab touch targets. This is an accessibility improvement, not a completed Dynamic Type/VoiceOver certification.
-- Location updates reject invalid or old fixes; visits additionally require horizontal accuracy within 50 meters. Virtual mode ignores late location callbacks. Denial, virtual mode, and stale foreground fixes clear location state. Scene changes reconcile a single tracking state: background GPS runs only for nearby adventures, and distant tracking resumes on foregrounding. Permission screens observe authorization directly instead of waiting on asynchronous continuations. Nearest-point lookup no longer uses a coordinate-independent time cache. Physical accuracy thresholds still require a canyon walk test.
+- Location updates reject invalid or old fixes; visits additionally require horizontal accuracy within 50 meters. Virtual mode ignores late location callbacks. Denial, virtual mode, and stale foreground fixes clear location state. Scene changes stop GPS whenever inactive or backgrounded and resume the selected mode with current authorization on return. Permission screens observe authorization directly instead of waiting on asynchronous continuations. Nearest-point lookup no longer uses a coordinate-independent time cache. Physical accuracy thresholds still require a canyon walk test.
 - Removed Firebase integrations and unused Shimmer. Replaced Shiny's process-wide motion manager with a welcome-screen-owned, cancellable effect that respects backgrounding and Reduce Motion; retained its MIT notice. Glur 1.1.0 and Zoomable revision 27463744a1c82e550959703153bd6f3c62fef906 are pinned. Package resolution is included in version control.
 - Added the app-only UserDefaults required-reason privacy declaration (CA92.1), with no tracking or collected-data declarations. App source contains no networking client or location-upload path. User-initiated system settings/email actions remain.
 
@@ -37,8 +39,8 @@ Archive: `/Volumes/SSK Drive/Developer/Archives/PolyCanyon-refactor-20260907.xca
 | Allow While Using; decline Always; complete onboarding | Passed |
 | Simulated ghost 101 visit and relaunch persistence/statistics | Passed |
 | Second-pass migration preserves ghost 101 and records ghost 102 in schema 1 snapshot | Passed |
-| Nearby adventure records ghost 103 while backgrounded | Passed with simulated location |
-| Distant background stops recording; foreground resumes and records ghost 104 | Passed with simulated location |
+| Historical nearby background visit check | Superseded: current app must record no background visits |
+| Inactive/background stops recording; foreground resumes | Current foreground-only acceptance criterion |
 | Virtual mode restored after relaunch; new simulated location does not mark a visit | Passed |
 | Gallery: five Entry Arch pages, last-page boundary, favorite toggle | Passed |
 | Largest accessibility text size: gallery controls remain visible | Passed; not whole-app accessibility certification |

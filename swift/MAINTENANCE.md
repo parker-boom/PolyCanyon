@@ -1,6 +1,6 @@
 # Keeping Poly Canyon maintainable
 
-Keep the working offline architecture small. Bundled content, one local progress snapshot and the existing location service are enough for this archive. A visual refresh is separate work; no backend, cross-platform rewrite or scheduled maintenance service was introduced.
+Keep the working offline architecture small. Bundled content, one local progress snapshot and the foreground-only location service are enough for this archive. A visual refresh is separate work; no backend, cross-platform rewrite or scheduled maintenance service was introduced.
 
 ## Content ownership
 

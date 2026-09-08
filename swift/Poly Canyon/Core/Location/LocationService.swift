@@ -3,7 +3,7 @@
 //  PolyCanyon
 //
 //  Handles all location-related functionality including permissions, tracking, and geofencing.
-//  It manages location updates in both foreground and background modes and provides
+//  It manages location updates only while the app is active and provides
 //  location-based structure discovery. The service is available
 //  app-wide as a shared singleton through environment objects (@EnvironmentObject) and closely
 //  coordinates with AppState and DataStore.
@@ -20,9 +20,7 @@ protocol LocationManaging: AnyObject {
     var desiredAccuracy: CLLocationAccuracy { get set }
     var distanceFilter: CLLocationDistance { get set }
     var pausesLocationUpdatesAutomatically: Bool { get set }
-    var allowsBackgroundLocationUpdates: Bool { get set }
     func requestWhenInUseAuthorization()
-    func requestAlwaysAuthorization()
     func startUpdatingLocation()
     func stopUpdatingLocation()
 }
@@ -40,7 +38,7 @@ extension Notification.Name {
 enum AdventureLocationState {
     case notVisiting      // > 750m
     case onTheWay         // 750m > x > 370m
-    case almostThere      // < 370m (background can start), not in canyon
+    case almostThere      // < 370m, not in canyon
     case exploring        // Within canyon boundaries
 }
 
@@ -51,11 +49,10 @@ enum LocationMode {
     case adventure
 }
 
-/// Indicates the state of location tracking (i.e., whether we allow background tracking).
+/// Location updates are either stopped or active while the app is in use.
 enum TrackingState {
     case inactive
     case inAppOnly
-    case background
 }
 
 // MARK: - LocationService (Main Class)
@@ -95,7 +92,7 @@ final class LocationService: NSObject, ObservableObject {
     
     // MARK: - Internal State
     private var wantsUpdates = false
-    private var isAppActive = true
+    private var isAppActive = false
     private var isUpdatingLocation = false
     
     /// The mode that is actually set for the user in the app (initial, virtualTour, adventure).
@@ -119,8 +116,8 @@ final class LocationService: NSObject, ObservableObject {
     /// Radius for recommending adventure mode (~28 kilometers).
     private let recommendationRadius: CLLocationDistance = 28280
     
-    /// Radius for enabling background updates (~370 meters).
-    private let backgroundRadius: CLLocationDistance = 370
+    /// Radius for the nearby-canyon presentation (~370 meters).
+    private let nearbyRadius: CLLocationDistance = 370
     
     /// Custom outer boundary (~750 meters).
     private let outerRadius: CLLocationDistance = 750
@@ -220,12 +217,7 @@ final class LocationService: NSObject, ObservableObject {
         updateTrackingState()
     }
 
-    /// Request "always" authorization for background tracking if needed.
-    func requestAlwaysAuthorization() {
-        locationManager.requestAlwaysAuthorization()
-    }
-    
-    /// Switch to a specified mode (adventure or virtualTour, etc.) and handle permission upgrades.
+    /// Switch modes while retaining the existing permission-based flow.
     func setMode(_ mode: LocationMode) {
         currentMode = mode
         wantsUpdates = mode != .virtualTour
@@ -234,9 +226,10 @@ final class LocationService: NSObject, ObservableObject {
         updateTrackingState()
     }
 
-    /// Onboarding and distant adventures need no background GPS. Foregrounding resumes the selected mode.
+    /// Only an active scene may run GPS. Return uses current permission and the selected mode.
     func setAppActive(_ active: Bool) {
         isAppActive = active
+        if !active { clearLocation() }
         if active {
             locationStatus = locationManager.authorizationStatus
             if !hasLocationPermission || lastLocation.map({ !LocationSamplePolicy.isUsable($0, now: now()) }) == true {
@@ -247,19 +240,13 @@ final class LocationService: NSObject, ObservableObject {
     }
 
     private func updateTrackingState() {
-        let canTrackInBackground = currentMode == .adventure &&
-            lastLocation.map { LocationSamplePolicy.isUsable($0, now: now()) && isWithinBackgroundRange($0) } == true
-        let shouldRun = wantsUpdates && hasLocationPermission && (isAppActive || canTrackInBackground)
-        let background = shouldRun && canTrackInBackground
-        if locationManager.allowsBackgroundLocationUpdates != background {
-            locationManager.allowsBackgroundLocationUpdates = background
-        }
+        let shouldRun = wantsUpdates && hasLocationPermission && isAppActive
         if shouldRun != isUpdatingLocation {
             if shouldRun { locationManager.startUpdatingLocation() }
             else { locationManager.stopUpdatingLocation() }
             isUpdatingLocation = shouldRun
         }
-        let next: TrackingState = !shouldRun ? .inactive : (background ? .background : .inAppOnly)
+        let next: TrackingState = shouldRun ? .inAppOnly : .inactive
         if trackingState != next { trackingState = next }
     }
 
@@ -288,7 +275,7 @@ final class LocationService: NSObject, ObservableObject {
         
         if isWithinCanyon(location) {
             adventureLocationState = .exploring
-        } else if isWithinBackgroundRange(location) {
+        } else if isWithinNearbyRange(location) {
             // < 370m
             adventureLocationState = .almostThere
         } else if distance <= outerRadius {
@@ -335,13 +322,13 @@ final class LocationService: NSObject, ObservableObject {
         return hasLocationPermission && isWithinCanyon(location)
     }
     
-    /// Checks if the user is within the "backgroundRadius" but **not** in the canyon.
+    /// Checks if the user is within the "nearbyRadius" but **not** in the canyon.
     var isNearby: Bool {
         guard let location = lastLocation,
               currentMode == .adventure else {
             return false
         }
-        let inRange = isWithinBackgroundRange(location)
+        let inRange = isWithinNearbyRange(location)
         let notInCanyon = !isWithinCanyon(location)
         return inRange && notInCanyon
     }
@@ -352,7 +339,7 @@ final class LocationService: NSObject, ObservableObject {
               currentMode == .adventure else {
             return false
         }
-        let result = !isWithinBackgroundRange(location)
+        let result = !isWithinNearbyRange(location)
         return result
     }
     
@@ -419,11 +406,11 @@ extension LocationService {
         return location.distance(from: centerLocation) <= recommendationRadius
     }
     
-    /// Check if within ~370 meters of the center point to enable background updates.
-    func isWithinBackgroundRange(_ location: CLLocation) -> Bool {
+    /// Check if within ~370 meters of the center point for nearby-canyon UI.
+    func isWithinNearbyRange(_ location: CLLocation) -> Bool {
         let centerLocation = CLLocation(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         let distance = location.distance(from: centerLocation)
-        return distance <= backgroundRadius
+        return distance <= nearbyRadius
     }
     
     /// The catalog is small; querying it directly avoids stale coordinate-dependent cache results.

@@ -39,7 +39,6 @@ struct OnboardingView: View {
     
     // MARK: - View State
     @State private var currentPage = 0
-    private let totalPages = 5
     
     @State private var locationState: OnboardingLocationState = .noLocation
     
@@ -47,13 +46,12 @@ struct OnboardingView: View {
     private let adventureModeColor = Color.green
     private let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
 
-    // MARK: - 4 Stages Indicator Icons
+    // MARK: - 3 Stages Indicator Icons
     // (Feel free to choose whatever SF Symbols you want for each stage)
     private let stageIcons = [
         "hand.wave.fill",       // Page 0
         "location.fill",   // Page 1
-        "switch.2",     // Page 2
-        "magnifyingglass"        // Page 3
+        "switch.2"     // Page 2
     ]
     
     var body: some View {
@@ -80,23 +78,19 @@ struct OnboardingView: View {
                 )
                 .tag(2)
                 
-                // PAGE 3: Mode Follow-Up
-                ModeFollowUpSlide(onNext: goToNextSlide)
-                    .tag(3)
-                
-                // PAGE 4: Final Slide
+                // PAGE 3: Final Slide
                 FinalSlide()
-                    .tag(4)
+                    .tag(3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .animation(.easeInOut, value: currentPage)
             // CHANGES: disable swipe
             .gesture(DragGesture().onChanged { _ in }.onEnded { _ in })
             
-            // CHANGES: Add custom stage indicator for pages 0..3
-            if currentPage < 4 {
+            // CHANGES: Add custom stage indicator for pages 0..2
+            if currentPage < 3 {
                 OnboardingIndicator(
-                    totalStages: 4,
+                    totalStages: 3,
                     currentStage: currentPage,
                     stageIcons: stageIcons
                 )
@@ -529,134 +523,7 @@ private struct ModeSelectionSlide: View {
     }
 }
 
-// MARK: - Slide 4: ModeFollowUpSlide
-private struct ModeFollowUpSlide: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var locationService: LocationService
-    let onNext: () -> Void
-    
-    private let adventureModeColor = Color.green
-    private let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
-    
-    @State private var hasRequestedAlways = false
-    
-    private var isVirtualTour: Bool {
-        !appState.adventureModeEnabled
-    }
-    
-    private func requestAlwaysAuthorization() {
-        locationService.requestAlwaysAuthorization()
-        // Give UI time to update
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            hasRequestedAlways = true
-        }
-    }
-    
-    var body: some View {
-        BaseSlide(
-            buttonText: "Next",
-            buttonDisabled: !isVirtualTour && !hasRequestedAlways,
-            buttonAction: onNext
-        ) {
-            VStack(spacing: 25) {
-                if isVirtualTour {
-                    // Virtual Tour Content
-                    VStack{
-                        Text("Best ways to")
-                            .font(.system(size: 32))
-                            .foregroundColor(.black)
-                            .fontWeight(.semibold)
-                        Text("Virtually Explore:")
-                            .font(.system(size: 38))
-                            .foregroundColor(virtualTourColor)
-                            .fontWeight(.bold)
-                    }
-
-                    
-                    VStack(alignment: .leading, spacing: 20) {
-                        FeatureRow(icon: "map", text: "Take a virtual tour\nof the canyon")
-                        FeatureRow(icon: "doc.text", text: "Uncover key details\nabout structures")
-                        FeatureRow(icon: "heart", text: "Mark your favorites\nas you explore")
-                    }
-                    .padding(.top, 20)
-                    
-                } else {
-
-                    VStack{
-                        Text("Let's auto track")
-                            .font(.system(size: 32))
-                            .foregroundColor(.black)
-                            .fontWeight(.semibold)
-                        Text("Your Adventure:")
-                            .font(.system(size: 38))
-                            .foregroundColor(adventureModeColor)
-                            .fontWeight(.bold)
-                    }
-
-                    
-                    ZStack {
-                        PulsingAdvDot()
-                            .frame(width: 120, height: 120)
-                            .foregroundColor(adventureModeColor)
-                        
-                        Image(systemName: "figure.walk")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 35)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.vertical, 15)
-                    
-                    Text("Background tracking will mark the structures you visit")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(.black.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    Button {
-                        requestAlwaysAuthorization()
-                    } label: {
-                        HStack {
-                            Image(systemName: "location.fill")
-                            Text("Continue")
-                        }
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 25)
-                        .padding(.vertical, 12)
-                        .background(Color.green)
-                        .cornerRadius(25)
-                    }
-                    .padding(.top, 20)
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-}
-
-// Helper view for Virtual Tour features
-private struct FeatureRow: View {
-    let icon: String
-    let text: String
-    
-    private let virtualTourColor = Color(red: 255/255, green: 104/255, blue: 3/255, opacity: 1.0)
-    
-    var body: some View {
-        HStack(spacing: 15) {
-            Image(systemName: icon)
-                .font(.system(size: 30, weight: .bold))
-                .frame(width: 40)
-                .foregroundColor(virtualTourColor)
-            
-            Text(text)
-                .font(.system(size: 24, weight: .medium))
-        }
-    }
-}
-
-
-// MARK: - Slide 5: FinalSlide
+// MARK: - Slide 4: FinalSlide
 private struct FinalSlide: View {
     @EnvironmentObject var appState: AppState
     
