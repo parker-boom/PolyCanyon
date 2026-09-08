@@ -6,13 +6,12 @@ import SwiftUI
 enum FullScreenView {
     case structInfo
     case settings
-    case ratings
     case ghostStructInfo
 }
 
 // Main app routing:
 //* tab bar: map, home, detail
-//* full-screen view: struct info, settings, tinder mode
+//* full-screen view: structure info, settings, ghost structures
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
@@ -49,7 +48,11 @@ struct MainView: View {
                 AlertContainer(alert: alert)
             }
 
-            if locationService.isInPolyCanyonArea && !appState.hasVisitedCanyon {
+            if locationService.isInPolyCanyonArea && !appState.hasVisitedCanyon,
+               dataStore.lastVisitedStructure == nil,
+               dataStore.lastVisitedGhostStructure == nil,
+               appState.activeAlert == nil,
+               appState.activeFullScreenView == nil {
                 WelcomeToCanyonAlert()
             }
         }
@@ -66,15 +69,15 @@ struct MainView: View {
             SettingsView()
                 .environmentObject(appState)
                 .environmentObject(dataStore)
-        case .ratings:
-            RatingsView()
-                .environmentObject(appState)
-                .environmentObject(dataStore)
         case .ghostStructInfo:
             // Show GhostInfo view with the appropriate ghost structure
-            GhostInfo(initialGhostIndex: findGhostStructureIndex())
+            if dataStore.ghostStructures.isEmpty {
+                UnavailableStructureView()
+            } else {
+                GhostInfo(initialGhostIndex: findGhostStructureIndex())
                 .environmentObject(appState)
                 .environmentObject(dataStore)
+            }
         }
     }
     

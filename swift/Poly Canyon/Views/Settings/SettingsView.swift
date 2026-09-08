@@ -13,25 +13,11 @@ struct SettingsView: View {
     @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
     
-    // Get the value from UserDefaults that's set by the RootRouter
-    // This avoids recalculating the same logic
-    private var isDesignVillageWeekend: Bool {
-        // Get from UserDefaults directly
-        UserDefaults.standard.bool(forKey: "isDesignVillageWeekend")
-    }
-    
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                     
                 VStack(spacing: 30) {
-
-                    // Only show during DV weekend
-                    if isDesignVillageWeekend {
-                        DesignVillageModeSection(
-                            onSwitchToDV: switchToDesignVillageMode
-                        )
-                    }
 
                     GeneralSettingsSection(
                         onModeSwitch: {
@@ -56,15 +42,6 @@ struct SettingsView: View {
         .background(appState.isDarkMode ? Color.black : Color.white)
     }
     
-    // Switch to Design Village mode
-    private func switchToDesignVillageMode() {
-        // Set UserDefaults to indicate DV mode
-        UserDefaults.standard.set(true, forKey: "designVillageModeOverride")
-        
-        // Post notification to trigger mode switch
-        NotificationCenter.default.post(name: Notification.Name("ModeSwitched"), object: nil)
-        
-    }
 }
 
 // MARK: - Preview

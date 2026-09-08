@@ -2,54 +2,57 @@ import SwiftUI
 
 /*
  AppState manages the global application state and user preferences with automatic persistence. It provides
- essential flags for app-wide features like dark mode, adventure mode, and onboarding status. This class is 
- injected as an environment object (@EnvironmentObject) throughout the app, allowing views to observe and 
+ essential flags for app-wide features like dark mode, adventure mode, and onboarding status. This class is
+ injected as an environment object (@EnvironmentObject) throughout the app, allowing views to observe and
  react to state changes. All properties automatically sync with UserDefaults for persistence across app launches.
 */
 
-class AppState: ObservableObject {
+@MainActor
+final class AppState: ObservableObject {
+    private let defaults: UserDefaults
+
 
     // Temporary flag to force light mode
     private let forceLightMode: Bool = true
 
-    // Dark mode - updates UI to theme accordingly  
+    // Dark mode - updates UI to theme accordingly
     @Published var isDarkMode: Bool {
         didSet {
             if !forceLightMode { // Only save if not forcing light mode
-                UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
+                defaults.set(isDarkMode, forKey: "isDarkMode")
             }
         }
     }
-    
+
     // Virtual Tour full screen state
     @Published var isVirtualTourFullScreen: Bool = false
-    
+
     // Adventure mode - effects the entire user experience and every view rendered differently
     // FALSE = Virtual tour mode - for non-in person use, viewing information only
     // TRUE = Adventure mode - for in person use, location and progress tracking
     @Published var adventureModeEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(adventureModeEnabled, forKey: "adventureMode")
+            defaults.set(adventureModeEnabled, forKey: "adventureMode")
         }
     }
-    
+
     // Used to show onboarding flow once
     @Published var isOnboardingCompleted: Bool {
         didSet {
-            UserDefaults.standard.set(isOnboardingCompleted, forKey: "onboardingProcess")
+            defaults.set(isOnboardingCompleted, forKey: "onboardingProcess")
         }
     }
-    
+
     // MARK: - Global Alert System
     enum AlertType: Identifiable {
             case resetConfirmation(type: ResetType)
             case modePicker(currentMode: Bool)
-            
+
             enum ResetType {
                 case structures
                 case favorites
             }
-            
+
             var id: String {
                 switch self {
                 case .resetConfirmation: return "reset"
@@ -58,15 +61,15 @@ class AppState: ObservableObject {
             }
     }
 
-    
+
     @Published var activeAlert: AlertType?
-    
-    
+
+
     // Alert helper methods
     func showAlert(_ type: AlertType) {
         activeAlert = type
     }
-    
+
     func dismissAlert() {
         activeAlert = nil
     }
@@ -74,71 +77,69 @@ class AppState: ObservableObject {
     // Add property to track if background alert was shown
     @Published var hasVisitedCanyon: Bool {
         didSet {
-            UserDefaults.standard.set(hasVisitedCanyon, forKey: "hasVisitedCanyon")
+            defaults.set(hasVisitedCanyon, forKey: "hasVisitedCanyon")
         }
     }
 
     // MARK: - FullScreen Views
     // Tracks which full-screen view is currently active
-    @Published var activeFullScreenView: FullScreenView? = nil  
+    @Published var activeFullScreenView: FullScreenView? = nil
 
     // Tracks which struct being displayed in struct info
     @Published var structInfoNum: Int = 0
-    
+
     // Tracks which ghost structure is being displayed in ghost struct info
     @Published var ghostStructInfoNum: Int = 0
-    
-    // Tracks which structure is being displayed in tinder mode
-    @Published var tinderModeStructureNum: Int = -1 // -1 is starting msg, 31 is end msg
+
 
 
     // MARK: - Map Settings
     @Published var mapIsSatellite: Bool {
         didSet {
-            UserDefaults.standard.set(mapIsSatellite, forKey: "mapIsSatellite")
+            defaults.set(mapIsSatellite, forKey: "mapIsSatellite")
         }
     }
-    
+
     @Published var mapShowNumbers: Bool {
         didSet {
-            UserDefaults.standard.set(mapShowNumbers, forKey: "mapShowNumbers")
+            defaults.set(mapShowNumbers, forKey: "mapShowNumbers")
         }
     }
-    
+
     @Published var mapScale: CGFloat {
         didSet {
-            UserDefaults.standard.set(mapScale, forKey: "mapScale")
+            defaults.set(mapScale, forKey: "mapScale")
         }
     }
-    
+
     // MARK: - Virtual Walkthrough
     @Published var isVirtualWalkthrough: Bool {
         didSet {
-            UserDefaults.standard.set(isVirtualWalkthrough, forKey: "isVirtualWalkthrough")
+            defaults.set(isVirtualWalkthrough, forKey: "isVirtualWalkthrough")
             // Auto-configure map when walkthrough changes
             configureMapSettings(forWalkthrough: isVirtualWalkthrough)
         }
     }
-    
+
     @Published var currentStructureIndex: Int {
         didSet {
-            UserDefaults.standard.set(currentStructureIndex, forKey: "currentStructureIndex")
+            defaults.set(currentStructureIndex, forKey: "currentStructureIndex")
         }
     }
-    
+
     // Helper method to configure map container settings based on mode
     func configureMapSettings(forWalkthrough: Bool? = nil, inCanyon: Bool? = nil) {
         // Only set defaults on first ever launch
         if forWalkthrough == nil && inCanyon == nil {
-            if !UserDefaults.standard.bool(forKey: "hasConfiguredMapSettings") {
+            if !defaults.bool(forKey: "hasConfiguredMapSettings") {
                 mapIsSatellite = false
                 mapShowNumbers = true
                 mapScale = 1.0
-                UserDefaults.standard.set(true, forKey: "hasConfiguredMapSettings")
+                defaults.set(true, forKey: "hasConfiguredMapSettings")
             }
             return
         }
-        
+
         // Handle exiting walkthrough or leaving canyon
         if (forWalkthrough == false) || (adventureModeEnabled && inCanyon == false) {
             mapIsSatellite = false
@@ -146,7 +147,7 @@ class AppState: ObservableObject {
             mapScale = 1.0
             return
         }
-        
+
         // Virtual walkthrough takes precedence (entering walkthrough)
         if forWalkthrough == true {
             mapIsSatellite = true
@@ -154,7 +155,7 @@ class AppState: ObservableObject {
             mapScale = 1.5
             return
         }
-        
+
         // Adventure mode & physically present (entering canyon)
         if adventureModeEnabled && inCanyon == true {
             mapIsSatellite = true
@@ -163,51 +164,63 @@ class AppState: ObservableObject {
             return
         }
     }
-    
+
     // Add near the top with other UserDefaults-backed properties
     @Published private(set) var needsFullReset: Bool {
         didSet {
-            UserDefaults.standard.set(needsFullReset, forKey: "needsFullReset")
+            defaults.set(needsFullReset, forKey: "needsFullReset")
         }
     }
-    
-    init() {
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
 
         // Force Light Mode or initialize with UserDefaults
         if forceLightMode {
             self.isDarkMode = false // Light Mode
         } else {
-            self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+            self.isDarkMode = defaults.bool(forKey: "isDarkMode")
         }
-        
-        self.adventureModeEnabled = UserDefaults.standard.bool(forKey: "adventureMode")
-        self.isOnboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingProcess")
-        self.hasVisitedCanyon = UserDefaults.standard.bool(forKey: "hasVisitedCanyon")
-        
+
+        self.adventureModeEnabled = defaults.bool(forKey: "adventureMode")
+        self.isOnboardingCompleted = defaults.bool(forKey: "onboardingProcess")
+        self.hasVisitedCanyon = defaults.bool(forKey: "hasVisitedCanyon")
+
         // Initialize map settings
-        self.mapIsSatellite = UserDefaults.standard.bool(forKey: "mapIsSatellite")
-        self.mapShowNumbers = UserDefaults.standard.bool(forKey: "mapShowNumbers")
-        self.mapScale = UserDefaults.standard.double(forKey: "mapScale") != 0 ? 
-            UserDefaults.standard.double(forKey: "mapScale") : 1.0
-        self.isVirtualWalkthrough = UserDefaults.standard.bool(forKey: "isVirtualWalkthrough")
-        self.currentStructureIndex = UserDefaults.standard.integer(forKey: "currentStructureIndex")
-        
-        self.needsFullReset = UserDefaults.standard.bool(forKey: "needsFullReset")
+        self.mapIsSatellite = defaults.bool(forKey: "mapIsSatellite")
+        self.mapShowNumbers = defaults.bool(forKey: "mapShowNumbers")
+        let savedScale = defaults.double(forKey: "mapScale")
+        self.mapScale = savedScale.isFinite && (1...2).contains(savedScale) ? savedScale : 1
+        self.isVirtualWalkthrough = defaults.bool(forKey: "isVirtualWalkthrough")
+        self.currentStructureIndex = defaults.integer(forKey: "currentStructureIndex")
+
+        self.needsFullReset = defaults.bool(forKey: "needsFullReset")
     }
 
     func resetAllSettings() {
-        let domain = Bundle.main.bundleIdentifier!
-        UserDefaults.standard.removePersistentDomain(forName: domain)
-        UserDefaults.standard.synchronize()
-        
+        ["isDarkMode", "adventureMode", "onboardingProcess", "hasVisitedCanyon",
+         "mapIsSatellite", "mapShowNumbers", "mapScale", "isVirtualWalkthrough",
+         "currentStructureIndex", "needsFullReset", "hasConfiguredMapSettings"]
+            .forEach { defaults.removeObject(forKey: $0) }
+
         // Reset location services
         LocationService.shared.reset()
-        
+
         // Reset our state
         isDarkMode = false
         hasVisitedCanyon = false
         adventureModeEnabled = false
         isOnboardingCompleted = false
-        needsFullReset = false  // Ensure we don't reset again
+        needsFullReset = false
+        isVirtualWalkthrough = false
+        currentStructureIndex = 0
+        mapIsSatellite = false
+        mapShowNumbers = true
+        mapScale = 1
+        activeAlert = nil
+        activeFullScreenView = nil
+        isVirtualTourFullScreen = false
+        structInfoNum = 0
+        ghostStructInfoNum = 0
     }
 }

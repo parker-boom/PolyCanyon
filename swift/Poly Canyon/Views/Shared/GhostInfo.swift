@@ -348,70 +348,10 @@ fileprivate struct InfoSectionView: View {
 fileprivate struct ImagesSectionView: View {
     let structure: Structure
     @Binding var selectedTab: InfoTab
-    @State private var currentIndex: Int = 0
-    
+
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                // TabView for images
-                TabView(selection: $currentIndex) {
-                    ForEach(structure.images.indices, id: \.self) { idx in
-                        // Each page: blurred background + main image
-                        ZStack {
-                            // Blurred background
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .blur(radius: 8)
-                                .clipped()
-                            
-                            // Foreground image scaled to fit
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .clipped()
-                                .zoomable()
-                        }
-                        .tag(idx)
-                    }
-                }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                
-                // Dot indicator overlay (bottom center)
-                VStack {
-                    Spacer()
-                    HStack(spacing: 6) {
-                        ForEach(structure.images.indices, id: \.self) { dotIndex in
-                            Circle()
-                                .fill(dotIndex == currentIndex ? Color.white : Color.white.opacity(0.4))
-                                .frame(width: dotIndex == currentIndex ? 10 : 8,
-                                       height: dotIndex == currentIndex ? 10 : 8)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                    }
-                    .padding(.bottom, 30)
-                }
-                
-                // Back to Info button, no like button for ghost structures
-                VStack {
-                    Spacer()
-                    HStack {
-                        Button(action: { selectedTab = .info }) {
-                            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                .font(.system(size: 32, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                        .padding(25)
-                        
-                        Spacer()
-                    }
-                }
-            }
+        StructureGallery(structure: structure, allowsFavorites: false) {
+            selectedTab = .info
         }
     }
 }

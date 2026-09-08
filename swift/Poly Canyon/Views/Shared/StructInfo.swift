@@ -9,6 +9,31 @@ import SwiftUI
 import Zoomable
 
 struct StructInfo: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+
+    var body: some View {
+        if let structure = dataStore.structures.first(where: { $0.number == appState.structInfoNum }) {
+            StructureInfoContent(structure: structure)
+        } else {
+            UnavailableStructureView()
+        }
+    }
+}
+
+struct UnavailableStructureView: View {
+    @EnvironmentObject var appState: AppState
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("This structure is unavailable.")
+            Button("Back to Poly Canyon") { appState.activeFullScreenView = nil }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white)
+    }
+}
+
+private struct StructureInfoContent: View {
     // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
@@ -16,12 +41,8 @@ struct StructInfo: View {
     // MARK: - Local State
     @State private var selectedTab: InfoTab = .info
     
-    // MARK: - Computed Property for the Structure
-    private var structure: Structure {
-        // You can modify how the correct structure is retrieved if needed
-        dataStore.structures[appState.structInfoNum - 1]
-    }
-    
+    let structure: Structure
+
     // MARK: - Body
     var body: some View {
         GeometryReader { geo in
@@ -296,80 +317,10 @@ fileprivate struct InfoSectionView: View {
 fileprivate struct ImagesSectionView: View {
     let structure: Structure
     @Binding var selectedTab: InfoTab
-    @EnvironmentObject var dataStore: DataStore
-    @State private var currentIndex: Int = 0
-    
+
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                // TabView for images
-                TabView(selection: $currentIndex) {
-                    ForEach(structure.images.indices, id: \.self) { idx in
-                        // Each page: blurred background + main image
-                        ZStack {
-                            // Blurred background
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .blur(radius: 8)
-                                .clipped()
-                            
-                            // Foreground image scaled to fit
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .clipped()
-                                .zoomable()
-                        }
-                        .tag(idx)
-                    }
-                }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                
-                // Dot indicator overlay (bottom center)
-                VStack {
-                    Spacer()
-                    HStack(spacing: 6) {
-                        ForEach(structure.images.indices, id: \.self) { dotIndex in
-                            Circle()
-                                .fill(dotIndex == currentIndex ? Color.white : Color.white.opacity(0.4))
-                                .frame(width: dotIndex == currentIndex ? 10 : 8,
-                                       height: dotIndex == currentIndex ? 10 : 8)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                    }
-                    .padding(.bottom, 30)
-                }
-                
-                // Like Button Overlay
-                VStack {
-                    Spacer()
-                    HStack {
-                        Button(action: { selectedTab = .info }) {
-                            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                .font(.system(size: 32, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                        .padding(25)
-                        
-                        Spacer()
-                        
-                        Button(action: { dataStore.toggleLike(for: structure.id) }) {
-                            Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
-                                .font(.system(size: 40, weight: .semibold))
-                                .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                        .padding(25)
-                    }
-                }
-            }
+        StructureGallery(structure: structure, allowsFavorites: true) {
+            selectedTab = .info
         }
     }
 }

@@ -29,3 +29,14 @@ Pods/
 
 **/.DS_Store
 .DS_Store
+
+# Share reproducible iOS package resolution and schemes, but never user workspace state.
+!swift/Poly Canyon.xcodeproj/project.xcworkspace/
+swift/Poly Canyon.xcodeproj/project.xcworkspace/*
+!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/
+swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/*
+!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+!swift/Poly Canyon.xcodeproj/xcshareddata/
+!swift/Poly Canyon.xcodeproj/xcshareddata/xcschemes/

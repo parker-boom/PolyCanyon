@@ -91,9 +91,9 @@ struct MapWithLocationDot: View {
                 // If no valid location, place offscreen, and mark not visible
                 pos = CGPoint(x: -100, y: -100)
                 DispatchQueue.main.async {
-                    circlePositionStore.circleY = nil
-                    circlePositionStore.circleX = nil
-                    circlePositionStore.isDotVisible = false
+                    if circlePositionStore.circleY != nil { circlePositionStore.circleY = nil }
+                    if circlePositionStore.circleX != nil { circlePositionStore.circleX = nil }
+                    if circlePositionStore.isDotVisible { circlePositionStore.isDotVisible = false }
                 }
                 return pos
             }
@@ -113,9 +113,10 @@ struct MapWithLocationDot: View {
         
         // ADDED: Publish to CirclePositionStore
         DispatchQueue.main.async {
-            circlePositionStore.circleY = pos.y
-            circlePositionStore.circleX = pos.x
-            circlePositionStore.isDotVisible = true
+            // Publishing unchanged coordinates schedules another render of this view.
+            if circlePositionStore.circleY != pos.y { circlePositionStore.circleY = pos.y }
+            if circlePositionStore.circleX != pos.x { circlePositionStore.circleX = pos.x }
+            if !circlePositionStore.isDotVisible { circlePositionStore.isDotVisible = true }
         }
         
         return pos

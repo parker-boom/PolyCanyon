@@ -2,7 +2,8 @@ import SwiftUI
 import CoreLocation
 import Zoomable
 
-class CirclePositionStore: ObservableObject {
+@MainActor
+final class CirclePositionStore: ObservableObject {
     @Published var circleY: CGFloat? = nil
     @Published var circleX: CGFloat? = nil
     @Published var isDotVisible: Bool = false
@@ -16,12 +17,6 @@ struct MapView: View {
     
     // MARK: - View State
     @State private var selectedStructure: Structure?
-    @State private var nearbyUnvisitedMapPoints: [MapPoint] = []
-    @State private var showVisitedStructurePopup = false
-    @State private var showAllVisitedPopup = false
-    @State private var showStructPopup = false
-    @State private var showNearbyUnvisitedView = false
-    @State private var showStructureSwipingView = false
     
     // Holds the current map point for the structure being "walked through" in Virtual mode
     @State private var currentWalkthroughMapPoint: MapPoint?
@@ -39,7 +34,7 @@ struct MapView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if appState.isVirtualWalkthrough {
+                if appState.isVirtualWalkthrough && dataStore.structures.indices.contains(appState.currentStructureIndex) {
                     // MARK: - Virtual Tour Layout
                     VirtualTour(geometry: geometry)
                 }
@@ -124,15 +119,7 @@ struct MapView: View {
             }
             // Whenever the current structure changes, update walk point
             .onChange(of: appState.currentStructureIndex) { _ in
-                if appState.isVirtualWalkthrough {
-                    let newStructure = dataStore.structures[appState.currentStructureIndex]
-                    currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
-                } else {
-                    currentWalkthroughMapPoint = nil
-                }
-            }
-            .onChange(of: appState.currentStructureIndex) { _ in
-                if appState.isVirtualWalkthrough {
+                if appState.isVirtualWalkthrough && dataStore.structures.indices.contains(appState.currentStructureIndex) {
                     let newStructure = dataStore.structures[appState.currentStructureIndex]
                     currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
                 } else {
@@ -141,6 +128,9 @@ struct MapView: View {
             }
         }
         .onAppear {
+            if !dataStore.structures.indices.contains(appState.currentStructureIndex) {
+                appState.currentStructureIndex = 0
+            }
             appState.configureMapSettings()
             if appState.adventureModeEnabled {
                 appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)

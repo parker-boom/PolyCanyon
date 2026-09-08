@@ -11,7 +11,6 @@
  */
 import SwiftUI
 import CoreLocation
-import Shiny
 
 // MARK: - OnboardingView (Top-Level)
 
@@ -234,12 +233,7 @@ private struct WelcomeSlide: View {
                     .fontWeight(.bold)
                     .padding(.bottom, 15)
 
-                Image("Icon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .cornerRadius(40)
-                    .shiny()
+                WelcomeLogo()
                     .padding(.bottom, 30)
                     .shadow(color: .black.opacity(0.4), radius: 15)
                     
@@ -261,7 +255,6 @@ private struct LocationRequestSlide: View {
     @EnvironmentObject var locationService: LocationService
     let onNext: () -> Void
     @Binding var locationState: OnboardingLocationState
-    @State private var hasGrantedPermission = false
     
     private enum LocationState {
         case unrequested
@@ -271,7 +264,7 @@ private struct LocationRequestSlide: View {
     
     private var currentState: LocationState {
         switch locationService.locationStatus {
-        case .notDetermined:
+        case .none, .some(.notDetermined):
             return .unrequested
         case .authorizedWhenInUse, .authorizedAlways:
             return .accepted
@@ -295,14 +288,7 @@ private struct LocationRequestSlide: View {
                 switch currentState {
                 case .unrequested:
                     UnrequestedView {
-                        Task {
-                            let granted = await locationService.requestInitialPermission()
-                            if granted {
-                                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                                determineLocationState()
-                                hasGrantedPermission = true
-                            }
-                        }
+                        locationService.requestInitialPermission()
                     }
                     
                 case .accepted:

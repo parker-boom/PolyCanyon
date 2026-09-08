@@ -1,3 +1,4 @@
+import Zoomable
 import SwiftUI
 
 struct VirtualTour: View {
@@ -34,6 +35,7 @@ struct VirtualTour: View {
                     .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
                 }
                 .onAppear {
+                    guard dataStore.structures.indices.contains(appState.currentStructureIndex) else { return }
                     let structure = dataStore.structures[appState.currentStructureIndex]
                     currentWalkthroughMapPoint = locationService.getMapPointForStructure(structure.number)
                     appState.isVirtualTourFullScreen = true
@@ -71,6 +73,7 @@ struct VirtualTour: View {
         .ignoresSafeArea()
         .opacity(opacity)
         .onChange(of: appState.currentStructureIndex) { _ in
+            guard dataStore.structures.indices.contains(appState.currentStructureIndex) else { return }
             let structure = dataStore.structures[appState.currentStructureIndex]
             currentWalkthroughMapPoint = locationService.getMapPointForStructure(structure.number)
         }
@@ -222,7 +225,6 @@ extension VirtualTourMapContainer {
         }
 
         let rawMapSize = determineMapSize(in: geometry)
-        let containerHeight = geometry.size.height - 44
         
         // Calculate basic relative X position
         let xOffset = (geometry.size.width - rawMapSize.width) / 2
@@ -419,6 +421,7 @@ struct VirtualTourBottomBar: View {
     }
     
     private func goNext() {
+        guard !dataStore.structures.isEmpty else { return }
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             let nextIndex = (appState.currentStructureIndex + 1) % dataStore.structures.count
             appState.currentStructureIndex = nextIndex
@@ -426,6 +429,7 @@ struct VirtualTourBottomBar: View {
     }
     
     private func goPrevious() {
+        guard !dataStore.structures.isEmpty else { return }
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             let prevIndex = (appState.currentStructureIndex - 1 + dataStore.structures.count) 
                 % dataStore.structures.count

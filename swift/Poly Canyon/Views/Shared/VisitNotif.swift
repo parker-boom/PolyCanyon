@@ -3,7 +3,7 @@ import SwiftUI
 struct VisitNotificationView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
-    
+
     var body: some View {
         if let structure = dataStore.lastVisitedStructure {
             VisitNotificationContent(structure: structure)
@@ -18,16 +18,16 @@ struct VisitNotificationView: View {
 struct VisitNotificationContent: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
-    
+
     let structure: Structure
     let isGhostStructure: Bool
     private let containerWidth: CGFloat = UIScreen.main.bounds.width - 80 // 40 padding on each side
-    
+
     init(structure: Structure, isGhostStructure: Bool = false) {
         self.structure = structure
         self.isGhostStructure = isGhostStructure
     }
-    
+
     var body: some View {
         ZStack {
             // Dimmed background
@@ -36,18 +36,18 @@ struct VisitNotificationContent: View {
                 .onTapGesture {
                     dataStore.dismissLastVisitedStructure()
                 }
-            
+
             // Main Container
             ZStack(alignment: .topTrailing) {
                 VStack(spacing: 12) {
                     // "Just Visited!" container
-                    HStack { 
+                    HStack {
                         Spacer()
                         HStack(spacing: 8) {
                             // Different icon for ghost structures
                             Text(isGhostStructure ? "👻" : "🔥")
                                 .font(.system(size: 30))
-                                .padding(.top, -2) 
+                                .padding(.top, -2)
                             Text(isGhostStructure ? "Ghost Structure!" : "Just Visited!")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(Color.black.opacity(0.8))
@@ -58,7 +58,7 @@ struct VisitNotificationContent: View {
                         Spacer()
                     }
                     .glassyBackground()
-                    
+
                     // Image container
                     Image(structure.images[0])
                         .resizable()
@@ -119,13 +119,13 @@ struct VisitNotificationContent: View {
                                     )
                             )
                     )
-                    
+
                     // Learn More button
                     Button(action: {
                         if isGhostStructure {
                             // For ghost structures, we'll implement this in Phase 2
                             appState.activeFullScreenView = .ghostStructInfo
-                            appState.ghostStructInfoNum = Int(structure.number) ?? 0
+                            appState.ghostStructInfoNum = structure.number
                         } else {
                             // Regular structure
                             appState.activeFullScreenView = .structInfo
@@ -134,13 +134,13 @@ struct VisitNotificationContent: View {
                         dataStore.dismissLastVisitedStructure()
                     }) {
                         HStack {
-                            Spacer() 
+                            Spacer()
                             Text("Learn More")
                                 .font(.system(size: 22, weight: .semibold))
                                 .foregroundColor(Color.black.opacity(0.8))
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(Color.black.opacity(0.6))
@@ -156,7 +156,7 @@ struct VisitNotificationContent: View {
                 }
                 .padding(.top, 25) // Reduced top padding to account for close button
                 .padding(.horizontal, 20)
-                
+
                 // Close button
                 Button(action: {
                     dataStore.dismissLastVisitedStructure()
@@ -205,7 +205,7 @@ struct VisitNotificationContent: View {
 
 struct GlassyBackground: ViewModifier {
     @EnvironmentObject var appState: AppState
-    
+
     func body(content: Content) -> some View {
         content
             .background(
@@ -243,10 +243,10 @@ struct VisitNotificationView_Previews: PreviewProvider {
     static var previews: some View {
         let appState = AppState()
         let dataStore = DataStore.shared // Replace with your actual shared instance
-        
+
         // Create a mock structure for preview and set it as lastVisitedStructure
         dataStore.markStructureAsVisited(1) // This will set lastVisitedStructure
-        
+
         return Group {
             // Light Mode Preview
             VisitNotificationView()
@@ -254,7 +254,7 @@ struct VisitNotificationView_Previews: PreviewProvider {
                 .environmentObject(dataStore)
                 .previewLayout(.sizeThatFits)
                 .previewDisplayName("Light Mode")
-            
+
             // Dark Mode Preview
             VisitNotificationView()
                 .environmentObject(appState)
@@ -262,35 +262,5 @@ struct VisitNotificationView_Previews: PreviewProvider {
                 .previewLayout(.sizeThatFits)
                 .previewDisplayName("Dark Mode")
         }
-    }
-}
-
-extension Structure {
-    init(
-        number: Int,
-        title: String,
-        year: String,
-        advisors: [String],
-        builders: [String],
-        description: String,
-        funFact: String?,
-        images: [String],
-        isVisited: Bool = false,
-        isOpened: Bool = false,
-        recentlyVisited: Int = -1,
-        isLiked: Bool = false
-    ) {
-        self.number = number
-        self.title = title
-        self.year = year
-        self.advisors = advisors
-        self.builders = builders
-        self.description = description
-        self.funFact = funFact
-        self.images = images
-        self.isVisited = isVisited
-        self.isOpened = isOpened
-        self.recentlyVisited = recentlyVisited
-        self.isLiked = isLiked
     }
 }

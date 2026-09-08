@@ -30,8 +30,10 @@ struct CustomTabBar: View {
                             isSelected: selectedTab == index,
                             isDarkMode: appState.isDarkMode
                         )
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                     }
+                    .accessibilityLabel(["Map", "Structures", "Settings"][index])
+                    .accessibilityAddTraits(selectedTab == index ? .isSelected : [])
                 }
             }
             .padding(.horizontal, 24)

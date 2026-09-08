@@ -26,7 +26,11 @@ struct AlertContainer: View {
                 ? "Are you sure you want to reset all visited structures? This action cannot be undone."
                 : "Are you sure you want to reset all favorite structures? This action cannot be undone.",
                 primaryButton: .init(title: "Reset") {
-                    dataStore.resetStructures()
+                    if type == .structures {
+                        dataStore.resetStructures()
+                    } else {
+                        dataStore.resetLikes()
+                    }
                     appState.dismissAlert()
                 },
                 secondaryButton: .init(title: "Cancel") {

@@ -2,14 +2,11 @@
 import SwiftUI
 
 struct PCContainerView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var appState = AppState()
     @StateObject private var dataStore = DataStore.shared
     @StateObject private var locationService = LocationService.shared
 
-    init() {
-        // Configure the location service as needed.
-        LocationService.shared.configure()
-    }
 
     var body: some View {
         AppView()
@@ -17,6 +14,14 @@ struct PCContainerView: View {
             .environmentObject(dataStore)
             .environmentObject(locationService)
             .preferredColorScheme(.light)
+            .task {
+                locationService.configure()
+                locationService.setAppActive(scenePhase != .background)
+            }
+            .onChange(of: scenePhase) { phase in
+                locationService.setAppActive(phase != .background)
+                if phase == .active { dataStore.resumeAutomaticVisits() }
+            }
     }
 }
 
