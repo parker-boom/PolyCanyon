@@ -76,19 +76,18 @@ struct OnboardingView: View {
         openingStops.first { $0.number == openingSelection } ?? openingStops.first
     }
 
-    /// One composition: context, a bounded full photograph, then selectable previews.
-    /// Extra screen height is distributed between these elements, never inside a tall crop.
+    /// Keep the related photograph, caption, and previews together with fixed gaps.
+    /// On taller screens, center the complete composition in the available page.
     private func opening(width: CGFloat, height: CGFloat) -> some View {
         let imageWidth = max(1, width - 56)
         let imageHeight = openingImageHeight(width: imageWidth, height: height)
-        return VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 16) {
             introductionText
                 .background(GeometryReader { text in
                     Color.clear
                         .onAppear { textHeight = text.size.height }
                         .onChange(of: text.size.height) { textHeight = $0 }
                 })
-            Spacer(minLength: 16)
             if let stop = openingStop {
                 VStack(spacing: 8) {
                     Image(stop.images.first ?? "M-6").resizable().scaledToFit()
@@ -111,7 +110,6 @@ struct OnboardingView: View {
                 .id(stop.number)
                 .transition(.opacity)
             }
-            Spacer(minLength: 16)
             HStack(spacing: 12) {
                 ForEach(openingStops, id: \.number) { stop in
                     Button {
@@ -136,7 +134,7 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 28)
         .padding(.vertical, 20)
-        .frame(minHeight: typeSize.isAccessibilitySize ? 0 : max(0, height - 96))
+        .frame(minHeight: typeSize.isAccessibilitySize ? 0 : max(0, height - 96), alignment: .center)
     }
 
     private func openingImageHeight(width: CGFloat, height: CGFloat) -> CGFloat {
@@ -281,17 +279,22 @@ struct OnboardingView: View {
     }
 
     private func finish(useLocation: Bool) {
+        let location = usableLocation(at: Date())
+        let mapRecommended = location.map {
+            locationService.isWithinCanyon($0) || locationService.getRecommendedMode($0)
+        }
         let recording: Bool
         if !useLocation || !locationService.hasLocationPermission {
             recording = false
-        } else if let location = usableLocation(at: Date()) {
-            recording = locationService.isWithinCanyon(location) || locationService.getRecommendedMode(location)
+        } else if let mapRecommended {
+            recording = mapRecommended
         } else {
             // Preserve the existing authorized/no-fix recording default, without claiming proximity.
             recording = true
         }
         appState.adventureModeEnabled = recording
         locationService.setMode(recording ? .adventure : .virtualTour)
-        appState.isOnboardingCompleted = true
+        appState.completeOnboarding(usingLocation: useLocation && locationService.hasLocationPermission,
+                                    mapRecommended: mapRecommended)
     }
 }

@@ -6,7 +6,9 @@ Latest opening alternative after `eb577ac`: a three-structure preview with bound
 
 Previous review revision after `3df3ae6`: accurate opening copy, uncropped Tensile photograph, and content-sized Tour cards. This revision has its own `ThirdPass/ReviewRevision/` output and has not been installed or reviewed live.
 
-Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. Both simulators still have the reviewed `706052c` build.
+Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. The coordinator subsequently installed `58abbcc` on both existing simulators. At the latest handoff Pro Max was booted and SE was shut down; this task has not changed that state.
+
+Latest focused follow-up after the coordinator's live review of `58abbcc`: fixed internal opening gaps and a one-time onboarding destination intent. The new output is under `ThirdPass/JourneyRevision/`; it has not been installed. One supported CUA attachment after simulator release returned “Mac is locked” and automatic unlock failed. No further unlock/inspection attempts were made.
 
 ## First comparison round
 
@@ -78,7 +80,7 @@ Evidence folder: `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/Round3/`.
 
 Coordinate clicks recovered using the internal Simulator application path, `/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app`. The earlier persistent `noWindowsAvailable` note is obsolete for clicks. Drag attempts still acted like taps or did not move content; horizontal/vertical scroll attempts likewise did not demonstrate scrolling. Card swipes, manual map panning, pinch, and full VoiceOver behavior are **not** marked passed. No root cause for this input limitation has been proven.
 
-The Pro Max was shut down before booting the existing SE (only one device at a time). The same final Debug app installed and launched successfully on SE, but the Mac locked before screen inspection. CUA explicitly reports that automatic unlock failed and asks the user to unlock manually. Compact visual checks therefore remain blocked; no compact screenshot or pass is claimed. The SE is the current booted simulator; Pro Max is shut down and retains the same app. Do not erase either device.
+The Pro Max was shut down before booting the existing SE (only one device at a time). The same final Debug app installed and launched successfully on SE, but the Mac locked before screen inspection. CUA explicitly reports that automatic unlock failed and asks the user to unlock manually. Compact visual checks therefore remain blocked; no compact screenshot or pass is claimed. At that earlier checkpoint SE was booted and Pro Max was shut down; see the latest handoff for current ownership and installed source. Do not erase either device.
 
 Independent coordinator review is still required for distant selections, actual card swipe/map gesture continuity, onset transitions, compact layout, Reduce Motion/contrast, and the remaining permission/location scenarios. This document is a concrete committed handoff, not a declaration that the redesign is finished.
 
@@ -176,6 +178,32 @@ These are source geometry bounds, **not** measured simulator layouts. The availa
 Debug and Release arm64 simulator builds pass (`debug-build.log`, `release-build.log`), and `git diff --check` passes. Builds and commit/binary mapping are under `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/OpeningAlternative/`. Only onboarding and this review note change from `eb577ac`; the content-sized Tour is unchanged. Source-photo inspection copies are not app screenshots. No first-page selection, transition, accessibility behavior, or compact layout is marked passed live.
 
 Next live review: inspect the full page at compact and Pro Max sizes; tap all three thumbnails and confirm complete structure framing, caption/year, selection indication, stable footer and spacing; inspect normal and Reduce Motion fades; check large text and scroll reachability; then advance to the existing archive interaction and location stage. Keep the prior Tour, gesture, host, and location QA gaps open. Await coordinator inspection before further design revision.
+
+## Composition and journey correction after live review of `58abbcc`
+
+### Independent evidence received
+
+The coordinator installed the exact `OpeningAlternative` Debug build on SE/iOS 18.2 and Pro Max/iOS 26.5. They reported good compact opening proportions and verified Dome/Shell thumbnail selection, photograph, caption/year, gold selection, and stable controls on SE. On Pro Max, the two flexible gaps expanded until the photograph/caption/thumbnails felt detached. They also verified the archive drawing selection and full-screen open/close, and observed the no-fix explanation updating for synthetic Washington.
+
+The coordinator found a real journey contradiction: Washington's onboarding promised a tour but completion opened Map, because MainView always initialized to Map. Opting out of location did the same. Native tab children remained absent from AX, coordinate input remained unreliable, and manual gestures/double-tap were not marked passed by that review.
+
+### Focused changes
+
+- Replaced the two expanding internal gaps with a 16-point stack spacing. The photograph and its 8-point caption spacing remain intact; thumbnails are 16 points below the photograph/caption group. The complete composition is centered within the available first-page region on tall screens. The bounded image-size calculation and compact minimum gaps are retained. This preserves the compact layout rules while preventing internal gaps from stretching on Pro Max; visual confirmation is still needed.
+- Onboarding now completes with a transient initial destination stored in AppState. A chosen, permitted, usable location with the existing map/visit recommendation opens Map. Remote, opted-out, denied/unavailable, and no-usable-fix entries open Tour.
+- The map recommendation uses the existing `isWithinCanyon || getRecommendedMode` result, also used by the current “Ready for a canyon visit” copy. The existing 28,280-meter recommendation range, narrower nearby-canyon range, polygon, and all discovery thresholds remain unchanged. No new permission request is added.
+- MainView consumes the destination once on first appearance. An explicit onboarding choice takes precedence over legacy modal-tour migration; the legacy flag is then cleared. No pending intent remains to redirect a subsequent appearance. The intent is not written to UserDefaults and is cleared by full reset.
+- The recording decision is unchanged, including permitted/no-fix recording behavior. Navigation and recording are deliberately separate: showing Tour does not rewrite the approved foreground-location policy. Completion uses one usable-location snapshot for both decisions.
+
+### Checks and current limit
+
+The established model/store/location replay suite passes, including new production-AppState checks for remote Tour entry, opting out even when a map recommendation exists, unavailable/denied and no-fix entry, map entry, one-time consumption, non-persistence across AppState relaunch, and reset clearing the intent. Existing catalog/persistence and all 231 map-point/35-discoverable-structure replays pass. Log: `ThirdPass/JourneyRevision/regressions.log`.
+
+After receiving simulator ownership, this task attempted one supported CUA attachment to the internal Simulator path. It reported the Mac locked and automatic unlock failed. Work continued with source and build validation only. No simulator installation, synthetic-location change, cache cleanup, screenshot capture, or additional unlock attempt was performed. The coordinator's preserved cache copies were not touched.
+
+Debug and Release arm64 simulator builds pass in `ThirdPass/JourneyRevision/debug-build.log` and `release-build.log`; `git diff --check` passes. The manifest in that folder records the commit and binary hashes.
+
+The next live pass must install this exact revision and complete the actual Washington and no-location onboarding flows to Tour, plus the in/near/visit-ready flow to Map; verify returning from a story/sheet preserves a subsequent user tab choice. This is not equivalent to launching with a synthetic “start on Tour” argument, and does not establish tab-bar interaction. Then inspect the new Pro Max composition, retained SE proportions, Tour selections 1/17/31 after host changes, all non-accessibility compact text sizes/long titles, gestures, Reduce Motion, and remaining location states. None of those unresolved live checks is closed by the state tests.
 
 ## Reproduce preserved comparisons
 

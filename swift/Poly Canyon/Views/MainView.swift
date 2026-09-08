@@ -19,11 +19,13 @@ struct MainView: View {
         destinations
             .tint(CanyonStyle.ink)
             .onAppear {
-                // Migrate a restored modal tour into the stable Tour destination.
-                if appState.isVirtualWalkthrough {
+                if let initial = appState.consumeInitialDestination() {
+                    destination = initial == .map ? .map : .tour
+                } else if appState.isVirtualWalkthrough {
+                    // Migrate a restored modal tour only when no new onboarding intent exists.
                     destination = .tour
-                    appState.isVirtualWalkthrough = false
                 }
+                if appState.isVirtualWalkthrough { appState.isVirtualWalkthrough = false }
             }
             .sheet(isPresented: $showInfo) {
                 NavigationStack { SettingsView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)

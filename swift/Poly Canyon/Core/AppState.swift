@@ -4,8 +4,10 @@ import SwiftUI
  AppState manages the global application state and user preferences with automatic persistence. It provides
  essential flags for app-wide features like dark mode, adventure mode, and onboarding status. This class is
  injected as an environment object (@EnvironmentObject) throughout the app, allowing views to observe and
- react to state changes. All properties automatically sync with UserDefaults for persistence across app launches.
+ react to state changes. User preferences sync with UserDefaults; transient presentation intent stays in memory.
 */
+
+enum OnboardingDestination { case map, tour }
 
 @MainActor
 final class AppState: ObservableObject {
@@ -41,6 +43,21 @@ final class AppState: ObservableObject {
         didSet {
             defaults.set(isOnboardingCompleted, forKey: "onboardingProcess")
         }
+    }
+
+    // Consumed once by MainView; not a preference that can override a later tab choice.
+    private var initialDestination: OnboardingDestination?
+
+    func completeOnboarding(usingLocation: Bool, mapRecommended: Bool?) {
+        // A missing/stale fix has no confirmed map recommendation. Its existing recording
+        // policy is handled separately by onboarding; entry navigation does not change it.
+        initialDestination = usingLocation && mapRecommended == true ? .map : .tour
+        isOnboardingCompleted = true
+    }
+
+    func consumeInitialDestination() -> OnboardingDestination? {
+        defer { initialDestination = nil }
+        return initialDestination
     }
 
     // MARK: - Global Alert System
@@ -207,6 +224,7 @@ final class AppState: ObservableObject {
         LocationService.shared.reset()
 
         // Reset our state
+        initialDestination = nil
         isDarkMode = false
         hasVisitedCanyon = false
         adventureModeEnabled = false
