@@ -1,124 +1,47 @@
-// MARK: MainView.swift
-
 import SwiftUI
 
-// Possible full-screen views
-enum FullScreenView {
-    case structInfo
-    case settings
-    case ghostStructInfo
+enum FullScreenView: String, Identifiable {
+    case structInfo, settings, ghostStructInfo
+    var id: String { rawValue }
 }
-
-// Main app routing:
-//* tab bar: map, home, detail
-//* full-screen view: structure info, settings, ghost structures
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
-    @EnvironmentObject var locationService: LocationService
-    @State private var selectedTab = 0
-
     var body: some View {
-        ZStack {
-            // Main Content (Tabs)
-            VStack(spacing: 0) {
-                // *** Need to change back to Map -> Home -> Detail
-                switch selectedTab {
-                case 0: MapView()
-                case 1: DetailView()
-                case 2: SettingsView()
-                default: EmptyView()
-                }
-                CustomTabBar(selectedTab: $selectedTab)
-                    .opacity(appState.activeFullScreenView == nil && !appState.isVirtualTourFullScreen ? 1 : 0) // Hide tab bar during full-screen
+        TabView {
+            NavigationStack { MapView() }.tabItem { Label("Map", systemImage: "map") }
+            NavigationStack { DetailView() }.tabItem { Label("Structures", systemImage: "square.grid.2x2") }
+            NavigationStack { SettingsView() }.tabItem { Label("Your visit", systemImage: "figure.walk") }
+        }
+        .tint(CanyonStyle.ink)
+        .fullScreenCover(item: $appState.activeFullScreenView) { view in
+            switch view {
+            case .structInfo: StructInfo()
+            case .ghostStructInfo:
+                GhostInfo(initialGhostIndex: dataStore.ghostStructures.firstIndex { Int($0.number) == appState.ghostStructInfoNum })
+            case .settings: NavigationStack { SettingsView() }
             }
-
-            // Full-Screen View Routing
-            if let activeView = appState.activeFullScreenView {
-                fullScreenView(for: activeView)
-                    .transition(.opacity) 
-            }
-
-            // Popup Overlay (Visit Notification)
+        }
+        .overlay(alignment: .top) {
             if dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil {
-                VisitNotificationView()
-            }
-
-            if let alert = appState.activeAlert {
-                AlertContainer(alert: alert)
-            }
-
-            if locationService.isInPolyCanyonArea && !appState.hasVisitedCanyon,
-               dataStore.lastVisitedStructure == nil,
-               dataStore.lastVisitedGhostStructure == nil,
-               appState.activeAlert == nil,
-               appState.activeFullScreenView == nil {
-                WelcomeToCanyonAlert()
+                VisitNotificationView().padding(.horizontal, 16).padding(.top, 8)
             }
         }
-    }
-
-    @ViewBuilder
-    private func fullScreenView(for view: FullScreenView) -> some View {
-        switch view {
-        case .structInfo:
-            StructInfo()
-                .environmentObject(appState)
-                .environmentObject(dataStore)
-        case .settings:
-            SettingsView()
-                .environmentObject(appState)
-                .environmentObject(dataStore)
-        case .ghostStructInfo:
-            // Show GhostInfo view with the appropriate ghost structure
-            if dataStore.ghostStructures.isEmpty {
-                UnavailableStructureView()
-            } else {
-                GhostInfo(initialGhostIndex: findGhostStructureIndex())
-                .environmentObject(appState)
-                .environmentObject(dataStore)
-            }
-        }
-    }
-    
-    // Helper to find the ghost structure index based on the appState.ghostStructInfoNum
-    private func findGhostStructureIndex() -> Int? {
-        // If ghostStructInfoNum is set, find the corresponding ghost structure
-        if appState.ghostStructInfoNum > 0 {
-            return dataStore.ghostStructures.firstIndex(where: { Int($0.number) == appState.ghostStructInfoNum })
-        }
-        return nil
     }
 }
-
-
-
-
-// MARK: - Preview
-struct MainView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Light Mode Preview
-            MainView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = false
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Light Mode")
-                
-            // Dark Mode Preview
-            MainView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Dark Mode")
-        }
+enum CanyonStyle {
+    static let paper = Color(red: 0.97, green: 0.965, blue: 0.945)
+    static let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
+}
+/// Glass is reserved for controls floating above the content.
+struct CanyonControl: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var opaque
+    func body(content: Content) -> some View {
+        if opaque { content.background(CanyonStyle.paper, in: Capsule()) }
+        else if #available(iOS 26.0, *) { content.glassEffect(.regular.interactive(), in: Capsule()) }
+        else { content.background(.regularMaterial, in: Capsule()) }
     }
+}
+extension View {
+    func canyonControl() -> some View { modifier(CanyonControl()) }
 }

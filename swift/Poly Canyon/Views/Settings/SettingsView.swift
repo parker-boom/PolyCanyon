@@ -1,74 +1,116 @@
-/*
- SettingsView manages the app's configuration interface with three main sections: general settings, 
- statistics (in adventure mode), and credits. It handles mode switching, data reset confirmations, and 
- location settings access. The view coordinates with multiple environment objects to manage app state 
- and data persistence while providing a consistent theme-aware interface.
-*/
-
 import SwiftUI
 
 struct SettingsView: View {
-    // MARK: - Environment Objects
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
-    
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openURL) private var openURL
+    @State private var pendingPermission = false
+
+    private var recording: Bool { appState.adventureModeEnabled && locationService.hasLocationPermission }
+    private var visitCount: Int {
+        dataStore.structures.filter { $0.isVisited }.count + dataStore.ghostStructures.filter { $0.isVisited }.count
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                    
-                VStack(spacing: 30) {
-
-                    GeneralSettingsSection(
-                        onModeSwitch: {
-                            appState.showAlert(.modePicker(currentMode: !appState.adventureModeEnabled))
-                        },
-                        onReset: {
-                            let type: AppState.AlertType.ResetType = appState.adventureModeEnabled ? .structures : .favorites
-                            appState.showAlert(.resetConfirmation(type: type))
-                        }
-                    )
-                    
-                    if appState.adventureModeEnabled {
-                        StatisticsSection()
-                    }
-
-                    
-                    CreditsSection()
+        Form {
+            Section {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("\(visitCount)").font(.largeTitle.weight(.semibold)).monospacedDigit()
+                    Text(visitCount == 1 ? "structure visited" : "structures visited").foregroundStyle(.secondary)
                 }
-                .padding()
+                .accessibilityElement(children: .combine)
+                Toggle("Record visits", isOn: Binding(get: { recording }, set: { enabled in setRecording(enabled) }))
+                if locationService.isLocationPermissionDenied {
+                    Button("Enable location in Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                }
+            } footer: {
+                Text("Visits are recorded while the app is open. Your progress stays on this device.")
+            }
+
+            Section("About this guide") {
+                NavigationLink("Credits & licenses") { GuideCreditsView() }
+                Link("Explore the website", destination: URL(string: "https://polycanyon.com")!)
+            }
+            Section {
+                Link("Help & support", destination: URL(string: "https://polycanyon.com/support")!)
+                Link("Email Parker", destination: URL(string: "mailto:parker.jones@live.com")!)
+                Link("Privacy", destination: URL(string: "https://polycanyon.com/privacy")!)
+            }
+            Section {
+                Text("Poly Canyon \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
-        .background(appState.isDarkMode ? Color.black : Color.white)
+        .navigationTitle("Your visit")
+        .scrollContentBackground(.hidden)
+        .background(colorScheme == .dark ? Color(red: 0.09, green: 0.11, blue: 0.10) : Color(red: 0.97, green: 0.96, blue: 0.92))
+        .tint(colorScheme == .dark ? Color(red: 0.59, green: 0.77, blue: 0.62) : Color(red: 0.16, green: 0.30, blue: 0.23))
+        .onChange(of: locationService.locationStatus) { _ in
+            guard pendingPermission else { return }
+            if locationService.hasLocationPermission {
+                pendingPermission = false
+                setRecording(true)
+            } else if locationService.isLocationPermissionDenied {
+                pendingPermission = false
+            }
+        }
     }
-    
+
+    private func setRecording(_ enabled: Bool) {
+        if enabled && !locationService.hasLocationPermission {
+            if locationService.isLocationPermissionDenied {
+                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            } else {
+                pendingPermission = true
+                locationService.requestInitialPermission()
+            }
+            return
+        }
+        pendingPermission = false
+        appState.adventureModeEnabled = enabled
+        locationService.setMode(enabled ? .adventure : .virtualTour)
+    }
 }
 
-// MARK: - Preview
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Light Mode Preview
-            SettingsView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = false
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Light Mode")
-                
-            // Dark Mode Preview
-            SettingsView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Dark Mode")
+private struct GuideCreditsView: View {
+    var body: some View {
+        List {
+            Section {
+                Text("Created by Parker Jones.")
+                Text("Cal Poly, San Luis Obispo\nCollege of Architecture and Environmental Design")
+                    .foregroundStyle(.secondary)
+            }
+            Section("Open source") {
+                ForEach(["Glur", "Zoomable", "Shiny"], id: \.self) { name in
+                    NavigationLink(name) {
+                        ScrollView {
+                            Text(license(named: name))
+                                .font(.callout)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                        }
+                        .navigationTitle(name)
+                        .navigationBarTitleDisplayMode(.inline)
+                    }
+                }
+            }
         }
+        .navigationTitle("Credits & licenses")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func license(named name: String) -> String {
+        let url = Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Licenses")
+            ?? Bundle.main.url(forResource: name, withExtension: "txt")
+        guard let url, let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return "License text could not be loaded. Please contact parker.jones@live.com."
+        }
+        return text
     }
 }

@@ -13,6 +13,7 @@ struct MapWithLocationDot: View {
     
     // Virtual Tour (not strictly changed here)
     let currentWalkthroughMapPoint: MapPoint?
+    var markerScale: CGFloat = 1
     
     // ADDED: We bring in the CirclePositionStore
     @ObservedObject var circlePositionStore: CirclePositionStore
@@ -35,7 +36,7 @@ struct MapWithLocationDot: View {
     var body: some View {
         ZStack {
             // Background layer
-            MapBackgroundLayer()
+            MapBackgroundLayer(isSatellite: mapImage.hasPrefix("Satellite"))
                 .scaleEffect(appState.isVirtualWalkthrough ? 1.4 : 1.2)
 
             // Base map layer
@@ -48,6 +49,7 @@ struct MapWithLocationDot: View {
             // Location indicator overlay
             if showPulsingCircle {
                 PulsingCircle()
+                    .scaleEffect(markerScale)
                     .position(circlePosition())
                     .shadow(color: appState.mapIsSatellite ? .white.opacity(0.8) : .black.opacity(0.8),
                             radius: 4, x: 0, y: 0)
@@ -144,6 +146,7 @@ struct MapWithLocationDot: View {
 // MARK: - Pulsing Circle
 struct PulsingCircle: View {
     @State private var circleScale: CGFloat = 1.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         Circle()
@@ -155,23 +158,29 @@ struct PulsingCircle: View {
                     .scaleEffect(circleScale)
                     .opacity(2 - circleScale)
             )
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.25).repeatForever(autoreverses: true)) {
-                    circleScale = 1.5
-                }
-            }
+            .onAppear { updatePulse() }
+            .onChange(of: reduceMotion) { _ in updatePulse() }
+
     }
+    private func updatePulse() {
+        circleScale = 1
+        if !reduceMotion {
+            withAnimation(.easeInOut(duration: 1.25).repeatForever(autoreverses: true)) { circleScale = 1.5 }
+        }
+    }
+
 }
 
 struct MapBackgroundLayer: View {
     @EnvironmentObject var appState: AppState
+    let isSatellite: Bool
     
     var body: some View {
         ZStack {
             Color(appState.isDarkMode ? .black : .white)
                 .ignoresSafeArea(.container, edges: .top)
             
-            if appState.mapIsSatellite {
+            if isSatellite {
                 Image("BlurredBG")
                     .resizable()
                     .edgesIgnoringSafeArea(.all)
