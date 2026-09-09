@@ -23,7 +23,12 @@ struct VirtualWalkthrough: View {
             if let structure {
                 if typeSize.isAccessibilitySize {
                     ScrollView {
-                        SpatialAtlas(selected: structure.number, overview: false, reduceMotion: reduceMotion, select: select).frame(height: 230)
+                        SpatialAtlas(selected: structure.number, overview: false, reduceMotion: reduceMotion, select: select)
+                            .frame(height: 230)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Map focused on \(structure.title), number \(structure.number)")
+                            .accessibilityHint("Use Choose a structure to change the selection.")
+                            .accessibilityAddTraits(.isImage)
                         inspector(structure).padding(20)
                         navigation.padding(.horizontal, 20)
                     }

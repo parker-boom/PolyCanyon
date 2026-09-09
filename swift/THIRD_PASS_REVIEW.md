@@ -2,13 +2,9 @@
 
 Integrated baseline: `55a9a50` (app source `8155917`, UI `8b2f9eb`). Android retirement and Glur dependency removal remain inherited. This is a local design branch; no discovery algorithm, persistence format, location policy, publication, or signing change is intended.
 
-Latest opening alternative after `eb577ac`: a three-structure preview with bounded photographs and selectable thumbnails, pending live inspection. The coordinator rejected the `eb577ac` opening as generic; it is not an accepted design. Its content-sized Tour correction is retained. The new opening has separate output under `ThirdPass/OpeningAlternative/`.
+Current installed review: the coordinator installed the exact `2df8671` JourneyRevision Debug build on both existing simulators and completed the live checks recorded below. At their latest handoff SE/iOS 18.2 is booted at XXXL standard text; Pro Max/iOS 26.5 is shut down and restored to large text. The coordinator retains Simulator ownership.
 
-Previous review revision after `3df3ae6`: accurate opening copy, uncropped Tensile photograph, and content-sized Tour cards. This revision has its own `ThirdPass/ReviewRevision/` output and has not been installed or reviewed live.
-
-Current shipping source contains only the selected composition. The A/B/C branches below preserve the experiments; their launch selector is no longer present in shipping source. The post-round-three offline cleanup has separate build outputs and has not been installed or visually tested. The coordinator subsequently installed `58abbcc` on both existing simulators. At the latest handoff Pro Max was booted and SE was shut down; this task has not changed that state.
-
-Latest focused follow-up after the coordinator's live review of `58abbcc`: fixed internal opening gaps and a one-time onboarding destination intent. The new output is under `ThirdPass/JourneyRevision/`; it has not been installed. One supported CUA attachment after simulator release returned “Mac is locked” and automatic unlock failed. No further unlock/inspection attempts were made.
+Current source follow-up is limited to the accessibility-size focused-map summary. It has separate output in `ThirdPass/AccessibilityRevision/` and is not installed or verified live. The selected design remains the only shipping composition; the A/B/C checkpoints and earlier binaries are preserved. The sections below record history and must not be read as the current installed-version status.
 
 ## First comparison round
 
@@ -204,6 +200,33 @@ After receiving simulator ownership, this task attempted one supported CUA attac
 Debug and Release arm64 simulator builds pass in `ThirdPass/JourneyRevision/debug-build.log` and `release-build.log`; `git diff --check` passes. The manifest in that folder records the commit and binary hashes.
 
 The next live pass must install this exact revision and complete the actual Washington and no-location onboarding flows to Tour, plus the in/near/visit-ready flow to Map; verify returning from a story/sheet preserves a subsequent user tab choice. This is not equivalent to launching with a synthetic “start on Tour” argument, and does not establish tab-bar interaction. Then inspect the new Pro Max composition, retained SE proportions, Tour selections 1/17/31 after host changes, all non-accessibility compact text sizes/long titles, gestures, Reduce Motion, and remaining location states. None of those unresolved live checks is closed by the state tests.
+
+## Focused-map accessibility follow-up after live review of `2df8671`
+
+### Independently verified on the installed JourneyRevision
+
+The coordinator reports these actual checks on the exact `2df8671` Debug build, installed on both existing devices:
+
+- Pro Max synthetic-Washington onboarding now enters Tour. SE's no-location journey also enters Tour. These are actual completed onboarding flows, not a launch-time start-on-Tour override and not proof of native tab interaction.
+- Pro Max Tour selections 31 → 17 → 1 visibly recenter and show the matching inspector. Story → gallery → next image → close → Done returns to the same Tour and selected stop.
+- The Pro Max opening group is coherent after the fixed-spacing change; the SE composition is retained.
+- Water Infra-Structure at XXXL standard text on SE shows its full multiline title and wrapped metadata. Pro Max XXXL and largest accessibility text are also legible. This does not claim all intermediate categories or a completed VoiceOver pass.
+
+### Concrete AX finding and minimal fix
+
+In the largest accessibility-size Tour, the 230-point focused atlas displays only the selected structure and nearby map contents, but its AX subtree exposes all 31 marker buttons, including markers outside that clipped illustration. They become interleaved with story/navigation in the AX ordering. This was directly observed through AX, not through a completed VoiceOver session.
+
+Only that accessibility-size focused atlas now uses `accessibilityElement(children: .ignore)` and presents one image summary: “Map focused on [structure], number [number].” Its hint points to “Choose a structure.” There is no visible label change. The existing Choose a structure menu, Previous place, Next place, and story action remain accessible, and the menu still lists every structure. The standard-size scrollable atlas retains its individual accessible markers and selection controls.
+
+The external Debug arm64 simulator build passes (`ThirdPass/AccessibilityRevision/debug-build.log`), and `git diff --check` passes. This fix has not received a fresh Release or live UI check.
+
+The fix needs a fresh AX inspection: expect one summary for the focused illustration rather than 31 marker children, then verify that menu selection updates both the summary and selected story. Also verify that standard-layout markers remain exposed. No simulator action or installation was performed by this task while the coordinator retained ownership.
+
+### Remaining limits
+
+The coordinator still finds native coordinate clicks, drag, and scroll unreliable in CUA. They observed only one actual Simulator process, using the internal Xcode path; the external application path times out. Window activation did not resolve the problem and the duplicate-process explanation is unproven. Neither gestures nor native Tab-bar interaction is marked passed.
+
+Remaining live work includes the new AX-summary behavior, full VoiceOver navigation, other compact non-accessibility text sizes/long titles, actual manual map/card/gallery gestures, Reduce Motion, and in-canyon/near/denied location journeys. The coordinator's stated device configuration is retained. No signing, publication, simulator cleanup, or preserved-cache changes are part of this fix.
 
 ## Reproduce preserved comparisons
 
