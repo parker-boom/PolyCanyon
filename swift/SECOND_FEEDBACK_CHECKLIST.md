@@ -49,3 +49,15 @@ Verification qualifications and open checks are in SECOND_FEEDBACK_REVIEW.md. Ch
 ## Bottom background continuity follow-up
 - [x] Remove the fitted Tour carousel's clipping of glass-card shadows; retain native tab styling and the existing white page background.
 - [ ] Independently inspect the revised Tour seam at rest and while swiping; Map and Collection/Search while scrolling; Reduce Transparency fallback. Build-only handoff until Simulator ownership is released.
+
+## Independent-review regression follow-up
+- [ ] Reproduce and fix dark gallery appearance leaking into the returned white story; repeat photo opening, swiping and dismissal.
+- [ ] Investigate intermittent horizontal story paging reported on Techite Bridge; verify title/hero gestures and selection/transition return.
+
+## Latest spacious-onboarding follow-up
+- [x] Five separate pages with real visual demos, Back, directional transitions and persistent actions.
+- [x] Normal-text live fit; largest-text scrolling, wrapping and reachable actions; Reduce Motion, Increased Contrast, Reduce Transparency checked and restored.
+- [x] Gallery local-dark fix survived repeated Techite/Blade/Underground photo cycles and returned light stories.
+- [x] Controlled Techite/Blade title and hero paging; returned Tour selection; Search query preservation.
+- [x] Tour seam live check and native Map background extension, with Entry Arch still reachable above tabs.
+- [ ] Independent candidate review, actual two-finger pinch, compact-device layout and separately authorized tracking sequence. See ONBOARDING_PAGES_REVIEW.md for qualifications.

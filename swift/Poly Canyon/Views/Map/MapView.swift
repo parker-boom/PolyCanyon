@@ -42,6 +42,7 @@ struct MapView: View {
 
         }
         .background(Color.white)
+        .modifier(MapBackgroundExtension())
         .toolbar(.hidden, for: .navigationBar)
         .overlay(alignment: .top) {
             HStack(alignment: .top) {
@@ -109,5 +110,14 @@ struct MapStructureTargets: View {
                 }
             }
         }
+    }
+}
+
+/// Extend only the background under glass; fitting the interactive canvas into
+/// the safe area keeps Entry Arch reachable above the floating tab bar.
+private struct MapBackgroundExtension: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) { content.backgroundExtensionEffect() }
+        else { content }
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 struct OnboardingFlow {
-    enum Stage { case title, location, introduction }
+    enum Stage: Int, CaseIterable { case title, location, introduction, navigation, stories }
     enum Location { case undecided, denied, locating, visit, remote }
     private(set) var stage: Stage = .title
     private(set) var usesLocation = false
@@ -20,6 +20,13 @@ struct OnboardingFlow {
         usesLocation = usingLocation
         requestPending = false
         stage = .introduction
+    }
+    mutating func next() {
+        if let next = Stage(rawValue: stage.rawValue + 1), stage.rawValue >= Stage.introduction.rawValue { stage = next }
+    }
+    mutating func back() {
+        if let previous = Stage(rawValue: stage.rawValue - 1) { stage = previous }
+        requestPending = false
     }
     func recommendsMap(_ location: Location) -> Bool { usesLocation && location == .visit }
     func recordsVisits(_ location: Location) -> Bool {

@@ -43,6 +43,7 @@ struct StructureExperience: View {
             .accessibilityAction(named: "Next structure") { step(1) }
             .accessibilityAction(named: "Previous structure") { step(-1) }
         }
+        .preferredColorScheme(.light)
         .tint(StoryPalette.ink)
         .modifier(OptionalStructureTransition(id: selected, namespace: namespace))
         .onAppear { markSelectedAsOpened() }

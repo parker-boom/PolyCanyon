@@ -60,7 +60,11 @@ struct StructureGallery: View {
         }
         .background(.black)
         .tint(.white)
-        .preferredColorScheme(.dark)
+        // This is a dark surface inside a light story presentation. A preferred
+        // scheme propagates to the enclosing presentation and can survive its
+        // nested zoom dismissal; keep the override local to the gallery instead.
+        .environment(\.colorScheme, .dark)
+        .statusBarHidden()
         .onChange(of: structure.number) { _ in currentIndex = 0 }
         .modifier(StoryPhotoDestination(id: StoryPhotoID(structure: structure.number, index: currentIndex),
                                         namespace: transitionNamespace,

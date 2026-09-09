@@ -1,3 +1,7 @@
+# Latest follow-up
+
+See [Onboarding pages and regression review](ONBOARDING_PAGES_REVIEW.md) for the new five-page onboarding, measured iterations, final bottom-edge/gallery fixes, and current open checks. Historical build-only and appearance notes below describe earlier states.
+
 # Second feedback review
 
 This revision supersedes the earlier onboarding and Tour compositions. It is a handoff for independent review, not a release or a claim that every device/gesture has passed.
@@ -74,3 +78,10 @@ Sources: [Apple search APIs](https://developer.apple.com/documentation/swiftui/s
 ## Bottom tab background follow-up
 
 The fitted horizontal Tour carousel now allows its glass-card shadows to draw beyond its scroll bounds (`scrollClipDisabled`, already inside the iOS 17+ branch). The separate bottom padding, white page, and native tab bar remain unchanged. This is the smallest source correction for the independently reproduced hard shadow edge; visual confirmation across tabs and Reduce Transparency remains pending. The coordinator owns Simulator; this follow-up is built externally only and is not installed. Artifacts are under `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/TabBackground/`.
+
+
+## Independent-review regressions: appearance and story paging
+
+Coordinator reproduced on installed 15d1542: Tour Entry Arch → Techite Bridge → story → photo 3/5 → swipe photo 4/5 → gallery X left black presentation surroundings and pale unreadable text on the white story. The state persisted across screenshots. The developer also observed the supplied broken state directly. Gallery used presentation-wide `preferredColorScheme(.dark)` inside a nested full-screen zoom presentation, while the story has a fixed white paper surface and trait-dependent ink. Correction under review: gallery uses a local dark environment; the white story presentation explicitly prefers light. Repeated open/swipe/dismiss checks are required before closure.
+
+Coordinator also reported horizontal story drags over Techite title and hero did not page, despite working Tour/gallery drags. Developer's first drag on the same installed broken state moved Techite Bridge → Blade and the native accessibility tree confirmed Blade, so a blanket paging failure is not reproduced. This remains an explicit regression investigation, not a checked-off assumption. Repeated title/hero drags and post-gallery return must be observed.
