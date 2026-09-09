@@ -1,6 +1,8 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Release preparation — 8 September 2026
 
-> Historical review/release evidence. Some feature proposals, favorites references, version details and build paths below predate the current foreground-only, no-favorites app. Preserve this record; use [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release handoff and [SECURITY_CLEANUP.md](../SECURITY_CLEANUP.md) for Android retirement.
+> Historical review/release evidence. Some feature proposals, favorites references, version details and build paths below predate the current foreground-only, no-favorites app. Preserve this record; use [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release handoff and [SECURITY_CLEANUP.md](SECURITY_CLEANUP.md) for Android retirement.
 
 Local preparation only. No push, upload, App Store metadata changes or submission occurred. The refactor baseline is commit `881c41d` on `maintenance/revive-ios`; subsequent preparation is on `maintenance/release-preparation`.
 

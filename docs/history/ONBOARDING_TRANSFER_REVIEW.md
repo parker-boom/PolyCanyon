@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Onboarding transfer candidate
 
 Superseded by Parker’s hands-on review and [the focused refinement candidate](HANDS_ON_REFINEMENT_REVIEW.md).

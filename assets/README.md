@@ -9,7 +9,7 @@ This directory preserves reference research, original photographs, map artwork a
 - `map/` and `app icon/`: original artwork and exports.
 - [retired-android/](retired-android/README.md): preserved Android catalogs, images and historical Design Village text, with original-path checksums.
 
-The iOS runtime reads `swift/Poly Canyon/Core/Data/*.json` and `swift/Poly Canyon/Assets.xcassets`. The structure catalogs differ: see [content ownership and measured differences](../swift/MAINTENANCE.md) before copying or editing them. Historical CSV files mentioned in older documentation are not present in this checkout; use the actual JSON files above.
+The iOS runtime reads `swift/Poly Canyon/Core/Data/*.json` and `swift/Poly Canyon/Assets.xcassets`. The structure catalogs differ: see [content ownership and measured differences](../docs/data-and-privacy.md) before copying or editing them. Historical CSV files mentioned in older documentation are not present in this checkout; use the actual JSON files above.
 
 The unused legacy `data/GoogleService-Info.plist` was removed during Android retirement. The maintained iOS app does not bundle or use Firebase configuration.
 

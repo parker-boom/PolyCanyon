@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Second hands-on feedback round
 
 Source baseline: 0eae1a6; live baseline: 2df8671. All items below remain open until verified. No release, upload, signing or videos. Preserve research, photos, progress, native tabs and foreground-only discovery. Latest installed runtime: iOS 26.5 (18.2 removal authorized by Parker).

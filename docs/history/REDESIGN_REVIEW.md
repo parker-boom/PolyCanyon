@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Poly Canyon 6.0 final verification handoff
 
 App source is committed as `76dde70` on `redesign/visual-ios`. Later commits update verification documentation only. The coordinator accepted the visual direction and final copy. Independent read-only source review reported **No findings**. No source change was needed during the final simulator checks.

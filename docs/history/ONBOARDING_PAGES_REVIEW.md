@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Onboarding pages and regression review
 
 Latest candidate and superseding gesture findings: [Onboarding transfer review](ONBOARDING_TRANSFER_REVIEW.md).

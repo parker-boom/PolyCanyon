@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Fit map visibility handoff
 
 Base 25d06b4; design/remix. Only requested behavior changed: Fit map is hidden at fitted scale and visible when zoomed in.

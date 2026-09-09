@@ -18,26 +18,10 @@ DerivedData/
 *.xcuserstate
 *.xcscmblueprint
 
-# Swift Package Manager
-#
-Packages
-.package.resolved
-
-# CocoaPods
-#
-Pods/
-
 **/.DS_Store
 .DS_Store
 
-# Share reproducible iOS package resolution and schemes, but never user workspace state.
-!swift/Poly Canyon.xcodeproj/project.xcworkspace/
-swift/Poly Canyon.xcodeproj/project.xcworkspace/*
-!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/
-swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/*
-!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
-swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
-!swift/Poly Canyon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+# Share the reproducible scheme; keep generated workspace and user state ignored.
 !swift/Poly Canyon.xcodeproj/xcshareddata/
 !swift/Poly Canyon.xcodeproj/xcshareddata/xcschemes/
 

@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Build and run locally
 
 Use the existing `Poly Canyon.xcodeproj` and `Poly Canyon` scheme. The app remains in Swift 5 language mode with an iOS 16 deployment target. No Firebase setup is required.

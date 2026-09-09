@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Keeping Poly Canyon maintainable
 
 Keep the working offline architecture small. Bundled content, one local progress snapshot and the foreground-only location service are enough for this archive. The interface uses native SwiftUI and UIKit; no backend or external package is required.
@@ -52,4 +54,4 @@ On Parker's Mac, keep outputs external by setting both variables from [BUILDING.
 
 ## Release boundaries
 
-The retained iOS source and prior locally built binary have been audited for no telemetry. Android retirement does not update or disable previously distributed binaries. See [security cleanup](../SECURITY_CLEANUP.md). Android and the currently published iOS 5.4 remain separate privacy/release scopes. The approved website URLs are `https://polycanyon.com/privacy` and `https://polycanyon.com/support`. Those routes and the 6.0 feature media are published on the production website. Do not change live 5.4 labels early. See [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release.
+The retained iOS source and prior locally built binary have been audited for no telemetry. Android retirement does not update or disable previously distributed binaries. See [security cleanup](SECURITY_CLEANUP.md). Android and the currently published iOS 5.4 remain separate privacy/release scopes. The approved website URLs are `https://polycanyon.com/privacy` and `https://polycanyon.com/support`. Those routes and the 6.0 feature media are published on the production website. Do not change live 5.4 labels early. See [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release.

@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Second design pass — review candidate
 
 The guide now has a stable Map, Tour, and Collection. Tour leads with photography and keeps each stop connected to the original canyon map. White surfaces, restrained green controls, and native navigation carry through the collection, stories, onboarding, and small Info sheet.

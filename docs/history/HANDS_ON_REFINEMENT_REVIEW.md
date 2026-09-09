@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Hands-on refinement candidate
 
 Base: ad3f495, design/remix. This pass follows Parker’s latest hands-on review and explicit experience-choice clarification. Candidate for independent review, not release approval. Final commit and installed-build hashes are in the external manifest.

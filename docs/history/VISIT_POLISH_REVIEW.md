@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Visit polish review — 2026-09-09
 
 Based on `0d894fb`, on `design/remix`.

@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Final combined review candidate
 
 ## Current validated source: Glur removed
@@ -47,7 +49,7 @@ Prior b31dc14 combined Debug build, models and data also passed. Their logs rema
 
 ## Remaining boundaries
 
-[Second-pass evidence](swift/SECOND_PASS_REVIEW.md) records the app task's visual verification and remaining hands-on gesture/VoiceOver checks. This task adds integration/build validation, not physical GPS testing, signing, release approval or new visual claims. No push, publication, account changes or remote alert updates occurred.
+[Second-pass evidence](SECOND_PASS_REVIEW.md) records the app task's visual verification and remaining hands-on gesture/VoiceOver checks. This task adds integration/build validation, not physical GPS testing, signing, release approval or new visual claims. No push, publication, account changes or remote alert updates occurred.
 
 [Security cleanup](SECURITY_CLEANUP.md) records the earlier 4262b50 audit. Its statement that both Swift packages were actively used predates this UI merge: the new Tour removes the last Glur import/call, while the project still retains Glur. The authorized follow-up above removes Glur coherently; this review item is closed. Zoomable remains used.
 

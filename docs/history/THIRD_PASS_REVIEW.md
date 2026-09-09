@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 > Superseded UI checkpoint: see SECOND_FEEDBACK_REVIEW.md and SECOND_FEEDBACK_CHECKLIST.md for the second hands-on feedback revision and its explicitly open checks.
 
 # Third design pass — active review, not approved

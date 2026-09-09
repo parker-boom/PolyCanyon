@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # iOS-only security and support cleanup
 
 Audited 8 September 2026, starting at committed `redesign/visual-ios` **80e12df** in an isolated external-drive worktree. This is the PolyCanyon app repository, not PolyCanyonWebsite. Android is retired and will not be deployed. No remote settings, releases, keys, branches or history were changed.
@@ -27,7 +29,7 @@ Firebase client configuration/API keys are not equivalent to privileged server c
 | iOS dependencies | Native SwiftUI and UIKit | No external packages. The last unused Zoomable reference was removed for 6.0 build 2; historical license acknowledgments are retained. |
 | Support docs | README advertised Android, favorites and old cross-platform behavior | Concise iOS README, explicit retirement, archived-content links; old review/release evidence retained with historical notices |
 
-Recovery: annotated local tag **`archive/android-before-retirement-20260908`** points to **80e12df** before any removal. [Content preservation manifest](assets/retired-android/preservation.json) records original/preserved paths and SHA-256 for all 166 content files (62,725,159 bytes). The original React tree had 230 tracked files / 63,581,785 bytes. Retaining image variants deliberately favors preservation over a misleading repository-size claim; old blobs also remain in Git history.
+Recovery: annotated local tag **`archive/android-before-retirement-20260908`** points to **80e12df** before any removal. [Content preservation manifest](../../assets/retired-android/preservation.json) records original/preserved paths and SHA-256 for all 166 content files (62,725,159 bytes). The original React tree had 230 tracked files / 63,581,785 bytes. Retaining image variants deliberately favors preservation over a misleading repository-size claim; old blobs also remain in Git history.
 
 ## Retained iOS risk review
 

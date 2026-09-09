@@ -1,26 +1,31 @@
 # Poly Canyon
 
-An iPhone guide to the experimental architecture of Cal Poly’s Poly Canyon. Explore the illustrated map, read the stories behind 31 structures and six historical sites, and browse photographs from the canyon.
+An independent iPhone guide to Cal Poly’s outdoor architecture lab. Discover its student-built houses, bridges, and towers on foot, or take a virtual tour from anywhere.
 
-Visit in person to record discoveries while the app is open, or take a virtual walkthrough from anywhere. The maintained iOS app keeps visit progress on your device; its map, research and photos work offline. Location is optional for virtual exploration.
+[Download on the App Store](https://apps.apple.com/us/app/poly-canyon/id6499063781) · [Visit the website](https://polycanyon.com) · [Explore the research](https://polycanyon.com/structures)
 
-[App Store](https://apps.apple.com/us/app/poly-canyon/id6499063781) · [Poly Canyon website](https://polycanyon.com/)
+<p>
+  <img src="docs/images/live-discovery.png" width="240" alt="The satellite map announces a discovery at Underground House.">
+  <img src="docs/images/virtual-tour.png" width="240" alt="The virtual tour pairs Shell House with its position on the illustrated map.">
+  <img src="docs/images/collection.png" width="240" alt="Photo cards show the structures matching a search for House.">
+</p>
 
-## Development
+## About the project
 
-Open `swift/Poly Canyon.xcodeproj` in Xcode and select the **Poly Canyon** scheme. The app supports iOS 16 and later. It requires no Firebase account, JavaScript tooling or backend setup.
+I built Poly Canyon to connect the structures you see on a walk with the ideas and people behind them. The app brings together an illustrated map, photographs, and histories of 31 structures and six historical sites.
 
-```sh
-python3 swift/scripts/check-data.py
-bash swift/scripts/check-models.sh
-bash swift/scripts/check-atlas.sh
-bash swift/scripts/run-simulator.sh build
-```
+The experience starts with how you want to explore. In the canyon, the map follows your position and marks discoveries as you walk. From anywhere else, swipe through the virtual tour, open a structure’s story, and look through its photographs. Both lead into the same collection, searchable by name, number, or year.
 
-The Swift checks require macOS and Xcode. Build outputs default to ignored `swift/.build/`; set `POLYCANYON_BUILD_ROOT` to keep them on another drive and `DEVELOPER_DIR` to select Xcode. See [build instructions](swift/BUILDING.md), [content maintenance](swift/MAINTENANCE.md) and [current release evidence](swift/REDESIGN_RELEASE.md). GitHub Actions runs the content and regression checks, a Release simulator build, and an iPhone archive on pull requests and main. No third-party packages or signing secrets are required by CI.
+The 6.0 redesign puts the photographs first, with glass controls, interactive onboarding, and transitions that keep the map, collection, and stories connected.
 
-## Android retirement
+## Behind the app
 
-The React Native/Android app is retired and will not be deployed. Its project, dependencies, build tools and obsolete Firebase configuration have been removed. [Historical content](assets/retired-android/README.md) is preserved alongside the original research, photos and artwork. The local recovery tag is `archive/android-before-retirement-20260908`.
+Built with SwiftUI, UIKit, and Core Location. Content ships with the app, and visit progress stays on the device. There are no external package dependencies or backend services to set up.
 
-This repository describes the maintained iOS source. Older installed releases may behave differently. [Security findings and remaining account actions](SECURITY_CLEANUP.md) cover the exposed Android signing material, legacy backend and GitHub alerts.
+Open `swift/Poly Canyon.xcodeproj` in Xcode and select the **Poly Canyon** scheme. The app supports iOS 16 and later.
+
+[Setup and checks](docs/setup.md) · [Architecture](docs/architecture.md) · [Content and contributing](docs/contributing.md) · [Release](docs/release.md)
+
+Android is retired; its original content is preserved in a clearly marked archive. See the [documentation](docs/README.md) for data, media, and maintenance details, and the [existing license](LICENSE.md) for reuse terms.
+
+Created by Parker Jones. [Questions or corrections](mailto:parker.jones@live.com).

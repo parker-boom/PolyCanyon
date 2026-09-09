@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Final photo and onboarding polish — 2026-09-09
 
 Base: `ab4a514`, branch `design/remix`.

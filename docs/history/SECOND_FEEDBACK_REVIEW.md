@@ -1,3 +1,5 @@
+> Historical record. This describes an earlier review, not current setup or release instructions. See the [current documentation](../README.md).
+
 # Latest follow-up
 
 See [Onboarding pages and regression review](ONBOARDING_PAGES_REVIEW.md) for the new five-page onboarding, measured iterations, final bottom-edge/gallery fixes, and current open checks. Historical build-only and appearance notes below describe earlier states.
