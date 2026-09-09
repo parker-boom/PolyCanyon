@@ -17,11 +17,12 @@ jobs:
     timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-      POLYCANYON_BUILD_ROOT: ${{ runner.temp }}/polycanyon
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
+      - name: Set temporary build folder
+        run: echo "POLYCANYON_BUILD_ROOT=$RUNNER_TEMP/polycanyon" >> "$GITHUB_ENV"
       - name: Validate bundled content
         run: python3 swift/scripts/check-data.py
       - name: Check persistence, onboarding, and location replay
