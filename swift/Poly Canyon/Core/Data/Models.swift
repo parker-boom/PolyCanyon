@@ -166,3 +166,11 @@ extension Structure {
         self.isLiked = isLiked
     }
 }
+
+extension Structure {
+    /// Keep the catalog's multiple dates intact; they may include later alterations.
+    var catalogDates: String? {
+        let value = year.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty || value.lowercased() == "xxxx" ? nil : year
+    }
+}

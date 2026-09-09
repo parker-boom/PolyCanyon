@@ -9,3 +9,7 @@ xcrun swiftc -module-cache-path "$cache" \
  "$repo/swift/Poly Canyon/Views/Map/CanyonAtlasGeometry.swift" \
  "$repo/swift/Tests/AtlasGeometryChecks.swift" -o "$checks/atlas-checks"
 "$checks/atlas-checks"
+xcrun swiftc -module-cache-path "$cache" \
+ "$repo/swift/Poly Canyon/Views/Map/CanyonMapGeometry.swift" \
+ "$repo/swift/Tests/MapCameraChecks.swift" -o "$checks/map-camera-checks"
+"$checks/map-camera-checks"

@@ -9,6 +9,14 @@ struct ModelChecks {
         let ghosts = try decoder.decode([GhostStructure].self, from: Data(contentsOf: dataDirectory.appendingPathComponent("ghostStructures.json")))
         let points = try decoder.decode([MapPointData].self, from: Data(contentsOf: dataDirectory.appendingPathComponent("mapPoints.json")))
         precondition(structures.count == 31 && ghosts.count == 6 && points.count == 231)
+        precondition(structures.first { $0.number == 24 }?.catalogDates == "1964 / 1975")
+        precondition(structures.first { $0.number == 8 }?.catalogDates == "1990 / 2024")
+        for year in ["", "xxxx", "  XXXX  "] {
+            var record = try JSONSerialization.jsonObject(with: JSONEncoder().encode(structures[0])) as! [String: Any]
+            record["Year"] = year
+            let unknown = try decoder.decode(Structure.self, from: JSONSerialization.data(withJSONObject: record))
+            precondition(unknown.catalogDates == nil)
+        }
         precondition(structures.allSatisfy { !$0.images.isEmpty })
         precondition(ghosts.allSatisfy { !$0.images.isEmpty && !$0.isVisited })
         var visitedGhost = ghosts[0]

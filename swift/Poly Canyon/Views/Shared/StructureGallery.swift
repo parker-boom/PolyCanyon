@@ -1,5 +1,5 @@
 import SwiftUI
-import Zoomable
+import UIKit
 
 /// Every photograph remains available offline, at its original aspect ratio.
 struct StructureGallery: View {
@@ -26,10 +26,7 @@ struct StructureGallery: View {
                 } else {
                     TabView(selection: $currentIndex) {
                         ForEach(structure.images.indices, id: \.self) { index in
-                            Image(structure.images[index])
-                                .resizable().scaledToFit()
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .zoomable()
+                            ZoomableStoryPhoto(asset: structure.images[index], size: geometry.size)
                                 .tag(index)
                                 .accessibilityLabel("\(structure.title), photo \(index + 1) of \(structure.images.count)")
                                 .accessibilityHint("Pinch or double-tap to zoom")
@@ -109,5 +106,20 @@ private struct StoryPhotoDestination: ViewModifier {
                 content.navigationTransition(.automatic)
             }
         } else { content }
+    }
+}
+
+private struct ZoomableStoryPhoto: View {
+    let asset: String
+    let size: CGSize
+    @State private var camera = UUID()
+    var body: some View {
+        let original = UIImage(named: asset)?.size ?? size
+        let scale = min(size.width / max(1, original.width), size.height / max(1, original.height))
+        let fitted = CGSize(width: original.width * scale, height: original.height * scale)
+        CanyonMapViewport(request: camera, focus: nil, canvasSize: fitted, select: { _ in }) {
+            Image(asset).resizable().scaledToFit().frame(width: fitted.width, height: fitted.height)
+        }.background(.black).clipped()
+
     }
 }

@@ -4,6 +4,7 @@ enum FullScreenView: String, Identifiable {
     case structInfo, settings, ghostStructInfo
     var id: String { rawValue }
 }
+private enum CanyonInfo: String, Identifiable { case map, collection; var id: String { rawValue } }
 private enum CanyonDestination: Hashable { case map, tour, collection, search }
 
 struct MainView: View {
@@ -12,7 +13,7 @@ struct MainView: View {
     @State private var destination = CanyonDestination.map
     @State private var searchText = ""
     @State private var onlyUnvisited = false
-    @State private var showInfo = false
+    @State private var info: CanyonInfo?
     @State private var mapFocus: Int?
     @State private var mapRequest = UUID()
     var body: some View {
@@ -27,8 +28,8 @@ struct MainView: View {
                 }
                 if appState.isVirtualWalkthrough { appState.isVirtualWalkthrough = false }
             }
-            .sheet(isPresented: $showInfo) {
-                NavigationStack { SettingsView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            .sheet(item: $info) { context in
+                NavigationStack { SettingsView(showsLocation: context == .map) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .fullScreenCover(item: $appState.activeFullScreenView) { view in
                 switch view {
@@ -63,8 +64,7 @@ struct MainView: View {
     }
     private var map: some View {
         NavigationStack {
-            MapView(focusStructure: $mapFocus, focusRequest: mapRequest)
-                .toolbar { ToolbarItem(placement: .navigationBarLeading) { infoButton } }
+            MapView(onInfo: { info = .map }, focusStructure: $mapFocus, focusRequest: mapRequest)
         }
     }
     private var tour: some View {
@@ -79,8 +79,8 @@ struct MainView: View {
         }
     }
     private var infoButton: some View {
-        Button { showInfo = true } label: { Image(systemName: "info.circle") }
-            .accessibilityLabel("About Poly Canyon and location settings")
+        Button { info = .collection } label: { Image(systemName: "info.circle") }
+            .accessibilityLabel("About Poly Canyon")
     }
 }
 enum CanyonStyle {

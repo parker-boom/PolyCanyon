@@ -28,7 +28,9 @@ struct MapWithLocationDot: View {
             return currentWalkthroughMapPoint != nil
         } else {
             guard appState.adventureModeEnabled else { return false }
-            guard let userLoc = locationService.lastLocation else { return false }
+            guard locationService.hasLocationPermission,
+                  let userLoc = locationService.lastLocation,
+                  LocationSamplePolicy.isUsable(userLoc, now: Date()) else { return false }
             return locationService.isWithinNearbyRange(userLoc)
         }
     }

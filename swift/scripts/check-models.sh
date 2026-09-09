@@ -22,3 +22,6 @@ xcrun swiftc -Xfrontend -disable-availability-checking -module-cache-path "$cach
  "$repo/swift/Poly Canyon/Core/Location/LocationService.swift" \
  "$repo/swift/Tests/LocationReplayChecks.swift" -o "$checks/location-replay-checks"
 "$checks/location-replay-checks" "$data"
+xcrun swiftc -module-cache-path "$cache" "$repo/swift/Poly Canyon/Core/OnboardingFlow.swift" \
+ "$repo/swift/Tests/OnboardingChecks.swift" -o "$checks/onboarding-checks"
+"$checks/onboarding-checks"

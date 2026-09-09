@@ -12,126 +12,107 @@ struct VirtualWalkthrough: View {
     @EnvironmentObject private var dataStore: DataStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var story = false
+    @State private var presentation: StructurePresentation?
+    @State private var cardSelection: Int?
     @Namespace private var photos
     private var index: Int { min(max(0, appState.currentStructureIndex), max(0, dataStore.structures.count - 1)) }
     private var structure: Structure? { dataStore.structures.indices.contains(index) ? dataStore.structures[index] : nil }
-    private var movement: Animation? { reduceMotion ? nil : .spring(response: 0.65, dampingFraction: 0.92) }
 
     var body: some View {
-        Group {
+        GeometryReader { geometry in
             if let structure {
-                if typeSize.isAccessibilitySize {
-                    ScrollView {
+                VStack(spacing: 0) {
+                    if typeSize.isAccessibilitySize {
                         SpatialAtlas(selected: structure.number, overview: false, reduceMotion: reduceMotion, select: select)
-                            .frame(height: 230)
+                            .frame(height: 180)
                             .accessibilityElement(children: .ignore)
                             .accessibilityLabel("Map focused on \(structure.title), number \(structure.number)")
                             .accessibilityHint("Use Choose a structure to change the selection.")
                             .accessibilityAddTraits(.isImage)
-                        inspector(structure).padding(20)
-                        navigation.padding(.horizontal, 20)
+                        ScrollView { card(structure, width: max(1, geometry.size.width - 48)).padding(24) }
+                    } else {
+                        CanyonMapScroll(selected: structure.number, select: select).clipped()
+                        cards(width: geometry.size.width)
+                            .padding(.top, -12).padding(.bottom, 12)
                     }
-                } else {
-                    tour(structure)
                 }
+                .overlay(alignment: .topTrailing) { chooser.padding(16) }
             }
         }
         .background(.white)
         .toolbar(.hidden, for: .navigationBar)
-        .fullScreenCover(isPresented: $story) {
-            if let structure {
-                NavigationStack {
-                    StructureStory(structure: structure)
-                        .modifier(StructureZoomDestination(id: structure.number, namespace: photos, isEnabled: !typeSize.isAccessibilitySize))
-                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { story = false } } }
-                }.tint(FieldPalette.green)
-            }
+        .fullScreenCover(item: $presentation) { selection in
+            StructureExperience(numbers: selection.numbers, selected: selection.selected, namespace: photos, selectionChanged: select)
         }
-        .onAppear { appState.currentStructureIndex = index }
+        .onAppear { appState.currentStructureIndex = index; cardSelection = structure?.number }
+        .onChange(of: appState.currentStructureIndex) { _ in
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) { cardSelection = structure?.number }
+        }
+        .onChange(of: cardSelection) { number in
+            if let number, number != structure?.number { select(number) }
+        }
     }
 
-    private func tour(_ item: Structure) -> some View {
-        VStack(spacing: 0) {
-            CanyonMapScroll(selected: item.number, select: select)
-                .clipped()
-                .padding(.top, 8)
-            // The overlay receives the natural height of the tallest actual card at this
-            // width and Dynamic Type size. Measuring every stop keeps swipes from resizing
-            // the map halfway through a page transition. No fixed text-height budget.
-            ZStack {
-                ForEach(dataStore.structures, id: \.number) { stop in
-                    inspectorContent(stop, photograph: false).padding(18)
-                        .hidden().accessibilityHidden(true).allowsHitTesting(false)
-                }
+    @ViewBuilder private func cards(width: CGFloat) -> some View {
+        let cardWidth = min(310, max(220, width * 0.72))
+        if #available(iOS 17, *) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .bottom, spacing: 14) {
+                    ForEach(dataStore.structures) { item in card(item, width: cardWidth).id(item.number) }
+                }.scrollTargetLayout().padding(.vertical, 6)
             }
+            .contentMargins(.horizontal, (width - cardWidth) / 2, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $cardSelection, anchor: .center)
             .fixedSize(horizontal: false, vertical: true)
-            .overlay {
-                TabView(selection: $appState.currentStructureIndex) {
-                    ForEach(dataStore.structures.indices, id: \.self) { position in
-                        inspector(dataStore.structures[position]).padding(18).tag(position)
-                    }
+        } else {
+            TabView(selection: $appState.currentStructureIndex) {
+                ForEach(dataStore.structures.indices, id: \.self) { position in
+                    card(dataStore.structures[position], width: cardWidth).tag(position)
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-            }
-            navigation.padding(.horizontal, 18).padding(.bottom, 12)
-        }.background(.white)
+            }.tabViewStyle(.page(indexDisplayMode: .never)).frame(height: cardWidth + 115)
+        }
     }
-
-    private func inspector(_ item: Structure) -> some View {
-        Button { story = true } label: {
-            inspectorContent(item, photograph: true)
-        }.buttonStyle(.plain).accessibilityLabel("Read the story of \(item.title)")
-    }
-
-    /// Live cards and sizing cards use the same text, spacing, and width proposal.
-    /// The sizing copy has a placeholder, avoiding duplicate zoom sources or image loads.
-    private func inspectorContent(_ item: Structure, photograph: Bool) -> some View {
-        HStack(alignment: .center, spacing: 16) {
-            if !typeSize.isAccessibilitySize {
-                if photograph {
-                    Image(item.images.first ?? "M-1").resizable().scaledToFill().frame(width: 88, height: 84).clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+    private func card(_ item: Structure, width: CGFloat) -> some View {
+        Button {
+            select(item.number)
+            presentation = StructurePresentation(numbers: dataStore.structures.map(\.number), selected: item.number)
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                if !typeSize.isAccessibilitySize {
+                    Image(item.images.first ?? "M-1").resizable().scaledToFill()
+                        .frame(width: width - 24, height: width - 24).clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                         .modifier(StructureZoomSource(id: item.number, namespace: photos))
-                } else {
-                    Color.clear.frame(width: 88, height: 84)
                 }
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                Text(item.title).font(.title2.weight(.medium)).foregroundStyle(FieldPalette.green)
-                Text("\(item.year) · Photos & story").font(.subheadline).foregroundStyle(.secondary)
-            }
-            .lineLimit(nil)
-            .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-        .contentShape(Rectangle())
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(item.title).font(.title3.weight(.semibold)).foregroundStyle(FieldPalette.green)
+                    if let dates = item.catalogDates { Text(dates).font(.subheadline).foregroundStyle(.secondary) }
+                }.fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4).padding(.bottom, 6)
+            }.padding(12).frame(width: width, alignment: .leading)
+                .modifier(CanyonCardSurface())
+        }.buttonStyle(.plain)
+            .accessibilityLabel("\(item.title), \(item.catalogDates ?? "Date unknown")")
+            .accessibilityHint("Open structure; swipe to choose another")
+            .accessibilityAction(named: "Next structure") { step(1) }
+            .accessibilityAction(named: "Previous structure") { step(-1) }
     }
-
-    private var navigation: some View {
-        HStack {
-            Button { step(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
-                .accessibilityLabel("Previous place")
-            Spacer()
-            Menu {
-                ForEach(dataStore.structures, id: \.number) { item in
-                    Button(item.title) { select(item.number) }
-                }
-            } label: { Image(systemName: "list.bullet").frame(width: 44, height: 44) }
-                .accessibilityLabel("Choose a structure")
-            Spacer()
-            Button("Next place") { step(1) }.font(.callout.weight(.semibold)).frame(minHeight: 44)
-        }.foregroundStyle(FieldPalette.green)
+    private var chooser: some View {
+        Menu {
+            ForEach(dataStore.structures) { item in
+                Button("\(item.number). \(item.title)") { select(item.number) }
+            }
+        } label: {
+            Image(systemName: "list.bullet").font(.body.weight(.semibold)).frame(width: 48, height: 48).canyonControl()
+        }.foregroundStyle(FieldPalette.green).accessibilityLabel("Choose a structure")
     }
     private func step(_ delta: Int) {
-        guard !dataStore.structures.isEmpty else { return }
-        withAnimation(movement) { appState.currentStructureIndex = (index + delta + dataStore.structures.count) % dataStore.structures.count }
+        guard dataStore.structures.indices.contains(index + delta) else { return }
+        select(dataStore.structures[index + delta].number)
     }
     private func select(_ number: Int) {
         guard let position = dataStore.structures.firstIndex(where: { $0.number == number }) else { return }
-        withAnimation(movement) { appState.currentStructureIndex = position }
+        appState.currentStructureIndex = position
     }
 }
 
@@ -165,6 +146,7 @@ struct SpatialAtlas: View {
                                 .frame(width: item.number == selected ? 36 : 6, height: item.number == selected ? 36 : 6)
                                 .background(item.number == selected ? FieldPalette.green : .white, in: Circle())
                                 .overlay { Circle().stroke(FieldPalette.gold, lineWidth: item.number == selected ? 3 : 1) }
+                                .background { if item.number == selected { SelectedMarkerGlow(reduceMotion: reduceMotion) } }
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }.buttonStyle(.plain)
@@ -274,5 +256,22 @@ private final class AtlasScrollView: UIScrollView {
             let offset = CanyonAtlasGeometry.scrollOffset(focus: focus, viewport: size)
             setContentOffset(CGPoint(x: 0, y: offset), animated: animateSelection && !resized && window != nil)
         }
+    }
+}
+
+private struct SelectedMarkerGlow: View {
+    let reduceMotion: Bool
+    @Environment(\.colorSchemeContrast) private var contrast
+    @State private var expanded = false
+    var body: some View {
+        Circle().stroke(FieldPalette.gold.opacity(contrast == .increased ? 1 : 0.5), lineWidth: 2)
+            .frame(width: 44, height: 44)
+            .scaleEffect(expanded && !reduceMotion ? 1.18 : 1)
+            .opacity(expanded && !reduceMotion ? 0.25 : 0.7)
+            .allowsHitTesting(false).accessibilityHidden(true)
+            .task(id: reduceMotion) {
+                expanded = false
+                if !reduceMotion { withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { expanded = true } }
+            }
     }
 }

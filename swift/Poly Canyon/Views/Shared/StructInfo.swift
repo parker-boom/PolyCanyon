@@ -5,18 +5,8 @@ struct StructInfo: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var dataStore: DataStore
     var body: some View {
-        NavigationStack {
-            if let structure = dataStore.structures.first(where: { $0.number == appState.structInfoNum }) {
-                StructureStory(structure: structure)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button { appState.activeFullScreenView = nil } label: { Image(systemName: "xmark") }
-                                .accessibilityLabel("Close structure")
-                        }
-                    }
-            } else { UnavailableStructureView() }
-        }
-        .tint(StoryPalette.ink)
+        StructureExperience(numbers: dataStore.structures.map(\.number), selected: appState.structInfoNum)
+
     }
 }
 
@@ -43,8 +33,7 @@ enum StoryPalette {
 struct StructureStory: View {
     let structure: Structure
     @EnvironmentObject private var dataStore: DataStore
-    @State private var showGallery = false
-    @State private var photoIndex = 0
+    @State private var gallery: GallerySelection?
     @State private var showResearch = false
     @Namespace private var photoNamespace
     @State private var visiblePhotoIndices: Set<Int> = []
@@ -68,20 +57,16 @@ struct StructureStory: View {
                         photo(0, height: min(480, max(300, geometry.size.height * 0.6)), width: geometry.size.width)
                     }
                     VStack(alignment: .leading, spacing: 20) {
-                        HStack(spacing: 12) {
-                            Text(structure.number >= 100 ? "FROM THE ARCHIVE" : "NO. \(String(format: "%02d", structure.number))")
-                            if structure.year != "xxxx" && !structure.year.isEmpty {
-                                Text("·").accessibilityHidden(true)
-                                Text(structure.year)
+                        Text(structure.number >= 100 ? "FROM THE ARCHIVE" : "STRUCTURE \(String(format: "%02d", structure.number))")
+                            .font(.caption.weight(.semibold)).tracking(2).foregroundStyle(FieldPalette.gold)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(structure.title).font(.largeTitle.weight(.semibold))
+                                .foregroundStyle(StoryPalette.ink).accessibilityAddTraits(.isHeader)
+                            if let dates = structure.catalogDates {
+                                Text(dates).font(.title2).foregroundStyle(FieldPalette.gold)
+                                    .accessibilityLabel("Catalog dates, \(dates)")
                             }
-                        }
-                        .font(.caption.monospaced().weight(.medium))
-                        .foregroundStyle(.secondary)
-                        Text(structure.title)
-                            .font(.largeTitle.weight(.semibold))
-                            .foregroundStyle(StoryPalette.ink)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
+                        }.fixedSize(horizontal: false, vertical: true)
                         Text(introduction)
                             .font(.title3)
                             .lineSpacing(5)
@@ -122,7 +107,7 @@ struct StructureStory: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 16)
                         } label: {
-                            Text("Read the full story").font(.headline)
+                            Text("The full story").font(.title2.weight(.semibold)).padding(.vertical, 10)
                         }
                         .tint(StoryPalette.ink)
                         Link(destination: URL(string: "https://polycanyon.com")!) {
@@ -141,7 +126,7 @@ struct StructureStory: View {
             .background(StoryPalette.paper)
             .coordinateSpace(name: photoNamespace)
             .onPreferenceChange(StoryPhotoFrames.self) { frames in
-                guard !showGallery else { return }
+                guard gallery == nil else { return }
                 let viewport = CGRect(origin: .zero, size: geometry.size)
                 visiblePhotoIndices = Set(frames.compactMap { index, frame in
                     let intersection = viewport.intersection(frame)
@@ -150,40 +135,27 @@ struct StructureStory: View {
             }
             .onChange(of: geometry.size) { _ in
                 // A presentation-time resize invalidates the saved return viewport.
-                if showGallery { gallerySourceIndices = [] }
+                if gallery != nil { gallerySourceIndices = [] }
             }
         }
         .modifier(StoryCanvasNavigation())
         .navigationBarTitleDisplayMode(.inline)
         .tint(StoryPalette.ink)
-        .fullScreenCover(isPresented: $showGallery) {
-            StructureGallery(structure: structure, initialIndex: photoIndex, transitionNamespace: photoNamespace, visibleSourceIndices: gallerySourceIndices) { showGallery = false }
+        .fullScreenCover(item: $gallery) { selection in
+            StructureGallery(structure: structure, initialIndex: selection.index, transitionNamespace: photoNamespace, visibleSourceIndices: gallerySourceIndices) { gallery = nil }
+                .id(selection.id)
         }
-        .onAppear {
-            if structure.number < 100 && structure.isVisited && !structure.isOpened {
-                dataStore.markStructureAsOpened(structure.number)
-            }
-        }
+
     }
 
     private func photo(_ index: Int, height: CGFloat, width: CGFloat) -> some View {
         Button {
-            photoIndex = index
             gallerySourceIndices = visiblePhotoIndices.union([index])
-            showGallery = true
+            gallery = GallerySelection(index: index)
         } label: {
             Image(structure.images[index]).resizable().scaledToFill()
                 .frame(width: width, height: height).clipped()
-                .overlay(alignment: .bottomTrailing) {
-                    if index == 0 {
-                        Label("\(structure.images.count) photos", systemImage: "photo.on.rectangle")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(.black.opacity(0.65), in: Capsule())
-                            .padding(16)
-                    }
-                }
+
         }
         .buttonStyle(.plain)
         .modifier(StoryPhotoSource(id: StoryPhotoID(structure: structure.number, index: index), namespace: photoNamespace))
@@ -277,4 +249,9 @@ private struct StoryPhotoSource: ViewModifier {
             content.matchedTransitionSource(id: id, in: namespace)
         } else { content }
     }
+}
+
+private struct GallerySelection: Identifiable {
+    let id = UUID()
+    let index: Int
 }

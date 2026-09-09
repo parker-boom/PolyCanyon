@@ -1,3 +1,5 @@
+> Superseded UI checkpoint: see SECOND_FEEDBACK_REVIEW.md and SECOND_FEEDBACK_CHECKLIST.md for the second hands-on feedback revision and its explicitly open checks.
+
 # Third design pass — active review, not approved
 
 Integrated baseline: `55a9a50` (app source `8155917`, UI `8b2f9eb`). Android retirement and Glur dependency removal remain inherited. This is a local design branch; no discovery algorithm, persistence format, location policy, publication, or signing change is intended.

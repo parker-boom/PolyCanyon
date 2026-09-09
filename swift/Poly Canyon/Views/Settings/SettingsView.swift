@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Presented by the main experience as a compact information sheet.
 struct SettingsView: View {
+    var showsLocation = true
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
     @Environment(\.openURL) private var openURL
@@ -13,6 +14,7 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            if showsLocation {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(locationTitle).font(.headline)
@@ -24,11 +26,17 @@ struct SettingsView: View {
                         if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                     }
                 } else {
-                    Button(recording ? "Stop marking my visits" : "Mark places I visit") {
+                    Button(recording ? "Turn off visit tracking" : "Mark places I visit") {
                         setRecording(!recording)
                     }
                 }
             } header: { Text("Location & visits") }
+            } else {
+                Section {
+                    Text("Explore the student-built architectural experiments in the hills behind Cal Poly.").font(.title3)
+                    Text("This guide brings together the canyon’s structures, photographs, and research. Created by Parker Jones.").foregroundStyle(.secondary)
+                }
+            }
             Section {
                 Button("Credits & licenses") { showsCredits = true }
                 Link("Poly Canyon website", destination: URL(string: "https://polycanyon.com")!)
@@ -74,7 +82,7 @@ struct SettingsView: View {
             return "Explore the map and stories from anywhere. Allow location in Settings to see your position and mark the places you visit."
         }
         if recording {
-            return "As you reach a structure, it is marked visited. Location is used only while the app is open; your progress stays on this device."
+            return "As you explore the canyon, the app uses your location while open to mark visited structures. Your visited progress stays on this device."
         }
         return "Use location to see where you are and mark the structures you visit. Or explore the map and stories from anywhere."
     }
