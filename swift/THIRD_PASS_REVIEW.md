@@ -6,6 +6,16 @@ Current installed review: the coordinator installed the exact `2df8671` JourneyR
 
 Current source follow-up is limited to the accessibility-size focused-map summary. It has separate output in `ThirdPass/AccessibilityRevision/` and is not installed or verified live. The selected design remains the only shipping composition; the A/B/C checkpoints and earlier binaries are preserved. The sections below record history and must not be read as the current installed-version status.
 
+## Simulator released to Parker
+
+Simulator ownership is now with Parker for hands-on exploration. Do not operate Simulator, install builds, alter location/text settings, or record video until Parker returns ownership. No video is requested.
+
+The coordinator's final state: Pro Max is booted on installed `2df8671` at standard large text; SE is shut down with the same installed build. The `9faa0b0` focused-map accessibility fix is committed and built externally but remains uninstalled. Earlier device-state notes below are historical.
+
+Additional independent observations: on SE, Water Infra-Structure's title and metadata fit at both XS and XXXL standard text; the actual no-location onboarding journey enters Tour. The Pro Max canyon test is **unresolved**: a refreshed synthetic point at 35.31585, -120.65349 changed the heading to “You’re in Poly Canyon,” but Start exploring subsequently landed on Tour. Static simulator samples expire under the unchanged 30-second freshness policy, and tool delays may have aged the sample before completion. This is not a confirmed navigation defect and canyon → Map is not marked verified. Reproduce later with a fresh or continuous synthetic sample and the existing permission; do not relax the freshness policy or request new access to force a result.
+
+Await Parker's feedback. No ready claim or unsolicited recording.
+
 ## First comparison round
 
 Three functioning compositions were compiled in one Debug binary and selected with launch-only `-CanyonEdition` arguments to avoid repeated asset builds and installation churn. Their view code is shared; isolated source checkpoints select the same compositions by default:
