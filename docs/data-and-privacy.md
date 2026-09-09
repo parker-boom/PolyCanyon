@@ -15,6 +15,14 @@ There are 31 structure identities, six historical sites, and 231 map records. Re
 
 Some historical map records contain sentinel coordinates, and historical sites 105 and 106 have no discovery tags. Runtime location validation excludes unusable coordinates; the replay suite covers the 35 discoverable structures. Preserve original records until a sourced correction is available.
 
+## Original photos and app exports
+
+`assets/photos/` preserves source photographs; `Assets.xcassets/` contains the exports Xcode packages into the app. All 147 photo imagesets have a corresponding source-photo name. The remaining 11 imagesets are map variants, logos, and interface artwork.
+
+These are not byte-identical directories. The app primarily uses HEIC exports; originals include JPEG and PNG files, and dimensions can differ. Some existing app exports are larger than their source counterparts, so do not assume every export is a smaller or higher-quality original. Keep originals intact. A future export replacement changes the app bundle and must be reviewed and shipped as a new build.
+
+The shipping catalog also deliberately selects fewer or different photos than the reference catalogs. Editing an original does not automatically update the app: replace the intended imageset export and verify its catalog reference. Never bulk-copy one catalog or directory over the other.
+
 ## On-device data
 
 The maintained 6.0 app stores visit progress locally and uses UserDefaults for settings. It does not upload location, run analytics, or require an account. Location updates run only while the app is active and tracking is enabled; the app does not request Always permission or declare background location.

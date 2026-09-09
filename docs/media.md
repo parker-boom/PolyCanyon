@@ -10,6 +10,8 @@ The README uses actual 6.0 iPhone Simulator captures from the approved App Store
 
 The discovery capture uses simulated location and progress, not a visitor’s recorded path. The displayed architecture photographs are the app’s bundled content.
 
+The four composed, approved App Store slides are checked in under [promotional/app-store](../promotional/app-store/). They match the final saved 6.0 draft, including “Every structure has a story.”
+
 ## Refresh captures
 
 Use one Simulator with the intended release build. Capture the app itself without browser controls or debug overlays. Show a short, understandable interaction: move on the map and open a discovery; search and open a structure; or swipe between tour stops. Check the first and last frames and avoid showing temporary permission dialogs unless they are the subject.
