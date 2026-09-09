@@ -1,186 +1,135 @@
 import SwiftUI
-import CoreLocation
-import Zoomable
+import UIKit
 
-class CirclePositionStore: ObservableObject {
-    @Published var circleY: CGFloat? = nil
-    @Published var circleX: CGFloat? = nil
-    @Published var isDotVisible: Bool = false
+@MainActor
+final class CirclePositionStore: ObservableObject {
+    @Published var circleY: CGFloat?
+    @Published var circleX: CGFloat?
+    @Published var isDotVisible = false
 }
-
 struct MapView: View {
-    // MARK: - Environment Objects
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var locationService: LocationService
+    @EnvironmentObject private var dataStore: DataStore
+    @StateObject private var position = CirclePositionStore()
+    @State private var canvasID = UUID()
+    @State private var locationFocus: CGPoint?
+    @State private var locationMessage = false
+    @State private var isMapZoomed = false
+    var onInfo: () -> Void = {}
+    @Binding var focusStructure: Int?
+    let focusRequest: UUID
+    var body: some View {
+        GeometryReader { geometry in
+            let point = locationFocus ?? focusStructure.flatMap { locationService.getMapPointForStructure($0)?.pixelPosition }
+            let layout = CanyonMapGeometry(size: geometry.size)
+            CanyonMapViewport(request: canvasID, focus: point.map(layout.position), zoomChanged: { zoomed in
+                if isMapZoomed != zoomed { isMapZoomed = zoomed }
+            }, select: { tap in
+                let candidates = dataStore.structures.compactMap { item -> (Int, CGFloat)? in
+                    guard let point = locationService.getMapPointForStructure(item.number)?.pixelPosition else { return nil }
+                    let position = layout.position(point)
+                    return (item.number, hypot(position.x - tap.x, position.y - tap.y))
+                }
+                if let closest = candidates.min(by: { $0.1 < $1.1 }), closest.1 <= 22 {
+                    appState.structInfoNum = closest.0
+                    appState.activeFullScreenView = .structInfo
+                }
+            }) {
+                MapWithLocationDot(mapImage: mapImage, geometry: geometry,
+                                   currentWalkthroughMapPoint: nil, circlePositionStore: position)
+                    .overlay { MapStructureTargets(size: geometry.size).allowsHitTesting(false) }
+                    .environmentObject(appState).environmentObject(locationService)
+            }.clipped()
+
+
+        }
+        .background(Color.white)
+        .modifier(MapBackgroundExtension())
+        .toolbar(.hidden, for: .navigationBar)
+        .overlay(alignment: .top) {
+            HStack(alignment: .top) {
+                if appState.exploresInPerson {
+                Button(action: onInfo) { Image(systemName: "info.circle").frame(width: 48, height: 48).canyonControl() }
+                    .accessibilityLabel("Location and visits")
+                }
+                Spacer()
+                VStack(spacing: 12) {
+                    Menu {
+                        Picker("Map appearance", selection: $appState.mapIsSatellite) {
+                            Text("Illustrated map").tag(false)
+                            Text("Satellite imagery").tag(true)
+                        }
+                        Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
+                    } label: { Image(systemName: "square.3.layers.3d").frame(width: 48, height: 48).canyonControl() }
+                        .accessibilityLabel("Map options")
+                    if appState.exploresInPerson {
+                    Button {
+                        if let fix = locationService.lastLocation,
+                           locationService.hasLocationPermission,
+                           LocationSamplePolicy.isUsable(fix, now: Date()),
+                           locationService.isWithinCanyon(fix),
+                           let point = locationService.findNearestMapPoint(to: fix.coordinate) {
+                            focusStructure = nil
+                            locationFocus = point.pixelPosition
+                            canvasID = UUID()
+                        } else { locationMessage = true }
+                    } label: { Image(systemName: "location").frame(width: 48, height: 48).canyonControl() }
+                        .accessibilityLabel("Center on my location")
+                        .disabled(!locationService.canUseLocation)
+                    }
+                    if isMapZoomed {
+                    Button(action: reset) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
+                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
+                    }
+                }
+            }.padding(16)
+        }
+        .alert("Your position isn’t available on this map", isPresented: $locationMessage) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("You’ll need a current location in Poly Canyon. You can still explore every structure on the map.")
+        }
+        .onChange(of: focusRequest) { _ in locationFocus = nil; canvasID = UUID() }
+        .onAppear { appState.configureMapSettings() }
+        .onChange(of: locationService.isInPolyCanyonArea) { nearby in
+            if appState.exploresInPerson { appState.configureMapSettings(inCanyon: nearby) }
+        }
+    }
+    private func reset() { focusStructure = nil; locationFocus = nil; canvasID = UUID() }
+    private var mapImage: String {
+        (appState.mapIsSatellite ? "SatelliteMap" : "LightMap") + (appState.mapShowNumbers ? "" : "NN")
+    }
+}
+/// Uses the renderer's existing calibration; never changes discovery coordinates.
+struct MapStructureTargets: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
-    
-    // MARK: - View State
-    @State private var selectedStructure: Structure?
-    @State private var nearbyUnvisitedMapPoints: [MapPoint] = []
-    @State private var showVisitedStructurePopup = false
-    @State private var showAllVisitedPopup = false
-    @State private var showStructPopup = false
-    @State private var showNearbyUnvisitedView = false
-    @State private var showStructureSwipingView = false
-    
-    // Holds the current map point for the structure being "walked through" in Virtual mode
-    @State private var currentWalkthroughMapPoint: MapPoint?
-    
-    // Fullscreen toggling
-    @State private var isFullScreen: Bool = false
-    @State private var opacity: Double = 1.0
-    
-    // Matched geometry for smooth transitions
-    @Namespace private var mapTransition
-    
-    // Circle position store for controlling map offset
-    @StateObject private var circlePositionStore = CirclePositionStore()
-    
+    let size: CGSize
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                if appState.isVirtualWalkthrough {
-                    // MARK: - Virtual Tour Layout
-                    VirtualTour(geometry: geometry)
-                }
-                else if isFullScreen {
-                    // MARK: - Fullscreen Adventure
-                    FullScreenMapView(
-                        mapImage: currentMapImage(),
-                        geometry: geometry,
-                        onClose: {
-                            withAnimation(.easeInOut(duration: 0.6)) {
-                                opacity = 0
-                                isFullScreen = false
-                            }
-                        },
-                        circlePositionStore: circlePositionStore
-                    )
-                    .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 1.1)),
-                            removal: .opacity.combined(with: .scale(scale: 0.9))
-                        )
-                    )
-                    .opacity(opacity)
-                    
-                } else {
-                    // MARK: - Regular Map Layout (Adventure / Non-fullscreen)
-                    VStack(spacing: 12) {
-                        MapContainerView(
-                            isSatelliteView: Binding(
-                                get: { appState.mapIsSatellite },
-                                set: { appState.mapIsSatellite = $0 }
-                            ),
-                            hideNumbers: Binding(
-                                get: { !appState.mapShowNumbers },
-                                set: { appState.mapShowNumbers = !$0 }
-                            ),
-                            isFullScreen: $isFullScreen,
-                            circlePositionStore: circlePositionStore
-                        ) {
-                            MapWithLocationDot(
-                                mapImage: currentMapImage(),
-                                geometry: geometry,
-                                currentWalkthroughMapPoint: currentWalkthroughMapPoint,
-                                circlePositionStore: circlePositionStore
-                            )
-                            .zoomable(minZoomScale: 1.0, doubleTapZoomScale: 2.0)
-                            .matchedGeometryEffect(id: "mapContainer", in: mapTransition)
-                        }
-                        
-                        // The shared bottom bar (handles modes, including starting virtual tour)
-                        MapBottomBar(currentStructureIndex: $appState.currentStructureIndex)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 5)
-                    .padding(.bottom, 12)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 0.9)),
-                            removal: .opacity.combined(with: .scale(scale: 1.1))
-                        )
-                    )
-                    .opacity(opacity)
-                }
-            }
-            .onChange(of: isFullScreen) { _ in
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    opacity = 1.0
-                }
-            }
-            // Whenever user enters or leaves the canyon
-            .onChange(of: locationService.isInPolyCanyonArea) { inCanyon in
-                if appState.adventureModeEnabled {
-                    appState.configureMapSettings(inCanyon: inCanyon)
-                }
-            }
-            // Whenever user toggles adventure mode
-            .onChange(of: appState.adventureModeEnabled) { isEnabled in
-                if isEnabled {
-                    appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)
-                }
-            }
-            // Whenever the current structure changes, update walk point
-            .onChange(of: appState.currentStructureIndex) { _ in
-                if appState.isVirtualWalkthrough {
-                    let newStructure = dataStore.structures[appState.currentStructureIndex]
-                    currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
-                } else {
-                    currentWalkthroughMapPoint = nil
-                }
-            }
-            .onChange(of: appState.currentStructureIndex) { _ in
-                if appState.isVirtualWalkthrough {
-                    let newStructure = dataStore.structures[appState.currentStructureIndex]
-                    currentWalkthroughMapPoint = locationService.getMapPointForStructure(newStructure.number)
-                } else {
-                    currentWalkthroughMapPoint = nil
+        let layout = CanyonMapGeometry(size: size)
+        ZStack {
+            ForEach(dataStore.structures) { structure in
+                if let point = locationService.getMapPointForStructure(structure.number) {
+                    Button {
+                        appState.structInfoNum = structure.number
+                        appState.activeFullScreenView = .structInfo
+                    } label: { Color.clear.frame(width: 44, height: 44).contentShape(Rectangle()) }
+                    .accessibilityLabel("\(structure.number), \(structure.title)\(appState.exploresInPerson && structure.isVisited ? ", visited" : "")")
+                    .position(layout.position(point.pixelPosition))
                 }
             }
         }
-        .onAppear {
-            appState.configureMapSettings()
-            if appState.adventureModeEnabled {
-                appState.configureMapSettings(inCanyon: locationService.isInPolyCanyonArea)
-            }
-        }
-    }
-    
-    // MARK: - Helper Methods
-    private func currentMapImage() -> String {
-        let baseImage = appState.mapIsSatellite
-            ? "SatelliteMap"
-            : (appState.isDarkMode ? "DarkMap" : "LightMap")
-        return !appState.mapShowNumbers ? baseImage + "NN" : baseImage
     }
 }
 
-struct MapView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Light Mode
-            MapView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = false
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Light Mode")
-                
-            // Dark Mode
-            MapView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Dark Mode")
-        }
+/// Extend only the background under glass; fitting the interactive canvas into
+/// the safe area keeps Entry Arch reachable above the floating tab bar.
+private struct MapBackgroundExtension: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) { content.backgroundExtensionEffect() }
+        else { content }
     }
 }

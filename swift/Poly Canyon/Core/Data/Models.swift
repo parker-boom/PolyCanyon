@@ -60,10 +60,6 @@ struct Structure: Codable, Identifiable, Equatable {
         isLiked = try container.decodeIfPresent(Bool.self, forKey: .isLiked) ?? false
     }
     
-    // Conform to Equatable
-    static func == (lhs: Structure, rhs: Structure) -> Bool {
-        return lhs.number == rhs.number
-    }
 }
 
 /// IMPORTANT NOTE: Ghost structures have int values of 101,102... because this is how we will manage their pings from map point marking as visited
@@ -85,9 +81,6 @@ struct GhostStructure: Codable, Identifiable, Equatable {
         return Int(number) ?? 0
     }
     
-    static func == (lhs: GhostStructure, rhs: GhostStructure) -> Bool {
-        return lhs.number == rhs.number
-    }
     
     mutating func markAsVisited() {
         isVisited = true
@@ -114,11 +107,12 @@ struct GhostStructure: Codable, Identifiable, Equatable {
         builders = try container.decode([String].self, forKey: .builders)
         description = try container.decode(String.self, forKey: .description)
         images = try container.decode([String].self, forKey: .images)
+        isVisited = try container.decodeIfPresent(Bool.self, forKey: .isVisited) ?? false
     }
 }
 
 
-struct MapPoint: Codable {
+struct MapPoint {
     let coordinate: CLLocationCoordinate2D
     let pixelPosition: CGPoint
     let structure: Int
@@ -143,23 +137,52 @@ extension MapPoint {
     }
 }
 
-// MARK: - CLLocationCoordinate2D Codable
-extension CLLocationCoordinate2D: Codable {
-    enum CodingKeys: String, CodingKey {
-        case latitude
-        case longitude
+extension Structure {
+    init(
+        number: Int,
+        title: String,
+        year: String,
+        advisors: [String],
+        builders: [String],
+        description: String,
+        funFact: String?,
+        images: [String],
+        isVisited: Bool = false,
+        isOpened: Bool = false,
+        recentlyVisited: Int = -1,
+        isLiked: Bool = false
+    ) {
+        self.number = number
+        self.title = title
+        self.year = year
+        self.advisors = advisors
+        self.builders = builders
+        self.description = description
+        self.funFact = funFact
+        self.images = images
+        self.isVisited = isVisited
+        self.isOpened = isOpened
+        self.recentlyVisited = recentlyVisited
+        self.isLiked = isLiked
     }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let latitude = try container.decode(Double.self, forKey: .latitude)
-        let longitude = try container.decode(Double.self, forKey: .longitude)
-        self.init(latitude: latitude, longitude: longitude)
+}
+
+extension Structure {
+    /// Keep the catalog's multiple dates intact; they may include later alterations.
+    var catalogDates: String? {
+        let value = year.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty || value.lowercased() == "xxxx" ? nil : year
     }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(latitude, forKey: .latitude)
-        try container.encode(longitude, forKey: .longitude)
+}
+
+
+extension Structure {
+    func matchesCatalogQuery(_ query: String) -> Bool {
+        func terms(_ text: String) -> [String] {
+            text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+                .components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+        }
+        let fields = terms(title + " " + String(number) + " " + String(format: "%02d", number) + " " + (catalogDates ?? "date unknown"))
+        return terms(query).allSatisfy { term in fields.contains { $0.contains(term) } }
     }
 }

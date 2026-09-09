@@ -1,97 +1,143 @@
-/*
- SettingsView manages the app's configuration interface with three main sections: general settings, 
- statistics (in adventure mode), and credits. It handles mode switching, data reset confirmations, and 
- location settings access. The view coordinates with multiple environment objects to manage app state 
- and data persistence while providing a consistent theme-aware interface.
-*/
-
 import SwiftUI
 
+/// Presented by the main experience as a compact information sheet.
 struct SettingsView: View {
-    // MARK: - Environment Objects
+    var showsLocation = true
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var locationService: LocationService
-    
-    // Get the value from UserDefaults that's set by the RootRouter
-    // This avoids recalculating the same logic
-    private var isDesignVillageWeekend: Bool {
-        // Get from UserDefaults directly
-        UserDefaults.standard.bool(forKey: "isDesignVillageWeekend")
-    }
-    
+    @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
+    @State private var pendingPermission = false
+    @State private var showsCredits = false
+
+    private var recording: Bool { appState.adventureModeEnabled && locationService.hasLocationPermission }
+
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                    
-                VStack(spacing: 30) {
-
-                    // Only show during DV weekend
-                    if isDesignVillageWeekend {
-                        DesignVillageModeSection(
-                            onSwitchToDV: switchToDesignVillageMode
-                        )
-                    }
-
-                    GeneralSettingsSection(
-                        onModeSwitch: {
-                            appState.showAlert(.modePicker(currentMode: !appState.adventureModeEnabled))
-                        },
-                        onReset: {
-                            let type: AppState.AlertType.ResetType = appState.adventureModeEnabled ? .structures : .favorites
-                            appState.showAlert(.resetConfirmation(type: type))
-                        }
-                    )
-                    
-                    if appState.adventureModeEnabled {
-                        StatisticsSection()
-                    }
-
-                    
-                    CreditsSection()
+        List {
+            if showsLocation && appState.exploresInPerson {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(locationTitle).font(.headline)
+                    Text(locationDescription).font(.callout).foregroundStyle(.secondary)
                 }
-                .padding()
+                .padding(.vertical, 4)
+                if locationService.isLocationPermissionDenied {
+                    Button("Open location settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                } else {
+                    Button(recording ? "Turn off visit tracking" : "Mark places I visit") {
+                        setRecording(!recording)
+                    }
+                }
+            } header: { Text("Location & visits") }
+            } else {
+                Section {
+                    Text("A record of the canyon.").font(.title3.weight(.semibold))
+                    Text("This is a best-effort account of Poly Canyon’s history, bringing together research, photographs, and original project material. Records are incomplete, and structures change over time.").foregroundStyle(.secondary)
+                    Text("Research drew on Kennedy Library resources and work by students in Cal Poly’s College of Architecture and Environmental Design. Original reports and source links are available on the website.").foregroundStyle(.secondary)
+                }
+            }
+            Section {
+                Button("Credits & licenses") { showsCredits = true }
+                Link("Poly Canyon website", destination: URL(string: "https://polycanyon.com")!)
+                Link("Help & support", destination: URL(string: "https://polycanyon.com/support")!)
+                Link("Privacy", destination: URL(string: "https://polycanyon.com/privacy")!)
+            } footer: {
+                HStack(alignment: .top) {
+                    Text("Created by Parker Jones")
+                    Spacer()
+                    Text("Poly Canyon \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "6.0")")
+                }.font(.caption)
             }
         }
-        .background(appState.isDarkMode ? Color.black : Color.white)
+        .navigationTitle("Info")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .scrollContentBackground(.hidden)
+        .background(.white)
+        .tint(Color(red: 0.15, green: 0.27, blue: 0.21))
+        .sheet(isPresented: $showsCredits) {
+            NavigationStack {
+                GuideCreditsView()
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showsCredits = false } } }
+            }
+        }
+        .onChange(of: locationService.locationStatus) { _ in
+            guard pendingPermission else { return }
+            if locationService.hasLocationPermission {
+                pendingPermission = false
+                setRecording(true)
+            } else if locationService.isLocationPermissionDenied {
+                pendingPermission = false
+            }
+        }
+        .onDisappear { pendingPermission = false }
+        .preferredColorScheme(.light)
     }
-    
-    // Switch to Design Village mode
-    private func switchToDesignVillageMode() {
-        // Set UserDefaults to indicate DV mode
-        UserDefaults.standard.set(true, forKey: "designVillageModeOverride")
-        
-        // Post notification to trigger mode switch
-        NotificationCenter.default.post(name: Notification.Name("ModeSwitched"), object: nil)
-        
+
+    private var locationTitle: String {
+        if locationService.isLocationPermissionDenied { return "Explore without location" }
+        if pendingPermission { return "Choose location access" }
+        return recording ? "Your visits appear on the map" : "Mark the places you visit"
+    }
+
+    private var locationDescription: String {
+        if locationService.isLocationPermissionDenied {
+            return "Explore the map and stories from anywhere. Allow location in Settings to see your position and mark the places you visit."
+        }
+        if recording {
+            return "As you explore the canyon, the app uses your location while open to mark visited structures. Your visited progress stays on this device."
+        }
+        return "Use location to see where you are and mark the structures you visit. Or explore the map and stories from anywhere."
+    }
+
+    private func setRecording(_ enabled: Bool) {
+        if enabled && !locationService.hasLocationPermission {
+            pendingPermission = true
+            locationService.requestInitialPermission()
+            return
+        }
+        pendingPermission = false
+        appState.adventureModeEnabled = enabled
+        locationService.setMode(enabled ? .adventure : .virtualTour)
     }
 }
 
-// MARK: - Preview
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Light Mode Preview
-            SettingsView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = false
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Light Mode")
-                
-            // Dark Mode Preview
-            SettingsView()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    return state
-                }())
-                .environmentObject(DataStore.shared)
-                .environmentObject(LocationService.shared)
-                .previewDisplayName("Dark Mode")
+private struct GuideCreditsView: View {
+    var body: some View {
+        List {
+            Section {
+                Text("Created by Parker Jones.")
+                Text("Cal Poly, San Luis Obispo\nCollege of Architecture and Environmental Design")
+                    .foregroundStyle(.secondary)
+            }
+            Section("Open source") {
+                ForEach(["Glur", "Zoomable", "Shiny"], id: \.self) { name in
+                    NavigationLink(name) {
+                        ScrollView {
+                            Text(license(named: name))
+                                .font(.callout)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                        }
+                        .navigationTitle(name)
+                        .navigationBarTitleDisplayMode(.inline)
+                    }
+                }
+            }
         }
+        .navigationTitle("Credits & licenses")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func license(named name: String) -> String {
+        let url = Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Licenses")
+            ?? Bundle.main.url(forResource: name, withExtension: "txt")
+        guard let url, let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return "License text could not be loaded. Please contact parker.jones@live.com."
+        }
+        return text
     }
 }

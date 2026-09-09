@@ -13,6 +13,7 @@ struct MapWithLocationDot: View {
     
     // Virtual Tour (not strictly changed here)
     let currentWalkthroughMapPoint: MapPoint?
+    var markerScale: CGFloat = 1
     
     // ADDED: We bring in the CirclePositionStore
     @ObservedObject var circlePositionStore: CirclePositionStore
@@ -27,15 +28,17 @@ struct MapWithLocationDot: View {
             return currentWalkthroughMapPoint != nil
         } else {
             guard appState.adventureModeEnabled else { return false }
-            guard let userLoc = locationService.lastLocation else { return false }
-            return locationService.isWithinBackgroundRange(userLoc)
+            guard locationService.hasLocationPermission,
+                  let userLoc = locationService.lastLocation,
+                  LocationSamplePolicy.isUsable(userLoc, now: Date()) else { return false }
+            return locationService.isWithinNearbyRange(userLoc)
         }
     }
     
     var body: some View {
         ZStack {
             // Background layer
-            MapBackgroundLayer()
+            MapBackgroundLayer(isSatellite: mapImage.hasPrefix("Satellite"))
                 .scaleEffect(appState.isVirtualWalkthrough ? 1.4 : 1.2)
 
             // Base map layer
@@ -48,9 +51,8 @@ struct MapWithLocationDot: View {
             // Location indicator overlay
             if showPulsingCircle {
                 PulsingCircle()
+                    .scaleEffect(markerScale)
                     .position(circlePosition())
-                    .shadow(color: appState.mapIsSatellite ? .white.opacity(0.8) : .black.opacity(0.8),
-                            radius: 4, x: 0, y: 0)
                     .onAppear {
                         circlePositionStore.isDotVisible = true
                     }
@@ -91,9 +93,9 @@ struct MapWithLocationDot: View {
                 // If no valid location, place offscreen, and mark not visible
                 pos = CGPoint(x: -100, y: -100)
                 DispatchQueue.main.async {
-                    circlePositionStore.circleY = nil
-                    circlePositionStore.circleX = nil
-                    circlePositionStore.isDotVisible = false
+                    if circlePositionStore.circleY != nil { circlePositionStore.circleY = nil }
+                    if circlePositionStore.circleX != nil { circlePositionStore.circleX = nil }
+                    if circlePositionStore.isDotVisible { circlePositionStore.isDotVisible = false }
                 }
                 return pos
             }
@@ -113,9 +115,10 @@ struct MapWithLocationDot: View {
         
         // ADDED: Publish to CirclePositionStore
         DispatchQueue.main.async {
-            circlePositionStore.circleY = pos.y
-            circlePositionStore.circleX = pos.x
-            circlePositionStore.isDotVisible = true
+            // Publishing unchanged coordinates schedules another render of this view.
+            if circlePositionStore.circleY != pos.y { circlePositionStore.circleY = pos.y }
+            if circlePositionStore.circleX != pos.x { circlePositionStore.circleX = pos.x }
+            if !circlePositionStore.isDotVisible { circlePositionStore.isDotVisible = true }
         }
         
         return pos
@@ -143,34 +146,42 @@ struct MapWithLocationDot: View {
 // MARK: - Pulsing Circle
 struct PulsingCircle: View {
     @State private var circleScale: CGFloat = 1.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
-        Circle()
-            .fill(Color.green)
-            .frame(width: 14, height: 14)
-            .overlay(
-                Circle()
-                    .stroke(Color.white, lineWidth: 2)
-                    .scaleEffect(circleScale)
-                    .opacity(2 - circleScale)
-            )
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.25).repeatForever(autoreverses: true)) {
-                    circleScale = 1.5
-                }
-            }
+        ZStack {
+            Circle().fill(Color.green.opacity(0.16))
+                .frame(width: 26, height: 26)
+                .scaleEffect(reduceMotion ? 1 : circleScale)
+                .opacity(reduceMotion ? 1 : 1.7 - circleScale * 0.5)
+            Circle().fill(Color(red: 0.12, green: 0.65, blue: 0.36))
+                .frame(width: 14, height: 14)
+                .overlay { Circle().strokeBorder(.white, lineWidth: 2) }
+                .shadow(color: .black.opacity(0.22), radius: 2, y: 1)
+        }
+        .frame(width: 14, height: 14)
+        .onAppear { updatePulse() }
+        .onChange(of: reduceMotion) { _ in updatePulse() }
     }
+    private func updatePulse() {
+        circleScale = 1
+        if !reduceMotion {
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { circleScale = 1.35 }
+        }
+    }
+
 }
 
 struct MapBackgroundLayer: View {
     @EnvironmentObject var appState: AppState
+    let isSatellite: Bool
     
     var body: some View {
         ZStack {
             Color(appState.isDarkMode ? .black : .white)
                 .ignoresSafeArea(.container, edges: .top)
             
-            if appState.mapIsSatellite {
+            if isSatellite {
                 Image("BlurredBG")
                     .resizable()
                     .edgesIgnoringSafeArea(.all)

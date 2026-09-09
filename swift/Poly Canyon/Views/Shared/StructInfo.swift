@@ -1,477 +1,312 @@
-//
-//  StructInfo.swift
-//  YourApp
-//
-//  Created by Your Name on 1/21/25.
-//
-
 import SwiftUI
-import Zoomable
+import UIKit
 
+// Map selections still enter through the existing route. Catalog links push the story directly.
 struct StructInfo: View {
-    // MARK: - Environment Objects
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    
-    // MARK: - Local State
-    @State private var selectedTab: InfoTab = .info
-    
-    // MARK: - Computed Property for the Structure
-    private var structure: Structure {
-        // You can modify how the correct structure is retrieved if needed
-        dataStore.structures[appState.structInfoNum - 1]
-    }
-    
-    // MARK: - Body
+    @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var dataStore: DataStore
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                Color.white
-                    .ignoresSafeArea(edges: .all)
-                
-                VStack(spacing: 0) {
-                    HeaderView(
-                        structure: structure,
-                        dismissAction: { appState.activeFullScreenView = nil },
-                        safeAreaHeight: geo.size.height * 0.15
-                    )
-                    
-                    // 2) Main Content - ~75% of height
-                    ZStack {
-                        switch selectedTab {
-                        case .info:
-                            InfoSectionView(structure: structure, onImageTap: {
-                                selectedTab = .images
-                            })
-                        case .images:
-                            ImagesSectionView(structure: structure, selectedTab: $selectedTab)
-                        }
-                    }
-                    .frame(height: geo.size.height * 0.78)
-                    
-                    // 3) Bottom Picker - ~10% of height
-                    BottomTabPicker(selectedTab: $selectedTab)
-                        .frame(height: geo.size.height * 0.07)
-                }
-                
+        StructureExperience(numbers: dataStore.structures.map(\.number), selected: appState.structInfoNum)
 
-            }
-        }
-        .ignoresSafeArea(edges: .top)
-        .onAppear {
-            if structure.isVisited && !structure.isOpened {
-                dataStore.markStructureAsOpened(structure.number)
-            }
-        }
     }
 }
 
-// MARK: - InfoTab Enum
-/// Tracks which tab is currently selected at the bottom (Info or Images).
-fileprivate enum InfoTab {
-    case info
-    case images
+struct UnavailableStructureView: View {
+    @EnvironmentObject private var appState: AppState
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("This structure is unavailable.").font(.title2)
+            Button("Back to Poly Canyon") { appState.activeFullScreenView = nil }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(StoryPalette.paper)
+    }
 }
 
-// MARK: - HeaderView
-/// Top header with a circle for the structure number (left), a large (possibly multiline) title in the center,
-/// and an `X` button in a circle on the right to dismiss.
-fileprivate struct HeaderView: View {
+enum StoryPalette {
+    static let paper = Color.white
+    static let ink = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(red: 0.83, green: 0.90, blue: 0.81, alpha: 1) : UIColor(red: 0.13, green: 0.23, blue: 0.18, alpha: 1)
+    })
+}
+
+struct StructureStory: View {
     let structure: Structure
-    let dismissAction: () -> Void
-    let safeAreaHeight: CGFloat
-    
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.gray.opacity(0.15)
-                .frame(height: safeAreaHeight)
-                .background(Color.gray.opacity(0.15))
-                .ignoresSafeArea(edges: .top)
-                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-            
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(.thinMaterial)
-                            .shadow(color: .black.opacity(0.65), radius: 4)
-                        Text("\(structure.number)")
-                            .font(.system(size: 22, weight: .black))
-                    }
-                    .frame(width: 44, height: 44)
-                    
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(.thinMaterial)
-                            .shadow(color: .black.opacity(0.65), radius: 3)
-                        
-                        Text(structure.title)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.black)
-                            .shadow(color: .white.opacity(0.65), radius: 3, y: 0)
-                            .multilineTextAlignment(.center)
-                            .minimumScaleFactor(0.5)
-                            .padding(.horizontal, 16)
-                    }
-                    .frame(height: 44)
-                    
-                    Button(action: dismissAction) {
-                        ZStack {
-                            Circle()
-                                .fill(.thinMaterial)
-                                .shadow(color: .black.opacity(0.65), radius: 4)
-                            Image(systemName: "xmark")
-                                .font(.system(size: 15, weight: .black))
-                                .foregroundColor(.black)
-                        }
-                    }
-                    .frame(width: 44, height: 44)
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.bottom, 12)
-        }
-    }
-}
+    var onPageSwipe: (Int) -> Void = { _ in }
+    @EnvironmentObject private var dataStore: DataStore
+    @State private var gallery: GallerySelection?
+    @State private var showResearch = false
+    @Namespace private var photoNamespace
+    @State private var visiblePhotoIndices: Set<Int> = []
+    @State private var gallerySourceIndices: Set<Int> = []
 
-// MARK: - InfoSectionView
-/// Main Content for the "Info" tab. This is a scroll view with:
-/// 1) A row: [Image with year overlay, Fun Fact next to it]
-/// 2) A collapsible description (starts expanded)
-/// 3) Builders row
-/// 4) Advisors row
-fileprivate struct InfoSectionView: View {
-    let structure: Structure
-    let onImageTap: () -> Void 
-    @State private var isDescriptionExpanded = true
-    
+    private var introduction: String {
+        if let summary = Self.introductions[structure.number] { return summary }
+        var sentences: [String] = []
+        structure.description.enumerateSubstrings(in: structure.description.startIndex..<structure.description.endIndex, options: .bySentences) { sentence, _, _, stop in
+            if let sentence { sentences.append(sentence.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            if sentences.count == 2 { stop = true }
+        }
+        return sentences.isEmpty ? structure.description : sentences.joined(separator: " ")
+    }
+
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 15) {
-                // Top Row - Fixed size containers
-                HStack(spacing: 10) {
-                    // Image Container - Fixed size
-                    ZStack(alignment: .bottomTrailing) {
-                        if let firstImage = structure.images.first {
-                            Image(firstImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 200, height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                        }
-                        
-                        if structure.year != "xxxx" {
-                            Text(structure.year)
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.65), radius: 3)
-                                .padding(6)
-                                .background(.ultraThinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .padding(10)
-                        }
-                        
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                            .shadow(color: .white.opacity(0.45), radius: 5, y: 2)
-                            .padding(12)
-                            .position(x: 175, y: 25)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if !structure.images.isEmpty {
+                        photo(0, height: min(480, max(300, geometry.size.height * 0.6)), width: geometry.size.width)
                     }
-                    .frame(width: 180, height: 180)
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .black.opacity(0.75), radius: 5, y: 2)
-                    .onTapGesture {
-                        onImageTap()
-                    }
-                    
-                    // Fun Fact Container - Fixed size
-                    if let fact = structure.funFact, !fact.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
-                            HStack {
-                                Text("💯")
-                                    .font(.system(size: 14, weight: .bold))
-                                Text("FUN FACT")
-                                    .font(.system(size: 20, weight: .bold))
-                                
-                                Spacer()
-                            }
-                            .padding(.top, 10)
-                            
-                            Text(fact)
-                                .font(.system(size: 22))
-                                .padding(.top, 5)
-                                .lineSpacing(4)
-                                .minimumScaleFactor(0.5)
-                                .lineLimit(8)
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal, 12)
-                        .frame(maxWidth: .infinity, maxHeight: 180)
-                        .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
-                    }
-                }
-                
-                // Description Box - Full width with padding
-                VStack(alignment: .leading, spacing: 8) {
-                    Button(action: { isDescriptionExpanded.toggle() }) {
-                        HStack {
-                            Text("📝")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("DESCRIPTION")
-                                .font(.system(size: 20, weight: .bold))
-                            Spacer()
-                            Image(systemName: isDescriptionExpanded ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 16, weight: .bold))
-                        }
-                        .foregroundColor(.primary)
-                    }
-                    
-                    if isDescriptionExpanded {
-                        Text(structure.description)
-                            .font(.system(size: 20))
-                            .padding(.top, 4)
+                    VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(structure.title).font(.largeTitle.weight(.semibold))
+                                .foregroundStyle(StoryPalette.ink).accessibilityAddTraits(.isHeader)
+                            HStack(alignment: .firstTextBaseline, spacing: 14) {
+                                Text(structure.number >= 100 ? "Archive" : "No. \(String(format: "%02d", structure.number))")
+                                if let dates = structure.catalogDates {
+                                    Text(dates).accessibilityLabel("Catalog dates, \(dates)")
+                                }
+                            }.font(.subheadline).foregroundStyle(.secondary)
+                        }.fixedSize(horizontal: false, vertical: true)
+                        Text(introduction)
+                            .font(.title3)
                             .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(.thinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
-                
-                // Builders Row - Full width with padding
-                if !structure.builders.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack{
-                            Text("👷")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("BUILDERS")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        Text(structure.builders.joined(separator: ", "))
-                            .font(.system(size: 20))
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
-                }
-                
-                // Advisors Row - Full width with padding
-                if !structure.advisors.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack{
-                            Text("🎓")
-                                .font(.system(size: 14, weight: .bold))
-                            Text("ADVISORS")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        Text(structure.advisors.joined(separator: ", "))
-                            .font(.system(size: 20))
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .black.opacity(0.35), radius: 5, y: 2)
-                }
-            }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 20)
-        }
-    }
-}
+                    .padding(24)
+                    .padding(.bottom, 12)
+                    .contentShape(Rectangle())
+                    .modifier(StoryPagingGesture(page: onPageSwipe))
 
-// MARK: - ImagesSectionView
-/// Main content for the "Images" tab. Shows a full-screen image with blurred background behind it,
-/// plus a dot indicator at the bottom. The user can swipe horizontally through all structure images.
-fileprivate struct ImagesSectionView: View {
-    let structure: Structure
-    @Binding var selectedTab: InfoTab
-    @EnvironmentObject var dataStore: DataStore
-    @State private var currentIndex: Int = 0
-    
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                // TabView for images
-                TabView(selection: $currentIndex) {
-                    ForEach(structure.images.indices, id: \.self) { idx in
-                        // Each page: blurred background + main image
-                        ZStack {
-                            // Blurred background
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .blur(radius: 8)
-                                .clipped()
-                            
-                            // Foreground image scaled to fit
-                            Image(structure.images[idx])
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .clipped()
-                                .zoomable()
-                        }
-                        .tag(idx)
+                    if structure.images.count > 1 {
+                        photo(1, height: 300, width: geometry.size.width)
                     }
-                }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                
-                // Dot indicator overlay (bottom center)
-                VStack {
-                    Spacer()
-                    HStack(spacing: 6) {
-                        ForEach(structure.images.indices, id: \.self) { dotIndex in
-                            Circle()
-                                .fill(dotIndex == currentIndex ? Color.white : Color.white.opacity(0.4))
-                                .frame(width: dotIndex == currentIndex ? 10 : 8,
-                                       height: dotIndex == currentIndex ? 10 : 8)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                    }
-                    .padding(.bottom, 30)
-                }
-                
-                // Like Button Overlay
-                VStack {
-                    Spacer()
-                    HStack {
-                        Button(action: { selectedTab = .info }) {
-                            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                .font(.system(size: 32, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                        .padding(25)
-                        
-                        Spacer()
-                        
-                        Button(action: { dataStore.toggleLike(for: structure.id) }) {
-                            Image(systemName: dataStore.isLiked(for: structure.id) ? "heart.fill" : "heart")
-                                .font(.system(size: 40, weight: .semibold))
-                                .foregroundColor(dataStore.isLiked(for: structure.id) ? .red : .white)
-                                .shadow(color: .black.opacity(0.85), radius: 5, y: 2)
-                                .shadow(color: .white.opacity(0.65), radius: 5, y: 2)
-                        }
-                        .padding(25)
-                    }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - BottomTabPicker
-/// A custom bottom picker (or toggle) that shows the currently selected tab in text/icon form,
-/// plus a button to switch to the other tab. The exact style can be further tweaked.
-fileprivate struct BottomTabPicker: View {
-    @Binding var selectedTab: InfoTab
-    
-    var body: some View {
-        ZStack {
-            Color.gray.opacity(0.15)
-                .background(Color.gray.opacity(0.15))
-                .ignoresSafeArea(edges: .bottom)
-                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-            
-            HStack {
-                Spacer()
-                
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.thinMaterial)
-                        .shadow(color: .black.opacity(0.4), radius: 3)
-                    
-                    HStack(spacing: 15) {
-                        Button(action: { selectedTab = .info }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "info.circle.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                                if selectedTab == .info {
-                                    Text("Info")
-                                        .font(.system(size: 16, weight: .medium))
+                    if structure.images.count > 2 {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(2..<structure.images.count, id: \.self) { index in
+                                    photo(index, height: 160, width: 220)
                                 }
-                            }
-                            .foregroundColor(selectedTab == .info ? .black : .gray)
-                            .frame(width: 120)
-                        }
-                        
+                            }.padding(.horizontal, 24)
+                        }.padding(.vertical, 24)
+                    }
+                    VStack(alignment: .leading, spacing: 24) {
                         Divider()
-                            .frame(width: 1)
-                            .background(Color.black.opacity(0.4))
-                        
-                        Button(action: { selectedTab = .images }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "camera.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                                if selectedTab == .images {
-                                    Text("Images")
-                                        .font(.system(size: 16, weight: .medium))
-                                        
-                                        
-                                }
-                                    
+                        DisclosureGroup(isExpanded: $showResearch) {
+                            VStack(alignment: .leading, spacing: 24) {
+                                Text(structure.description).lineSpacing(5)
+                                if !structure.builders.isEmpty { attribution("Builders", names: structure.builders) }
+                                if !structure.advisors.isEmpty { attribution("Advisors", names: structure.advisors) }
                             }
-                            .padding(.trailing, 20)
-                            .foregroundColor(selectedTab == .images ? .black : .gray)
-                            
-                            .frame(width: 120)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 16)
+                        } label: {
+                            Text("The full story").font(.title2.weight(.semibold)).padding(.vertical, 10)
+                        }
+                        .tint(StoryPalette.ink)
+                        Link(destination: URL(string: "https://polycanyon.com")!) {
+                            HStack {
+                                Text("More at polycanyon.com")
+                                Image(systemName: "arrow.up.right").font(.caption)
+                            }
+                        }
+                        .font(.subheadline)
+                        .accessibilityHint("Opens the website; requires an internet connection")
+                    }
+                    .padding(24)
+                    .padding(.bottom, 24)
+                }
+            }
+            .modifier(StoryScrollEdges())
+            .background(StoryPalette.paper)
+            .coordinateSpace(name: photoNamespace)
+            .onPreferenceChange(StoryPhotoFrames.self) { frames in
+                guard gallery == nil else { return }
+                let viewport = CGRect(origin: .zero, size: geometry.size)
+                visiblePhotoIndices = Set(frames.compactMap { index, frame in
+                    let intersection = viewport.intersection(frame)
+                    return !intersection.isNull && intersection.width > 1 && intersection.height > 1 ? index : nil
+                })
+            }
+            .onChange(of: geometry.size) { _ in
+                // A presentation-time resize invalidates the saved return viewport.
+                if gallery != nil { gallerySourceIndices = [] }
+            }
+        }
+        .modifier(StoryCanvasNavigation())
+        .navigationBarTitleDisplayMode(.inline)
+        .tint(StoryPalette.ink)
+        .fullScreenCover(item: $gallery) { selection in
+            StructureGallery(structure: structure, initialIndex: selection.index, transitionNamespace: photoNamespace, visibleSourceIndices: gallerySourceIndices) { gallery = nil }
+                .id(selection.id)
+        }
+
+    }
+
+    private func photo(_ index: Int, height: CGFloat, width: CGFloat) -> some View {
+        Button {
+            gallerySourceIndices = visiblePhotoIndices.union([index])
+            gallery = GallerySelection(index: index)
+        } label: {
+            Image(structure.images[index]).resizable().scaledToFill()
+                .frame(width: width, height: height).clipped()
+                .modifier(StoryImageTopBlur(enabled: index == 0))
+
+        }
+        .buttonStyle(.plain)
+        .modifier(StoryPagingGesture(enabled: index < 2, page: onPageSwipe))
+        .modifier(StoryPhotoSource(id: StoryPhotoID(structure: structure.number, index: index), namespace: photoNamespace))
+        .background {
+            GeometryReader { photoGeometry in
+                Color.clear.preference(key: StoryPhotoFrames.self, value: [index: photoGeometry.frame(in: .named(photoNamespace))])
+            }
+        }
+        .accessibilityLabel("View \(structure.title), photo \(index + 1) of \(structure.images.count)")
+    }
+
+    private func attribution(_ title: String, names: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.headline)
+            Text(names.joined(separator: ", ")).font(.body).foregroundStyle(.secondary)
+        }
+    }
+
+    // Short introductions drawn only from the bundled research. Full source text remains below.
+    private static let introductions: [Int: String] = [
+        1: "A steel frame wrapped in serpentinite stone marks the canyon’s entrance. Its three-fingered walls guide visitors while keeping cattle out. Look for the builders’ terracotta faces tucked into the stonework.",
+        2: "This 46-foot bridge explores an unexpected structural material: plastic pipe. Fiber-reinforced tubes contain steel rebar anchored in concrete, creating a lightweight crossing.",
+        3: "The Blade began in 1963 as an experiment in post-tensioned concrete. After the original collapsed, students rebuilt its petal-shaped form as a catenary arch, using compression to hold it together.",
+        4: "Wooden boat-building techniques shaped this triangular experiment. Assembled in a single day from prefabricated pieces, its curves and open frame cast changing shadows across the canyon.",
+        5: "Two fourth-year students built this kinetic sculpture during late nights in the metal shop. Its metal sails rotate on ball bearings and originally wore temperature-sensitive paint.",
+        6: "Twelve underground anchors hold the Tensile Pavilion’s sweeping fabric in tension. Students raised donations, sourced specialized fabric, and spent a year creating this shade structure.",
+        7: "Hundreds of students built this dome in 1957 from surplus boiler pipes and 19,000 bolts. Originally near the architecture building, it moved to the canyon piece by piece in 1963.",
+        8: "Supported at one end, this steel-and-cable deck projects above the canyon floor. A 2024 restoration replaced weathered parts with Alaskan yellow cedar and reduced the deck’s bounce.",
+        9: "These curved concrete shells began as a mound of earth. Students sprayed concrete over the hill, then dug the dirt out from beneath it.",
+        10: "Started in 1982, this hillside house explored natural cooling and passive solar design. Its wire-mesh-and-concrete dome remained unfinished when funding ran out.",
+        11: "Parabolic concrete ribs and tensioned steel cables turn this hillside into a sundial. Its brass hour markers have disappeared, but sunlight still moves across the structure.",
+        12: "A thin shell of spray-applied concrete spans the creek. Tension cables held the steel frame during construction; once the concrete cured, the cables were cut and the bridge settled into compression.",
+        13: "Simple wooden trusses carry this crossing. Canyon volunteers restored it in 2015, including first-year architecture student Keigen Langholff, whose contribution became part of its story.",
+        14: "Designed in 1976 as a building that students could take apart and rebuild, this structure explores how frames carry loads. A 2009 reconstruction replaced its plywood panels with steel and added a truss system.",
+        15: "Four poles form the Pyramid’s spare outline. Its shape invites interpretation, though its construction began with the practical challenge of digging into canyon clay.",
+        16: "The Bridge House began in 1964 as a test of eight-by-eight-foot glass panels. It later became a home before students stripped it back to a bridge in 2019.",
+        17: "Polyvinyl tanks wrapped in corrugated metal expanded the canyon’s water system in 1998. Their foundations, interlocking rings, and overflow basins were designed for this hillside setting.",
+        18: "A twelve-by-twelve-foot redwood deck rests on concrete piers in the hillside. Created as a rest stop and viewpoint, it followed fifteen years without a new canyon structure.",
+        19: "Three forty-foot concrete arches trace the inverted curve of a hanging chain. Inspired by engineer Heinz Isler, students precast the pieces and lifted them into place with a crane.",
+        20: "Weathered redwood planks stand on serpentine rock bases, framing a canyon view. The wall forms part of a meditation space with a direction marker and bench.",
+        21: "Hay bales, reinforcing stakes, wire mesh, and stucco form this double-barrel arch. The students rebuilt their first collapsed attempt with stronger stakes and a revised plan.",
+        22: "Three precast concrete legs and tension cables support an observation deck. Built on an older structure’s foundation, the tower honors architectural engineering educator Paul Fratessa.",
+        23: "Inverted wooden pyramids and slender steel rods balance tension against compression. Two years of design and fabrication produced a canopy that appears to hover.",
+        24: "A concrete canopy rests on just three points. Students later enclosed the shell, adding windows and living spaces that served caretakers and visiting professors.",
+        25: "This hillside greenhouse explored ways to regulate its own climate. Stone walls, solar chimneys, rotating vents, and a water wall captured and redistributed heat.",
+        26: "An eight-by-eight-by-eight-foot steel grid began as the Space Module in 1965. Wood and Plexiglas later transformed the prefabrication experiment into a caretaker’s home.",
+        27: "Eighty-four identical timber pieces form a sixteen-foot dome that can be dismantled and rebuilt. Originally used at a Descanso Gardens music festival, it later found a home in the canyon.",
+        28: "Timber poles anchored in bedrock support the Pole House above the hillside. The building provides storage and a practical base for work in the canyon.",
+        29: "This transformer station helped bring electricity to the canyon. Underground cables once carried power to its experimental houses and other structures.",
+        30: "A sturdy barbecue pit anchors a gathering area of concrete counters, seating, and small bridges. Its surrounding additions record years of student use.",
+        31: "Six steel frames on a circular concrete platform demonstrate different ways buildings respond to earthquakes. Each frame makes a structural connection visible, including weakened sections and replaceable links designed to absorb movement."
+    ]
+}
+
+/// Blur only photograph pixels; no material or color wash is composited over the header.
+private struct StoryImageTopBlur: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        content.overlay {
+            if enabled {
+                GeometryReader { geometry in
+                    ZStack(alignment: .top) {
+                        ForEach(0..<3) { band in
+                            content.blur(radius: [3.0, 7.0, 13.0][band], opaque: true)
+                                .mask(alignment: .top) {
+                                    LinearGradient(stops: [.init(color: .black, location: 0),
+                                                           .init(color: .black, location: 0.2),
+                                                           .init(color: .clear, location: 1)],
+                                                   startPoint: .top, endPoint: .bottom)
+                                        .frame(height: min(geometry.size.height, [150.0, 105.0, 65.0][band]))
+                                }
                         }
                     }
-                }
-                .frame(width: 220, height: 38)
-                
-                
-                Spacer()
+                }.allowsHitTesting(false).accessibilityHidden(true)
             }
-            .padding(.top, 8)
-        }
+        }.clipped()
     }
 }
 
-// MARK: - Preview
-struct StructInfo_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Light Mode Preview
-            StructInfo()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = false
-                    state.structInfoNum = getRandomStructureNumber()
-                    return state
-                }())
-                .environmentObject(DataStore())
-                .previewDisplayName("Light Mode")
-            
-            // Dark Mode Preview
-            StructInfo()
-                .environmentObject({
-                    let state = AppState()
-                    state.isDarkMode = true
-                    state.structInfoNum = getRandomStructureNumber()
-                    return state
-                }())
-                .environmentObject(DataStore())
-                .previewDisplayName("Dark Mode")
-        }
+private struct StoryScrollEdges: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) {
+            content.scrollEdgeEffectHidden(true, for: .top)
+        } else { content }
     }
+}
 
-    // Generate a random structure number for preview
-    private static func getRandomStructureNumber() -> Int {
-        return Int.random(in: 1...31) // Adjust range based on the mock structures
+private struct StoryCanvasNavigation: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .ignoresSafeArea(.container, edges: .top)
+            .toolbarBackground(.hidden, for: .navigationBar)
+    }
+}
+
+private struct StoryPhotoFrames: PreferenceKey {
+    static var defaultValue: [Int: CGRect] { [:] }
+    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+private struct StoryPhotoSource: ViewModifier {
+    let id: StoryPhotoID
+    let namespace: Namespace.ID
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.matchedTransitionSource(id: id, in: namespace)
+        } else { content }
+    }
+}
+
+private struct GallerySelection: Identifiable {
+    let id = UUID()
+    let index: Int
+}
+
+/// The fallback is restricted to the title and two full-width photos. The photo
+/// rail retains its own horizontal gesture. Reject vertical motion before the
+/// recognizer begins so the story's scroll view remains responsive.
+private struct StoryPagingGesture: ViewModifier {
+    var enabled = true
+    let page: (Int) -> Void
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *), enabled {
+            content.gesture(StoryHorizontalPan(page: page))
+        } else { content }
+    }
+}
+
+@available(iOS 18, *)
+private struct StoryHorizontalPan: UIGestureRecognizerRepresentable {
+    let page: (Int) -> Void
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let pan = UIPanGestureRecognizer()
+        pan.maximumNumberOfTouches = 1
+        pan.delegate = context.coordinator
+        return pan
+    }
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        guard recognizer.state == .ended else { return }
+        let translation = recognizer.translation(in: recognizer.view)
+        guard abs(translation.x) >= 60, abs(translation.x) > abs(translation.y) * 1.5 else { return }
+        page(translation.x < 0 ? 1 : -1)
+    }
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+            let velocity = pan.velocity(in: pan.view)
+            return abs(velocity.x) > abs(velocity.y) * 1.5
+        }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
     }
 }

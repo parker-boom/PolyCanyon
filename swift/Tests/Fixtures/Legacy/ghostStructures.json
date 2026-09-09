@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Hydraulic House",
+    "number": "101",
+    "year": "1970s",
+    "advisors": [
+      "William Brown",
+      "Dr. Jens Pohl"
+    ],
+    "builders": [
+      "John Hickman",
+      "Kris Reiswig",
+      "Windell Reynolds",
+      "Greg Warner",
+      "James Adams",
+      "Sergio Alvarez",
+      "Charles Cauthon",
+      "David Quattrone",
+      "Eric Farmer",
+      "Dan Smith",
+      "Mike Carson",
+      "Jerry White",
+      "Bruce Elster",
+      "Keith Foiles",
+      "Barney Mintz",
+      "Peter Van Matre",
+      "Raul Ojeda"
+    ],
+    "description": "Near where Fratessa Tower now stands, this ambitious structure once pushed the limits of building technology. At its heart stood a 23-foot steel column filled with pressurized water, designed to act as the main support. The project aimed to combine hydraulic forces with solar technology, though the latter never materialized. Only its foundation remains today, marking where students once tried to harness water pressure to hold up a building.",
+    "images": [
+      "G-1",
+      "hydraulic1",
+      "hydraulic2"
+    ],
+    "isVisited": true
+  }
+]

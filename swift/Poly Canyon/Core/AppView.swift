@@ -19,6 +19,14 @@ struct AppView: View {
                 MainView()
             }
         }
+        .alert("Saved progress needs attention", isPresented: Binding(
+            get: { dataStore.persistenceError != nil },
+            set: { if !$0 { dataStore.dismissPersistenceError() } }
+        )) {
+            Button("OK") { dataStore.dismissPersistenceError() }
+        } message: {
+            Text(dataStore.persistenceError ?? "")
+        }
         .onAppear {
             if appState.needsFullReset {
                 appState.resetAllSettings()

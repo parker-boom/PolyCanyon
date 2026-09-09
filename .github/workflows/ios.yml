@@ -1,0 +1,44 @@
+name: iOS
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    name: Data, regression checks, and Release builds
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set temporary build folder
+        run: echo "POLYCANYON_BUILD_ROOT=$RUNNER_TEMP/polycanyon" >> "$GITHUB_ENV"
+      - name: Validate bundled content
+        run: python3 swift/scripts/check-data.py
+      - name: Check persistence, onboarding, and location replay
+        run: bash swift/scripts/check-models.sh
+      - name: Check map geometry and camera
+        run: bash swift/scripts/check-atlas.sh
+      - name: Build Release for Simulator
+        run: >-
+          xcodebuild -project 'swift/Poly Canyon.xcodeproj' -scheme 'Poly Canyon'
+          -configuration Release -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$POLYCANYON_BUILD_ROOT/DerivedData"
+          CODE_SIGNING_ALLOWED=NO build
+      - name: Archive Release for iPhone
+        run: >-
+          xcodebuild -project 'swift/Poly Canyon.xcodeproj' -scheme 'Poly Canyon'
+          -configuration Release -destination 'generic/platform=iOS'
+          -derivedDataPath "$POLYCANYON_BUILD_ROOT/DerivedData"
+          -archivePath "$POLYCANYON_BUILD_ROOT/PolyCanyon.xcarchive"
+          CODE_SIGNING_ALLOWED=NO archive

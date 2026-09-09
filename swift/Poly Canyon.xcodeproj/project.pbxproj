@@ -10,19 +10,6 @@
 		D001C04E2BBE319100C532F2 /* Poly_CanyonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C04D2BBE319100C532F2 /* Poly_CanyonApp.swift */; };
 		D001C0522BBE319400C532F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D001C0512BBE319400C532F2 /* Assets.xcassets */; };
 		D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0871D012BBF474D003ADF53 /* CoreLocation.framework */; };
-		DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */; };
-		DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */; };
-		DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD212C17A02F00397065 /* FirebaseDatabase */; };
-		DB08BD242C17A02F00397065 /* FirebaseDatabaseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */; };
-		DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD272C17B75100397065 /* FirebaseFirestore */; };
-		DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */; };
-		DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = DB08BD2B2C17B75100397065 /* FirebaseStorage */; };
-		DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */ = {isa = PBXBuildFile; productRef = DB1CC6ED2C6DC1A000B9B777 /* Glur */; };
-		DB7228052C8967DB00988A83 /* Shimmer in Frameworks */ = {isa = PBXBuildFile; productRef = DB7228042C8967DB00988A83 /* Shimmer */; };
-		DB80A5012C8A504D008412E2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB80A5002C8A504D008412E2 /* FirebaseAuth */; };
-		DB844DED2C8A73AE00A41931 /* Shiny in Frameworks */ = {isa = PBXBuildFile; productRef = DB844DEC2C8A73AE00A41931 /* Shiny */; };
-		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
-		DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,7 +18,6 @@
 		D001C0512BBE319400C532F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D041D3172BC8A3870061E865 /* Poly-Canyon-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Poly-Canyon-Info.plist"; sourceTree = SOURCE_ROOT; };
 		D0871D012BBF474D003ADF53 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
-		DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../assets/data/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -45,19 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB08BD242C17A02F00397065 /* FirebaseDatabaseSwift in Frameworks */,
-				DB08BD202C17A02F00397065 /* FirebaseCrashlytics in Frameworks */,
-				DB1CC6EE2C6DC1A000B9B777 /* Glur in Frameworks */,
-				DB08BD1E2C17A02F00397065 /* FirebaseAnalytics in Frameworks */,
-				DB08BD2A2C17B75100397065 /* FirebaseFirestoreSwift in Frameworks */,
-				DB08BD222C17A02F00397065 /* FirebaseDatabase in Frameworks */,
-				DB08BD2C2C17B75100397065 /* FirebaseStorage in Frameworks */,
-				DB80A5012C8A504D008412E2 /* FirebaseAuth in Frameworks */,
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
-				DB08BD282C17B75100397065 /* FirebaseFirestore in Frameworks */,
-				DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */,
-				DB844DED2C8A73AE00A41931 /* Shiny in Frameworks */,
-				DB7228052C8967DB00988A83 /* Shimmer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,7 +41,6 @@
 		D001C0412BBE319100C532F2 = {
 			isa = PBXGroup;
 			children = (
-				DBB230AA2C1A095C00A462B1 /* GoogleService-Info.plist */,
 				D001C04C2BBE319100C532F2 /* Poly Canyon */,
 				D001C04B2BBE319100C532F2 /* Products */,
 				D0871D002BBF474D003ADF53 /* Frameworks */,
@@ -125,18 +98,6 @@
 			);
 			name = "Poly Canyon";
 			packageProductDependencies = (
-				DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */,
-				DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */,
-				DB08BD212C17A02F00397065 /* FirebaseDatabase */,
-				DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */,
-				DB08BD272C17B75100397065 /* FirebaseFirestore */,
-				DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */,
-				DB08BD2B2C17B75100397065 /* FirebaseStorage */,
-				DB1CC6ED2C6DC1A000B9B777 /* Glur */,
-				DB991BA22C75BE4A0053A521 /* Zoomable */,
-				DB7228042C8967DB00988A83 /* Shimmer */,
-				DB80A5002C8A504D008412E2 /* FirebaseAuth */,
-				DB844DEC2C8A73AE00A41931 /* Shiny */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -167,11 +128,6 @@
 			);
 			mainGroup = D001C0412BBE319100C532F2;
 			packageReferences = (
-				DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */,
-				DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */,
-				DB7228032C8967B300988A83 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */,
-				DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */,
 			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
@@ -187,7 +143,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DBB230AB2C1A095C00A462B1 /* GoogleService-Info.plist in Resources */,
 				D001C0522BBE319400C532F2 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -329,7 +284,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
@@ -337,8 +292,7 @@
 				INFOPLIST_FILE = "Poly-Canyon-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Poly Canyon";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Background location can be used to track structure progress even when the app is closed. ";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location is needed to determine if you are visiting in person. If you are it is used for navigation.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "While Poly Canyon is open, your location shows where you are on the map and marks structures you visit.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -349,12 +303,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Parker-Jones.Arch-Graveyard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -366,7 +321,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
@@ -374,8 +329,7 @@
 				INFOPLIST_FILE = "Poly-Canyon-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Poly Canyon";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Background location can be used to track structure progress even when the app is closed. ";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location is needed to determine if you are visiting in person. If you are it is used for navigation.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "While Poly Canyon is open, your location shows where you are on the map and marks structures you visit.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -386,12 +340,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.2;
+				MARKETING_VERSION = 6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Parker-Jones.Arch-Graveyard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
@@ -419,111 +374,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 10.27.0;
-			};
-		};
-		DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/joogps/Glur.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.4;
-			};
-		};
-		DB7228032C8967B300988A83 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/markiv/SwiftUI-Shimmer.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.1;
-			};
-		};
-		DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/maustinstar/shiny";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-		DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ryohey/Zoomable";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCSwiftPackageProductDependency section */
-		DB08BD1D2C17A02F00397065 /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		DB08BD1F2C17A02F00397065 /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
-		DB08BD212C17A02F00397065 /* FirebaseDatabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabase;
-		};
-		DB08BD232C17A02F00397065 /* FirebaseDatabaseSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabaseSwift;
-		};
-		DB08BD272C17B75100397065 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		DB08BD292C17B75100397065 /* FirebaseFirestoreSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestoreSwift;
-		};
-		DB08BD2B2C17B75100397065 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
-		};
-		DB1CC6ED2C6DC1A000B9B777 /* Glur */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB1CC6EC2C6DBBA300B9B777 /* XCRemoteSwiftPackageReference "Glur" */;
-			productName = Glur;
-		};
-		DB7228042C8967DB00988A83 /* Shimmer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB7228032C8967B300988A83 /* XCRemoteSwiftPackageReference "SwiftUI-Shimmer" */;
-			productName = Shimmer;
-		};
-		DB80A5002C8A504D008412E2 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB08BD1C2C17A02F00397065 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		DB844DEC2C8A73AE00A41931 /* Shiny */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB844DEB2C8A739800A41931 /* XCRemoteSwiftPackageReference "shiny" */;
-			productName = Shiny;
-		};
-		DB991BA22C75BE4A0053A521 /* Zoomable */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */;
-			productName = Zoomable;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D001C0422BBE319100C532F2 /* Project object */;
 }

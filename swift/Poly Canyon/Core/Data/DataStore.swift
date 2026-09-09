@@ -1,414 +1,179 @@
-/*
- DataStore manages the app's core data structures and persistence layer. It handles loading and saving of 
- structure data and user statistics. The store is accessible app-wide as a shared singleton
- through environment objects (@EnvironmentObject). It provides a comprehensive API for querying and 
- updating structure data, managing visit states, and tracking user progress statistics.
-*/
-
+import Combine
 import Foundation
-import CoreLocation
 
-class DataStore: ObservableObject {
+/// Main-thread view state with one durable snapshot. Bundled research remains authoritative.
+@MainActor
+final class DataStore: ObservableObject {
     static let shared = DataStore()
-    
-    // MARK: - Published Properties
+
     @Published private(set) var structures: [Structure] = []
     @Published private(set) var ghostStructures: [GhostStructure] = []
     @Published private(set) var lastVisitedStructure: Structure?
     @Published private(set) var lastVisitedGhostStructure: GhostStructure?
-    
-    // MARK: - Statistics Properties
-    @Published private(set) var totalVisitedCount: Int {
-        didSet {
-            UserDefaults.standard.set(totalVisitedCount, forKey: "totalVisitedCount")
+    @Published private(set) var dayCount = 0
+    @Published private(set) var persistenceError: String?
+    var totalVisitedCount: Int {
+        structures.filter(\.isVisited).count + ghostStructures.filter(\.isVisited).count
+    }
+
+    private var previousDayVisited: String?
+    private var savingBlockReason: String?
+    private var automaticVisitsPaused = false
+    private let persistence: CatalogPersistence
+    private let bundle: Bundle
+    private let notifications: NotificationCenter
+    private let now: () -> Date
+
+    init(directory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0],
+         defaults: UserDefaults = .standard, bundle: Bundle = .main,
+         notifications: NotificationCenter = .default,
+         now: @escaping () -> Date = Date.init) {
+        persistence = CatalogPersistence(directory: directory)
+        self.notifications = notifications
+        self.bundle = bundle
+        self.now = now
+        let saved: CatalogSnapshot
+        if let snapshot = readSaved(CatalogSnapshot.self, "progress.json") {
+            saved = snapshot
+
+        } else {
+            // Existing installations migrate on their first successful edit. Legacy files stay intact.
+            saved = CatalogSnapshot(
+                structures: readSaved([Structure].self, "structures.json") ?? [],
+                ghosts: readSaved([GhostStructure].self, "ghostStructures.json") ?? [],
+                dayCount: max(0, defaults.integer(forKey: "dayCount")),
+                previousDayVisited: defaults.string(forKey: "previousDayVisited"))
         }
+        structures = CatalogProgress.merge(readBundle([Structure].self, "structuresList") ?? saved.structures,
+                                          saved: saved.structures)
+        ghostStructures = CatalogProgress.merge(readBundle([GhostStructure].self, "ghostStructures") ?? saved.ghosts,
+                                               saved: saved.ghosts)
+        dayCount = max(0, saved.dayCount)
+        previousDayVisited = saved.previousDayVisited
+        notifications.addObserver(self, selector: #selector(handleStructureVisit), name: .structureVisited, object: nil)
     }
-    
-    @Published private(set) var dayCount: Int {
-        didSet {
-            UserDefaults.standard.set(dayCount, forKey: "dayCount")
-        }
-    }
-    
-    private var previousDayVisited: String? {
-        didSet {
-            UserDefaults.standard.set(previousDayVisited, forKey: "previousDayVisited")
-        }
-    }
-    
-    // MARK: - File Management
-    private let fileManager = FileManager.default
-    private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    private let currentBundleVersion = "2.4"
-    
-    private var storedVersion: String {
-        get { UserDefaults.standard.string(forKey: "dataVersion") ?? "0" }
-        set { UserDefaults.standard.set(newValue, forKey: "dataVersion") }
-    }
-    
-    // MARK: - Initialization
-    init() {
-        print("📚 Initializing DataStore")
-        // Load persisted stats
-        self.totalVisitedCount = UserDefaults.standard.integer(forKey: "totalVisitedCount")
-        self.dayCount = UserDefaults.standard.integer(forKey: "dayCount")
-        self.previousDayVisited = UserDefaults.standard.string(forKey: "previousDayVisited")
-        print("📚 Loaded stats - Visited: \(totalVisitedCount), Days: \(dayCount)")
-        
-        loadInitialData()
-        setupNotifications()
-        print("📚 DataStore initialization complete")
-        
-        printCurrentState()
-    }
-    
-    private func setupNotifications() {
-        // Listen for structure visits from LocationService
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleStructureVisit),
-            name: .structureVisited,
-            object: nil
-        )
-    }
-    
+
     @objc private func handleStructureVisit(_ notification: Notification) {
-        guard let number = notification.userInfo?["structureNumber"] as? Int else {
-            print("❌ Invalid structure number in visit notification")
-            return
-        }
-        print("📚 Received visit notification for structure \(number)")
-        
-        // Check if this is a regular structure or ghost structure based on number
-        if number >= 100 {
-            // This is a ghost structure (numbers 101+)
-            markGhostStructureAsVisited(number)
-        } else {
-            // This is a regular structure (numbers 1-31)
-            markStructureAsVisited(number)
-        }
+        guard let number = notification.userInfo?["structureNumber"] as? Int else { return }
+        if number >= 100 { markGhostStructureAsVisited(number) }
+        else { markStructureAsVisited(number) }
     }
-    
-    // MARK: - Data Loading
-    private func loadInitialData() {
-        print("📚 Checking data version - Stored: \(storedVersion), Current: \(currentBundleVersion)")
-        if storedVersion != currentBundleVersion {
-            print("📚 Version mismatch - Loading fresh data from bundle")
-            loadAndSaveInitialData()
-        } else {
-            print("📚 Version match - Loading persisted data")
-            loadPersistedData()
-            
-            // If ghost structures array is empty after loading from documents, try loading from bundle
-            if ghostStructures.isEmpty {
-                print("📚 Ghost structures array is empty - attempting to load from bundle")
-                forceReloadGhostStructures()
-            }
-        }
-    }
-    
-    private func loadAndSaveInitialData() {
-        if let structures = loadStructuresFromBundle() {
-            self.structures = structures
-            saveStructures()
-            print("📚 Loaded and saved \(structures.count) regular structures from bundle")
-        } else {
-            print("❌ Failed to load regular structures from bundle")
-        }
-        
-        print("📚 About to load ghost structures from bundle...")
-        if let ghostStructures = loadGhostStructuresFromBundle() {
-            print("📚 Successfully loaded \(ghostStructures.count) ghost structures from bundle")
-            self.ghostStructures = ghostStructures
-            saveGhostStructures()
-            print("📚 Ghost structures saved to documents")
-        } else {
-            print("❌ Failed to load ghost structures from bundle")
-        }
-        
-        storedVersion = currentBundleVersion
-    }
-    
-    private func loadPersistedData() {
-        if let structures = loadStructuresFromDocuments() {
-            self.structures = structures
-        }
-        
-        if let ghostStructures = loadGhostStructuresFromDocuments() {
-            self.ghostStructures = ghostStructures
-        }
-    }
-    
-    // MARK: - Structure Management
-    private func loadStructuresFromBundle() -> [Structure]? {
-        print("📚 Loading structures from bundle...")
-        guard let url = Bundle.main.url(forResource: "structuresList", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
-            print("❌ Failed to find or read structuresList.json")
-            return nil
-        }
-        
+
+    private func readBundle<Value: Decodable>(_ type: Value.Type, _ name: String) -> Value? {
         do {
-            let structures = try JSONDecoder().decode([Structure].self, from: data)
-            print("📚 Successfully decoded \(structures.count) structures")
-            return structures
+            guard let url = bundle.url(forResource: name, withExtension: "json") else { throw CocoaError(.fileNoSuchFile) }
+            return try JSONDecoder().decode(type, from: Data(contentsOf: url))
         } catch {
-            print("❌ Error decoding structures: \(error)")
+            persistenceError = "Some structure information could not be loaded. Try reopening Poly Canyon."
             return nil
         }
     }
-    
-    // Saves structures to documents
-    private func saveStructures() {
-        let url = documentsPath.appendingPathComponent("structures.json")
-        if let data = try? JSONEncoder().encode(structures) {
-            try? data.write(to: url)
+
+    private func readSaved<Value: Decodable>(_ type: Value.Type, _ filename: String) -> Value? {
+        do { return try persistence.load(type, from: filename) }
+        catch {
+            if error is ProgressReadError {
+                savingBlockReason = "This saved progress needs a newer version of Poly Canyon. It has been left unchanged."
+            } else if !(error is DecodingError) {
+                savingBlockReason = "Saved progress could not be read safely. Reopen the app after checking storage access."
+            }
+            persistenceError = savingBlockReason ?? "Some saved progress could not be read. Existing files have been kept for recovery, and the bundled structures are still available."
+            return nil
         }
     }
-    
-    // Loads persisted structures from documents
-    private func loadStructuresFromDocuments() -> [Structure]? {
-        let url = documentsPath.appendingPathComponent("structures.json")
-        guard let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode([Structure].self, from: data)
+
+    /// Publish only after the complete state is durably written. Failure leaves every visible value intact.
+    @discardableResult
+    private func update(_ change: (inout CatalogSnapshot) -> Void) -> Bool {
+        guard savingBlockReason == nil else {
+            persistenceError = savingBlockReason
+            return false
+        }
+        var next = CatalogSnapshot(structures: structures, ghosts: ghostStructures,
+                                   dayCount: dayCount, previousDayVisited: previousDayVisited)
+        change(&next)
+        do { try persistence.save(next, to: "progress.json") }
+        catch {
+            persistenceError = "Your change could not be saved. Your previous progress is unchanged. Check available storage and try again."
+            return false
+        }
+        automaticVisitsPaused = false
+        structures = next.structures
+        ghostStructures = next.ghosts
+        dayCount = next.dayCount
+        previousDayVisited = next.previousDayVisited
+        return true
     }
-    
-    // MARK: - Structure Public Functions
-    
-    // Sets a structure as visited (UI reacts), updates stats, and saves
+
+    func dismissPersistenceError() { persistenceError = nil }
+    // A full disk must not reopen an alert on every GPS fix. Try automatic saves again on foregrounding.
+    func resumeAutomaticVisits() { automaticVisitsPaused = false }
+
+    private func recordVisitDay(in snapshot: inout CatalogSnapshot) {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: now())
+        if today != snapshot.previousDayVisited {
+            snapshot.dayCount += 1
+            snapshot.previousDayVisited = today
+        }
+    }
+
     func markStructureAsVisited(_ number: Int) {
-        guard let index = structures.firstIndex(where: { $0.number == number }) else {
-            print("❌ Structure \(number) not found")
-            return
-        }
-        
-        if structures[index].isVisited {
-            print("📚 Structure \(number) already visited")
-            return
-        }
-        
-        print("📚 Marking structure \(number) as visited")
-        structures[index].isVisited = true
-        structures[index].recentlyVisited = Int(Date().timeIntervalSince1970)
-        lastVisitedStructure = structures[index]
-        totalVisitedCount += 1
-        
-        // Update day tracking
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let todayString = dateFormatter.string(from: Date())
-        
-        if let lastVisited = previousDayVisited {
-            if lastVisited != todayString {
-                dayCount += 1
-                previousDayVisited = todayString
-                print("📚 New day visit - Total days: \(dayCount)")
-            }
-        } else {
-            dayCount += 1
-            previousDayVisited = todayString
-            print("📚 First day visit recorded")
-        }
-        
-        saveStructures()
-        print("📚 Structure visit processed and saved")
-    }
-    
-    // Sets a structure as opened (UI reacts), and saves
-    func markStructureAsOpened(_ number: Int) {
-        if let index = structures.firstIndex(where: { $0.number == number }) {
-            structures[index].isOpened = true
-            saveStructures()
-            objectWillChange.send()
-        }
-    }
-    
-    // Toggles a structure as liked (UI reacts), and saves
-    func toggleLike(for structureId: Int) {
-        if let index = structures.firstIndex(where: { $0.id == structureId }) {
-            structures[index].isLiked.toggle()
-            saveStructures()
-            objectWillChange.send()
-        }
-    }
-    
-    func isLiked(for structureId: Int) -> Bool {
-        return structures.first(where: { $0.id == structureId })?.isLiked ?? false
+        guard !automaticVisitsPaused, let index = structures.firstIndex(where: { $0.number == number }), !structures[index].isVisited else { return }
+        if update({ next in
+            next.structures[index].isVisited = true
+            next.structures[index].recentlyVisited = Int(now().timeIntervalSince1970)
+            recordVisitDay(in: &next)
+        }) { lastVisitedStructure = structures[index] }
+        else { automaticVisitsPaused = true }
     }
 
-    // Resets all structures to default state
-    func resetLikes() {
-        // Reset regular structures
-        for index in structures.indices {
-            structures[index].isLiked = false
-        }
-        saveStructures()
-
-        objectWillChange.send()
-    }
-    
-    // Resets all structures to default state
-    func resetStructures() {
-        // Reset regular structures
-        for index in structures.indices {
-            structures[index].isVisited = false
-            structures[index].isOpened = false
-            structures[index].recentlyVisited = -1
-            structures[index].isLiked = false
-        }
-        totalVisitedCount = 0
-        saveStructures()
-        
-        // Reset ghost structures
-        for index in ghostStructures.indices {
-            ghostStructures[index].isVisited = false
-        }
-        saveGhostStructures()
-        
-        objectWillChange.send()
-    }
-    
-    // MARK: - Ghost Structure Management
-    private func loadGhostStructuresFromBundle() -> [GhostStructure]? {
-        print("📚 Loading ghost structures from bundle...")
-        
-        // Debug: List all json files in the bundle to verify inclusion
-        debugPrintBundleJSONFiles()
-        
-        // Check if the file exists in the bundle
-        let fileExists = Bundle.main.url(forResource: "ghostStructures", withExtension: "json") != nil
-        print("📚 Ghost structures file exists in bundle: \(fileExists)")
-        
-        guard let url = Bundle.main.url(forResource: "ghostStructures", withExtension: "json") else {
-            print("❌ Failed to find ghostStructures.json in bundle")
-            return nil
-        }
-        
-        do {
-            let data = try Data(contentsOf: url)
-            print("📚 Successfully read ghostStructures.json data: \(data.count) bytes")
-            
-            // Print a sample of the JSON for debugging
-            if let jsonString = String(data: data, encoding: .utf8) {
-                let preview = String(jsonString.prefix(200))
-                print("📚 JSON content sample: \(preview)...")
-            }
-            
-            let structures = try JSONDecoder().decode([GhostStructure].self, from: data)
-            print("📚 Successfully decoded \(structures.count) ghost structures")
-            return structures
-        } catch let readError as NSError {
-            print("❌ Error reading ghostStructures.json: \(readError.localizedDescription)")
-            return nil
-        } catch let decodeError {
-            print("❌ Error decoding ghost structures: \(decodeError)")
-            
-            // Try to validate the JSON
-            if let data = try? Data(contentsOf: url) {
-                do {
-                    let json = try JSONSerialization.jsonObject(with: data, options: [])
-                    if let array = json as? [[String: Any]] {
-                        print("📚 JSON is valid with \(array.count) items")
-                        
-                        // Print some keys from the first item to help debug
-                        if let firstItem = array.first {
-                            print("📚 First item keys: \(firstItem.keys.joined(separator: ", "))")
-                        }
-                    }
-                } catch {
-                    print("❌ JSON is invalid: \(error)")
-                }
-            }
-            
-            return nil
-        }
-    }
-    
-    func forceReloadGhostStructures() {
-        print("📚 Forcing reload of ghost structures from bundle...")
-        if let ghostStructures = loadGhostStructuresFromBundle() {
-            self.ghostStructures = ghostStructures
-            saveGhostStructures()
-            print("📚 Successfully reloaded \(ghostStructures.count) ghost structures from bundle")
-            objectWillChange.send()
-        } else {
-            print("❌ Failed to force reload ghost structures from bundle")
-        }
-    }
-    
-    private func saveGhostStructures() {
-        let url = documentsPath.appendingPathComponent("ghostStructures.json")
-        if let data = try? JSONEncoder().encode(ghostStructures) {
-            try? data.write(to: url)
-        }
-    }
-    
-    private func loadGhostStructuresFromDocuments() -> [GhostStructure]? {
-        let url = documentsPath.appendingPathComponent("ghostStructures.json")
-        print("📚 Attempting to load ghost structures from: \(url.path)")
-        
-        let fileExists = FileManager.default.fileExists(atPath: url.path)
-        print("📚 Ghost structures file exists in documents: \(fileExists)")
-        
-        guard let data = try? Data(contentsOf: url) else { 
-            print("❌ Failed to read ghostStructures.json from documents")
-            return nil 
-        }
-        
-        do {
-            let structures = try JSONDecoder().decode([GhostStructure].self, from: data)
-            print("📚 Successfully decoded \(structures.count) ghost structures from documents")
-            return structures
-        } catch {
-            print("❌ Error decoding ghost structures from documents: \(error)")
-            return nil
-        }
-    }
-    
-    // MARK: - Ghost Structure Functions
-
-    // Sets a ghost structure as visited, updates stats, and saves
     func markGhostStructureAsVisited(_ number: Int) {
-        // Find the ghost structure with this number
-        guard let index = ghostStructures.firstIndex(where: { $0.number == String(number) }) else {
-            print("❌ Ghost structure \(number) not found")
-            return
-        }
-        
-        if ghostStructures[index].isVisited {
-            print("📚 Ghost structure \(number) already visited")
-            return
-        }
-        
-        print("📚 Marking ghost structure \(number) as visited")
-        ghostStructures[index].isVisited = true
-        lastVisitedGhostStructure = ghostStructures[index]
-        totalVisitedCount += 1  // Add to total visited count just like regular structures
-        
-        // Update day tracking (same logic as regular structures)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let todayString = dateFormatter.string(from: Date())
-        
-        if let lastVisited = previousDayVisited {
-            if lastVisited != todayString {
-                dayCount += 1
-                previousDayVisited = todayString
-                print("📚 New day visit - Total days: \(dayCount)")
-            }
-        } else {
-            dayCount += 1
-            previousDayVisited = todayString
-            print("📚 First day visit recorded")
-        }
-        
-        saveGhostStructures()
-        print("📚 Ghost structure visit processed and saved")
-        
-        // Trigger notification UI with the same mechanism as regular structures
-        objectWillChange.send()
+        guard !automaticVisitsPaused, let index = ghostStructures.firstIndex(where: { $0.number == String(number) }), !ghostStructures[index].isVisited else { return }
+        if update({ next in
+            next.ghosts[index].isVisited = true
+            recordVisitDay(in: &next)
+        }) { lastVisitedGhostStructure = ghostStructures[index] }
+        else { automaticVisitsPaused = true }
     }
-    
+
+    func markStructureAsOpened(_ number: Int) {
+        guard let index = structures.firstIndex(where: { $0.number == number }), !structures[index].isOpened else { return }
+        update { $0.structures[index].isOpened = true }
+    }
+
+    func toggleLike(for structureId: Int) {
+        guard let index = structures.firstIndex(where: { $0.number == structureId }) else { return }
+        update { $0.structures[index].isLiked.toggle() }
+    }
+
+    func isLiked(for structureId: Int) -> Bool {
+        structures.first(where: { $0.number == structureId })?.isLiked ?? false
+    }
+
+    func resetLikes() {
+        update { next in
+            for index in next.structures.indices { next.structures[index].isLiked = false }
+        }
+    }
+
+    func resetStructures() {
+        if update({ next in
+            for index in next.structures.indices {
+                next.structures[index].isVisited = false
+                next.structures[index].isOpened = false
+                next.structures[index].recentlyVisited = -1
+                next.structures[index].isLiked = false
+            }
+            for index in next.ghosts.indices { next.ghosts[index].isVisited = false }
+            next.dayCount = 0
+            next.previousDayVisited = nil
+        }) { dismissLastVisitedStructure() }
+    }
+
     // Convert a GhostStructure to a Structure for display purposes
     func ghostStructureToDisplayStructure(_ ghostStructure: GhostStructure) -> Structure {
         return Structure(
@@ -422,13 +187,13 @@ class DataStore: ObservableObject {
             images: ghostStructure.images,
             isVisited: ghostStructure.isVisited,
             isOpened: false,
-            recentlyVisited: Int(Date().timeIntervalSince1970),
+            recentlyVisited: Int(now().timeIntervalSince1970),
             isLiked: false
         )
     }
     
     // MARK: - Structure Filtering
-    func getFilteredStructures(searchText: String = "", sortState: SortState) -> [Structure] {
+    func getFilteredStructures(searchText: String = "", sortState: SortState, distance: ((Structure) -> Double)? = nil) -> [Structure] {
         // First apply search filter
         let searchFiltered = structures.filter { structure in
             searchText.isEmpty || 
@@ -442,16 +207,16 @@ class DataStore: ObservableObject {
         switch sortState {
         case .all:
             // If user is in canyon, sort by distance
-            if LocationService.shared.isInPolyCanyonArea {
+            if let distance {
                 filteredStructures = searchFiltered.sorted { s1, s2 in
-                    LocationService.shared.getDistance(to: s1) < LocationService.shared.getDistance(to: s2)
+                    distance(s1) < distance(s2)
                 }
             } else {
                 filteredStructures = searchFiltered.sorted { $0.number < $1.number }
             }
             
             // Only add ghost structures representation when showing all structures
-            if !ghostStructures.isEmpty {
+            if !ghostStructures.isEmpty && (searchText.isEmpty || "Ghost Structures".localizedCaseInsensitiveContains(searchText)) {
                 filteredStructures.append(getGhostStructuresRepresentation())
             }
             
@@ -501,7 +266,7 @@ class DataStore: ObservableObject {
         return structures
             .filter { $0.recentlyVisited != -1 }
             .sorted { $0.recentlyVisited > $1.recentlyVisited }
-            .prefix(limit)
+            .prefix(max(0, limit))
             .map { $0 }
     }
 
@@ -522,65 +287,6 @@ class DataStore: ObservableObject {
     func dismissLastVisitedStructure() {
         lastVisitedStructure = nil
         lastVisitedGhostStructure = nil
-        objectWillChange.send()
     }
     
-    func forceVersionMismatchOnNextLaunch() {
-        print("📚 Forcing version mismatch for next launch")
-        storedVersion = "0"
-        print("📚 Set stored version to 0, next launch will reload all data from bundle")
-    }
-    
-    private func printCurrentState() {
-        print("\n📚 ====== DataStore State ======")
-        print("📚 Version Info:")
-        print("  • Stored Version: \(storedVersion)")
-        print("  • Current Version: \(currentBundleVersion)")
-        
-        print("\n📚 Statistics:")
-        print("  • Visited Count: \(totalVisitedCount)")
-        print("  • Days Active: \(dayCount)")
-        print("  • Last Visit Date: \(previousDayVisited ?? "None")")
-        
-        print("\n📚 Structures (\(structures.count) total):")
-        print("  • Visited: \(structures.filter { $0.isVisited }.count)")
-        print("  • Unopened: \(structures.filter { !$0.isOpened }.count)")
-        print("  • Liked: \(structures.filter { $0.isLiked }.count)")
-        
-        print("\n📚 Ghost Structures (\(ghostStructures.count) total):")
-        print("  • Visited: \(ghostStructures.filter { $0.isVisited }.count)")
-        
-        if let lastVisited = lastVisitedStructure {
-            print("\n📚 Last Visited Structure:")
-            print("  • Number: \(lastVisited.number)")
-            print("  • Title: \(lastVisited.title)")
-            print("  • Timestamp: \(lastVisited.recentlyVisited)")
-        }
-        print("============================\n")
-    }
-    
-    private func debugPrintBundleJSONFiles() {
-        let bundle = Bundle.main
-        if let resourceURL = bundle.resourceURL {
-            print("📚 Bundle resource path: \(resourceURL.path)")
-            
-            do {
-                let fileURLs = try FileManager.default.contentsOfDirectory(at: resourceURL, includingPropertiesForKeys: nil)
-                let jsonFiles = fileURLs.filter { $0.pathExtension == "json" }
-                
-                print("📚 JSON files in bundle:")
-                for file in jsonFiles {
-                    print("  • \(file.lastPathComponent)")
-                }
-                
-                if jsonFiles.isEmpty {
-                    print("📚 No JSON files found in the main bundle directory")
-                }
-            } catch {
-                print("❌ Error listing bundle contents: \(error)")
-            }
-        } else {
-            print("❌ Could not access bundle resource URL")
-        }
-    }
 }
