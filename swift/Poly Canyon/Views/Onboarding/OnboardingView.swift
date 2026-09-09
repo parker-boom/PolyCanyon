@@ -128,33 +128,32 @@ struct OnboardingView: View {
                  : "We’re waiting for a current position near the canyon. If it isn’t available, you can still explore the map and stories virtually.")
         case .visit:
             visitDemo(height: typeSize.isAccessibilitySize ? 220 : min(320, max(230, height * 0.48)))
-            copy("You’re ready to explore Poly Canyon", "Follow your position on the map and tap a structure to open its photographs and story.")
+            copy("You’re ready to explore Poly Canyon", "Follow your position on the map as nearby structures are marked visited.", tryIt: "Try it out: tap the visit notification.")
         case .virtualExplanation:
             Image(systemName: "map").font(.system(size: 58, weight: .light))
                 .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
             copy("Explore without location.", "You can still browse the whole map, open every story, and take the virtual tour.")
         case .introduction:
-            GeometryReader { frame in
-                Image("M-1").resizable().scaledToFill().frame(width: frame.size.width, height: visualHeight).clipped()
-            }.frame(height: visualHeight).clipShape(RoundedRectangle(cornerRadius: 24))
-                .accessibilityLabel("Entry Arch in Poly Canyon")
-            copy("An outdoor architecture laboratory.", "In the hills behind Cal Poly, students have tested ideas in architecture and construction by building at full scale.")
+            CanyonIntroductionPhotos()
+                .frame(height: visualHeight).clipShape(RoundedRectangle(cornerRadius: 24))
+            copy("Explore a canyon of ideas.", "Discover the structures Cal Poly students built to test their ideas at full scale.")
         case .navigation:
-            navigationDemo(height: min(440, max(340, height * 0.62)))
-            copy(flow.recommendsMap(location) ? "Find your way on foot." : "Move through the canyon.",
-                 flow.recommendsMap(location)
-                 ? "Your position appears on the map during your visit. Tap a numbered structure to explore it."
-                 : (typeSize.isAccessibilitySize ? "Use the arrows to move around the example map." : "Swipe the cards to move around the map. Try it above."))
+            navigationDemo(height: min(390, max(330, height * 0.55)))
+            copy("Take a virtual tour", "Explore the structures and see where each one sits in the canyon.",
+                 tryIt: typeSize.isAccessibilitySize ? "Try it out: use the arrows above." : "Try it out: swipe through the cards above.")
         case .stories:
             storyDemo(height: visualHeight)
-            copy("Every structure has a story.", "Open a structure for photographs and its history. Tap the photo above to take a closer look.")
+            copy("Every structure has a story.", "Discover its history and take a closer look through photographs.", tryIt: "Try it out: tap the photo above.")
         }
     }
-    private func copy(_ title: String, _ detail: String) -> some View {
+    private func copy(_ title: String, _ detail: String, tryIt: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title).font(.system(.largeTitle, design: .serif).weight(.medium))
                 .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
             Text(detail).font(.title3).foregroundStyle(secondaryInk)
+            if let tryIt {
+                Text(tryIt).font(.callout.weight(.medium)).padding(.top, 4)
+            }
         }.fixedSize(horizontal: false, vertical: true)
     }
     private func visitDemo(height: CGFloat) -> some View {
@@ -165,9 +164,9 @@ struct OnboardingView: View {
                 SpatialAtlas(selected: 2, overview: false, reduceMotion: reduceMotion, showsMarkers: false)
                     .accessibilityHidden(true)
                 TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
-                    let phase = max(0, context.date.timeIntervalSince(visitExampleStart)).truncatingRemainder(dividingBy: 9)
+                    let phase = max(0, context.date.timeIntervalSince(visitExampleStart)).truncatingRemainder(dividingBy: 15)
                     let progress = reduceMotion ? 1 : min(1, phase / 4.5)
-                    let arrived = reduceMotion ? !visitExampleDismissed : (phase >= 4.5 && phase < 8)
+                    let arrived = reduceMotion ? !visitExampleDismissed : (phase >= 4.5 && phase < 14)
                     ZStack(alignment: .top) {
                         // Bundled map path points 3 -> 2 -> 1. No device location or discovery writes.
                         PulsingCircle()
@@ -323,7 +322,7 @@ struct OnboardingView: View {
         switch flow.stage {
         case .title: return "Begin"
         case .location: return "Explore in person"
-        case .permission: return location == .denied ? "Continue virtually" : (location == .undecided ? "Allow location" : "Continue")
+        case .permission: return "Continue"
         case .visit: return "Start my visit"
         case .stories: return "Start the tour"
         default: return "Continue"
@@ -351,5 +350,30 @@ struct OnboardingView: View {
         appState.adventureModeEnabled = recording
         locationService.setMode(recording ? .adventure : .virtualTour)
         appState.completeOnboarding(exploringInPerson: flow.usesLocation)
+    }
+}
+
+
+private struct CanyonIntroductionPhotos: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var selected = 0
+    private let photos = ["M-19", "M-6", "M-23"]
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                Image(photos[selected]).resizable().scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                    .id(selected).transition(.opacity)
+            }
+        }
+        .accessibilityLabel("Student-built structures in Poly Canyon")
+        .task(id: reduceMotion) {
+            guard !reduceMotion else { selected = 0; return }
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(6)) }
+                catch { return }
+                withAnimation(.easeInOut(duration: 1.4)) { selected = (selected + 1) % photos.count }
+            }
+        }
     }
 }

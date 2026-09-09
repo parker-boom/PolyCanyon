@@ -118,6 +118,7 @@ struct StructureStory: View {
                     .padding(.bottom, 24)
                 }
             }
+            .modifier(StoryScrollEdges())
             .background(StoryPalette.paper)
             .coordinateSpace(name: photoNamespace)
             .onPreferenceChange(StoryPhotoFrames.self) { frames in
@@ -150,6 +151,7 @@ struct StructureStory: View {
         } label: {
             Image(structure.images[index]).resizable().scaledToFill()
                 .frame(width: width, height: height).clipped()
+                .modifier(StoryImageTopBlur(enabled: index == 0))
 
         }
         .buttonStyle(.plain)
@@ -206,22 +208,42 @@ struct StructureStory: View {
     ]
 }
 
+/// Blur only photograph pixels; no material or color wash is composited over the header.
+private struct StoryImageTopBlur: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        content.overlay {
+            if enabled {
+                GeometryReader { geometry in
+                    ZStack(alignment: .top) {
+                        ForEach(0..<3) { band in
+                            content.blur(radius: [3.0, 7.0, 13.0][band], opaque: true)
+                                .mask(alignment: .top) {
+                                    LinearGradient(stops: [.init(color: .black, location: 0),
+                                                           .init(color: .black, location: 0.2),
+                                                           .init(color: .clear, location: 1)],
+                                                   startPoint: .top, endPoint: .bottom)
+                                        .frame(height: min(geometry.size.height, [150.0, 105.0, 65.0][band]))
+                                }
+                        }
+                    }
+                }.allowsHitTesting(false).accessibilityHidden(true)
+            }
+        }.clipped()
+    }
+}
+
+private struct StoryScrollEdges: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) {
+            content.scrollEdgeEffectHidden(true, for: .top)
+        } else { content }
+    }
+}
+
 private struct StoryCanvasNavigation: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var opaque
-    @Environment(\.colorSchemeContrast) private var contrast
     func body(content: Content) -> some View {
         content
-            .overlay(alignment: .top) {
-                Rectangle().fill(.regularMaterial)
-                    .mask {
-                        LinearGradient(stops: [.init(color: .black, location: 0),
-                                               .init(color: .black.opacity(0.8), location: 0.4),
-                                               .init(color: .clear, location: 1)],
-                                       startPoint: .top, endPoint: .bottom)
-                    }
-                    .frame(height: opaque || contrast == .increased ? 105 : 95)
-                    .allowsHitTesting(false).accessibilityHidden(true)
-            }
             .ignoresSafeArea(.container, edges: .top)
             .toolbarBackground(.hidden, for: .navigationBar)
     }

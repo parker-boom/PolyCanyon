@@ -30,7 +30,7 @@ struct StructureExperience: View {
         return numbers.compactMap { number in all.first { $0.number == number } }
     }
     var body: some View {
-        NavigationStack {
+        ZStack(alignment: .topTrailing) {
             TabView(selection: $selected) {
                 ForEach(items) { item in
                     StructureStory(structure: item) { delta in
@@ -42,14 +42,17 @@ struct StructureExperience: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea(.container, edges: .top)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { dismiss() } label: { Image(systemName: "xmark") }
-                        .accessibilityLabel("Close structure")
-                }
-            }
             .accessibilityAction(named: "Next structure") { step(1) }
             .accessibilityAction(named: "Previous structure") { step(-1) }
+            Button { dismiss() } label: {
+                Image(systemName: "xmark").font(.body)
+                    .frame(width: 44, height: 44)
+                    .background(.thinMaterial, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close structure")
+            .padding(.trailing, 16)
+
         }
         .interactiveDismissDisabled()
         .preferredColorScheme(.light)
