@@ -53,8 +53,6 @@ struct MapWithLocationDot: View {
                 PulsingCircle()
                     .scaleEffect(markerScale)
                     .position(circlePosition())
-                    .shadow(color: appState.mapIsSatellite ? .white.opacity(0.8) : .black.opacity(0.8),
-                            radius: 4, x: 0, y: 0)
                     .onAppear {
                         circlePositionStore.isDotVisible = true
                     }
@@ -151,23 +149,24 @@ struct PulsingCircle: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
-        Circle()
-            .fill(Color.green)
-            .frame(width: 14, height: 14)
-            .overlay(
-                Circle()
-                    .stroke(Color.white, lineWidth: 2)
-                    .scaleEffect(circleScale)
-                    .opacity(2 - circleScale)
-            )
-            .onAppear { updatePulse() }
-            .onChange(of: reduceMotion) { _ in updatePulse() }
-
+        ZStack {
+            Circle().fill(Color.green.opacity(0.16))
+                .frame(width: 26, height: 26)
+                .scaleEffect(reduceMotion ? 1 : circleScale)
+                .opacity(reduceMotion ? 1 : 1.7 - circleScale * 0.5)
+            Circle().fill(Color(red: 0.12, green: 0.65, blue: 0.36))
+                .frame(width: 14, height: 14)
+                .overlay { Circle().strokeBorder(.white, lineWidth: 2) }
+                .shadow(color: .black.opacity(0.22), radius: 2, y: 1)
+        }
+        .frame(width: 14, height: 14)
+        .onAppear { updatePulse() }
+        .onChange(of: reduceMotion) { _ in updatePulse() }
     }
     private func updatePulse() {
         circleScale = 1
         if !reduceMotion {
-            withAnimation(.easeInOut(duration: 1.25).repeatForever(autoreverses: true)) { circleScale = 1.5 }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { circleScale = 1.35 }
         }
     }
 

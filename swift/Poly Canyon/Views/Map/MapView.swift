@@ -63,11 +63,6 @@ struct MapView: View {
                         Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
                     } label: { Image(systemName: "square.3.layers.3d").frame(width: 48, height: 48).canyonControl() }
                         .accessibilityLabel("Map options")
-                    if isMapZoomed {
-                    Button(action: reset) {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
-                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
-                    }
                     if appState.exploresInPerson {
                     Button {
                         if let fix = locationService.lastLocation,
@@ -82,6 +77,11 @@ struct MapView: View {
                     } label: { Image(systemName: "location").frame(width: 48, height: 48).canyonControl() }
                         .accessibilityLabel("Center on my location")
                         .disabled(!locationService.canUseLocation)
+                    }
+                    if isMapZoomed {
+                    Button(action: reset) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
+                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
                     }
                 }
             }.padding(16)

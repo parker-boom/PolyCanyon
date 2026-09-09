@@ -17,6 +17,8 @@ struct OnboardingView: View {
     @State private var photoOpen = false
     @State private var previewStory: StructurePresentation?
     @State private var previewSelection: Int? = 6
+    @State private var visitExampleStart = Date()
+    @State private var visitExampleDismissed = false
     @AccessibilityFocusState private var headingFocused: Bool
     private let samples = [6, 8, 11]
     private var sampleStructure: Structure? {
@@ -58,7 +60,7 @@ struct OnboardingView: View {
         }
         .fullScreenCover(item: $previewStory) { selection in
             StructureExperience(numbers: selection.numbers, selected: selection.selected, recordsOpening: false) { number in
-                if let index = samples.firstIndex(of: number) { sample = index; previewSelection = number }
+                if flow.stage != .visit, let index = samples.firstIndex(of: number) { sample = index; previewSelection = number }
             }
         }
         .task { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.7)) { revealed = true } }
@@ -119,20 +121,14 @@ struct OnboardingView: View {
             Image(systemName: "location").font(.system(size: 58, weight: .light))
                 .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
             copy("Find your place in the canyon.", "Allow location while using the app to see your position and mark nearby structures as visited. Your progress stays on this device.")
-            Text("You can explore every structure and photograph without location.")
-                .font(.callout).foregroundStyle(secondaryInk)
         case .locating:
             ProgressView().controlSize(.large).accessibilityLabel("Finding your position")
             copy(location == .undecided ? "Choose location access." : "Finding your position.",
                  location == .undecided ? "Choose an option in the location prompt. You can also continue without location."
                  : "We’re waiting for a current position near the canyon. If it isn’t available, you can still explore the map and stories virtually.")
         case .visit:
-            GeometryReader { frame in
-                Image("M-1").resizable().scaledToFill().frame(width: frame.size.width, height: visualHeight).clipped()
-            }.frame(height: visualHeight).clipShape(RoundedRectangle(cornerRadius: 24)).accessibilityHidden(true)
-            copy("Ready to explore in person.", "Start with the canyon map. Tap a structure to open its story and photographs.")
-            Text("When a current position is available in the canyon, it appears on the map. As you walk with the app open, nearby structures are marked visited. The Tour is always available, too.")
-                .font(.callout).foregroundStyle(secondaryInk).fixedSize(horizontal: false, vertical: true)
+            visitDemo(height: typeSize.isAccessibilitySize ? 220 : min(320, max(230, height * 0.48)))
+            copy("You’re ready to explore Poly Canyon", "Follow your position on the map and tap a structure to open its photographs and story.")
         case .virtualExplanation:
             Image(systemName: "map").font(.system(size: 58, weight: .light))
                 .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
@@ -160,6 +156,48 @@ struct OnboardingView: View {
                 .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
             Text(detail).font(.title3).foregroundStyle(secondaryInk)
         }.fixedSize(horizontal: false, vertical: true)
+    }
+    private func visitDemo(height: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            GeometryReader { geometry in
+                let focus = locationService.getMapPointForStructure(2)?.pixelPosition ?? CanyonAtlasGeometry.defaultFocus
+                let layout = CanyonAtlasGeometry(size: geometry.size, focus: focus, overview: false)
+                SpatialAtlas(selected: 2, overview: false, reduceMotion: reduceMotion, showsMarkers: false)
+                    .accessibilityHidden(true)
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
+                    let phase = max(0, context.date.timeIntervalSince(visitExampleStart)).truncatingRemainder(dividingBy: 9)
+                    let progress = reduceMotion ? 1 : min(1, phase / 4.5)
+                    let arrived = reduceMotion ? !visitExampleDismissed : (phase >= 4.5 && phase < 8)
+                    ZStack(alignment: .top) {
+                        // Bundled map path points 3 -> 2 -> 1. No device location or discovery writes.
+                        PulsingCircle()
+                            .position(layout.position(for: visitExamplePoint(progress)))
+                            .accessibilityLabel(progress >= 1 ? "Example position at Entry Arch" : "Example position approaching Entry Arch")
+                        if arrived, let entry = dataStore.structures.first(where: { $0.number == 1 }) {
+                            DiscoveryBanner(structure: entry, open: {
+                                previewStory = StructurePresentation(numbers: dataStore.structures.map(\.number), selected: 1)
+                            }, dismiss: {
+                                if reduceMotion { visitExampleDismissed = true }
+                                else { visitExampleStart = Date() }
+                            })
+                            .padding(4)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                    }
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: arrived)
+                }
+            }.frame(height: height).clipped()
+            Text("Example visit").font(.caption).foregroundStyle(secondaryInk)
+        }
+        .onAppear { visitExampleStart = Date(); visitExampleDismissed = false }
+        .onChange(of: reduceMotion) { _ in visitExampleDismissed = false }
+    }
+    private func visitExamplePoint(_ progress: Double) -> CGPoint {
+        let path = [CGPoint(x: 976, y: 3642), CGPoint(x: 1004, y: 3885), CGPoint(x: 1018, y: 4045)]
+        let segment = min(1, Int(progress * 2))
+        let fraction = CGFloat(progress * 2 - Double(segment))
+        return CGPoint(x: path[segment].x + (path[segment + 1].x - path[segment].x) * fraction,
+                       y: path[segment].y + (path[segment + 1].y - path[segment].y) * fraction)
     }
     private func navigationDemo(height: CGFloat) -> some View {
         GeometryReader { geometry in
