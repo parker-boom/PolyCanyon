@@ -10,7 +10,6 @@
 		D001C04E2BBE319100C532F2 /* Poly_CanyonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001C04D2BBE319100C532F2 /* Poly_CanyonApp.swift */; };
 		D001C0522BBE319400C532F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D001C0512BBE319400C532F2 /* Assets.xcassets */; };
 		D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0871D012BBF474D003ADF53 /* CoreLocation.framework */; };
-		DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */ = {isa = PBXBuildFile; productRef = DB991BA22C75BE4A0053A521 /* Zoomable */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,7 +32,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0871D022BBF474D003ADF53 /* CoreLocation.framework in Frameworks */,
-				DB991BA32C75BE4A0053A521 /* Zoomable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,7 +98,6 @@
 			);
 			name = "Poly Canyon";
 			packageProductDependencies = (
-				DB991BA22C75BE4A0053A521 /* Zoomable */,
 			);
 			productName = "Arch Graveyard";
 			productReference = D001C04A2BBE319100C532F2 /* Poly Canyon.app */;
@@ -131,7 +128,6 @@
 			);
 			mainGroup = D001C0412BBE319100C532F2;
 			packageReferences = (
-				DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */,
 			);
 			productRefGroup = D001C04B2BBE319100C532F2 /* Products */;
 			projectDirPath = "";
@@ -288,7 +284,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
@@ -325,7 +321,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 8AMGSY9U5K;
 				ENABLE_PREVIEWS = YES;
@@ -378,24 +374,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ryohey/Zoomable";
-			requirement = {
-				revision = 27463744a1c82e550959703153bd6f3c62fef906;
-				kind = revision;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCSwiftPackageProductDependency section */
-		DB991BA22C75BE4A0053A521 /* Zoomable */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DB991BA12C75BDA80053A521 /* XCRemoteSwiftPackageReference "Zoomable" */;
-			productName = Zoomable;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D001C0422BBE319100C532F2 /* Project object */;
 }

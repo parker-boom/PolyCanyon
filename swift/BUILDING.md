@@ -7,6 +7,7 @@ On a clean checkout with Xcode selected:
 ```bash
 python3 swift/scripts/check-data.py
 bash swift/scripts/check-models.sh
+bash swift/scripts/check-atlas.sh
 bash swift/scripts/run-simulator.sh build
 bash swift/scripts/run-simulator.sh run
 ```
@@ -36,13 +37,14 @@ With those overrides, the script writes DerivedData, package checkouts, build re
 
 ```bash
 bash swift/scripts/check-models.sh
+bash swift/scripts/check-atlas.sh
 ```
 
-Compiles the production models, persistence, store, settings, and location service into isolated macOS checks, including deterministic replay of the actual bundled map coordinates. Tests use temporary files and defaults rather than simulator/user progress. See [REFACTOR.md](REFACTOR.md) for coverage and release limitations.
+Compiles the production models, persistence, store, settings, and location service into isolated macOS checks, including deterministic replay of the actual bundled map coordinates. Tests use temporary files and defaults rather than simulator/user progress. GitHub Actions runs the same checks and Release builds automatically.
 
 ## Verification and release preparation
 
-Debug and Release simulator builds and an unsigned Release device archive passed. The app was tested on the existing iOS 18.6 and iOS 26.5 simulators. Read [REFACTOR.md](REFACTOR.md) for the exact verification matrix, artifact locations, and physical-device/account requirements.
+Debug and Release simulator builds and an unsigned Release device archive passed. The app was tested on the existing iOS 18.6 and iOS 26.5 simulators. See [current release](REDESIGN_RELEASE.md) for distribution status. Older review reports are historical.
 
 The final iOS 26.5 preview uses `serve-sim` at `http://localhost:3200` while its terminal is running. The older test simulator is shut down after testing.
 

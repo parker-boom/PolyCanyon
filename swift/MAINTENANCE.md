@@ -1,6 +1,6 @@
 # Keeping Poly Canyon maintainable
 
-Keep the working offline architecture small. Bundled content, one local progress snapshot and the foreground-only location service are enough for this archive. A visual refresh is separate work; no backend, cross-platform rewrite or scheduled maintenance service was introduced.
+Keep the working offline architecture small. Bundled content, one local progress snapshot and the foreground-only location service are enough for this archive. The interface uses native SwiftUI and UIKit; no backend or external package is required.
 
 ## Content ownership
 
@@ -22,7 +22,7 @@ Measured on 8 September 2026:
 - Android image arrays differ from `assets/data` for 1, 7, 27 and 29.
 - Ghosts 105/106 lack tagged discovery points. Legacy untagged map records 124/125/127 have negative latitudes and `(-100,-100)` image pixels. They are outliers, not corrected coordinates; existing canyon gating excludes them from visit awards. Their intended provenance remains unresolved. Do not invent replacements.
 
-`python3 swift/scripts/check-data.py` reports these differences and validates identity uniqueness, map references/coordinate ranges, constructed map image names and asset file references. It uses only Python's standard library and runs on Linux or macOS. `bash swift/scripts/check-models.sh` runs the richer production Swift replay and persistence tests on macOS with Xcode. No hosted CI workflow was added: this repository had no existing CI, and runner/billing access was not verified. The dependency-free data check is ready to add to an existing CI job without signing secrets or a new service.
+`python3 swift/scripts/check-data.py` reports these differences and validates identity uniqueness, map references/coordinate ranges, constructed map image names and asset file references. It uses only Python's standard library and runs on Linux or macOS. `bash swift/scripts/check-models.sh` runs the richer production Swift replay and persistence tests on macOS with Xcode. GitHub Actions runs all three scripts plus Release simulator and device builds on each pull request. The workflow needs no signing secrets.
 
 ## Shipped asset audit
 
@@ -52,4 +52,4 @@ On Parker's Mac, keep outputs external by setting both variables from [BUILDING.
 
 ## Release boundaries
 
-The retained iOS source and prior locally built binary have been audited for no telemetry. Android retirement does not update or disable previously distributed binaries. See [security cleanup](../SECURITY_CLEANUP.md). Android and the currently published iOS 5.4 remain separate privacy/release scopes. The approved website URLs are `https://polycanyon.com/privacy` and `https://polycanyon.com/support`. The website task reports those routes implemented locally but not published yet; the app release depends on website publication and checking the rendered pages. Do not change live 5.4 labels early. See [RELEASE_PREPARATION.md](RELEASE_PREPARATION.md) for the proposed metadata and account-dependent steps.
+The retained iOS source and prior locally built binary have been audited for no telemetry. Android retirement does not update or disable previously distributed binaries. See [security cleanup](../SECURITY_CLEANUP.md). Android and the currently published iOS 5.4 remain separate privacy/release scopes. The approved website URLs are `https://polycanyon.com/privacy` and `https://polycanyon.com/support`. Those routes and the 6.0 feature media are published on the production website. Do not change live 5.4 labels early. See [REDESIGN_RELEASE.md](REDESIGN_RELEASE.md) for the current release.

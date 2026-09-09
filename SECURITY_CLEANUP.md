@@ -24,7 +24,7 @@ Firebase client configuration/API keys are not equivalent to privileged server c
 | Hosted workflows | No tracked `.github` workflows or Dependabot configuration at the starting commit | No elaborate CI or new service added |
 | Swift lint configuration | Two identical `.swiftlint.yml` files, no script, package, build phase or documented invocation | Removed unused duplicate configuration; compiler and regression checks remain |
 | Research and media | 166 Android image, image-key and catalog/map files, plus embedded historical Design Village prose | Byte-preserved under `assets/retired-android/`; prose extracted to Markdown; all existing source originals retained |
-| iOS dependencies | Glur 1.1.0 and Zoomable revision `27463744a1c82e550959703153bd6f3c62fef906` | Retained: both used in the current UI, with no additional package dependencies |
+| iOS dependencies | Native SwiftUI and UIKit | No external packages. The last unused Zoomable reference was removed for 6.0 build 2; historical license acknowledgments are retained. |
 | Support docs | README advertised Android, favorites and old cross-platform behavior | Concise iOS README, explicit retirement, archived-content links; old review/release evidence retained with historical notices |
 
 Recovery: annotated local tag **`archive/android-before-retirement-20260908`** points to **80e12df** before any removal. [Content preservation manifest](assets/retired-android/preservation.json) records original/preserved paths and SHA-256 for all 166 content files (62,725,159 bytes). The original React tree had 230 tracked files / 63,581,785 bytes. Retaining image variants deliberately favors preservation over a misleading repository-size claim; old blobs also remain in Git history.
@@ -33,11 +33,9 @@ Recovery: annotated local tag **`archive/android-before-retirement-20260908`** p
 
 The current app is foreground-location-only, with local progress, no favorites UI and unchanged discovery behavior. No Firebase SDK/configuration, location upload, analytics, broad network exception or sensitive logging was found in the retained app source. The privacy manifest declares UserDefaults access (CA92.1), no tracking and no collected data. The source supports the proposed “Data Not Collected” disclosure under [Apple's off-device collection definition](https://developer.apple.com/app-store/app-privacy-details/). This is not a claim about the currently distributed 5.4 binary, retired Android, user-initiated external web links or support email.
 
-The project pins Glur exactly to 1.1.0 (resolved commit `178af6499ed7957c7f91187fdee2b09d322f5b87`) and Zoomable to the exact revision above. Both small SwiftUI packages are actively used, have no third-party transitive packages, and their checked-out sources contain no networking or telemetry. No dependency upgrade or speculative framework migration was justified by this review. Zoomable's existing lockfile includes historical `branch: main` metadata, but the project requirement is an exact revision and resolution selected that same revision; the branch metadata is not a floating project requirement. The 95 observed repository alerts are npm-only; this is not a guarantee that these packages are vulnerability-free.
+The 6.0 build 2 project has no external package dependencies. Map and photo gestures use the app's native UIKit scroll view; photo blur and materials use SwiftUI. The unused Zoomable project reference and lockfile were removed. Existing license acknowledgments remain preserved.
 
-The iOS source, assets, privacy manifest, project settings, signing and release version are unchanged. Existing release/review evidence remains; historical recommendations do not authorize restoring background location or favorites. Physical-device validation, signing, App Store labels and checking the live privacy/support pages remain part of the separate release handoff.
-
-For low maintenance, retain the reviewed pins and bundled offline content. Before a future release, run existing checks, inspect current advisories for retained packages, and validate with the Xcode/SDK required for that submission. Update a dependency for a demonstrated defect or requirement; re-audit privacy if networking or another SDK is introduced.
+Run the automated content, model, location-replay, geometry and Release build checks when changing the app. Review privacy declarations if a future change introduces networking or an SDK.
 
 ## Verification
 

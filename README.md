@@ -1,6 +1,6 @@
 # Poly Canyon
 
-An offline iPhone guide to the experimental architecture of Cal Poly’s Poly Canyon. Explore the illustrated map, read the stories behind 31 structures and six historical sites, and browse photographs from the canyon.
+An iPhone guide to the experimental architecture of Cal Poly’s Poly Canyon. Explore the illustrated map, read the stories behind 31 structures and six historical sites, and browse photographs from the canyon.
 
 Visit in person to record discoveries while the app is open, or take a virtual walkthrough from anywhere. The maintained iOS app keeps visit progress on your device; its map, research and photos work offline. Location is optional for virtual exploration.
 
@@ -13,10 +13,11 @@ Open `swift/Poly Canyon.xcodeproj` in Xcode and select the **Poly Canyon** schem
 ```sh
 python3 swift/scripts/check-data.py
 bash swift/scripts/check-models.sh
+bash swift/scripts/check-atlas.sh
 bash swift/scripts/run-simulator.sh build
 ```
 
-The Swift checks require macOS and Xcode. Build outputs default to ignored `swift/.build/`; set `POLYCANYON_BUILD_ROOT` to keep them on another drive and `DEVELOPER_DIR` to select Xcode. See [build instructions](swift/BUILDING.md), [content maintenance](swift/MAINTENANCE.md) and [current release evidence](swift/REDESIGN_RELEASE.md). Signing and App Store submission are separate steps.
+The Swift checks require macOS and Xcode. Build outputs default to ignored `swift/.build/`; set `POLYCANYON_BUILD_ROOT` to keep them on another drive and `DEVELOPER_DIR` to select Xcode. See [build instructions](swift/BUILDING.md), [content maintenance](swift/MAINTENANCE.md) and [current release evidence](swift/REDESIGN_RELEASE.md). GitHub Actions runs the content and regression checks, a Release simulator build, and an iPhone archive on pull requests and main. No third-party packages or signing secrets are required by CI.
 
 ## Android retirement
 
