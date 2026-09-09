@@ -64,6 +64,9 @@ struct VirtualWalkthrough: View {
             .contentMargins(.horizontal, (width - cardWidth) / 2, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $cardSelection, anchor: .center)
+            // Let glass shadows fade into the same white page beneath the tabs;
+            // clipping this fitted scroll view cuts them into a horizontal strip.
+            .scrollClipDisabled()
             .fixedSize(horizontal: false, vertical: true)
         } else {
             TabView(selection: $appState.currentStructureIndex) {

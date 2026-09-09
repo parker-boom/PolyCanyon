@@ -45,3 +45,7 @@ Source baseline: 0eae1a6; live baseline: 2df8671. All items below remain open un
 - [ ] Concise handoff with exact evidence and explicitly open gaps for independent coordinator review. No premature ready claim.
 
 Verification qualifications and open checks are in SECOND_FEEDBACK_REVIEW.md. Checked implementation items do not imply every device or animation has passed independent review.
+
+## Bottom background continuity follow-up
+- [x] Remove the fitted Tour carousel's clipping of glass-card shadows; retain native tab styling and the existing white page background.
+- [ ] Independently inspect the revised Tour seam at rest and while swiping; Map and Collection/Search while scrolling; Reduce Transparency fallback. Build-only handoff until Simulator ownership is released.

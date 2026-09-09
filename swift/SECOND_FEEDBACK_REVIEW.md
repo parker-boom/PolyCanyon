@@ -70,3 +70,7 @@ External outputs: `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/SecondFeedbac
 Kept system behavior. UIKit documents UITextField.clearButtonMode, but SwiftUI's public search API and the installed SwiftUI interface expose no corresponding native search clear-button modifier. No private hierarchy introspection, global appearance override or replacement search field was introduced.
 
 Sources: [Apple search APIs](https://developer.apple.com/documentation/swiftui/search), [UIKit clearButtonMode](https://developer.apple.com/documentation/uikit/uitextfield/clearbuttonmode).
+
+## Bottom tab background follow-up
+
+The fitted horizontal Tour carousel now allows its glass-card shadows to draw beyond its scroll bounds (`scrollClipDisabled`, already inside the iOS 17+ branch). The separate bottom padding, white page, and native tab bar remain unchanged. This is the smallest source correction for the independently reproduced hard shadow edge; visual confirmation across tabs and Reduce Transparency remains pending. The coordinator owns Simulator; this follow-up is built externally only and is not installed. Artifacts are under `/Volumes/SSK Drive/Developer/Redesign/ThirdPass/TabBackground/`.
