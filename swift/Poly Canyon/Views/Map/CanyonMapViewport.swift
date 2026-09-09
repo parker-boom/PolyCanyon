@@ -7,6 +7,7 @@ struct CanyonMapViewport<Canvas: View>: UIViewControllerRepresentable {
     let request: UUID
     let focus: CGPoint?
     var canvasSize: CGSize? = nil
+    var zoomChanged: (Bool) -> Void = { _ in }
     let select: (CGPoint) -> Void
     @ViewBuilder let canvas: () -> Canvas
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -19,6 +20,7 @@ struct CanyonMapViewport<Canvas: View>: UIViewControllerRepresentable {
         controller.host.rootView = AnyView(canvas().environmentObject(dataStore).ignoresSafeArea())
         controller.canvasSize = canvasSize
         controller.select = select
+        controller.zoomChanged = zoomChanged
         controller.animate = !reduceMotion
         if controller.request != request {
             controller.request = request
@@ -29,6 +31,7 @@ struct CanyonMapViewport<Canvas: View>: UIViewControllerRepresentable {
     }
     static func dismantleUIViewController(_ controller: MapViewportController, coordinator: ()) {
         controller.scroll.delegate = nil
+        controller.zoomChanged = { _ in }
         controller.host.willMove(toParent: nil)
         controller.host.view.removeFromSuperview()
         controller.host.removeFromParent()
@@ -45,6 +48,7 @@ final class MapViewportController: UIViewController, UIScrollViewDelegate {
     var needsCameraUpdate = true
     var animate = false
     var select: (CGPoint) -> Void = { _ in }
+    var zoomChanged: (Bool) -> Void = { _ in }
     private var previousSize = CGSize.zero
     private var previousCanvas = CGSize.zero
 
@@ -94,6 +98,7 @@ final class MapViewportController: UIViewController, UIScrollViewDelegate {
                 scroll.setZoomScale(1, animated: animate && !resized)
                 scroll.setContentOffset(CGPoint(x: -scroll.contentInset.left, y: -scroll.contentInset.top), animated: animate && !resized)
             }
+            reportZoom()
         }
     }
     func viewForZooming(in scrollView: UIScrollView) -> UIView? { host.view }
@@ -102,6 +107,14 @@ final class MapViewportController: UIViewController, UIScrollViewDelegate {
         // Pinch and double-tap remain active; once zoomed, drag pans this canvas.
         scrollView.panGestureRecognizer.isEnabled = scrollView.zoomScale > 1.01
         centerContent()
+        reportZoom()
+    }
+    private func reportZoom() {
+        // Read the camera after UIKit layout; never publish SwiftUI state during an update.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            zoomChanged(scroll.zoomScale > scroll.minimumZoomScale + 0.01)
+        }
     }
     private func centerContent() {
         let horizontal = max(0, (scroll.bounds.width - host.view.frame.width) / 2)

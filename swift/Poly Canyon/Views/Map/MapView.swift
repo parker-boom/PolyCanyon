@@ -15,6 +15,7 @@ struct MapView: View {
     @State private var canvasID = UUID()
     @State private var locationFocus: CGPoint?
     @State private var locationMessage = false
+    @State private var isMapZoomed = false
     var onInfo: () -> Void = {}
     @Binding var focusStructure: Int?
     let focusRequest: UUID
@@ -22,7 +23,9 @@ struct MapView: View {
         GeometryReader { geometry in
             let point = locationFocus ?? focusStructure.flatMap { locationService.getMapPointForStructure($0)?.pixelPosition }
             let layout = CanyonMapGeometry(size: geometry.size)
-            CanyonMapViewport(request: canvasID, focus: point.map(layout.position), select: { tap in
+            CanyonMapViewport(request: canvasID, focus: point.map(layout.position), zoomChanged: { zoomed in
+                if isMapZoomed != zoomed { isMapZoomed = zoomed }
+            }, select: { tap in
                 let candidates = dataStore.structures.compactMap { item -> (Int, CGFloat)? in
                     guard let point = locationService.getMapPointForStructure(item.number)?.pixelPosition else { return nil }
                     let position = layout.position(point)
@@ -60,9 +63,11 @@ struct MapView: View {
                         Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
                     } label: { Image(systemName: "square.3.layers.3d").frame(width: 48, height: 48).canyonControl() }
                         .accessibilityLabel("Map options")
+                    if isMapZoomed {
                     Button(action: reset) {
                         Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
                     }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
+                    }
                     if appState.exploresInPerson {
                     Button {
                         if let fix = locationService.lastLocation,
