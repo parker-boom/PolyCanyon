@@ -46,8 +46,10 @@ struct MapView: View {
         .toolbar(.hidden, for: .navigationBar)
         .overlay(alignment: .top) {
             HStack(alignment: .top) {
+                if appState.exploresInPerson {
                 Button(action: onInfo) { Image(systemName: "info.circle").frame(width: 48, height: 48).canyonControl() }
                     .accessibilityLabel("Location and visits")
+                }
                 Spacer()
                 VStack(spacing: 12) {
                     Menu {
@@ -56,9 +58,12 @@ struct MapView: View {
                             Text("Satellite imagery").tag(true)
                         }
                         Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
-                        Button("Show whole canyon", systemImage: "arrow.up.left.and.arrow.down.right") { reset() }
                     } label: { Image(systemName: "square.3.layers.3d").frame(width: 48, height: 48).canyonControl() }
                         .accessibilityLabel("Map options")
+                    Button(action: reset) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
+                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
+                    if appState.exploresInPerson {
                     Button {
                         if let fix = locationService.lastLocation,
                            locationService.hasLocationPermission,
@@ -71,6 +76,8 @@ struct MapView: View {
                         } else { locationMessage = true }
                     } label: { Image(systemName: "location").frame(width: 48, height: 48).canyonControl() }
                         .accessibilityLabel("Center on my location")
+                        .disabled(!locationService.canUseLocation)
+                    }
                 }
             }.padding(16)
         }
@@ -82,7 +89,7 @@ struct MapView: View {
         .onChange(of: focusRequest) { _ in locationFocus = nil; canvasID = UUID() }
         .onAppear { appState.configureMapSettings() }
         .onChange(of: locationService.isInPolyCanyonArea) { nearby in
-            if appState.adventureModeEnabled { appState.configureMapSettings(inCanyon: nearby) }
+            if appState.exploresInPerson { appState.configureMapSettings(inCanyon: nearby) }
         }
     }
     private func reset() { focusStructure = nil; locationFocus = nil; canvasID = UUID() }
@@ -105,7 +112,7 @@ struct MapStructureTargets: View {
                         appState.structInfoNum = structure.number
                         appState.activeFullScreenView = .structInfo
                     } label: { Color.clear.frame(width: 44, height: 44).contentShape(Rectangle()) }
-                    .accessibilityLabel("\(structure.number), \(structure.title)\(structure.isVisited ? ", visited" : "")")
+                    .accessibilityLabel("\(structure.number), \(structure.title)\(appState.exploresInPerson && structure.isVisited ? ", visited" : "")")
                     .position(layout.position(point.pixelPosition))
                 }
             }

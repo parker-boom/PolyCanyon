@@ -59,15 +59,15 @@ struct StructureStory: View {
                         photo(0, height: min(480, max(300, geometry.size.height * 0.6)), width: geometry.size.width)
                     }
                     VStack(alignment: .leading, spacing: 20) {
-                        Text(structure.number >= 100 ? "FROM THE ARCHIVE" : "STRUCTURE \(String(format: "%02d", structure.number))")
-                            .font(.caption.weight(.semibold)).tracking(2).foregroundStyle(FieldPalette.gold)
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text(structure.title).font(.largeTitle.weight(.semibold))
                                 .foregroundStyle(StoryPalette.ink).accessibilityAddTraits(.isHeader)
-                            if let dates = structure.catalogDates {
-                                Text(dates).font(.title2).foregroundStyle(FieldPalette.gold)
-                                    .accessibilityLabel("Catalog dates, \(dates)")
-                            }
+                            HStack(alignment: .firstTextBaseline, spacing: 14) {
+                                Text(structure.number >= 100 ? "Archive" : "No. \(String(format: "%02d", structure.number))")
+                                if let dates = structure.catalogDates {
+                                    Text(dates).accessibilityLabel("Catalog dates, \(dates)")
+                                }
+                            }.font(.subheadline).foregroundStyle(.secondary)
                         }.fixedSize(horizontal: false, vertical: true)
                         Text(introduction)
                             .font(.title3)
@@ -81,12 +81,6 @@ struct StructureStory: View {
 
                     if structure.images.count > 1 {
                         photo(1, height: 300, width: geometry.size.width)
-                    }
-                    if let observation = Self.observations[structure.number] {
-                        Text(observation)
-                            .font(.body).italic().lineSpacing(4)
-                            .foregroundStyle(.secondary)
-                            .padding(24)
                     }
                     if structure.images.count > 2 {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -102,9 +96,6 @@ struct StructureStory: View {
                         DisclosureGroup(isExpanded: $showResearch) {
                             VStack(alignment: .leading, spacing: 24) {
                                 Text(structure.description).lineSpacing(5)
-                                if let fact = structure.funFact, !fact.isEmpty {
-                                    Text(fact).font(.body).italic().foregroundStyle(.secondary)
-                                }
                                 if !structure.builders.isEmpty { attribution("Builders", names: structure.builders) }
                                 if !structure.advisors.isEmpty { attribution("Advisors", names: structure.advisors) }
                             }
@@ -179,15 +170,6 @@ struct StructureStory: View {
         }
     }
 
-    // Only observations that add something distinct to the introduction accompany photographs.
-    private static let observations: [Int: String] = [
-        1: "Recessed joints in the stonework channel rain through the arch.",
-        3: "The original Blade was also called the Concrete Flower.",
-        12: "The team used nylon stockings to model the bridge’s final shape.",
-        24: "The Shell House once contained a hot tub, a fish tank, and a waterfall.",
-        27: "The dome’s design was inspired by a succulent."
-    ]
-
     // Short introductions drawn only from the bundled research. Full source text remains below.
     private static let introductions: [Int: String] = [
         1: "A steel frame wrapped in serpentinite stone marks the canyon’s entrance. Its three-fingered walls guide visitors while keeping cattle out. Look for the builders’ terracotta faces tucked into the stonework.",
@@ -225,17 +207,23 @@ struct StructureStory: View {
 }
 
 private struct StoryCanvasNavigation: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var opaque
+    @Environment(\.colorSchemeContrast) private var contrast
     func body(content: Content) -> some View {
-        if #available(iOS 26, *) {
-            content.overlay(alignment: .top) {
-                    LinearGradient(colors: [.white.opacity(0.96), .white.opacity(0.65), .clear], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 100).allowsHitTesting(false).accessibilityHidden(true)
-                }
-                .ignoresSafeArea(.container, edges: .top)
-                .toolbarBackground(.hidden, for: .navigationBar)
-        } else {
-            content
-        }
+        content
+            .overlay(alignment: .top) {
+                Rectangle().fill(.regularMaterial)
+                    .mask {
+                        LinearGradient(stops: [.init(color: .black, location: 0),
+                                               .init(color: .black.opacity(0.8), location: 0.4),
+                                               .init(color: .clear, location: 1)],
+                                       startPoint: .top, endPoint: .bottom)
+                    }
+                    .frame(height: opaque || contrast == .increased ? 105 : 95)
+                    .allowsHitTesting(false).accessibilityHidden(true)
+            }
+            .ignoresSafeArea(.container, edges: .top)
+            .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 

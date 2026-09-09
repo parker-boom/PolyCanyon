@@ -1,5 +1,7 @@
 # Onboarding transfer candidate
 
+Superseded by Parker’s hands-on review and [the focused refinement candidate](HANDS_ON_REFINEMENT_REVIEW.md).
+
 Base b9d67ed, design/remix. Candidate for independent review, not user-ready or release approval. This note supersedes the earlier onboarding review's gesture and demo conclusions.
 
 ## Changes

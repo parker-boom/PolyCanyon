@@ -2,40 +2,49 @@ import Foundation
 
 @main struct OnboardingChecks {
     static func main() {
-        var flow = OnboardingFlow()
-        precondition(!flow.request(), "Title must not request location")
-        flow.begin()
-        precondition(flow.request())
-        precondition(!flow.request(), "Repeated taps must not duplicate permission requests")
-        flow.observe(.denied)
-        precondition(!flow.requestPending)
-        flow.introduce(usingLocation: false)
-        for state in [OnboardingFlow.Location.undecided, .denied, .locating, .visit, .remote] {
-            precondition(!flow.recommendsMap(state), "Explicit virtual choice remains virtual")
-            precondition(!flow.recordsVisits(state), "Explicit virtual choice must not record")
+        for outcome in [OnboardingFlow.Location.denied, .remote, .visit, .locating, .undecided] {
+            var flow = OnboardingFlow()
+            precondition(!flow.request())
+            flow.begin()
+            precondition(flow.stage == .location && !flow.request(), "The choice screen never prompts")
+            flow.chooseVisit()
+            precondition(flow.stage == .permission && flow.usesLocation)
+            precondition(flow.request() && !flow.request(), "One explicit permission request")
+            flow.observe(outcome)
+            switch outcome {
+            case .visit, .remote, .locating:
+                precondition(flow.stage == .visit && flow.recommendsMap(outcome) && flow.recordsVisits(outcome), "In-person choice survives remote or missing position")
+                flow.observe(.locating)
+                precondition(flow.stage == .visit && flow.usesLocation)
+                flow.observe(.remote)
+                precondition(flow.stage == .visit && flow.usesLocation)
+                flow.observe(.denied)
+                precondition(flow.stage == .virtualExplanation && !flow.recordsVisits(.visit))
+            case .denied:
+                precondition(flow.stage == .virtualExplanation && !flow.usesLocation)
+                flow.next(); precondition(flow.stage == .introduction)
+            case .undecided:
+                precondition(flow.stage == .locating && !flow.recordsVisits(outcome))
+                flow.introduce(usingLocation: false)
+                flow.observe(.visit)
+                precondition(flow.stage == .introduction && !flow.usesLocation, "Late fixes never override opting out")
+            }
         }
-        flow.introduce(usingLocation: true)
-        precondition(flow.recommendsMap(.visit) && flow.recordsVisits(.visit))
-        precondition(!flow.recommendsMap(.locating) && flow.recordsVisits(.locating), "Permission without a fix preserves recording policy without claiming proximity")
-        precondition(!flow.recommendsMap(.remote) && !flow.recordsVisits(.remote))
-        precondition(!flow.recommendsMap(.denied) && !flow.recordsVisits(.denied), "Revocation during introduction must be respected")
-        precondition(!flow.recommendsMap(.undecided) && !flow.recordsVisits(.undecided))
-        precondition(!flow.request(), "Introduction cannot request permissions")
-        flow.next()
-        precondition(flow.stage == .navigation)
-        flow.next()
-        precondition(flow.stage == .stories)
-        flow.next()
-        precondition(flow.stage == .stories, "Forward cannot leave the final page")
-        flow.back()
-        precondition(flow.stage == .navigation && flow.usesLocation)
-        flow.back()
-        flow.back()
-        precondition(flow.stage == .location)
-        flow.introduce(usingLocation: false)
-        flow.next()
-        flow.next()
-        precondition(!flow.recordsVisits(.visit), "Going back and choosing virtual must replace the old choice")
-        print("Onboarding state checks passed: explicit skip, repeated taps, no fix, remote, canyon, revocation.")
+        var denied = OnboardingFlow()
+        denied.begin(); denied.chooseVisit(location: .denied)
+        precondition(denied.stage == .virtualExplanation && !denied.request(), "Known denial goes directly to a clear continuation without another prompt")
+        var flow = OnboardingFlow()
+        flow.begin(); flow.introduce(usingLocation: false)
+        for state in [OnboardingFlow.Location.undecided, .denied, .locating, .visit, .remote] {
+            precondition(!flow.recommendsMap(state) && !flow.recordsVisits(state))
+        }
+        flow.next(); precondition(flow.stage == .navigation)
+        flow.next(); precondition(flow.stage == .stories)
+        flow.next(); precondition(flow.stage == .stories)
+        flow.back(); flow.back(); flow.back(); precondition(flow.stage == .location)
+        flow.chooseVisit(); precondition(flow.request())
+        flow.observe(.visit); flow.back(); precondition(flow.stage == .permission)
+        flow.introduce(usingLocation: false); precondition(!flow.recordsVisits(.visit))
+        print("PASS: explicit journeys; separate permission/confirmation; denied continuation; remote/no-fix preserve choice; opt-out, late fix, revocation, back")
     }
 }

@@ -11,11 +11,21 @@ struct ModelChecks {
         precondition(structures.count == 31 && ghosts.count == 6 && points.count == 231)
         precondition(structures.first { $0.number == 24 }?.catalogDates == "1964 / 1975")
         precondition(structures.first { $0.number == 8 }?.catalogDates == "1990 / 2024")
+        let deck = structures.first { $0.number == 8 }!
+        for query in ["1990", "2024", "1990 / 2024", "cantilever 2024", "08", "  DECK 1990 "] {
+            precondition(deck.matchesCatalogQuery(query), "Search missed exact catalog fields: \(query)")
+        }
+        precondition(!deck.matchesCatalogQuery("2023"))
+        precondition(!deck.matchesCatalogQuery("unknown"))
+        precondition(structures.first { $0.number == 24 }!.matchesCatalogQuery("1964 1975"))
         for year in ["", "xxxx", "  XXXX  "] {
             var record = try JSONSerialization.jsonObject(with: JSONEncoder().encode(structures[0])) as! [String: Any]
             record["Year"] = year
             let unknown = try decoder.decode(Structure.self, from: JSONSerialization.data(withJSONObject: record))
             precondition(unknown.catalogDates == nil)
+            precondition(unknown.matchesCatalogQuery("unknown"))
+            precondition(!unknown.matchesCatalogQuery("xxxx"))
+            precondition(!unknown.matchesCatalogQuery("1976"), "Unknown must not invent a year")
         }
         precondition(structures.allSatisfy { !$0.images.isEmpty })
         precondition(ghosts.allSatisfy { !$0.images.isEmpty && !$0.isVisited })

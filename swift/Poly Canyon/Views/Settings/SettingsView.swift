@@ -14,7 +14,7 @@ struct SettingsView: View {
 
     var body: some View {
         List {
-            if showsLocation {
+            if showsLocation && appState.exploresInPerson {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(locationTitle).font(.headline)
@@ -33,8 +33,9 @@ struct SettingsView: View {
             } header: { Text("Location & visits") }
             } else {
                 Section {
-                    Text("Explore the student-built architectural experiments in the hills behind Cal Poly.").font(.title3)
-                    Text("This guide brings together the canyon’s structures, photographs, and research. Created by Parker Jones.").foregroundStyle(.secondary)
+                    Text("A record of the canyon.").font(.title3.weight(.semibold))
+                    Text("This is a best-effort account of Poly Canyon’s history, bringing together research, photographs, and original project material. Records are incomplete, and structures change over time.").foregroundStyle(.secondary)
+                    Text("Research drew on Kennedy Library resources and work by students in Cal Poly’s College of Architecture and Environmental Design. Original reports and source links are available on the website.").foregroundStyle(.secondary)
                 }
             }
             Section {
@@ -43,7 +44,11 @@ struct SettingsView: View {
                 Link("Help & support", destination: URL(string: "https://polycanyon.com/support")!)
                 Link("Privacy", destination: URL(string: "https://polycanyon.com/privacy")!)
             } footer: {
-                Text("Poly Canyon \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
+                HStack(alignment: .top) {
+                    Text("Created by Parker Jones")
+                    Spacer()
+                    Text("Poly Canyon \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "6.0")")
+                }.font(.caption)
             }
         }
         .navigationTitle("Info")

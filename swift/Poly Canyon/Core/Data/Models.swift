@@ -174,3 +174,15 @@ extension Structure {
         return value.isEmpty || value.lowercased() == "xxxx" ? nil : year
     }
 }
+
+
+extension Structure {
+    func matchesCatalogQuery(_ query: String) -> Bool {
+        func terms(_ text: String) -> [String] {
+            text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+                .components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+        }
+        let fields = terms(title + " " + String(number) + " " + String(format: "%02d", number) + " " + (catalogDates ?? "date unknown"))
+        return terms(query).allSatisfy { term in fields.contains { $0.contains(term) } }
+    }
+}

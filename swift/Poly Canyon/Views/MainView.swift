@@ -40,7 +40,7 @@ struct MainView: View {
                 }
             }
             .overlay(alignment: .top) {
-                if dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil {
+                if appState.adventureModeEnabled && (dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil) {
                     VisitNotificationView().padding(.horizontal, 16).padding(.top, 8)
                 }
             }

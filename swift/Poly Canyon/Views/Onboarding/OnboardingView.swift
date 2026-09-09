@@ -6,6 +6,8 @@ struct OnboardingView: View {
     @EnvironmentObject private var locationService: LocationService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.colorSchemeContrast) private var contrast
+    private var secondaryInk: Color { FieldPalette.green.opacity(contrast == .increased ? 1 : 0.78) }
     @State private var flow = OnboardingFlow()
     @State private var revealed = false
 
@@ -43,7 +45,7 @@ struct OnboardingView: View {
                 actions(location).padding(.horizontal, 28).padding(.top, 16).padding(.bottom, 12)
                     .frame(maxWidth: 536)
             }
-            .onChange(of: location) { flow.observe($0) }
+            .onChange(of: location) { value in advance { flow.observe(value) } }
         }
         .background(Color.white.ignoresSafeArea())
         .foregroundStyle(FieldPalette.green).tint(FieldPalette.green)
@@ -74,15 +76,17 @@ struct OnboardingView: View {
                     Image(systemName: "chevron.left").frame(width: 44, height: 44)
                 }.accessibilityLabel("Back")
                 Spacer()
+                if flow.isVirtualIntroduction {
                 HStack(spacing: 6) {
-                    ForEach(1..<OnboardingFlow.Stage.allCases.count, id: \.self) { index in
-                        Capsule().fill(index == flow.stage.rawValue ? FieldPalette.green : FieldPalette.green.opacity(0.15))
-                            .frame(width: index == flow.stage.rawValue ? 24 : 6, height: 6)
+                    ForEach(2...4, id: \.self) { index in
+                        Capsule().fill(index == flow.progress ? FieldPalette.green : FieldPalette.green.opacity(0.15))
+                            .frame(width: index == flow.progress ? 24 : 6, height: 6)
                     }
                 }.accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Step \(flow.stage.rawValue) of 4")
+                    .accessibilityLabel("Introduction \(flow.progress - 1) of 3")
+                }
                 Spacer()
-                if flow.stage.rawValue >= OnboardingFlow.Stage.introduction.rawValue {
+                if flow.isVirtualIntroduction {
                     Button("Skip") { finish() }.frame(minWidth: 44, minHeight: 44)
                         .accessibilityLabel("Skip introduction")
                 } else { Color.clear.frame(width: 44, height: 44) }
@@ -103,16 +107,36 @@ struct OnboardingView: View {
                 Rectangle().fill(FieldPalette.gold).frame(width: 40, height: 2).accessibilityHidden(true)
                 Text("Poly Canyon").font(.system(.largeTitle, design: .serif).weight(.semibold))
                     .accessibilityAddTraits(.isHeader)
-                Text("Explore Cal Poly’s architectural experiments.").font(.title3).foregroundStyle(.secondary)
+                Text("Explore Cal Poly’s architectural experiments.").font(.title3).foregroundStyle(secondaryInk)
                 Spacer(minLength: 0)
             }.multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 .frame(minHeight: max(0, height - 40))
         case .location:
             Image(systemName: "location.circle").font(.system(size: 68, weight: .ultraLight))
                 .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
-            copy("Are you at Poly Canyon?", "Use your location to follow the map and mark the places you visit while the app is open.")
-            Text(feedback(location)).font(.callout).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            copy("Are you going to explore Poly Canyon?", "Explore on foot, or take a look around from anywhere.")
+        case .permission:
+            Image(systemName: "location").font(.system(size: 58, weight: .light))
+                .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
+            copy("Find your place in the canyon.", "Allow location while using the app to see your position and mark nearby structures as visited. Your progress stays on this device.")
+            Text("You can explore every structure and photograph without location.")
+                .font(.callout).foregroundStyle(secondaryInk)
+        case .locating:
+            ProgressView().controlSize(.large).accessibilityLabel("Finding your position")
+            copy(location == .undecided ? "Choose location access." : "Finding your position.",
+                 location == .undecided ? "Choose an option in the location prompt. You can also continue without location."
+                 : "We’re waiting for a current position near the canyon. If it isn’t available, you can still explore the map and stories virtually.")
+        case .visit:
+            GeometryReader { frame in
+                Image("M-1").resizable().scaledToFill().frame(width: frame.size.width, height: visualHeight).clipped()
+            }.frame(height: visualHeight).clipShape(RoundedRectangle(cornerRadius: 24)).accessibilityHidden(true)
+            copy("Ready to explore in person.", "Start with the canyon map. Tap a structure to open its story and photographs.")
+            Text("When a current position is available in the canyon, it appears on the map. As you walk with the app open, nearby structures are marked visited. The Tour is always available, too.")
+                .font(.callout).foregroundStyle(secondaryInk).fixedSize(horizontal: false, vertical: true)
+        case .virtualExplanation:
+            Image(systemName: "map").font(.system(size: 58, weight: .light))
+                .foregroundStyle(FieldPalette.gold).accessibilityHidden(true)
+            copy("Explore without location.", "You can still browse the whole map, open every story, and take the virtual tour.")
         case .introduction:
             GeometryReader { frame in
                 Image("M-1").resizable().scaledToFill().frame(width: frame.size.width, height: visualHeight).clipped()
@@ -134,7 +158,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title).font(.system(.largeTitle, design: .serif).weight(.medium))
                 .accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused)
-            Text(detail).font(.title3).foregroundStyle(.secondary)
+            Text(detail).font(.title3).foregroundStyle(secondaryInk)
         }.fixedSize(horizontal: false, vertical: true)
     }
     private func navigationDemo(height: CGFloat) -> some View {
@@ -155,6 +179,7 @@ struct OnboardingView: View {
                             .accessibilityLabel("Next example").disabled(sample == samples.count - 1)
                     }.padding(.top, 16)
                 } else if #available(iOS 17, *) {
+                    ScrollViewReader { proxy in
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(alignment: .top, spacing: 14) {
                             ForEach(samples, id: \.self) { number in
@@ -172,8 +197,13 @@ struct OnboardingView: View {
                     .scrollTargetBehavior(.viewAligned)
                     .scrollPosition(id: $previewSelection, anchor: .center)
                     .scrollClipDisabled()
+                    .onAppear {
+                        // The card strip is recreated when leaving accessibility sizes.
+                        proxy.scrollTo(samples[sample], anchor: .center)
+                    }
                     .onChange(of: previewSelection) { number in
                         if let number, let index = samples.firstIndex(of: number) { sample = index }
+                    }
                     }
                 } else {
                     TabView(selection: $sample) {
@@ -215,47 +245,50 @@ struct OnboardingView: View {
     }
     private func actions(_ location: OnboardingFlow.Location) -> some View {
         VStack(spacing: 6) {
-            Button {
-                switch flow.stage {
-                case .title: advance { flow.begin() }
-                case .location:
-                    if location == .undecided {
-                        if flow.request() { locationService.requestInitialPermission() }
-                    } else { advance { flow.introduce(usingLocation: location != .denied) } }
-                case .introduction, .navigation: advance { flow.next() }
-                case .stories: finish()
-                }
-            } label: {
-                HStack {
-                    Text(primaryTitle(location)).font(.headline)
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                }.foregroundStyle(.white).padding(.horizontal, 16).frame(minHeight: 50)
-            }.buttonStyle(.borderedProminent)
-                .disabled(flow.stage == .location && flow.requestPending && location == .undecided)
-            if flow.stage == .location && location != .denied {
-                Button("Explore virtually instead") { advance { flow.introduce(usingLocation: false) } }
-                    .font(.callout.weight(.medium)).frame(minHeight: 44)
+            if flow.stage != .locating {
+                Button {
+                    switch flow.stage {
+                    case .title: advance { flow.begin() }
+                    case .location: advance { flow.chooseVisit(location: location) }
+                    case .permission:
+                        advance {
+                            if flow.request() {
+                                locationService.setMode(.initial)
+                                if location == .undecided { locationService.requestInitialPermission() }
+                                flow.observe(location)
+                            }
+                        }
+                    case .virtualExplanation:
+                        locationService.setMode(.virtualTour)
+                        advance { flow.next() }
+                    case .introduction, .navigation: advance { flow.next() }
+                    case .visit, .stories: finish()
+                    case .locating: break
+                    }
+                } label: {
+                    HStack {
+                        Text(primaryTitle(location)).font(.headline).fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                    }.foregroundStyle(.white).padding(.horizontal, 16).frame(minHeight: 50)
+                }.buttonStyle(.borderedProminent)
+            }
+            if [.location, .permission, .locating, .visit].contains(flow.stage) {
+                Button(flow.stage == .location ? "Visit virtually" : "Continue without location") {
+                    locationService.setMode(.virtualTour)
+                    advance { flow.introduce(usingLocation: false) }
+                }.font(.callout.weight(.medium)).frame(minHeight: 44)
             }
         }
     }
     private func primaryTitle(_ location: OnboardingFlow.Location) -> String {
         switch flow.stage {
         case .title: return "Begin"
-        case .location:
-            if location == .undecided { return flow.requestPending ? "Waiting for your choice" : "Use my location" }
-            return location == .denied ? "Continue virtually" : "Continue"
-        case .introduction, .navigation: return "Continue"
-        case .stories: return flow.recommendsMap(location) ? "Open the map" : "Start the tour"
-        }
-    }
-    private func feedback(_ location: OnboardingFlow.Location) -> String {
-        switch location {
-        case .undecided: return flow.requestPending ? "Choose location access in the prompt." : "You can also explore from anywhere."
-        case .denied: return "Location is off. The map, photographs, and stories are still yours to explore."
-        case .locating: return "Location is enabled. Finding your position—you can continue while we wait."
-        case .visit: return "Location is ready. We’ll start with the map for your visit."
-        case .remote: return "You’re away from the canyon. We’ll start with the virtual tour."
+        case .location: return "Explore in person"
+        case .permission: return location == .denied ? "Continue virtually" : (location == .undecided ? "Allow location" : "Continue")
+        case .visit: return "Start my visit"
+        case .stories: return "Start the tour"
+        default: return "Continue"
         }
     }
     private func status(at date: Date) -> OnboardingFlow.Location {
@@ -271,10 +304,14 @@ struct OnboardingView: View {
     }
     private func finish() {
         let location = status(at: Date())
+        // Permission can change while the introduction is visible. Proximity never changes the chosen journey.
+        if flow.usesLocation && !locationService.hasLocationPermission {
+            advance { flow.observe(location) }
+            return
+        }
         let recording = flow.recordsVisits(location)
         appState.adventureModeEnabled = recording
         locationService.setMode(recording ? .adventure : .virtualTour)
-        let recommended: Bool? = location == .locating ? nil : location == .visit
-        appState.completeOnboarding(usingLocation: flow.usesLocation && locationService.hasLocationPermission, mapRecommended: recommended)
+        appState.completeOnboarding(exploringInPerson: flow.usesLocation)
     }
 }

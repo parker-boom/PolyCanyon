@@ -56,29 +56,30 @@ struct StoreChecks {
         precondition(!restored.ghostStructures.contains { $0.isVisited })
         precondition(restored.lastVisitedStructure == nil && restored.lastVisitedGhostStructure == nil)
         let state = AppState(defaults: defaults)
-        // Entry follows the completed journey once, including remote/no-fix and opt-out.
+        // Choice persists independently of tracking; destination is consumed only once.
         precondition(state.consumeInitialDestination() == nil)
-        state.completeOnboarding(usingLocation: true, mapRecommended: false) // remote
-        precondition(state.isOnboardingCompleted && state.consumeInitialDestination() == .tour)
-        precondition(state.consumeInitialDestination() == nil) // returning from a sheet/tab must not redirect
-        state.completeOnboarding(usingLocation: false, mapRecommended: true) // opt out even at canyon
-        precondition(state.consumeInitialDestination() == .tour)
-        state.completeOnboarding(usingLocation: false, mapRecommended: nil) // unavailable/denied
-        precondition(state.consumeInitialDestination() == .tour)
-        state.completeOnboarding(usingLocation: true, mapRecommended: nil) // permitted, no usable fix
-        precondition(state.consumeInitialDestination() == .tour)
-        state.completeOnboarding(usingLocation: true, mapRecommended: true) // canyon/nearby recommendation
-        precondition(state.consumeInitialDestination() == .map)
-        precondition(state.consumeInitialDestination() == nil)
-        state.completeOnboarding(usingLocation: true, mapRecommended: true)
-        precondition(AppState(defaults: defaults).consumeInitialDestination() == nil) // intent is not persisted
+        state.completeOnboarding(exploringInPerson: true)
+        precondition(state.isOnboardingCompleted && state.exploresInPerson)
+        precondition(state.consumeInitialDestination() == .map && state.consumeInitialDestination() == nil)
+        state.adventureModeEnabled = true
+        state.adventureModeEnabled = false
+        precondition(state.exploresInPerson, "Turning off recording must not change the chosen experience")
+        let returning = AppState(defaults: defaults)
+        precondition(returning.exploresInPerson && !returning.adventureModeEnabled)
+        precondition(returning.consumeInitialDestination() == nil)
+        state.completeOnboarding(exploringInPerson: false)
+        precondition(!state.exploresInPerson && state.consumeInitialDestination() == .tour)
+        precondition(!AppState(defaults: defaults).exploresInPerson)
+        defaults.removeObject(forKey: "exploresInPerson")
+        defaults.set(true, forKey: "adventureMode")
+        precondition(AppState(defaults: defaults).exploresInPerson, "Existing visiting users keep their experience")
         defaults.set("keep", forKey: "unrelatedSetting")
         state.isVirtualWalkthrough = true
         state.currentStructureIndex = 20
         state.activeFullScreenView = .structInfo
         state.resetAllSettings()
         precondition(!state.isVirtualWalkthrough && state.currentStructureIndex == 0 && state.activeFullScreenView == nil)
-        precondition(state.consumeInitialDestination() == nil && !state.isOnboardingCompleted)
+        precondition(state.consumeInitialDestination() == nil && !state.isOnboardingCompleted && !state.exploresInPerson)
         precondition(defaults.string(forKey: "unrelatedSetting") == "keep")
         defaults.set(Double.infinity, forKey: "mapScale")
         precondition(AppState(defaults: defaults).mapScale == 1)
@@ -144,7 +145,7 @@ struct StoreChecks {
         let unchanged = try JSONSerialization.jsonObject(with: Data(contentsOf: legacyDirectory.appendingPathComponent("progress.json"))) as! [String: Any]
         precondition(unchanged["schemaVersion"] as? Int == 99)
         precondition(unsupported.persistenceError?.contains("newer version") == true)
-        print("PASS: onboarding map/tour entry, opt-out and no-fix paths, one-time consumption, non-persistence and reset")
+        print("PASS: explicit experience persistence, legacy migration, tracking independence, one-time destination, opt-out and reset")
         print("PASS: atomic reset, failed-write rollback, legacy migration, future-schema protection")
         print("PASS: fresh and returning stores, visits, day counts, favorites reset, search, full reset, invalid location fixes")
     }

@@ -38,6 +38,11 @@ final class AppState: ObservableObject {
         }
     }
 
+    // The chosen experience is independent of permission and active visit recording.
+    @Published private(set) var exploresInPerson: Bool {
+        didSet { defaults.set(exploresInPerson, forKey: "exploresInPerson") }
+    }
+
     // Used to show onboarding flow once
     @Published var isOnboardingCompleted: Bool {
         didSet {
@@ -48,10 +53,9 @@ final class AppState: ObservableObject {
     // Consumed once by MainView; not a preference that can override a later tab choice.
     private var initialDestination: OnboardingDestination?
 
-    func completeOnboarding(usingLocation: Bool, mapRecommended: Bool?) {
-        // A missing/stale fix has no confirmed map recommendation. Its existing recording
-        // policy is handled separately by onboarding; entry navigation does not change it.
-        initialDestination = usingLocation && mapRecommended == true ? .map : .tour
+    func completeOnboarding(exploringInPerson: Bool) {
+        exploresInPerson = exploringInPerson
+        initialDestination = exploringInPerson ? .map : .tour
         isOnboardingCompleted = true
     }
 
@@ -200,6 +204,8 @@ final class AppState: ObservableObject {
         }
 
         self.adventureModeEnabled = defaults.bool(forKey: "adventureMode")
+        self.exploresInPerson = defaults.object(forKey: "exploresInPerson") as? Bool
+            ?? defaults.bool(forKey: "adventureMode")
         self.isOnboardingCompleted = defaults.bool(forKey: "onboardingProcess")
         self.hasVisitedCanyon = defaults.bool(forKey: "hasVisitedCanyon")
 
@@ -215,7 +221,7 @@ final class AppState: ObservableObject {
     }
 
     func resetAllSettings() {
-        ["isDarkMode", "adventureMode", "onboardingProcess", "hasVisitedCanyon",
+        ["isDarkMode", "adventureMode", "exploresInPerson", "onboardingProcess", "hasVisitedCanyon",
          "mapIsSatellite", "mapShowNumbers", "mapScale", "isVirtualWalkthrough",
          "currentStructureIndex", "needsFullReset", "hasConfiguredMapSettings"]
             .forEach { defaults.removeObject(forKey: $0) }
@@ -228,6 +234,7 @@ final class AppState: ObservableObject {
         isDarkMode = false
         hasVisitedCanyon = false
         adventureModeEnabled = false
+        exploresInPerson = false
         isOnboardingCompleted = false
         needsFullReset = false
         isVirtualWalkthrough = false
