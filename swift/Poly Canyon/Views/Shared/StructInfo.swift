@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Map selections still enter through the existing route. Catalog links push the story directly.
 struct StructInfo: View {
@@ -32,6 +33,7 @@ enum StoryPalette {
 
 struct StructureStory: View {
     let structure: Structure
+    var onPageSwipe: (Int) -> Void = { _ in }
     @EnvironmentObject private var dataStore: DataStore
     @State private var gallery: GallerySelection?
     @State private var showResearch = false
@@ -74,6 +76,8 @@ struct StructureStory: View {
                     }
                     .padding(24)
                     .padding(.bottom, 12)
+                    .contentShape(Rectangle())
+                    .modifier(StoryPagingGesture(page: onPageSwipe))
 
                     if structure.images.count > 1 {
                         photo(1, height: 300, width: geometry.size.width)
@@ -158,6 +162,7 @@ struct StructureStory: View {
 
         }
         .buttonStyle(.plain)
+        .modifier(StoryPagingGesture(enabled: index < 2, page: onPageSwipe))
         .modifier(StoryPhotoSource(id: StoryPhotoID(structure: structure.number, index: index), namespace: photoNamespace))
         .background {
             GeometryReader { photoGeometry in
@@ -254,4 +259,44 @@ private struct StoryPhotoSource: ViewModifier {
 private struct GallerySelection: Identifiable {
     let id = UUID()
     let index: Int
+}
+
+/// The fallback is restricted to the title and two full-width photos. The photo
+/// rail retains its own horizontal gesture. Reject vertical motion before the
+/// recognizer begins so the story's scroll view remains responsive.
+private struct StoryPagingGesture: ViewModifier {
+    var enabled = true
+    let page: (Int) -> Void
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *), enabled {
+            content.gesture(StoryHorizontalPan(page: page))
+        } else { content }
+    }
+}
+
+@available(iOS 18, *)
+private struct StoryHorizontalPan: UIGestureRecognizerRepresentable {
+    let page: (Int) -> Void
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let pan = UIPanGestureRecognizer()
+        pan.maximumNumberOfTouches = 1
+        pan.delegate = context.coordinator
+        return pan
+    }
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        guard recognizer.state == .ended else { return }
+        let translation = recognizer.translation(in: recognizer.view)
+        guard abs(translation.x) >= 60, abs(translation.x) > abs(translation.y) * 1.5 else { return }
+        page(translation.x < 0 ? 1 : -1)
+    }
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+            let velocity = pan.velocity(in: pan.view)
+            return abs(velocity.x) > abs(velocity.y) * 1.5
+        }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
+    }
 }

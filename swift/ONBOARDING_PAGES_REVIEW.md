@@ -1,5 +1,7 @@
 # Onboarding pages and regression review
 
+Latest candidate and superseding gesture findings: [Onboarding transfer review](ONBOARDING_TRANSFER_REVIEW.md).
+
 Candidate for independent review, not release approval. Checkout: PolyCanyon-field-guide, design/remix. Base e67cc58. Existing iOS 26.5 review device EDC62B4C-7EB2-41B4-B997-7660D21504C7; one localhost:3200 server, external build/cache paths, no videos or runtime downloads.
 
 ## Direction and references

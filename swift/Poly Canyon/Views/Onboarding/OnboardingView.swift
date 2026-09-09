@@ -13,6 +13,8 @@ struct OnboardingView: View {
     @State private var movingForward = true
     @State private var sample = 0
     @State private var photoOpen = false
+    @State private var previewStory: StructurePresentation?
+    @State private var previewSelection: Int? = 6
     @AccessibilityFocusState private var headingFocused: Bool
     private let samples = [6, 8, 11]
     private var sampleStructure: Structure? {
@@ -43,9 +45,20 @@ struct OnboardingView: View {
             }
             .onChange(of: location) { flow.observe($0) }
         }
-        .background(FieldPalette.wash.ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .foregroundStyle(FieldPalette.green).tint(FieldPalette.green)
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $photoOpen) {
+            if let entry = dataStore.structures.first(where: { $0.number == 1 }),
+               let index = entry.images.firstIndex(of: "entryArch1") {
+                StructureGallery(structure: entry, initialIndex: index) { photoOpen = false }
+            }
+        }
+        .fullScreenCover(item: $previewStory) { selection in
+            StructureExperience(numbers: selection.numbers, selected: selection.selected, recordsOpening: false) { number in
+                if let index = samples.firstIndex(of: number) { sample = index; previewSelection = number }
+            }
+        }
         .task { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.7)) { revealed = true } }
     }
 
@@ -90,7 +103,7 @@ struct OnboardingView: View {
                 Rectangle().fill(FieldPalette.gold).frame(width: 40, height: 2).accessibilityHidden(true)
                 Text("Poly Canyon").font(.system(.largeTitle, design: .serif).weight(.semibold))
                     .accessibilityAddTraits(.isHeader)
-                Text("A field guide to the unexpected.").font(.title3).foregroundStyle(.secondary)
+                Text("Explore Cal Poly’s architectural experiments.").font(.title3).foregroundStyle(.secondary)
                 Spacer(minLength: 0)
             }.multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 .frame(minHeight: max(0, height - 40))
@@ -105,9 +118,9 @@ struct OnboardingView: View {
                 Image("M-1").resizable().scaledToFill().frame(width: frame.size.width, height: visualHeight).clipped()
             }.frame(height: visualHeight).clipShape(RoundedRectangle(cornerRadius: 24))
                 .accessibilityLabel("Entry Arch in Poly Canyon")
-            copy("Built by students.\nFound in the hills.", "Poly Canyon is a collection of architectural experiments in the hills behind Cal Poly.")
+            copy("An outdoor architecture laboratory.", "In the hills behind Cal Poly, students have tested ideas in architecture and construction by building at full scale.")
         case .navigation:
-            navigationDemo(height: visualHeight)
+            navigationDemo(height: min(440, max(340, height * 0.62)))
             copy(flow.recommendsMap(location) ? "Find your way on foot." : "Move through the canyon.",
                  flow.recommendsMap(location)
                  ? "Your position appears on the map during your visit. Tap a numbered structure to explore it."
@@ -125,67 +138,80 @@ struct OnboardingView: View {
         }.fixedSize(horizontal: false, vertical: true)
     }
     private func navigationDemo(height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            SpatialAtlas(selected: samples[sample], overview: false, reduceMotion: reduceMotion) { number in
-                if let index = samples.firstIndex(of: number) { sample = index }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Example map focused on \(sampleStructure?.title ?? "Entry Arch")")
-            .overlay(alignment: .topLeading) {
-                Text("PREVIEW").font(.caption2.weight(.semibold)).tracking(2)
-                    .padding(10).background(FieldPalette.wash, in: Capsule()).padding(12)
-            }
-            HStack(spacing: 0) {
-                Button { changeSample(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 64) }
-                    .accessibilityLabel("Previous example").disabled(sample == 0)
+        GeometryReader { geometry in
+            let cardWidth = min(210, geometry.size.width * 0.60)
+            VStack(spacing: -8) {
+                SpatialAtlas(selected: samples[sample], overview: false, reduceMotion: reduceMotion)
+                    .frame(height: typeSize.isAccessibilitySize ? 130 : max(110, height - cardWidth - 115))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Example map focused on \(sampleStructure?.title ?? "Tensile")")
                 if typeSize.isAccessibilitySize {
-                    Text(sampleStructure?.title ?? "").font(.headline)
-                        .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
-                } else {
-                TabView(selection: $sample) {
-                ForEach(samples.indices, id: \.self) { index in
-                    if let item = dataStore.structures.first(where: { $0.number == samples[index] }) {
-                        HStack(spacing: 12) {
-                            Image(item.images.first ?? "M-1").resizable().scaledToFill()
-                                .frame(width: 52, height: 52).clipped().clipShape(RoundedRectangle(cornerRadius: 8))
-                            Text(item.title).font(.headline)
-                            Spacer(minLength: 0)
-                        }.padding(12).tag(index)
+                    HStack {
+                        Button { changeSample(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 64) }
+                            .accessibilityLabel("Previous example").disabled(sample == 0)
+                        Text(sampleStructure?.title ?? "").font(.headline).fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
+                        Button { changeSample(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 64) }
+                            .accessibilityLabel("Next example").disabled(sample == samples.count - 1)
+                    }.padding(.top, 16)
+                } else if #available(iOS 17, *) {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 14) {
+                            ForEach(samples, id: \.self) { number in
+                                if let item = dataStore.structures.first(where: { $0.number == number }) {
+                                    Button {
+                                        previewStory = StructurePresentation(numbers: samples, selected: number)
+                                    } label: {
+                                        TourStructureCard(item: item, width: cardWidth)
+                                    }.buttonStyle(.plain).id(number)
+                                }
+                            }
+                        }.scrollTargetLayout().padding(.vertical, 6)
                     }
+                    .contentMargins(.horizontal, (geometry.size.width - cardWidth) / 2, for: .scrollContent)
+                    .scrollTargetBehavior(.viewAligned)
+                    .scrollPosition(id: $previewSelection, anchor: .center)
+                    .scrollClipDisabled()
+                    .onChange(of: previewSelection) { number in
+                        if let number, let index = samples.firstIndex(of: number) { sample = index }
+                    }
+                } else {
+                    TabView(selection: $sample) {
+                        ForEach(samples.indices, id: \.self) { index in
+                            if let item = dataStore.structures.first(where: { $0.number == samples[index] }) {
+                                TourStructureCard(item: item, width: cardWidth).tag(index)
+                            }
+                        }
+                    }.tabViewStyle(.page(indexDisplayMode: .automatic))
                 }
-                }.tabViewStyle(.page(indexDisplayMode: .never)).frame(height: 76)
-                }
-                Button { changeSample(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 64) }
-                    .accessibilityLabel("Next example").disabled(sample == samples.count - 1)
-            }.fixedSize(horizontal: false, vertical: true)
-                .background(.white)
-                .accessibilityAction(named: "Next example") { sample = min(sample + 1, samples.count - 1) }
-                .accessibilityAction(named: "Previous example") { sample = max(sample - 1, 0) }
+            }
         }.frame(height: typeSize.isAccessibilitySize ? 290 : height)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
     }
     private func changeSample(_ delta: Int) {
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) { sample = min(max(0, sample + delta), samples.count - 1) }
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) {
+            sample = min(max(0, sample + delta), samples.count - 1)
+            previewSelection = samples[sample]
+        }
     }
     private func storyDemo(height: CGFloat) -> some View {
         Button {
-            withAnimation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.85)) { photoOpen.toggle() }
+            photoOpen = true
         } label: {
             GeometryReader { frame in
                 ZStack(alignment: .bottomLeading) {
                     Image("entryArch1").resizable().scaledToFill()
-                        .frame(width: frame.size.width, height: height).scaleEffect(photoOpen ? 1.35 : 1).clipped()
+                        .frame(width: frame.size.width, height: height).clipped()
                     Group {
                         if typeSize.isAccessibilitySize {
-                            Image(systemName: photoOpen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
                         } else {
-                            Label(photoOpen ? "Tap to return" : "Take a closer look", systemImage: photoOpen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                            Label("Open photograph", systemImage: "arrow.up.left.and.arrow.down.right")
                         }
                     }.font(.callout.weight(.medium)).padding(12)
                         .background(.regularMaterial, in: Capsule()).padding(16)
                 }.frame(width: frame.size.width, height: height).clipped()
             }.frame(height: height).clipShape(RoundedRectangle(cornerRadius: 24))
-        }.buttonStyle(.plain).accessibilityLabel(photoOpen ? "Return to whole photo" : "Enlarge Entry Arch photo")
+        }.buttonStyle(.plain).accessibilityLabel("Open historical Entry Arch photograph")
     }
     private func actions(_ location: OnboardingFlow.Location) -> some View {
         VStack(spacing: 6) {

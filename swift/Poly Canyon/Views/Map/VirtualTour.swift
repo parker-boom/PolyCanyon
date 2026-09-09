@@ -81,19 +81,7 @@ struct VirtualWalkthrough: View {
             select(item.number)
             presentation = StructurePresentation(numbers: dataStore.structures.map(\.number), selected: item.number)
         } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                if !typeSize.isAccessibilitySize {
-                    Image(item.images.first ?? "M-1").resizable().scaledToFill()
-                        .frame(width: width - 24, height: width - 24).clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .modifier(StructureZoomSource(id: item.number, namespace: photos))
-                }
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(item.title).font(.title3.weight(.semibold)).foregroundStyle(FieldPalette.green)
-                    if let dates = item.catalogDates { Text(dates).font(.subheadline).foregroundStyle(.secondary) }
-                }.fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4).padding(.bottom, 6)
-            }.padding(12).frame(width: width, alignment: .leading)
-                .modifier(CanyonCardSurface())
+            TourStructureCard(item: item, width: width, namespace: photos)
         }.buttonStyle(.plain)
             .accessibilityLabel("\(item.title), \(item.catalogDates ?? "Date unknown")")
             .accessibilityHint("Open structure; swipe to choose another")
@@ -276,5 +264,36 @@ private struct SelectedMarkerGlow: View {
                 expanded = false
                 if !reduceMotion { withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { expanded = true } }
             }
+    }
+}
+
+/// Shared by the real Tour and its onboarding demonstration.
+struct TourStructureCard: View {
+    let item: Structure
+    let width: CGFloat
+    var namespace: Namespace.ID? = nil
+    @Environment(\.dynamicTypeSize) private var typeSize
+    var body: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                if !typeSize.isAccessibilitySize {
+                    Image(item.images.first ?? "M-1").resizable().scaledToFill()
+                        .frame(width: width - 24, height: width - 24).clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .modifier(OptionalTourPhotoSource(id: item.number, namespace: namespace))
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(item.title).font(.title3.weight(.semibold)).foregroundStyle(FieldPalette.green)
+                    if let dates = item.catalogDates { Text(dates).font(.subheadline).foregroundStyle(.secondary) }
+                }.fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4).padding(.bottom, 6)
+            }.padding(12).frame(width: width, alignment: .leading)
+                .modifier(CanyonCardSurface())
+    }
+}
+private struct OptionalTourPhotoSource: ViewModifier {
+    let id: Int
+    let namespace: Namespace.ID?
+    func body(content: Content) -> some View {
+        if let namespace { content.modifier(StructureZoomSource(id: id, namespace: namespace)) }
+        else { content }
     }
 }
