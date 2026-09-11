@@ -12,11 +12,11 @@ Parker Jones maintains the app and its App Store listing. The website is a separ
 
 The CI archive is unsigned and checks compilation; it is not the distribution artifact. The existing shared scheme and bundle identifier are intentional.
 
-## 6.0 build 2 preparation
+## Current releases
 
-Verified September 9, 2026: release source is merged into main, local regression checks and signed archive/export passed, and build 2 is uploaded and selected in the saved App Store draft. The approved screenshots and revised copy are saved. [The merged-main workflow](https://github.com/parker-boom/PolyCanyon/actions/runs/34404739513) passed its regression checks and both Release builds.
+6.0 build 2 is published on the App Store. The 6.1 update adds the Shell Sweep icon, persistent System/Light/Dark themes, revised onboarding, and navigation polish. Its signed build 3 was archived, exported, and uploaded on September 10, 2026. The release draft retains manual release and the approved App Store screenshots. App Store Connect is the authority for processing and review status.
 
-This is a dated preparation record. App Store Connect is the authority for subsequent review and publication status; the draft was set to manual release. These documentation changes do not change the submitted app binary.
+The privacy disclosure now states **Data Not Collected**, matching the app’s on-device behavior.
 
 ## Ongoing operation
 
