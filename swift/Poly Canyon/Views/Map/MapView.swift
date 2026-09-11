@@ -8,6 +8,7 @@ final class CirclePositionStore: ObservableObject {
     @Published var isDotVisible = false
 }
 struct MapView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var locationService: LocationService
     @EnvironmentObject private var dataStore: DataStore
@@ -44,26 +45,30 @@ struct MapView: View {
 
 
         }
-        .background(Color.white)
+        .background(CanyonStyle.paper)
         .modifier(MapBackgroundExtension())
-        .toolbar(.hidden, for: .navigationBar)
-        .overlay(alignment: .top) {
-            HStack(alignment: .top) {
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
                 if appState.exploresInPerson {
-                Button(action: onInfo) { Image(systemName: "info.circle").frame(width: 48, height: 48).canyonControl() }
-                    .accessibilityLabel("Location and visits")
+                    Button(action: onInfo) { Image(systemName: "info.circle") }
+                        .accessibilityLabel("Location and visits")
                 }
-                Spacer()
-                VStack(spacing: 12) {
-                    Menu {
-                        Picker("Map appearance", selection: $appState.mapIsSatellite) {
-                            Text("Illustrated map").tag(false)
-                            Text("Satellite imagery").tag(true)
-                        }
-                        Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
-                    } label: { Image(systemName: "square.3.layers.3d").frame(width: 48, height: 48).canyonControl() }
-                        .accessibilityLabel("Map options")
-                    if appState.exploresInPerson {
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Picker("Map appearance", selection: $appState.mapIsSatellite) {
+                        Text("Illustrated map").tag(false)
+                        Text("Satellite imagery").tag(true)
+                    }
+                    Toggle("Show map numbers", isOn: $appState.mapShowNumbers)
+                } label: { Image(systemName: "square.3.layers.3d") }
+                    .accessibilityLabel("Map options")
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            VStack(spacing: 12) {
+                if appState.exploresInPerson {
                     Button {
                         if let fix = locationService.lastLocation,
                            locationService.hasLocationPermission,
@@ -74,17 +79,16 @@ struct MapView: View {
                             locationFocus = point.pixelPosition
                             canvasID = UUID()
                         } else { locationMessage = true }
-                    } label: { Image(systemName: "location").frame(width: 48, height: 48).canyonControl() }
+                    } label: { Image(systemName: "location").frame(width: 44, height: 44).canyonControl() }
                         .accessibilityLabel("Center on my location")
                         .disabled(!locationService.canUseLocation)
-                    }
-                    if isMapZoomed {
-                    Button(action: reset) {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 48, height: 48).canyonControl()
-                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
-                    }
                 }
-            }.padding(16)
+                if isMapZoomed {
+                    Button(action: reset) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 44, height: 44).canyonControl()
+                    }.accessibilityLabel("Fit map").accessibilityHint("Zoom out to show the entire map")
+                }
+            }.padding(.trailing, 16).padding(.top, 8)
         }
         .alert("Your position isn’t available on this map", isPresented: $locationMessage) {
             Button("OK", role: .cancel) { }
@@ -99,7 +103,7 @@ struct MapView: View {
     }
     private func reset() { focusStructure = nil; locationFocus = nil; canvasID = UUID() }
     private var mapImage: String {
-        (appState.mapIsSatellite ? "SatelliteMap" : "LightMap") + (appState.mapShowNumbers ? "" : "NN")
+        (appState.mapIsSatellite ? "SatelliteMap" : (colorScheme == .dark ? "DarkMap" : "LightMap")) + (appState.mapShowNumbers ? "" : "NN")
     }
 }
 /// Uses the renderer's existing calibration; never changes discovery coordinates.

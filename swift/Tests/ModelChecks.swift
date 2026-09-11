@@ -27,6 +27,20 @@ struct ModelChecks {
             precondition(!unknown.matchesCatalogQuery("xxxx"))
             precondition(!unknown.matchesCatalogQuery("1976"), "Unknown must not invent a year")
         }
+        // Every standing structure resolves to an article, not the homepage or a name-derived URL.
+        precondition(structures.allSatisfy { $0.websiteURL?.host == "polycanyon.com" && $0.websiteURL!.path.hasPrefix("/structures/") })
+        precondition(Set(structures.compactMap(\.websiteURL)).count == structures.count)
+        precondition(structures.first { $0.number == 1 }!.websiteURL?.path == "/structures/entryArch")
+        precondition(structures.first { $0.number == 17 }!.websiteURL?.path == "/structures/water")
+        precondition(structures.first { $0.number == 27 }!.websiteURL?.path == "/structures/centeringCenter")
+        for (number, slug) in [(101, "hydraulicHouse"), (102, "accessoryShed"), (104, "tensegrityMast"), (105, "suspensionBridge"), (106, "botanicalGarden")] {
+            let archived = Structure(number: number, title: "Renamed title", year: "", advisors: [], builders: [], description: "", funFact: nil, images: [])
+            precondition(archived.websiteURL?.path == "/structures/" + slug)
+        }
+        for number in [103, 999, -1] {
+            let missing = Structure(number: number, title: "No website article", year: "", advisors: [], builders: [], description: "", funFact: nil, images: [])
+            precondition(missing.websiteURL == nil, "Do not misroute missing articles")
+        }
         precondition(structures.allSatisfy { !$0.images.isEmpty })
         precondition(ghosts.allSatisfy { !$0.images.isEmpty && !$0.isVisited })
         var visitedGhost = ghosts[0]

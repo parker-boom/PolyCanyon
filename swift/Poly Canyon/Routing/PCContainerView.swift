@@ -13,7 +13,7 @@ struct PCContainerView: View {
             .environmentObject(appState)
             .environmentObject(dataStore)
             .environmentObject(locationService)
-            .preferredColorScheme(.light)
+            .preferredColorScheme(appState.theme.colorScheme)
             .task {
                 locationService.setAppActive(scenePhase == .active)
                 locationService.configure()

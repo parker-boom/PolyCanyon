@@ -7,23 +7,25 @@ import SwiftUI
  react to state changes. User preferences sync with UserDefaults; transient presentation intent stays in memory.
 */
 
+enum AppTheme: String, CaseIterable, Identifiable {
+    case system, light, dark
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+    var colorScheme: ColorScheme? {
+        switch self { case .system: return nil; case .light: return .light; case .dark: return .dark }
+    }
+}
+
 enum OnboardingDestination { case map, tour }
 
 @MainActor
 final class AppState: ObservableObject {
     private let defaults: UserDefaults
+    private static let onboardingRevision = 1
 
 
-    // Temporary flag to force light mode
-    private let forceLightMode: Bool = true
-
-    // Dark mode - updates UI to theme accordingly
-    @Published var isDarkMode: Bool {
-        didSet {
-            if !forceLightMode { // Only save if not forcing light mode
-                defaults.set(isDarkMode, forKey: "isDarkMode")
-            }
-        }
+    @Published var theme: AppTheme {
+        didSet { defaults.set(theme.rawValue, forKey: "theme") }
     }
 
     // Virtual Tour full screen state
@@ -56,6 +58,7 @@ final class AppState: ObservableObject {
     func completeOnboarding(exploringInPerson: Bool) {
         exploresInPerson = exploringInPerson
         initialDestination = exploringInPerson ? .map : .tour
+        defaults.set(Self.onboardingRevision, forKey: "onboardingRevision")
         isOnboardingCompleted = true
     }
 
@@ -196,17 +199,17 @@ final class AppState: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
-        // Force Light Mode or initialize with UserDefaults
-        if forceLightMode {
-            self.isDarkMode = false // Light Mode
-        } else {
-            self.isDarkMode = defaults.bool(forKey: "isDarkMode")
-        }
+        self.theme = AppTheme(rawValue: defaults.string(forKey: "theme") ?? "") ?? .system
 
         self.adventureModeEnabled = defaults.bool(forKey: "adventureMode")
         self.exploresInPerson = defaults.object(forKey: "exploresInPerson") as? Bool
             ?? defaults.bool(forKey: "adventureMode")
-        self.isOnboardingCompleted = defaults.bool(forKey: "onboardingProcess")
+        let onboardingIsCurrent = defaults.bool(forKey: "onboardingProcess")
+            && defaults.integer(forKey: "onboardingRevision") >= Self.onboardingRevision
+        self.isOnboardingCompleted = onboardingIsCurrent
+        // LocationService reads this flag before configuring the chosen experience.
+        // Keep it consistent with the revised onboarding gate without clearing visit preferences.
+        if !onboardingIsCurrent { defaults.set(false, forKey: "onboardingProcess") }
         self.hasVisitedCanyon = defaults.bool(forKey: "hasVisitedCanyon")
 
         // Initialize map settings
@@ -221,7 +224,7 @@ final class AppState: ObservableObject {
     }
 
     func resetAllSettings() {
-        ["isDarkMode", "adventureMode", "exploresInPerson", "onboardingProcess", "hasVisitedCanyon",
+        ["isDarkMode", "onboardingRevision", "adventureMode", "exploresInPerson", "onboardingProcess", "hasVisitedCanyon",
          "mapIsSatellite", "mapShowNumbers", "mapScale", "isVirtualWalkthrough",
          "currentStructureIndex", "needsFullReset", "hasConfiguredMapSettings"]
             .forEach { defaults.removeObject(forKey: $0) }
@@ -231,7 +234,6 @@ final class AppState: ObservableObject {
 
         // Reset our state
         initialDestination = nil
-        isDarkMode = false
         hasVisitedCanyon = false
         adventureModeEnabled = false
         exploresInPerson = false
