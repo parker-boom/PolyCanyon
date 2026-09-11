@@ -16,7 +16,7 @@ I built Poly Canyon to connect the structures you see on a walk with the ideas a
 
 The experience starts with how you want to explore. In the canyon, the map follows your position and marks discoveries as you walk. From anywhere else, swipe through the virtual tour, open a structure’s story, and look through its photographs. Both lead into the same collection, searchable by name, number, or year.
 
-The 6.0 redesign puts the photographs first, with glass controls, interactive onboarding, and transitions that keep the map, collection, and stories connected.
+The app puts photographs first, with glass controls, interactive onboarding, and transitions that keep the map, collection, and stories connected. Choose System, Light, or Dark in Info to make it your own.
 
 ## Behind the app
 

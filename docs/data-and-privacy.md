@@ -25,7 +25,7 @@ The shipping catalog also deliberately selects fewer or different photos than th
 
 ## On-device data
 
-The maintained 6.0 app stores visit progress locally and uses UserDefaults for settings. It does not upload location, run analytics, or require an account. Location updates run only while the app is active and tracking is enabled; the app does not request Always permission or declare background location.
+The maintained iOS app stores visit progress locally and uses UserDefaults for settings. It does not upload location, run analytics, or require an account. Location updates run only while the app is active and tracking is enabled; the app does not request Always permission or declare background location.
 
 The privacy manifest declares required UserDefaults access under CA92.1, with no tracking or collected data. Revisit both the manifest and App Store privacy answers if networking or an SDK is introduced. User-initiated website and support links leave the app.
 

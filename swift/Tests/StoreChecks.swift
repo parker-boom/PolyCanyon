@@ -46,6 +46,62 @@ struct StoreChecks {
         let restored = DataStore(directory: directory, defaults: defaults, bundle: bundle)
         precondition(restored.isLiked(for: 1) && restored.structures[0].isVisited)
         precondition(restored.ghostStructures[0].isVisited && restored.totalVisitedCount == 3)
+        // A release may require fresh onboarding without resetting a returning visitor's data.
+        let upgradeSuite = "PolyCanyonUpgradeTests.\(UUID().uuidString)"
+        let upgradeDefaults = UserDefaults(suiteName: upgradeSuite)!
+        defer { upgradeDefaults.removePersistentDomain(forName: upgradeSuite) }
+        for legacyDarkMode in [false, true] {
+            upgradeDefaults.set(legacyDarkMode, forKey: "isDarkMode")
+            precondition(AppState(defaults: upgradeDefaults).theme == .system,
+                         "The retired dark-mode flag must not override the system appearance")
+        }
+        upgradeDefaults.set("obsolete-theme", forKey: "theme")
+        precondition(AppState(defaults: upgradeDefaults).theme == .system)
+        upgradeDefaults.removeObject(forKey: "theme")
+        upgradeDefaults.set(true, forKey: "onboardingProcess")
+        upgradeDefaults.set(true, forKey: "adventureMode")
+        upgradeDefaults.set(true, forKey: "hasConfiguredMapSettings")
+        upgradeDefaults.set(true, forKey: "mapIsSatellite")
+        upgradeDefaults.set(false, forKey: "mapShowNumbers")
+        upgradeDefaults.set(1.75, forKey: "mapScale")
+        upgradeDefaults.set(19, forKey: "currentStructureIndex")
+        upgradeDefaults.set(true, forKey: "hasVisitedCanyon")
+        let progressBeforeOnboarding = try Data(contentsOf: directory.appendingPathComponent("progress.json"))
+        let upgrade = AppState(defaults: upgradeDefaults)
+        precondition(!upgrade.isOnboardingCompleted, "Old completion must show the revised onboarding once")
+        precondition(!upgradeDefaults.bool(forKey: "onboardingProcess"),
+                     "Location configuration must see onboarding incomplete during the upgrade")
+        precondition(upgrade.exploresInPerson && upgrade.adventureModeEnabled && upgrade.hasVisitedCanyon)
+        precondition(upgrade.mapIsSatellite && !upgrade.mapShowNumbers && upgrade.mapScale == 1.75)
+        precondition(upgrade.currentStructureIndex == 19)
+        precondition(!AppState(defaults: upgradeDefaults).isOnboardingCompleted,
+                     "Launching without completing onboarding must not mark it complete")
+        upgrade.completeOnboarding(exploringInPerson: true)
+        precondition(upgradeDefaults.integer(forKey: "onboardingRevision") == 1)
+        precondition(upgradeDefaults.bool(forKey: "onboardingProcess"))
+        for _ in 0..<2 {
+            let nextLaunch = AppState(defaults: upgradeDefaults)
+            precondition(nextLaunch.isOnboardingCompleted && nextLaunch.consumeInitialDestination() == nil)
+            precondition(nextLaunch.mapIsSatellite && !nextLaunch.mapShowNumbers && nextLaunch.mapScale == 1.75)
+            precondition(nextLaunch.currentStructureIndex == 19 && nextLaunch.hasVisitedCanyon)
+        }
+        let progressAfterOnboarding = try Data(contentsOf: directory.appendingPathComponent("progress.json"))
+        precondition(progressAfterOnboarding == progressBeforeOnboarding, "Onboarding must not rewrite saved progress")
+        let upgradeStore = DataStore(directory: directory, defaults: defaults, bundle: bundle)
+        precondition(upgradeStore.isLiked(for: 1) && upgradeStore.structures[0].isVisited)
+        precondition(upgradeStore.ghostStructures[0].isVisited && upgradeStore.totalVisitedCount == 3 && upgradeStore.dayCount == 2)
+        for theme in [AppTheme.light, .dark, .system] {
+            upgrade.theme = theme
+            precondition(upgradeDefaults.string(forKey: "theme") == theme.rawValue)
+            precondition(AppState(defaults: upgradeDefaults).theme == theme)
+            upgrade.resetAllSettings()
+            precondition(upgrade.theme == theme && AppState(defaults: upgradeDefaults).theme == theme,
+                         "Resetting visits/settings must preserve the chosen appearance")
+            precondition(!AppState(defaults: upgradeDefaults).isOnboardingCompleted)
+            precondition(upgradeDefaults.object(forKey: "onboardingRevision") == nil)
+        }
+        precondition(AppTheme.system.colorScheme == nil)
+        precondition(AppTheme.light.colorScheme == .light && AppTheme.dark.colorScheme == .dark)
         restored.resetLikes()
         precondition(!restored.isLiked(for: 1) && restored.totalVisitedCount == 3)
         precondition(restored.getFilteredStructures(searchText: "zzzz-no-match", sortState: .all).isEmpty)
@@ -145,6 +201,7 @@ struct StoreChecks {
         let unchanged = try JSONSerialization.jsonObject(with: Data(contentsOf: legacyDirectory.appendingPathComponent("progress.json"))) as! [String: Any]
         precondition(unchanged["schemaVersion"] as? Int == 99)
         precondition(unsupported.persistenceError?.contains("newer version") == true)
+        print("PASS: system appearance migration, theme persistence/reset, revised onboarding once, preserved map preferences and visit progress")
         print("PASS: explicit experience persistence, legacy migration, tracking independence, one-time destination, opt-out and reset")
         print("PASS: atomic reset, failed-write rollback, legacy migration, future-schema protection")
         print("PASS: fresh and returning stores, visits, day counts, favorites reset, search, full reset, invalid location fixes")

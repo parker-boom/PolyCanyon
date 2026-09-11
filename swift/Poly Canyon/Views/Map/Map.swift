@@ -173,12 +173,13 @@ struct PulsingCircle: View {
 }
 
 struct MapBackgroundLayer: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var appState: AppState
     let isSatellite: Bool
     
     var body: some View {
         ZStack {
-            Color(appState.isDarkMode ? .black : .white)
+            CanyonStyle.paper
                 .ignoresSafeArea(.container, edges: .top)
             
             if isSatellite {

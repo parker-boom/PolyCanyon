@@ -54,8 +54,6 @@ struct StructureExperience: View {
             .padding(.trailing, 16)
 
         }
-        .interactiveDismissDisabled()
-        .preferredColorScheme(.light)
         .tint(StoryPalette.ink)
         .modifier(OptionalStructureTransition(id: selected, namespace: namespace))
         .onAppear { markSelectedAsOpened() }
@@ -88,7 +86,7 @@ struct CanyonCardSurface: ViewModifier {
     @Environment(\.accessibilityReduceTransparency) private var opaque
     func body(content: Content) -> some View {
         if opaque {
-            content.background(.white, in: RoundedRectangle(cornerRadius: 24))
+            content.background(CanyonStyle.paper, in: RoundedRectangle(cornerRadius: 24))
         } else if #available(iOS 26, *) {
             content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 24))
         } else {
