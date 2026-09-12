@@ -44,7 +44,7 @@ struct AppView_Previews: PreviewProvider {
             AppView()
                 .environmentObject({
                     let state = AppState()
-                    state.isDarkMode = false
+                    state.theme = .light
                     return state
                 }())
                 .environmentObject(DataStore.shared)
@@ -55,7 +55,7 @@ struct AppView_Previews: PreviewProvider {
             AppView()
                 .environmentObject({
                     let state = AppState()
-                    state.isDarkMode = true
+                    state.theme = .dark
                     return state
                 }())
                 .environmentObject(DataStore.shared)

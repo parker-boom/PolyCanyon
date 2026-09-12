@@ -49,9 +49,8 @@ struct OnboardingView: View {
             }
             .onChange(of: location) { value in advance { flow.observe(value) } }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(CanyonStyle.paper.ignoresSafeArea())
         .foregroundStyle(FieldPalette.green).tint(FieldPalette.green)
-        .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $photoOpen) {
             if let entry = dataStore.structures.first(where: { $0.number == 1 }),
                let index = entry.images.firstIndex(of: "entryArch1") {
@@ -308,7 +307,7 @@ struct OnboardingView: View {
                         Spacer()
                         Image(systemName: "arrow.right")
                     }.foregroundStyle(.white).padding(.horizontal, 16).frame(minHeight: 50)
-                }.buttonStyle(.borderedProminent)
+                }.buttonStyle(.borderedProminent).tint(CanyonStyle.evergreen)
             }
             if [.location, .permission, .locating, .visit].contains(flow.stage) {
                 Button(flow.stage == .location ? "Visit virtually" : "Continue without location") {

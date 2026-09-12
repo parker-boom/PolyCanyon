@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import SafariServices
 
 // Map selections still enter through the existing route. Catalog links push the story directly.
 struct StructInfo: View {
@@ -25,18 +26,22 @@ struct UnavailableStructureView: View {
 }
 
 enum StoryPalette {
-    static let paper = Color.white
+    static let paper = CanyonStyle.paper
     static let ink = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark ? UIColor(red: 0.83, green: 0.90, blue: 0.81, alpha: 1) : UIColor(red: 0.13, green: 0.23, blue: 0.18, alpha: 1)
     })
 }
 
 struct StructureStory: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var contentTop: CGFloat = 0
+    @State private var pullStartedAtTop: Bool?
     let structure: Structure
     var onPageSwipe: (Int) -> Void = { _ in }
     @EnvironmentObject private var dataStore: DataStore
     @State private var gallery: GallerySelection?
     @State private var showResearch = false
+    @State private var showingWebsite = false
     @Namespace private var photoNamespace
     @State private var visiblePhotoIndices: Set<Int> = []
     @State private var gallerySourceIndices: Set<Int> = []
@@ -105,19 +110,39 @@ struct StructureStory: View {
                             Text("The full story").font(.title2.weight(.semibold)).padding(.vertical, 10)
                         }
                         .tint(StoryPalette.ink)
-                        Link(destination: URL(string: "https://polycanyon.com")!) {
-                            HStack {
-                                Text("More at polycanyon.com")
-                                Image(systemName: "arrow.up.right").font(.caption)
+                        if let websiteURL = structure.websiteURL {
+                            Button { showingWebsite = true } label: {
+                                HStack {
+                                    Text("More at polycanyon.com")
+                                    Image(systemName: "arrow.up.right").font(.caption)
+                                }
+                            }
+                            .font(.subheadline)
+                            .accessibilityHint("Opens this structure’s website article inside the app")
+                            .sheet(isPresented: $showingWebsite) {
+                                StructureWebsite(url: websiteURL).ignoresSafeArea()
                             }
                         }
-                        .font(.subheadline)
-                        .accessibilityHint("Opens the website; requires an internet connection")
                     }
                     .padding(24)
                     .padding(.bottom, 24)
                 }
+                .background {
+                    GeometryReader { frame in
+                        Color.clear.preference(key: StoryContentTop.self, value: frame.frame(in: .named(photoNamespace)).minY)
+                    }
+                }
             }
+            .onPreferenceChange(StoryContentTop.self) { contentTop = $0 }
+            .simultaneousGesture(DragGesture(minimumDistance: 12)
+                .onChanged { value in
+                    if pullStartedAtTop == nil { pullStartedAtTop = contentTop >= -1 && value.translation.height > 0 }
+                }
+                .onEnded { value in
+                    defer { pullStartedAtTop = nil }
+                    if pullStartedAtTop == true, value.translation.height > 100,
+                       value.translation.height > abs(value.translation.width) * 1.5 { dismiss() }
+                })
             .modifier(StoryScrollEdges())
             .background(StoryPalette.paper)
             .coordinateSpace(name: photoNamespace)
@@ -308,5 +333,26 @@ private struct StoryHorizontalPan: UIGestureRecognizerRepresentable {
         }
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                                shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
+    }
+}
+
+private struct StoryContentTop: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct StructureWebsite: UIViewControllerRepresentable {
+    @Environment(\.colorScheme) private var colorScheme
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.dismissButtonStyle = .done
+        updateUIViewController(controller, context: context)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: SFSafariViewController, context: Context) {
+        controller.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
     }
 }

@@ -186,3 +186,52 @@ extension Structure {
         return terms(query).allSatisfy { term in fields.contains { $0.contains(term) } }
     }
 }
+
+
+extension Structure {
+    /// Website routes are stable identifiers, independent of display names and app archive IDs.
+    /// Wooden Bridge (103) has no dedicated website article.
+    var websiteURL: URL? {
+        guard let slug = Self.websiteSlugs[number] else { return nil }
+        return URL(string: "https://polycanyon.com/structures/" + slug)
+    }
+
+    private static let websiteSlugs: [Int: String] = [
+        1: "entryArch",
+        2: "techiteBridge",
+        3: "blade",
+        4: "spireArray",
+        5: "palmTree",
+        6: "tensile",
+        7: "geodesicDome",
+        8: "cantileverDeck",
+        9: "restrooms",
+        10: "undergroundHouse",
+        11: "sunDial",
+        12: "guniteBridge",
+        13: "timberTruss",
+        14: "stickStructure",
+        15: "pyramid",
+        16: "bridgeHouse",
+        17: "water",
+        18: "observationDeck",
+        19: "polyPavilion",
+        20: "serenityWall",
+        21: "hayBale",
+        22: "fratessaTower",
+        23: "tensegrity",
+        24: "shellHouse",
+        25: "greenHouse",
+        26: "modularHouse",
+        27: "centeringCenter",
+        28: "poleHouse",
+        29: "electric",
+        30: "bbqPit",
+        31: "momentMonument",
+        101: "hydraulicHouse",
+        102: "accessoryShed",
+        104: "tensegrityMast",
+        105: "suspensionBridge",
+        106: "botanicalGarden",
+    ]
+}

@@ -3,8 +3,12 @@ import UIKit
 
 enum FieldPalette {
     static let green = CanyonStyle.ink
-    static let gold = Color(red: 0.55, green: 0.36, blue: 0.08)
-    static let wash = Color(red: 0.98, green: 0.97, blue: 0.94)
+    static let gold = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.85, green: 0.69, blue: 0.35, alpha: 1)
+            : UIColor(red: 0.55, green: 0.36, blue: 0.08, alpha: 1)
+    })
+    static let wash = Color(uiColor: .secondarySystemBackground)
 }
 
 struct VirtualWalkthrough: View {
@@ -36,11 +40,14 @@ struct VirtualWalkthrough: View {
                             .padding(.top, -12).padding(.bottom, 12)
                     }
                 }
-                .overlay(alignment: .topTrailing) { chooser.padding(16) }
+
             }
         }
-        .background(.white)
-        .toolbar(.hidden, for: .navigationBar)
+        .background(CanyonStyle.paper)
+        .ignoresSafeArea(.container, edges: .top)
+        .overlay(alignment: .top) { CanyonTopBlur().frame(height: 120).ignoresSafeArea(.container, edges: .top) }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar { ToolbarItem(placement: .navigationBarTrailing) { chooser } }
         .fullScreenCover(item: $presentation) { selection in
             StructureExperience(numbers: selection.numbers, selected: selection.selected, namespace: photos, selectionChanged: select)
         }
@@ -94,7 +101,7 @@ struct VirtualWalkthrough: View {
                 Button("\(item.number). \(item.title)") { select(item.number) }
             }
         } label: {
-            Image(systemName: "list.bullet").font(.body.weight(.semibold)).frame(width: 48, height: 48).canyonControl()
+            Image(systemName: "list.bullet")
         }.foregroundStyle(FieldPalette.green).accessibilityLabel("Choose a structure")
     }
     private func step(_ delta: Int) {
@@ -109,6 +116,7 @@ struct VirtualWalkthrough: View {
 
 /// Uses the original map and calibrated points. No suggested walking route is invented.
 struct SpatialAtlas: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var locationService: LocationService
     @EnvironmentObject private var dataStore: DataStore
     let selected: Int
@@ -124,8 +132,8 @@ struct SpatialAtlas: View {
             let focus = locationService.getMapPointForStructure(selected)?.pixelPosition ?? CanyonAtlasGeometry.defaultFocus
             let layout = CanyonAtlasGeometry(size: size, focus: focus, overview: overview)
             ZStack(alignment: .topLeading) {
-                Color.white
-                Image("LightMapNN").resizable()
+                CanyonStyle.paper
+                Image(colorScheme == .dark ? "DarkMapNN" : "LightMapNN").resizable()
                     .frame(width: layout.imageSize.width, height: layout.imageSize.height)
                     .offset(x: layout.origin.x, y: layout.origin.y).accessibilityHidden(true)
                 ForEach(showsMarkers ? dataStore.structures : [], id: \.number) { item in
@@ -135,7 +143,7 @@ struct SpatialAtlas: View {
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                 .foregroundStyle(item.number == selected ? .white : FieldPalette.green)
                                 .frame(width: item.number == selected ? 36 : 6, height: item.number == selected ? 36 : 6)
-                                .background(item.number == selected ? FieldPalette.green : .white, in: Circle())
+                                .background(item.number == selected ? CanyonStyle.evergreen : CanyonStyle.paper, in: Circle())
                                 .overlay { Circle().stroke(FieldPalette.gold, lineWidth: item.number == selected ? 3 : 1) }
                                 .background { if item.number == selected { SelectedMarkerGlow(reduceMotion: reduceMotion) } }
                                 .frame(width: 44, height: 44)
@@ -222,11 +230,11 @@ private final class AtlasScrollView: UIScrollView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .white
+        backgroundColor = .systemBackground
         contentInsetAdjustmentBehavior = .never
         showsHorizontalScrollIndicator = false
         alwaysBounceVertical = true
-        host.view.backgroundColor = .white
+        host.view.backgroundColor = .systemBackground
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 

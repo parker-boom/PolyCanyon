@@ -14,6 +14,14 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Theme:").font(.subheadline.weight(.medium))
+                    Picker("Theme", selection: $appState.theme) {
+                        ForEach(AppTheme.allCases) { theme in Text(theme.title).tag(theme) }
+                    }.pickerStyle(.segmented)
+                }.padding(.vertical, 4)
+            }
             if showsLocation && appState.exploresInPerson {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
@@ -55,8 +63,8 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         .scrollContentBackground(.hidden)
-        .background(.white)
-        .tint(Color(red: 0.15, green: 0.27, blue: 0.21))
+        .background(CanyonStyle.paper)
+        .tint(CanyonStyle.ink)
         .sheet(isPresented: $showsCredits) {
             NavigationStack {
                 GuideCreditsView()
@@ -73,7 +81,6 @@ struct SettingsView: View {
             }
         }
         .onDisappear { pendingPermission = false }
-        .preferredColorScheme(.light)
     }
 
     private var locationTitle: String {

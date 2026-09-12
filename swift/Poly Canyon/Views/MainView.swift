@@ -40,7 +40,7 @@ struct MainView: View {
                 }
             }
             .overlay(alignment: .top) {
-                if appState.adventureModeEnabled && (dataStore.lastVisitedStructure != nil || dataStore.lastVisitedGhostStructure != nil) {
+                if appState.adventureModeEnabled {
                     VisitNotificationView().padding(.horizontal, 16).padding(.top, 8)
                 }
             }
@@ -84,8 +84,13 @@ struct MainView: View {
     }
 }
 enum CanyonStyle {
-    static let paper = Color.white
-    static let ink = Color(red: 0.15, green: 0.27, blue: 0.21)
+    static let paper = Color(uiColor: .systemBackground)
+    static let ink = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.83, green: 0.90, blue: 0.81, alpha: 1)
+            : UIColor(red: 0.15, green: 0.27, blue: 0.21, alpha: 1)
+    })
+    static let evergreen = Color(red: 0.15, green: 0.27, blue: 0.21)
 }
 /// Glass is reserved for controls floating above the content.
 struct CanyonControl: ViewModifier {
