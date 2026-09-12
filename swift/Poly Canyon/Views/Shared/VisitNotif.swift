@@ -2,23 +2,33 @@ import SwiftUI
 
 /// A discovery is a quiet invitation; it never blocks continued map exploration.
 struct VisitNotificationView: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var dataStore: DataStore
-    private var structure: Structure? {
+    @EnvironmentObject private var dataStore: DataStore
+    @State private var presentation: StructurePresentation?
+    @State private var presentingSource: Structure?
+    @Namespace private var discovery
+
+    private var latest: Structure? {
         dataStore.lastVisitedStructure ?? dataStore.lastVisitedGhostStructure.map(dataStore.ghostStructureToDisplayStructure)
     }
+
     var body: some View {
-        if let structure {
-            DiscoveryBanner(structure: structure, open: {
-                if structure.number >= 100 {
-                    appState.ghostStructInfoNum = structure.number
-                    appState.activeFullScreenView = .ghostStructInfo
-                } else {
-                    appState.structInfoNum = structure.number
-                    appState.activeFullScreenView = .structInfo
-                }
-                dataStore.dismissLastVisitedStructure()
-            }, dismiss: { dataStore.dismissLastVisitedStructure() })
+        Group {
+            if let structure = presentingSource ?? latest {
+                DiscoveryBanner(structure: structure, open: {
+                    presentingSource = structure
+                    dataStore.dismissLastVisitedStructure()
+                    let numbers = structure.number >= 100
+                        ? dataStore.ghostStructures.map(dataStore.ghostStructureToDisplayStructure).map(\.number)
+                        : dataStore.structures.map(\.number)
+                    presentation = StructurePresentation(numbers: numbers, selected: structure.number)
+                }, dismiss: { dataStore.dismissLastVisitedStructure() })
+                .modifier(StructureZoomSource(id: structure.number, namespace: discovery))
+            }
+        }
+        .fullScreenCover(item: $presentation, onDismiss: {
+            presentingSource = nil
+        }) { selection in
+            StructureExperience(numbers: selection.numbers, selected: selection.selected, namespace: discovery, transitionSourceNumber: selection.selected)
         }
     }
 }
@@ -46,7 +56,7 @@ struct DiscoveryBanner: View {
             }.accessibilityLabel("Dismiss discovery")
         }
         .padding(12).foregroundStyle(CanyonStyle.ink)
-        .background(CanyonStyle.paper, in: RoundedRectangle(cornerRadius: 20))
+        .modifier(CanyonCardSurface())
         .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
     }
 }

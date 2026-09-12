@@ -10,6 +10,7 @@ struct StructurePresentation: Identifiable {
 struct StructureExperience: View {
     let numbers: [Int]
     let namespace: Namespace.ID?
+    let transitionSourceNumber: Int?
     var recordsOpening = true
     var selectionChanged: (Int) -> Void = { _ in }
     @EnvironmentObject private var dataStore: DataStore
@@ -17,9 +18,10 @@ struct StructureExperience: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selected: Int
 
-    init(numbers: [Int], selected: Int, namespace: Namespace.ID? = nil, recordsOpening: Bool = true, selectionChanged: @escaping (Int) -> Void = { _ in }) {
+    init(numbers: [Int], selected: Int, namespace: Namespace.ID? = nil, transitionSourceNumber: Int? = nil, recordsOpening: Bool = true, selectionChanged: @escaping (Int) -> Void = { _ in }) {
         self.numbers = numbers
         self.namespace = namespace
+        self.transitionSourceNumber = transitionSourceNumber
         self.recordsOpening = recordsOpening
         self.selectionChanged = selectionChanged
         _selected = State(initialValue: selected)
@@ -55,7 +57,7 @@ struct StructureExperience: View {
 
         }
         .tint(StoryPalette.ink)
-        .modifier(OptionalStructureTransition(id: selected, namespace: namespace))
+        .modifier(OptionalStructureTransition(id: transitionSourceNumber ?? selected, namespace: namespace))
         .onAppear { markSelectedAsOpened() }
         .onChange(of: selected) { selectionChanged($0); markSelectedAsOpened() }
     }

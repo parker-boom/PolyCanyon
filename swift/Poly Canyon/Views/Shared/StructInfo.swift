@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import SafariServices
 
 // Map selections still enter through the existing route. Catalog links push the story directly.
 struct StructInfo: View {
@@ -40,6 +41,7 @@ struct StructureStory: View {
     @EnvironmentObject private var dataStore: DataStore
     @State private var gallery: GallerySelection?
     @State private var showResearch = false
+    @State private var showingWebsite = false
     @Namespace private var photoNamespace
     @State private var visiblePhotoIndices: Set<Int> = []
     @State private var gallerySourceIndices: Set<Int> = []
@@ -109,14 +111,17 @@ struct StructureStory: View {
                         }
                         .tint(StoryPalette.ink)
                         if let websiteURL = structure.websiteURL {
-                            Link(destination: websiteURL) {
+                            Button { showingWebsite = true } label: {
                                 HStack {
                                     Text("More at polycanyon.com")
                                     Image(systemName: "arrow.up.right").font(.caption)
                                 }
                             }
                             .font(.subheadline)
-                            .accessibilityHint("Opens this structure on the website; requires an internet connection")
+                            .accessibilityHint("Opens this structure’s website article inside the app")
+                            .sheet(isPresented: $showingWebsite) {
+                                StructureWebsite(url: websiteURL).ignoresSafeArea()
+                            }
                         }
                     }
                     .padding(24)
@@ -334,4 +339,20 @@ private struct StoryHorizontalPan: UIGestureRecognizerRepresentable {
 private struct StoryContentTop: PreferenceKey {
     static var defaultValue: CGFloat { 0 }
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct StructureWebsite: UIViewControllerRepresentable {
+    @Environment(\.colorScheme) private var colorScheme
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.dismissButtonStyle = .done
+        updateUIViewController(controller, context: context)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: SFSafariViewController, context: Context) {
+        controller.overrideUserInterfaceStyle = colorScheme == .dark ? .dark : .light
+    }
 }

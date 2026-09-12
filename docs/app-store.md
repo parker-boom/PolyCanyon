@@ -14,14 +14,12 @@ Explore from wherever you are. Swipe from one structure to the next as the map m
 EVERY STRUCTURE HAS A STORY.
 Browse by photograph, search by name, number, or year, and look back through historical images. From Shell House to traces of structures long gone, discover the ideas and people that shaped the canyon.
 
-## What’s new in 6.1
+## What’s new in 6.2
 
-A new look for Poly Canyon, day and night.
+Discover more without leaving the app.
 
-• A new Shell House-inspired app icon.
-• Full dark mode, with System, Light, and Dark themes.
-• Smoother virtual touring and swipe-down to close structure stories.
-• Direct links to each structure’s page on the website.
+• Liquid Glass discovery cards open smoothly into structure stories.
+• Explore each structure’s website article inside the app, then return right where you left off.
 
 ## Keywords
 

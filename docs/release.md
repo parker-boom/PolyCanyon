@@ -14,7 +14,9 @@ The CI archive is unsigned and checks compilation; it is not the distribution ar
 
 ## Current releases
 
-6.0 build 2 is published on the App Store. The 6.1 update adds the Shell Sweep icon, persistent System/Light/Dark themes, revised onboarding, and navigation polish. Its signed build 3 was archived, exported, and uploaded on September 10, 2026. The release draft retains manual release and the approved App Store screenshots. App Store Connect is the authority for processing and review status.
+6.1 build 3 was released on September 11, 2026. It includes the Shell Sweep icon, persistent System/Light/Dark themes, revised onboarding, and navigation polish.
+
+6.2 build 4 adds native glass discovery transitions and opens structure website articles in an in-app Safari sheet. The release retains the current screenshots and manual release after approval. App Store Connect is the authority for processing and review status.
 
 The privacy disclosure now states **Data Not Collected**, matching the app’s on-device behavior.
 
